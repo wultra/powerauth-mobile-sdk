@@ -167,7 +167,7 @@ typedef NS_ENUM(int, PowerAuthCoreSignatureFormat) {
      */
     PowerAuthCoreSignatureFormat_ECDSA_DER = 1,
     /**
-     ECDSA signature in JOSE format is epxpected at input, or produced at output.
+     ECDSA signature in JOSE format is expected at input, or produced at output.
      */
     PowerAuthCoreSignatureFormat_ECDSA_JOSE = 2
 };

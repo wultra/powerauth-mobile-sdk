@@ -25,6 +25,7 @@
 
 #include <PowerAuth/Credentials.h>
 #include <PowerAuth/Encryptor.h>
+#include <PowerAuth/ActivationResult.h>
 #include <PowerAuth/ActivationStatus.h>
 
 #include <PowerAuth/PowerAuthSpec.h>
@@ -112,7 +113,7 @@ public:
     /// - Returns: Request data for create activation endpoint.
     /// - Throws:
     ///   - `Exception` in case that activation cannot be created.
-    RequestPtr createActivation(cc7::json::JsonValue L1_data, cc7::json::JsonValue L2_data);
+    RequestPtr createActivation(const cc7::json::JsonValue& L1_data, const cc7::json::JsonValue& L2_data);
     
     /// Confirm PowerAuth activation with initial credentials.
     /// - Parameter credentials: Initial credentials.
@@ -122,12 +123,21 @@ public:
     ///   - `Exception` in case that activation cannot be confirmed.
     RequestPtr confirmActivation(InitialCredentialsPtr credentials);
 
+    /// Get information whether the session has pending create activation task.
+    /// To complete activation, call `confirmActivation()`.
+    bool hasPendingCreateActivation() const noexcept;
+    
     /// Get information whether the session contains valid activation data.
     bool hasValidActivationData() const noexcept;
     
     /// Get activation identifier.
     /// - Returns: Activation identifier or empty string if there's no activation.
     std::string activationId() const noexcept;
+    
+    /// Get human readable fingerprint calculated from device and server's public keys.
+    /// - Returns: Human readable fingerprint calculated from device and server's public keys.
+    ///            An empty string is returned in case there's no activation.
+    std::string activationFingerprint() const noexcept;
     
     /// Fetch activation status.
     ///

@@ -40,7 +40,7 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertNil(act1.name);
     XCTAssertNil(act1.extras);
     XCTAssertNil(act1.customAttributes);
-    XCTAssertTrue([act1 validate]);
+    XCTAssertTrue([act1 validate:nil]);
     
     PowerAuthActivation * act2 = [PowerAuthActivation activationWithActivationCode:@"3PZ2Z-DOXSL-PSSQI-I5VBA#MEQCIHP3LQ7WLDEPe8WCgdQ8CSwyxbErroYlGO+K6pIX1JyhAiAn6wEnaNp1mDdKlWb16Ma8eTKycRcZ+75TYV/zn0yvFw=="
                                                                               name:@"Troyplatnitchka"
@@ -52,7 +52,7 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertEqualObjects(@"3PZ2Z-DOXSL-PSSQI-I5VBA", act2.activationCode.activationCode);
     XCTAssertEqualObjects(@"MEQCIHP3LQ7WLDEPe8WCgdQ8CSwyxbErroYlGO+K6pIX1JyhAiAn6wEnaNp1mDdKlWb16Ma8eTKycRcZ+75TYV/zn0yvFw==", act2.activationCode.activationSignature);
     XCTAssertEqualObjects(@"Troyplatnitchka", act2.name);
-    XCTAssertTrue([act2 validate]);
+    XCTAssertTrue([act2 validate:nil]);
     
     PowerAuthActivation * act3 = [[PowerAuthActivation activationWithActivationCode:@"55555-55555-55555-55YMA"
                                                                                name:@"Troyplatnitchka"
@@ -64,7 +64,7 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertEqualObjects(@"55555-55555-55555-55YMA", act3.activationCode.activationCode);
     XCTAssertEqualObjects(@"Troyplatnitchka", act3.name);
     XCTAssertEqualObjects(@"1234", act3.additionalActivationOtp);
-    XCTAssertTrue([act3 validate]);
+    XCTAssertTrue([act3 validate:nil]);
 }
 
 - (void) testRegularActivationInvalid
@@ -96,7 +96,7 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertNil(act1.name);
     XCTAssertNil(act1.extras);
     XCTAssertNil(act1.customAttributes);
-    XCTAssertTrue([act1 validate]);
+    XCTAssertTrue([act1 validate:nil]);
 
     PowerAuthActivation * act2 = [PowerAuthActivation activationWithOidcProviderId:providerId code:code nonce:nonce codeVerifier:codeVerifier error:&error];
     XCTAssertNotNil(act2);
@@ -107,7 +107,7 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertNil(act2.name);
     XCTAssertNil(act2.extras);
     XCTAssertNil(act2.customAttributes);
-    XCTAssertTrue([act2 validate]);
+    XCTAssertTrue([act2 validate:nil]);
 }
 
 #pragma mark - Custom
@@ -127,7 +127,7 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertNil(act1.name);
     XCTAssertNil(act1.extras);
     XCTAssertNil(act1.customAttributes);
-    XCTAssertTrue([act1 validate]);
+    XCTAssertTrue([act1 validate:nil]);
     
     id act2Identity = @{ @"username" : @"elvis", @"password" : @"lives" };
     id act2IdentityExp = @{ @"username" : @"elvis", @"password" : @"lives" };
@@ -139,7 +139,7 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertEqualObjects(act2IdentityExp, act2.identityAttributes);
     XCTAssertNil(act2.activationCode);
     XCTAssertEqualObjects(@"Elvis", act2.name);
-    XCTAssertTrue([act2 validate]);
+    XCTAssertTrue([act2 validate:nil]);
 }
 
 - (void) testCustomActivationInvalid
@@ -147,9 +147,12 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     NSError * error = nil;
     PowerAuthActivation * act1 = [PowerAuthActivation activationWithIdentityAttributes:@{} name:nil error:&error];
     XCTAssertNil(act1);
+    XCTAssertNotNil(error);
+    error = nil;
     PowerAuthActivation * act2 = [[PowerAuthActivation activationWithIdentityAttributes:@{ @"username" : @"elvis", @"password" : @"lives" } name:nil error:&error] withAdditionalActivationOtp:@"1234"];
     XCTAssertNotNil(act2);
-    error = [act2 validateAndGetError];
+    XCTAssertNil(error);
+    XCTAssertFalse([act2 validate:&error]);
     XCTAssertNotNil(error);
     XCTAssertTrue([PowerAuthErrorDomain isEqualToString:error.domain]);
     XCTAssertEqual(PowerAuthErrorCode_InvalidActivationData, error.code);
@@ -175,7 +178,7 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertEqualObjects(@"foo", act1.name);
     XCTAssertEqualObjects(expectedExtras, act1.extras);
     XCTAssertEqualObjects(expectedCustomAttrs, act1.customAttributes);
-    XCTAssertTrue([act1 validate]);
+    XCTAssertTrue([act1 validate:nil]);
         
     // Custom
     id act3Identity = @{ @"username" : @"elvis", @"password" : @"lives" };
@@ -192,7 +195,7 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertEqualObjects(@"Elvis", act3.name);
     XCTAssertEqualObjects(expectedExtras, act3.extras);
     XCTAssertEqualObjects(expectedCustomAttrs, act3.customAttributes);
-    XCTAssertTrue([act3 validate]);
+    XCTAssertTrue([act3 validate:nil]);
 }
 
 @end

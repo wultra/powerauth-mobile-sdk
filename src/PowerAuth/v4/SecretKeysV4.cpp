@@ -160,7 +160,9 @@ void SecretKeysV4::setupSessionData(const SessionData &session_data)
             _pool.setKey(KEY_SHARED_SECRET, default_input, rd.calculatedSharedSecret);
         }
         // Use generated device private key
-        _device_private = rd.deviceKeyPair->getPrivateKeyPtr();
+        if (rd.deviceKeyPair) {
+            _device_private = rd.deviceKeyPair->getPrivateKeyPtr();
+        }
         
         // other data
         _pool.setKey(IN_ACTIVATION_ID, any_input, MakeRange(rd.activationId));

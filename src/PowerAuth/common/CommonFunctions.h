@@ -1,0 +1,41 @@
+/*
+ * Copyright 2025 Wultra s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <cc7/crypto/Crypto.h>
+
+namespace powerAuth {
+namespace common {
+
+/// Determine whether provided key is EC key.
+/// - Parameter key: Key to test.
+bool IsEcKey(const cc7::crypto::Key& key) noexcept;
+
+/// Function exports key to normalized form. The method is useful for various fingerprint calculations.
+/// - Parameter public_key: Public key.
+cc7::ByteArray ExportKeyToNormalizedForm(const cc7::crypto::PublicKey& public_key);
+
+/// Calculate human readable code from given hash.
+/// - Parameters:
+///   - hash: Input hash.
+///   - code_size: Expected size of code.
+/// - Throws:
+///   - `Exception` with `EC_WrongParam` in case that `hash` is too short, or `code_size` is out of range.
+std::string CalculateHumanReadableCodeFromHash(const cc7::ByteRange& hash, size_t code_size);
+
+} // namespace common
+} // namespace powerAuth

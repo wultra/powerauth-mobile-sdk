@@ -53,17 +53,21 @@
 
 PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 {
+    if (serverVer >= PATS_V2_0) {
+        return PATS_P40;
+    }
     if (serverVer >= PATS_V1_9) {
         return PATS_P33;
     }
     if (serverVer >= PATS_V1_5) {
         return PATS_P32;
     }
-    return PATS_P31;
+    return PATS_P40;
 }
 
 static int s_KnownVersions[] = {
-    PATS_V1_0, PATS_V1_1, PATS_V1_2, PATS_V1_2_5, PATS_V1_3, PATS_V1_4, PATS_V1_5, PATS_V1_6, PATS_V1_7, PATS_V1_8, PATS_V1_9, PATS_V1_10
+    PATS_V1_0, PATS_V1_1, PATS_V1_2, PATS_V1_2_5, PATS_V1_3, PATS_V1_4, PATS_V1_5, PATS_V1_6, PATS_V1_7, PATS_V1_8, PATS_V1_9, PATS_V1_10,
+    PATS_V2_0
     ,
     0
 };
@@ -81,9 +85,9 @@ static int s_KnownVersions[] = {
     if (components.count < 2) {
         @throw [NSException exceptionWithName:@"RestError" reason:[NSString stringWithFormat:@"Unknown server version %@", stringVersion] userInfo:nil];
     }
-    NSNumber * major = components[0];
-    NSNumber * minor = components[1];
-    NSNumber * patch = components.count > 2 ? components[2] : nil;
+    NSString * major = components[0];
+    NSString * minor = components[1];
+    NSString * patch = components.count > 2 ? components[2] : nil;
     int version = [major intValue] * 10000 + [minor intValue] * 100 + [patch intValue];
     BOOL found = NO;
     int idx = 0;

@@ -51,5 +51,8 @@
 /// - Returns: YES in there's pending request for time synchronization.
 - (BOOL) hasPendingTimeSynchronizationRequest;
 
+/// Reset time synchronization.
+- (void) resetTimeSynchronization;
+
 @end
 

@@ -17,8 +17,6 @@
 #import <PowerAuth2/PowerAuthRestApiErrorResponse.h>
 #import <PowerAuth2/PowerAuthOperationTask.h>
 
-#import "PA2HttpRequest.h"
-
 /**
  The `PA2AsyncOperation` implements a simple asynchronous NSOperation,
  which delegates its operation to "executionBlock". You can also specify

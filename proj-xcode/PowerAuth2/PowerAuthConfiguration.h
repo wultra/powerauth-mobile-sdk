@@ -19,11 +19,28 @@
 
 #import <PowerAuth2/PowerAuthSharingConfiguration.h>
 
-/** Class that represents a PowerAuthSDK instance configuration.
- */
+/// The `PowerAuthAlgorithm` enumeration defines algorithms available for PowerAuth
+/// initialization. The algorithm specifies also the protocol version used for communication
+/// with the server.
+typedef NS_ENUM(NSInteger, PowerAuthAlgorithm) {
+    /// Algorithm identifier for legacy protocol V3.3.
+    ///
+    /// If used in `PowerAuthConfiguration`, then the protocol upgrade is automatically disabled
+    /// and instance of `PowerAuthSDK` will use legacy protocol only for communicating with the server.
+    PowerAuthAlgorithm_LEGACY_P256 = 0,
+    /// Algorithm identifier for V4 protocol, using only cryptography based on elliptic curves.
+    PowerAuthAlgorithm_EC_P384 = 1,
+    /// Algorithm identifier for V4 protocol, using quantum resistant algorithms combined with
+    /// elliptic curves.
+    PowerAuthAlgorithm_EC_P384_ML_L3 = 2,
+    /// Default algorithm. Value is identical to `PowerAuthAlgorithm_EC_P384_ML_L3`.
+    PowerAuthAlgorithm_DEFAULT = PowerAuthAlgorithm_EC_P384_ML_L3
+};
+
 
 @class PowerAuthCoreData;
 
+/// Class that represents a PowerAuthSDK instance configuration.
 @interface PowerAuthConfiguration : NSObject<NSCopying>
 
 /// No longer available. Use `init(instanceId:baseEndpointUrl:configuration:)` instead.
@@ -34,29 +51,38 @@
 ///   - instanceId: Identifier of the PowerAuthSDK instance, used as a 'key' to store session state in the session state keychain.
 ///   - baseEndpointUrl: Base URL to the PowerAuth Standard RESTful API (the URL part before "/pa/...").
 ///   - configuration: String with the cryptographic configuration.
+///   - algorithm: PowerAuth algorithm selected for communication with the server.
+- (nonnull instancetype) initWithInstanceId:(nonnull NSString*)instanceId
+                            baseEndpointUrl:(nonnull NSString*)baseEndpointUrl
+                              configuration:(nonnull NSString*)configuration
+                                  algorithm:(PowerAuthAlgorithm)algorithm;
+
+/// Initialize object with all required parameters.
+/// - Parameters:
+///   - instanceId: Identifier of the PowerAuthSDK instance, used as a 'key' to store session state in the session state keychain.
+///   - baseEndpointUrl: Base URL to the PowerAuth Standard RESTful API (the URL part before "/pa/...").
+///   - configuration: String with the cryptographic configuration.
 - (nonnull instancetype) initWithInstanceId:(nonnull NSString*)instanceId
                             baseEndpointUrl:(nonnull NSString*)baseEndpointUrl
                               configuration:(nonnull NSString*)configuration;
 
-/** Identifier of the PowerAuthSDK instance, used as a 'key' to store session state in the session state keychain.
- */
+/// Identifier of the PowerAuthSDK instance, used as a 'key' to store session state in the session state keychain.
 @property (nonatomic, strong, nonnull, readonly) NSString *instanceId;
 
-/** Base URL to the PowerAuth Standard RESTful API (the URL part before "/pa/...").
- */
+/// Base URL to the PowerAuth Standard RESTful API (the URL part before "/pa/...").
 @property (nonatomic, strong, nonnull, readonly) NSString *baseEndpointUrl;
 
-/** String with the cryptographic configuration.
- */
+/// String with the cryptographic configuration.
 @property (nonatomic, strong, nonnull, readonly) NSString *configuration;
 
-/** This value specifies 'key' used to store this PowerAuthSDK instance biometry related key in the biometry key keychain.
- */
+/// This value specifies 'key' used to store this PowerAuthSDK instance biometry related key in the biometry key keychain.
 @property (nonatomic, strong, nonnull) NSString *keychainKey_Biometry;
 
-/** Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
- */
+/// Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
 @property (nonatomic, strong, nullable) PowerAuthCoreData * externalEncryptionKey;
+
+/// Algorithm selected for
+@property (nonatomic, assign) PowerAuthAlgorithm algorithm;
 
 /**
  If set to YES, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.

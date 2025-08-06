@@ -62,4 +62,13 @@ const RegistrationData::V3& RegistrationData::v3() const
     throw Exception(EC_NotAllowed, "V3 data not available");
 }
 
+std::string RegistrationData::getActivationId() const
+{
+    auto activation_id = _version == Version_V4 ? _v4->activationId : _v3->activationId;
+    if (activation_id.empty()) {
+        throw Exception(EC_MissingActivation, "Activation ID is not available yet");
+    }
+    return activation_id;
+}
+
 } // namespace powerAuth

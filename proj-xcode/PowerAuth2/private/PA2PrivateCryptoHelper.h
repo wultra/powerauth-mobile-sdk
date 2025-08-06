@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-#import "PA2PrivateEncryptorFactory.h"
+#import <PowerAuth2/PowerAuthCoreSessionProvider.h>
 
 @class PA2RestApiEndpoint;
 @class PowerAuthAuthorizationHttpHeader;
-@class PowerAuthCoreEciesEncryptor;
 @class PowerAuthAuthentication;
 @class PA2KeystoreService;
 /**
@@ -28,12 +27,6 @@
  do not import public `"PowerAuthSDK.h"` header from SDK internals.
  */
 @protocol PA2PrivateCryptoHelper
-
-/**
- Returns ECIES encryptor for given identifier.
- */
-- (PowerAuthCoreEciesEncryptor*) encryptorWithId:(PA2EncryptorId)encryptorId
-                                           error:(NSError**)error;
 
 /**
  Calculates PowerAuth authorization code for data & endpoint.

@@ -167,10 +167,10 @@ void Context::createBasicServices(bool initial_setup)
     _session_data = std::make_shared<SessionData>();
     if (protocolVersion() == Version_V4) {
         // V4
+        _shared_secret = SharedSecret::getInstance(specification()->sharedSecret());
         _key_provider = std::make_shared<v4::KeyProviderV4>(self);
         _encryptor_factory = std::make_shared<v4::AeadEncryptorFactory>(self);
         _activation_service = std::make_shared<v4::ActivationServiceV4>(self);
-        _shared_secret = SharedSecret::getInstance(specification()->sharedSecret());
     } else {
         // V3
         _key_provider = std::make_shared<v3::KeyProviderV3>(self);

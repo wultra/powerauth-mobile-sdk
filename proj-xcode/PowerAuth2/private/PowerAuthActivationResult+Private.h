@@ -1,5 +1,5 @@
-/**
- * Copyright 2021 Wultra s.r.o.
+/*
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-#import "PA2EncryptedResponse.h"
-#import "PA2PrivateMacros.h"
+#import <PowerAuth2/PowerAuthActivationResult.h>
 
-@import PowerAuthCore;
+@class PowerAuthCoreActivationResult;
 
-@implementation PA2EncryptedResponse
+@interface PowerAuthActivationResult (Private)
 
-- (instancetype) initWithDictionary:(NSDictionary *)dict
-{
-    self = [super init];
-    if (self) {
-        _cryptogram = [[PowerAuthCoreEciesCryptogram alloc] initWithResponsePayload:dict];
-    }
-    return self;
-}
+- (instancetype) initWithCoreActivationResult:(PowerAuthCoreActivationResult*)result;
 
 @end

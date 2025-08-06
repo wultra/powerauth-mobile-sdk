@@ -38,14 +38,25 @@ using namespace powerAuth;
     return self;
 }
 
-- (nullable PowerAuthCoreEncryptor*) encryptorForApplicationScope:(NSError*_Nullable*_Nullable)error
+- (nullable PowerAuthCoreEncryptor*) createEncryptorWithScope:(PowerAuthCoreEncryptorScope)scope
+                                                  error:(NSError*_Nullable*_Nullable)error
 {
-    return [self encryptorWithScope:PowerAuthCoreEncryptorScope_Application error:error];
-}
-
-- (nullable PowerAuthCoreEncryptor*) encryptorForActivationScope:(NSError*_Nullable*_Nullable)error
-{
-    return [self encryptorWithScope:PowerAuthCoreEncryptorScope_Activation error:error];
+    try {
+        if (scope == PowerAuthCoreEncryptorScope_None) {
+            throw Exception(EC_WrongParameter, "PowerAuthCoreEncryptorScope_None cannot be used");
+        }
+        auto encryptorId = (scope == PowerAuthCoreEncryptorScope_Application)
+                            ? EncryptorId::APPLICATION_SCOPE_GENERIC
+                            : EncryptorId::ACTIVATION_SCOPE_GENERIC;
+        auto encryptor = _factory->getClientEncryptor(encryptorId);
+        return [[PowerAuthCoreEncryptor alloc] initWithEncryptor:encryptor
+                                                           scope:scope];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
 }
 
 - (nullable PowerAuthCoreRequest*) fetchTemporaryKeyForScope:(PowerAuthCoreEncryptorScope)scope
@@ -80,33 +91,6 @@ using namespace powerAuth;
         return _factory->hasTemporaryKey(static_cast<EncryptorScope>(scope));
     }
     return NO;
-}
-
-
-/// Function creates Objective-C wrapper for selected encryptor scope.
-/// - Parameters:
-///   - scope: Scope of encryptor to create.
-///   - error: Pointer where the error will be stored in case of failure.
-/// - Returns: Constructed encryptor or nil in case of failure.
-- (nullable PowerAuthCoreEncryptor*) encryptorWithScope:(PowerAuthCoreEncryptorScope)scope
-                                                  error:(NSError*_Nullable*_Nullable)error
-{
-    try {
-        if (scope == PowerAuthCoreEncryptorScope_None) {
-            throw Exception(EC_WrongParameter, "PowerAuthCoreEncryptorScope_None cannot be used");
-        }
-        auto encryptorId = (scope == PowerAuthCoreEncryptorScope_Application)
-                            ? EncryptorId::APPLICATION_SCOPE_GENERIC
-                            : EncryptorId::ACTIVATION_SCOPE_GENERIC;
-        auto encryptor = _factory->getClientEncryptor(encryptorId);
-        return [[PowerAuthCoreEncryptor alloc] initWithEncryptor:encryptor
-                                                           scope:scope];
-    } catch (...) {
-        if (error) {
-            *error = BuildNSErrorFromException();
-        }
-        return nil;
-    }
 }
 
 @end

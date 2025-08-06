@@ -47,6 +47,16 @@ ConstPowerAuthSpecPtr SessionData::getSpecification() const noexcept
     return nullptr;
 }
 
+std::string SessionData::getActivationId() const
+{
+    if (hasPersistentData()) {
+        return persistentData().getActivationId();
+    } else if (hasRegistrationData()) {
+        return registrationData().getActivationId();
+    }
+    throw Exception(EC_MissingActivation, "Activation ID is not available");
+}
+
 bool SessionData::isModified() const noexcept
 {
     return _modified || ( _pd ? _pd->isModified() : false);

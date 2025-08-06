@@ -18,7 +18,8 @@
 #import <PowerAuth2/PowerAuthRestApiErrorResponse.h>
 #import <PowerAuth2/PowerAuthOperationTask.h>
 
-#import "PA2SessionInterface.h"
+#import "PA2TimeSynchronizationService.h"
+#import "PA2KeystoreService.h"
 
 @class PowerAuthCoreRequest;
 
@@ -27,18 +28,18 @@
 @interface PA2CoreHttpClient : NSObject<NSURLSessionDelegate>
 
 - (nonnull instancetype) initWithConfiguration:(nonnull PowerAuthClientConfiguration*)configuration
-                          coreSessionInterface:(nonnull id<PA2SessionInterface>)sessionInterface
+                              sessionInterface:(nonnull id<PA2SessionInterface>)sessionInterface
                                completionQueue:(nonnull dispatch_queue_t)queue
                                        baseUrl:(nonnull NSString*)baseUrl;
 
 /// Contains NSURLSession object created during the client initialization.
-@property (nonatomic, strong, nonnull, readonly) NSURLSession * session;
+@property (nonatomic, strong, nonnull, readonly) NSURLSession * urlSession;
 
 /// Contains serialization queue. The queue is unique per PA2HttpClient instance, so basically
-/// each instnace of PowerAuthSDK has its own queue.
+/// each instance of PowerAuthSDK has its own queue.
 ///
 /// Note that the queue may be blocked for an indefinite amount of time, when the biometry
-/// authentication is requested. The reson for that is that the entry, protected by biometry,
+/// authentication is requested. The reason for that is that the entry, protected by biometry,
 /// needs to be acquired from the underlying keychain.
 @property (nonatomic, strong, nonnull, readonly) NSOperationQueue * serialQueue;
 
@@ -46,13 +47,12 @@
 /// instances.
 @property (nonatomic, strong, nonnull, readonly) NSOperationQueue * concurrentQueue;
 
-
 /// Add core HTTP request for execution.
 /// - Parameters:
 ///   - request: Request to execute.
 ///   - completion: Completion callback.
 /// - Returns: Operation task representing asynchronous operation.
 - (nonnull id<PowerAuthOperationTask>) postCoreRequest:(nonnull PowerAuthCoreRequest*)request
-                                            completion:(void(^)(PowerAuthRestApiResponseStatus status, id response, NSError * error))completion;
+                                            completion:(void(^_Nonnull)(PowerAuthCoreRequest * _Nonnull request, id _Nullable response, NSError * _Nullable error))completion;
 
 @end

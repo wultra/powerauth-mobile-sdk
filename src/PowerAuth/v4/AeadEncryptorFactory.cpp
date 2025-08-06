@@ -20,6 +20,7 @@
 #include "../Context.h"
 #include "../request/RequestBuilder.h"
 #include "../request/EndpointSpec.h"
+#include "../v4/PowerAuthAEAD.h"
 
 #include <cc7/jwt/Jwt.h>
 
@@ -32,7 +33,7 @@ namespace v4 {
 
 #define LOCK_GUARD() std::lock_guard<std::recursive_mutex> _lock_guard(*_lock)
 
-const Timestamp AeadEncryptorFactory::KEY_EXPIRATION_THRESHOLD = 10000;
+const TimeInterval AeadEncryptorFactory::KEY_EXPIRATION_THRESHOLD = 10.0;
 const size_t AeadEncryptorFactory::GET_TEMP_KEY_CHALLENGE_SIZE = 32;
 
 AeadEncryptorFactory::AeadEncryptorFactory(const ContextPtr& context) :
@@ -49,6 +50,9 @@ AeadEncryptorFactory::AeadEncryptorFactory(const ContextPtr& context) :
     if (_key_provider->protocolVersion() != Version_V4) {
         throw Exception(EC_InternalError, "Unsupported key provider");
     }
+    // TODO: switch to CollisionResistantNonceGenerator
+    _application_key_info.nonceGenerator = crypto::DefaultNonceGenerator::getInstance(v4::PowerAuthAEAD::NONCE_SIZE);
+    _activation_key_info.nonceGenerator  = crypto::DefaultNonceGenerator::getInstance(v4::PowerAuthAEAD::NONCE_SIZE);
 }
 
 // MARK: - Service
@@ -201,13 +205,14 @@ cc7::json::JsonValue AeadEncryptorFactory::createTemporaryKeyRequest(EncryptorSc
         auto secrets = _key_provider->unlockSecretKeys();
         // begin secrets
         auto mac_key = act_scope ? secrets->keyMacGetActTempKey() : secrets->keyMacGetAppTempKey();
-        // end secrets
-        _key_provider->lockSecretKeys(secrets);
+        CC7_LOG("MAC key %s", mac_key.base64().c_str());
         
         auto jwt = jwt::JwtWriter()
-            .withJsonPayload(request.toJson())
-            .sign({ jwt::JwtKey::symmetricKey("HS256", mac_key) })
+            .withJsonPayload(request.toJson(), jwt::JwtHeader::JWT_TYPE)
+            .sign({ jwt::JwtKey::symmetricKey("HS384", mac_key) })
             .toCompact();
+        // end secrets
+        _key_provider->lockSecretKeys(secrets);
         
         // Build request payload
         return json::JsonValue::object({
@@ -244,7 +249,8 @@ void AeadEncryptorFactory::completeTemporaryKeyRequest(EncryptorScope scope, con
     try {
         // verify JWS signatures
         auto jws_key_list = _BuildKeyList(act_scope ? _key_provider->serverPublicKey() : _key_provider->masterServerPublicKey());
-        auto payload = jwt::JwtReader::fromJson(json["jwt"])
+        auto jws_payload = json::JsonReader::fromJsonString(json["jwt"].asString());
+        auto payload = jwt::JwtReader::fromJson(jws_payload)
             .verify(jws_key_list)
             .getPayload();
         
@@ -266,11 +272,12 @@ void AeadEncryptorFactory::completeTemporaryKeyRequest(EncryptorScope scope, con
             // This makes no sense, but it seems that
             throw Exception(EC_InternalError, "ActivationID from response is no longer valid");
         }
-        _time_service->completeTimeSynchronizationTask(cdata.timeSynchronization, 0.001 * response.serverTime);
+        
+        _time_service->completeTimeSynchronizationTask(cdata.timeSynchronization, TimestampToTimeInterval(response.serverTime));
         auto secret = _shared_secret_algorithm->computeSharedSecret(cdata.sharedSecretContext, response.sharedSecretResponse);
         // Store all data
-        ki.created = 0.001 * response.serverTime;
-        ki.expires = 0.001 * response.expiration;
+        ki.created = TimestampToTimeInterval(response.serverTime);
+        ki.expires = TimestampToTimeInterval(response.expiration);
         ki.sharedSecret = secret;
         ki.keyIdentifier = response.keyId;
         // Reset information about pending request
@@ -346,7 +353,9 @@ AeadEncryptorFactory::TemporaryKeyData& AeadEncryptorFactory::keyInfo(EncryptorS
 AeadEncryptorFactory::TemporaryKeyData& AeadEncryptorFactory::validKeyInfo(EncryptorScope scope)
 {
     auto& ki = keyInfo(scope);
-    if (ki.isExpired(_time_service->currentTimeMillis())) {
+    auto now = _time_service->currentTime();
+    if (ki.isExpired(now)) {
+        CC7_LOG("Key %s created at %f is expired (%f > %f)", ki.keyIdentifier.c_str(), ki.created, now, ki.expires - KEY_EXPIRATION_THRESHOLD);
         ki.clear();
         throw Exception(EC_NotAllowed, "Temporary key is not valid or is expired");
     }

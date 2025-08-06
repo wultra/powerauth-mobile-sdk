@@ -19,6 +19,6 @@
 
 @interface PowerAuthServerStatus (Private)
 
-- (instancetype) initWithGetServerStatusResponse:(PA2GetServerStatusResponse*)response;
+- (instancetype) initWithJsonResponse:(id)response;
 
 @end

@@ -165,6 +165,15 @@ const ResponseObjectPtr& Request::getResponseObject() const
     return _response_object;
 }
 
+const cc7::json::JsonValue& Request::getResponseJson() const
+{
+    LOCK_GUARD();
+    if (_state != PROCESSED) {
+        throw Exception(EC_NotAllowed, "Response body is not available");
+    }
+    return _response_json;
+}
+
 void Request::processFailure(ErrorCode ec, const std::string& msg, std::exception_ptr failure)
 {
     _state = FAILED;
@@ -179,6 +188,7 @@ void Request::processFailure(ErrorCode ec, const std::string& msg, std::exceptio
 
 void Request::cleanup()
 {
+    _encryptor_factory = nullptr;
     _encryptor = nullptr;
     _authenticator = nullptr;
     _on_prepare = nullptr;
@@ -209,8 +219,9 @@ void Request::doPrepareRequest()
 
     prepareRequestBody();
 
-    if (is_encrypted) {
+    if (_encryptor_factory) {
         // Endpoint needs encryption
+        _encryptor = _encryptor_factory->getClientEncryptor(_endpoint.encryptorId);
         auto cryptogram = _encryptor->encryptRequest(_request_body);
         // Encode cryptogram to body
         _request_body = cc7::json::JsonWriter::toJsonData(cryptogram.requestPayload);
@@ -222,7 +233,7 @@ void Request::doPrepareRequest()
                                     cryptogram.requestHeaders.end());
         }
     }
-    if (is_authenticated) {
+    if (_authenticator) {
         // Calculate authorization header
         auto header = _authenticator->calculateOnlineAuthenticationHeader(*_authentication, {
             _endpoint.method,
@@ -298,6 +309,7 @@ void Request::doProcessResponse(const cc7::ByteRange& response_data)
     }
     if (_endpoint.isEncrypted()) {
         _response_body = _encryptor->decryptResponse({ _response_json });
+        _response_json = cc7::json::JsonReader::fromJsonData(_response_body);
         _encryptor = nullptr;
     } else {
         _request_body = response_data;

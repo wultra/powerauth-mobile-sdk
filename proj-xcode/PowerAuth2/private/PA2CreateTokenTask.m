@@ -77,8 +77,11 @@
 {
     [super onTaskCompleteWithResult:result error:error];
     PA2PrivateTokenData * tokenData = result.privateTokenData;
-    if (tokenData) {
-        [_tokenStore storeTokenData:tokenData];
+    if (!error && tokenData) {
+        [_tokenStore storeTokenData:tokenData error:&error];
+        if (error) {
+            PowerAuthLog(@"ERROR: storeTokenData() failed: %@", error);
+        }
     }
     [_tokenStore removeCreateTokenTask:_tokenName];
 }

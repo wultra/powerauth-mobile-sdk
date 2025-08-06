@@ -46,6 +46,13 @@ const size_t APPLICATION_SECRET_SIZE = 16;
 /// Minimal password length
 const size_t MINIMAL_PASSWORD_LENGTH = 4;
 
+/// Minimum length for human readable authentication code.
+const size_t DECIMAL_AUTH_CODE_MIN_LENGTH = 4;
+/// Maximum length for human readable authentication code.
+const size_t DECIMAL_AUTH_CODE_MAX_LENGTH = 8;
+
+/// Length of fingerprint calculated from activation public keys.
+const size_t ACTIVATION_FINGERPRINT_LENGTH = 8;
 
 } // namespace common
 

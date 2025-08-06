@@ -20,12 +20,13 @@
  The `PA2DefaultSessionProvider` provides PowerAuthCoreSession when no
  interprocess session sharing is required.
  */
-@interface PA2DefaultSessionInterface : NSObject<PA2SessionInterface, PowerAuthCoreDebugMonitor>
+@interface PA2DefaultSessionInterface : NSObject<PA2SessionInterface, PowerAuthCoreSessionDelegate>
 
 /**
  Initialize provider with session and persistent data provider.
  */
 - (nonnull instancetype) initWithSession:(nonnull PowerAuthCoreSession*)session
-                            dataProvider:(nonnull PA2SessionDataProvider*)dataProvider;
+                            dataProvider:(nonnull PA2SessionDataProvider*)dataProvider
+                                   error:(NSError*_Nullable*_Nullable)error;
 
 @end

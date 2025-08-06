@@ -49,19 +49,19 @@
     return cc7::objc::CopyToNSData(_config->deviceSpecificData());
 }
 
-+ (BOOL) validateSdkConfiguration:(nonnull NSString*)sdkConfiguration
++ (BOOL) validateConfiguration:(nonnull NSString*)configuration
 {
-    return powerAuth::Configuration::validateSdkConfig(cc7::objc::CopyFromNSString(sdkConfiguration));
+    return powerAuth::Configuration::validateSdkConfig(cc7::objc::CopyFromNSString(configuration));
 }
 
-+ (nullable PowerAuthCoreConfig*) buildWithSdkConfiguration:(nonnull NSString*)sdkConfiguration
-                                         deviceSpecificData:(nonnull NSData*)deviceSpecificData
-                                                 instanceId:(nonnull NSString*)instanceId
-                                                  algorithm:(PowerAuthCoreAlgorithm)algorithm
-                                                      error:(NSError*_Nullable*_Nullable)error
++ (nullable PowerAuthCoreConfig*) buildWithConfiguration:(nonnull NSString*)configuration
+                                      deviceSpecificData:(nonnull NSData*)deviceSpecificData
+                                              instanceId:(nonnull NSString*)instanceId
+                                               algorithm:(PowerAuthCoreAlgorithm)algorithm
+                                                   error:(NSError*_Nullable*_Nullable)error
 {
     try {
-        auto config = powerAuth::Configuration::Builder(cc7::objc::CopyFromNSString(sdkConfiguration),
+        auto config = powerAuth::Configuration::Builder(cc7::objc::CopyFromNSString(configuration),
                                                         static_cast<powerAuth::PowerAuthSpec::Algorithm>(algorithm))
             .withInstanceId(cc7::objc::CopyFromNSString(instanceId))
             .withDeviceSpecificData(cc7::objc::CopyFromNSData(deviceSpecificData))

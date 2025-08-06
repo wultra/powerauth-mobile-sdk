@@ -38,6 +38,9 @@ typedef void(^PowerAuthCoreRequestCallback)(id _Nullable response, NSError * _Nu
 /// If `PowerAuthCoreEncryptorScope_None` is used, then request has no encryption.
 @property (nonatomic, readonly) PowerAuthCoreEncryptorScope encryptorScope;
 
+/// Contains information whether this request is authenticated with authentication header.
+@property (nonatomic, readonly) BOOL isAuthenticated;
+
 /// Contains relative path to endpoint.
 @property (nonatomic, readonly, strong, nonnull) NSString* relativePath;
 
@@ -72,6 +75,8 @@ typedef void(^PowerAuthCoreRequestCallback)(id _Nullable response, NSError * _Nu
 /// Contains response object if this kind of request provide some response object.
 @property (nonatomic, readonly, strong, nullable) id responseObject;
 
+/// Contains response in JSON representation.
+@property (nonatomic, readonly, strong, nullable) id responseJson;
 
 /// Cancel the request and release underlying resources. You have to call this method
 /// when the operation is canceled by the application or when failure response is
@@ -107,6 +112,10 @@ typedef void(^PowerAuthCoreRequestCallback)(id _Nullable response, NSError * _Nu
 /// - Parameter operation: Operation to execute.
 /// - Returns: Value returned from operation block.
 - (nullable id) executeOperation:(id _Nullable (^_Nonnull)(void))operation;
+
+/// Custom data associated to the request and response processing. The request and response processing
+/// doesn't use this property, so it's up to higher layers of SDK how to use the property.
+@property (nonatomic, strong, nullable) id customRequestData;
 
 @end
 

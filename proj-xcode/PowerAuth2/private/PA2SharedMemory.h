@@ -31,7 +31,8 @@
  */
 + (nullable instancetype) namedSharedMemory:(nonnull NSString*)identifier
                                    withSize:(NSUInteger)requestedSize
-                                  setupOnce:(BOOL (NS_NOESCAPE^_Nonnull)(void * _Nonnull memory, NSUInteger size, BOOL create))setupBlock;
+                                  setupOnce:(BOOL (NS_NOESCAPE^_Nonnull)(void * _Nonnull memory, NSUInteger size, BOOL create, NSError*_Nullable*_Nullable error))setupBlock
+                                      error:(NSError*_Nullable*_Nullable)error;
 /**
  Pointer to bytes shared between processes.
  

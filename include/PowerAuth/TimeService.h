@@ -151,4 +151,24 @@ private:
 
 CC7_SHARED_PTR(TimeService)
 
+// Helper functions
+
+/// Convert time interval in seconds, into timestamp with milliseconds precision.
+/// - Parameter interval: Time interval to convert.
+/// - Returns: Timestamp with milliseconds precision.
+inline Timestamp TimeIntervalToTimestamp(TimeInterval interval)
+{
+    return static_cast<Timestamp>(1000.0 * interval);
+}
+
+/// Convert timestamp with milliseconds precision into time interval represented
+/// as floating point value.
+/// - Parameter timestamp: Timestamp to convert.
+/// - Returns: Time interval in seconds, represented as floating point value.
+inline TimeInterval TimestampToTimeInterval(Timestamp timestamp)
+{
+    return static_cast<TimeInterval>(0.001 * timestamp);
+}
+
+
 } // namespace powerAuth

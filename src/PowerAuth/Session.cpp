@@ -93,7 +93,13 @@ bool Session::canCreateActivation() const noexcept
     return !sd.hasRegistrationData() && !sd.hasPersistentData();
 }
 
-RequestPtr Session::createActivation(cc7::json::JsonValue L1_data, cc7::json::JsonValue L2_data)
+bool Session::hasPendingCreateActivation() const noexcept
+{
+    LOCK_GUARD();
+    return sessionData().hasRegistrationData();
+}
+
+RequestPtr Session::createActivation(const cc7::json::JsonValue& L1_data, const cc7::json::JsonValue& L2_data)
 {
     LOCK_GUARD();
     if (!canCreateActivation()) {
@@ -125,9 +131,23 @@ bool Session::hasValidActivationData() const noexcept
 std::string Session::activationId() const noexcept
 {
     LOCK_GUARD();
-    const auto& sd = sessionData();
-    if (sd.hasPersistentData()) {
-        return sd.persistentData().getActivationId();
+    try {
+        return sessionData().getActivationId();
+    } catch (...) {
+        return std::string();
+    }
+}
+
+std::string Session::activationFingerprint() const noexcept
+{
+    LOCK_GUARD();
+    try {
+        const auto& sd = sessionData();
+        if (sd.hasPersistentData() || sd.hasRegistrationData()) {
+            return _context->activationService().calculateActivationFingerprint();
+        }
+    } catch (...) {
+        // do nothing...
     }
     return std::string();
 }

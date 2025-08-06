@@ -18,10 +18,11 @@
 
 /// The `PowerAuthCoreAlgorithm` enumeration defines algorithms available for PowerAuth
 /// initialization.
+///
+/// If you update `PowerAuthCoreAlgorithm`, then please change also `PowerAuthAlgorithm`.
 typedef NS_ENUM(int, PowerAuthCoreAlgorithm) {
-    /// Algorithm identifier for legacy protocol V3.3
-    /// Note that this algorithm is not available for `PowerAuthCoreConfiguration` initialization.
-    PowerAuthCoreAlgorithm_LEGACY_P256,
+    /// Algorithm identifier for legacy protocol V3.3.
+    PowerAuthCoreAlgorithm_LEGACY_P256 = 0,
     /// Algorithm identifier for V4 protocol, using only cryptography based on elliptic curves.
     PowerAuthCoreAlgorithm_EC_P384 = 1,
     /// Algorithm identifier for V4 protocol, using quantum resistant algorithms combined with
@@ -43,22 +44,22 @@ typedef NS_ENUM(int, PowerAuthCoreAlgorithm) {
 /// Create instance of `PowerAuthCoreConfig` object from the provided parameters.
 ///
 /// - Parameters:
-///   - sdkConfiguration: SDK configuration string.
+///   - configuration: SDK configuration string.
 ///   - deviceSpecificData: Device specific data.
 ///   - instanceId: Instance identifier.
 ///   - algorithm: Algorithm to use in the PowerAuth instance.
 ///   - error: Pointer to error. If provided, then contains reason of failure in case the construction fails.
 ///
 /// - Returns: New instance of `PowerAuthCoreConfig` class or `nil` in case of failure.
-+ (nullable PowerAuthCoreConfig*) buildWithSdkConfiguration:(nonnull NSString*)sdkConfiguration
-                                         deviceSpecificData:(nonnull NSData*)deviceSpecificData
-                                                 instanceId:(nonnull NSString*)instanceId
-                                                  algorithm:(PowerAuthCoreAlgorithm)algorithm
-                                                      error:(NSError*_Nullable*_Nullable)error;
++ (nullable PowerAuthCoreConfig*) buildWithConfiguration:(nonnull NSString*)configuration
+                                      deviceSpecificData:(nonnull NSData*)deviceSpecificData
+                                              instanceId:(nonnull NSString*)instanceId
+                                               algorithm:(PowerAuthCoreAlgorithm)algorithm
+                                                   error:(NSError*_Nullable*_Nullable)error;
 
 /// Validate SDK configuration string.
-/// - Parameter sdkConfiguration: SDK configuration string to validate.
+/// - Parameter configuration: SDK configuration string to validate.
 /// - Returns: YES if configuration string is valid.
-+ (BOOL) validateSdkConfiguration:(nonnull NSString*)sdkConfiguration;
++ (BOOL) validateConfiguration:(nonnull NSString*)configuration;
 
 @end

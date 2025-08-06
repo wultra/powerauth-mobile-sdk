@@ -17,6 +17,7 @@
 #include "ActivationServiceV4.h"
 #include "HybridKeyPair.h"
 #include "../request/RequestBuilder.h"
+#include "../common/CommonFunctions.h"
 
 namespace powerAuth {
 namespace v4 {
@@ -27,6 +28,7 @@ namespace v4 {
 
 ActivationServiceV4::ActivationServiceV4(const ContextPtr& context) :
     Service("ActivationServiceV4", context->getSharedMutexPtr()),
+    _weak_context(context),
     _session_data(context->getSessionDataPtr())
 {
 }
@@ -59,7 +61,6 @@ RequestPtr ActivationServiceV4::createActivation(cc7::json::JsonValue L1_data, c
     _session_data->setRegistrationData(new_rd);
     auto self = shared_from_this();
     return RequestBuilder(*context, v4::Endpoint_ActivationCreate)
-        .withJson(L1_data)
         .withPrepareCallback([self, L1_data, L2_data, context](const Request& request) -> cc7::json::JsonValue {
             return self->prepareRequestActivationData(*context, L1_data, L2_data);
         })
@@ -89,7 +90,7 @@ cc7::json::JsonValue ActivationServiceV4::prepareRequestActivationData(Context& 
     L2_data["sharedSecretRequest"] = shared_secret.first.toJson();
     L2_data["devicePublicKeys"]    = v4::HybridKey_ToJson(rd.deviceKeyPair->getPublicKey(), context.specification());
     
-    // Encrypt L2 data
+    // Encrypt L2 data  
     rd.requestEncryptor = context.encryptorFactory().getClientEncryptor(EncryptorId::ACTIVATION_LAYER_2);
     auto L2_request_cryptogram = rd.requestEncryptor->encryptJsonRequest(L2_data);
     
@@ -116,6 +117,7 @@ ResponseObjectPtr ActivationServiceV4::processResponseActivationData(Context& co
     if (activation_id.empty() || ctr_data.size() != v4::HASH_COUNTER_SIZE) {
         throw Exception(EC_InvalidData, "Invalid activation data");
     }
+
     // Keep values in RD
     rd.activationId             = activation_id;
     rd.authCodeCounterData      = ctr_data;
@@ -125,7 +127,7 @@ ResponseObjectPtr ActivationServiceV4::processResponseActivationData(Context& co
     rd.sharedSecretContext = nullptr;
     rd.sharedSecretAlgorithm = nullptr;
     
-    return nullptr;
+    return std::make_shared<ActivationResult>(calculateActivationFingerprint(), L1_data);
 }
 
 RequestPtr ActivationServiceV4::confirmActivation(InitialCredentialsPtr credentials)
@@ -169,12 +171,57 @@ ResponseObjectPtr ActivationServiceV4::processResponseActivationConfirm(Context&
     return nullptr;
 }
 
+std::string ActivationServiceV4::calculateActivationFingerprint()
+{
+    LOCK_GUARD();
+    if (!_activation_fingerprint.empty()) {
+        return _activation_fingerprint;
+    }
+    auto context = lockContext();
+    auto& keyProvider = context->keyProvider();
+    _activation_fingerprint = calculateActivationFingerprint(*context, keyProvider.devicePublicKey(), keyProvider.serverPublicKey());
+    return _activation_fingerprint;
+}
+
+std::string ActivationServiceV4::calculateActivationFingerprint(Context& context,
+                                                                const cc7::crypto::PublicKey& device_public_key,
+                                                                const cc7::crypto::PublicKey& server_public_key) const
+{
+    auto spec = context.specification();
+    if (spec->isLegacy()) {
+        throw Exception(EC_InternalError, "V3 algorithm not supported");
+    }
+    auto activation_id = _session_data->getActivationId();
+    const auto& algorithm = spec->algorithmName();
+    cc7::ByteArray activation_data;
+    if (spec->isHybrid()) {
+        activation_data = cc7::ConcatByteRanges({
+            cc7::MakeRange(algorithm),
+            common::ExportKeyToNormalizedForm(HybridKey_GetKey1(device_public_key)),
+            common::ExportKeyToNormalizedForm(HybridKey_GetKey2(device_public_key)),
+            cc7::MakeRange(activation_id),
+            common::ExportKeyToNormalizedForm(HybridKey_GetKey1(server_public_key)),
+            common::ExportKeyToNormalizedForm(HybridKey_GetKey2(server_public_key))
+        });
+    } else {
+        activation_data = cc7::ConcatByteRanges({
+            cc7::MakeRange(algorithm),
+            common::ExportKeyToNormalizedForm(device_public_key),
+            cc7::MakeRange(activation_id),
+            common::ExportKeyToNormalizedForm(server_public_key)
+        });
+    }
+    auto hash = algorithms().v4.sha3_256().digest(activation_data);
+    return common::CalculateHumanReadableCodeFromHash(hash, common::ACTIVATION_FINGERPRINT_LENGTH);
+}
+
 // MARK: - Status
 
 void ActivationServiceV4::resetState()
 {
     LOCK_GUARD();
     _session_data->resetSessionData();
+    _activation_fingerprint.clear();
 }
 
 RequestPtr ActivationServiceV4::fetchActivationStatus()

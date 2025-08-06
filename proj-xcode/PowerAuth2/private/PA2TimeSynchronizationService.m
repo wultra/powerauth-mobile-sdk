@@ -15,62 +15,105 @@
  */
 
 #import "PA2TimeSynchronizationService.h"
-#import "PA2GetSystemStatusTask.h"
-#import "PA2RestApiEndpoint.h"
+#import "PA2CoreHttpClient.h"
+#import "PA2GroupedTask.h"
 #import "PA2PrivateMacros.h"
+#import "PowerAuthServerStatus+Private.h"
 
 #import <PowerAuth2/PowerAuthLog.h>
 #import <UIKit/UIApplication.h>
 
+#pragma mark - Task interface
+
+/// The `PA2GetSystemStatusTask` implements grouped task that gets server status information from the server.
+@interface PA2GetSystemStatusTask : PA2GroupedTask<PowerAuthServerStatus*>
+
+- (instancetype) initWithHttpClient:(PA2CoreHttpClient*)httpClient
+                        coreService:(PowerAuthCoreTimeService*)coreService
+                         sharedLock:(id<NSLocking>)sharedLock
+                           delegate:(id<PA2GetSystemStatusTaskDelegate>)delegate;
+
+@end
+
+#pragma mark - Task implementation
+
+@implementation PA2GetSystemStatusTask
+{
+    PA2CoreHttpClient * _client;
+    PowerAuthCoreTimeService * _coreService;
+    __weak id<PA2GetSystemStatusTaskDelegate> _delegate;
+}
+
+- (instancetype) initWithHttpClient:(PA2CoreHttpClient *)httpClient
+                        coreService:(PowerAuthCoreTimeService*)coreService
+                         sharedLock:(id<NSLocking>)sharedLock
+                           delegate:(id<PA2GetSystemStatusTaskDelegate>)delegate
+{
+    self = [super initWithSharedLock:sharedLock taskName:@"GetSystemStatus"];
+    if (self) {
+        _client = httpClient;
+        _coreService = coreService;
+        _delegate = delegate;
+    }
+    return self;
+}
+
+- (void) onTaskStart
+{
+    [super onTaskStart];
+
+    NSError * error = nil;
+    PowerAuthCoreRequest * request = [_coreService createTimeSynchronizationRequest:&error];
+    if (error) {
+        [self complete:nil error:error];
+        return;
+    }
+    
+    id<PowerAuthOperationTask> task = [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * _Nonnull request, id  _Nullable response, NSError * _Nullable error) {
+        PowerAuthServerStatus * serverStatus = nil;
+        if (!error) {
+            serverStatus = [[PowerAuthServerStatus alloc] initWithJsonResponse:request.responseJson];
+            if (!serverStatus) {
+                error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Failed to create server status from response");
+            }
+        }
+        [self complete:serverStatus error:error];
+    }];
+    [self replaceCancelableOperation:task];
+}
+
+- (void) onTaskCompleteWithResult:(PowerAuthServerStatus*)result error:(NSError *)error
+{
+    [super onTaskCompleteWithResult:result error:error];
+    [_delegate getSystemStatusTask:self didFinishedWithStatus:result error:error];
+}
+
+@end
+
+
+#pragma mark - Service implementation
+
 @implementation PA2TimeSynchronizationService
 {
-    dispatch_semaphore_t _lock;
+    id<NSLocking> _lock;
     BOOL _receiveNotifications;
-    BOOL _isTimeSynchronized;
-    NSTimeInterval (*_timeProvider)(void);
     
     NSTimeInterval _localTimeAdjustment;
     NSTimeInterval _localTimeAdjustmentPrecision;
     
-    __weak id<PA2SystemStatusProvider> _statusProvider;
+    PowerAuthCoreTimeService * _coreService;
+    PA2CoreHttpClient * _httpClient;
+    PA2GetSystemStatusTask * _statusTask;
 }
 
-#ifdef DEBUG
-#define VerboseLog(...) if (PowerAuthLogIsVerbose()) PowerAuthLog(__VA_ARGS__);
-#else
-#define VerboseLog(...)
-#endif
-
-/// Minimum time difference against the server accepted during the synchronization. If the difference
-/// is less, then we consider the local time as synchronized.
-#define MIN_ACCEPTED_TIME_DIFFERENCE  2.0
-
-/// Minimum difference against the last time delta. This prevents the time fluctuation the time is synchronized.
-/// For example, if the server is 100 seconds ahead, then we'll get differences like 100.1, 101, 99.8 and that might cause
-/// a time fluctuation after each synchronization attempt. That means that the synchronized time may jump a little bit
-/// back or forward after each synchronization attempt.
-#define MIN_TIME_DIFFERENCE_DELTA     10.0
-
-/// Maximum time for the request synchronization to complete.
-/// In this setup we're adding maximum 8 seconds to the time returned from the server, so it's below our threshold
-/// defined in `MIN_ACCEPTED_TIME_DIFFERENCE`. This guarantees that requests that take too long time will not affect
-/// the time synchronization.
-#define MAX_ACCEPTED_ELAPSED_TIME     16.0
-
-// Default function providing system time.
-static NSTimeInterval _Now(void)
-{
-    return [[NSDate date] timeIntervalSince1970];
-}
-
-- (instancetype) initWithStatusProvider:(id<PA2SystemStatusProvider>)statusProvider
-                             sharedLock:(id<NSLocking>)sharedLock
+- (instancetype) initWithCoreService:(PowerAuthCoreTimeService*)coreService
+                          httpClient:(PA2CoreHttpClient*)httpClient
+                          sharedLock:(id<NSLocking>)sharedLock
 {
     self = [super init];
     if (self) {
-        _statusProvider = statusProvider;
-        _lock = dispatch_semaphore_create(1);
-        _timeProvider = _Now;
+        _coreService = coreService;
+        _lock = sharedLock;
     }
     return self;
 }
@@ -80,110 +123,26 @@ static NSTimeInterval _Now(void)
     [self unsubscribeForSystemNotificationsImpl];
 }
 
-#ifdef DEBUG
-- (void) setTestTimeProvider:(NSTimeInterval (*)(void))timeProviderFunc
-{
-    if (timeProviderFunc) {
-        _timeProvider = timeProviderFunc;
-    } else {
-        _timeProvider = _Now;
-    }
-}
-#endif // DEBUG
-
 #pragma mark - PowerAuthTimeSynchronizationService protocol -
 
 - (BOOL) isTimeSynchronized
 {
-    return [[self synchronized:^id{
-        return @(self->_isTimeSynchronized);
-    }] boolValue];
+    return [_coreService isTimeSynchronized];
 }
 
 - (NSTimeInterval) localTimeAdjustment
 {
-    return [[self synchronized:^id{
-        return @(self->_localTimeAdjustment);
-    }] doubleValue];
+    return [_coreService localTimeAdjustment];
 }
 
 - (NSTimeInterval) localTimeAdjustmentPrecision
 {
-    return [[self synchronized:^id{
-        return @(self->_localTimeAdjustmentPrecision);
-    }] doubleValue];
+    return [_coreService localTimeAdjustmentPrecision];
 }
 
 - (NSTimeInterval) currentTime
 {
-    return [[self synchronized:^id{
-        return @(self->_timeProvider() + self->_localTimeAdjustment);
-    }] doubleValue];
-}
-
-- (id) startTimeSynchronizationTask
-{
-    return @(self->_timeProvider());   // equal to [NSNumber initWithDouble:_Now()]
-}
-
-- (BOOL) completeTimeSynchronizationTask:(id)task withServerTime:(NSTimeInterval)serverTime
-{
-    if (![task isKindOfClass:[NSNumber class]]) {
-        PowerAuthLog(@"PowerAuthTimeService: Wrong task object used for the commit.");
-        return NO;  // Not a NSNumber object
-    }
-    if (strcmp("d", ((NSNumber*)task).objCType)) {
-        PowerAuthLog(@"PowerAuthTimeService: Wrong task object used for the commit.");
-        return NO;  // Not a double encoded in the number
-    }
-    return [[self synchronized:^id{
-        NSTimeInterval now = self->_timeProvider();
-        NSTimeInterval start = [task doubleValue];
-        NSTimeInterval elapsedTime = now - start;
-        if (elapsedTime < 0.0) {
-            PowerAuthLog(@"PowerAuthTimeService: Wrong task object used for the commit.");
-            return @NO;
-        }
-        if (elapsedTime > MAX_ACCEPTED_ELAPSED_TIME) {
-            PowerAuthLog(@"PowerAuthTimeService: Synchronization request took too long to complete.");
-            // Return the current synchronization status. We can be OK if the time was synchronized before.
-            return @(_isTimeSynchronized);
-        }
-        NSTimeInterval timeDifferencePrecision = 0.5 * elapsedTime;
-        NSTimeInterval adjustedServerTime = serverTime + timeDifferencePrecision; // serverTime + elapsedTime/2
-        NSTimeInterval timeDifference = adjustedServerTime - now;
-        BOOL adjustmentDeltaOK = fabs(self->_localTimeAdjustment - timeDifference) < MIN_TIME_DIFFERENCE_DELTA;
-        if (fabs(timeDifference) < MIN_ACCEPTED_TIME_DIFFERENCE && adjustmentDeltaOK) {
-            // Time difference is too low and delta against last adjustment is also within the range.
-            // We can ignore it and mark time as synchronized.
-            if (!_isTimeSynchronized) {
-                // Print this information only when not synchronized.
-                PowerAuthLog(@"PowerAuthTimeService: Time is sychronized with precision %0.3lf", timeDifferencePrecision);
-            }
-            _isTimeSynchronized = YES;
-            _localTimeAdjustmentPrecision = timeDifferencePrecision;
-            return @YES;
-        }
-        if (_isTimeSynchronized && adjustmentDeltaOK) {
-            // The time adjustment is too low against the last calculated adjustment. This test prevents
-            // the adjusted time fluctuation after each synchronization.
-            return @YES;
-        }
-        // Keep local time adjustment and mark time as synchronized.
-        _localTimeAdjustment = timeDifference;
-        _isTimeSynchronized = YES;
-        _localTimeAdjustmentPrecision = timeDifferencePrecision;
-        PowerAuthLog(@"PowerAuthTimeService: Time is sychronized with precision %0.3lf, diff %0.3lf", timeDifferencePrecision, timeDifference);
-        return @YES;
-    }] boolValue];
-}
-
-- (id) synchronized:(id(^)(void))block
-{
-    dispatch_semaphore_wait(_lock, DISPATCH_TIME_FOREVER);
-    id result = block();
-    dispatch_semaphore_signal(_lock);
-    return result;
+    return [_coreService currentTime];
 }
 
 - (void) resetTimeSynchronization
@@ -191,14 +150,20 @@ static NSTimeInterval _Now(void)
     [self resetTimeSynchronizationImpl:NO];
 }
 
+- (id) synchronized:(id(^)(void))block
+{
+    [_lock lock];
+    id result = block();
+    [_lock unlock];
+    return result;
+}
+
 - (void) resetTimeSynchronizationImpl:(BOOL)fromNotification
 {
     [self synchronized:^id{
         if (!fromNotification || _receiveNotifications) {
-            self->_isTimeSynchronized = NO;
-            self->_localTimeAdjustment = 0.0;
-            self->_localTimeAdjustmentPrecision = 0.0;
-            PowerAuthLog(@"PowerAuthTimeService: Time is no longer synchronized.");
+            // TODO: this is potentially problematic. we should re-synchronize the time instead
+            [_coreService resetTimeSynchronization];
         }
         return nil;
     }];
@@ -209,23 +174,57 @@ static NSTimeInterval _Now(void)
 {
     if (callbackQueue == nil) {
         callbackQueue = dispatch_get_main_queue();
-    }    
-    id<PA2SystemStatusProvider> provider = _statusProvider;
-    if (!provider) {
-        dispatch_async(callbackQueue, ^{
-            callback(PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"PA2SystemStatusProvider instance is no longer valid"));
-        });
-        return nil;
     }
-    id timeSynchronizationTask = [self startTimeSynchronizationTask];
-    return [provider getSystemStatusWithCallback:^(PowerAuthServerStatus *status, NSError *error) {
-        if (status && !error) {
-            if (![self completeTimeSynchronizationTask:timeSynchronizationTask withServerTime:[status.serverTime timeIntervalSince1970]]) {
-                error = PA2MakeError(PowerAuthErrorCode_TimeSynchronization, nil);
-            }
-        }
+    return [self fetchServerStatus:^(PowerAuthServerStatus *status, NSError *error) {
         callback(error);
     } callbackQueue:callbackQueue];
+}
+
+- (id<PowerAuthOperationTask>) fetchServerStatus:(void(^)(PowerAuthServerStatus * status, NSError * error))callback
+                                   callbackQueue:(dispatch_queue_t)callbackQueue
+{
+    if (callbackQueue == nil) {
+        callbackQueue = dispatch_get_main_queue();
+    }
+    return [self synchronized:^id{
+        id<PowerAuthOperationTask> task = [_statusTask createChildTask:callback queue:callbackQueue];
+        if (!task) {
+            _statusTask = [[PA2GetSystemStatusTask alloc] initWithHttpClient:_httpClient
+                                                                 coreService:_coreService
+                                                                  sharedLock:_lock
+                                                                    delegate:self];
+            task = [_statusTask createChildTask:callback queue:callbackQueue];
+        }
+        return task;
+    }];
+}
+
+#pragma mark - Task completion and cancel
+
+- (void)getSystemStatusTask:(PA2GetSystemStatusTask *)task didFinishedWithStatus:(PowerAuthServerStatus *)status error:(NSError *)error
+{
+    // Lock is acquired, because this is called from the task's completion that use the same shared lock internally.
+    if (task == _statusTask) {
+        _statusTask = nil;
+        // This is the reference to task which is going to finish its execution soon.
+        // The ivar no longer holds the reference to the task, but we should keep that reference
+        // for a little bit longer, to guarantee, that we don't destroy the object in the middle
+        // of callback processing.
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            // The following call does nothing, because the old task is no longer stored
+            // in the `_statusTask` ivar. It just guarantees that the object will be alive
+            // during waiting to execute the operation block.
+            [self getSystemStatusTask:task didFinishedWithStatus:nil error:nil];
+        }];
+    }
+}
+
+- (void)cancelAllPendingRequests
+{
+    [self synchronized:^id{
+        [_statusTask cancel];
+        return nil;
+    }];
 }
 
 

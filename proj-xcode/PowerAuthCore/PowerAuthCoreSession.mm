@@ -26,17 +26,6 @@ using namespace powerAuth;
 @implementation PowerAuthCoreSession
 {
     SessionPtr _session;
-    __weak id<PowerAuthCoreSessionDelegate> _delegate;
-}
-
-
-+ (BOOL) hasDebugFeatures
-{
-    BOOL debug_features = powerAuth::HasDebugFeaturesTurnedOn();
-#if defined(ENABLE_POWERAUTH_CORE_LOG) || defined(DEBUG)
-    debug_features |= YES;
-#endif
-    return debug_features;
 }
 
 #pragma mark - Initialization / Reset
@@ -80,10 +69,45 @@ using namespace powerAuth;
 
 - (void) resetSession
 {
-    [_delegate requireWriteAccess];
+    [self requireWriteAccess:nil];
     _session->resetState();
 }
 
+#pragma mark - Read / Write access
+
+- (BOOL) requireReadAccess:(NSError**)error
+{
+    id<PowerAuthCoreSessionDelegate> delegate = _delegate;
+    if (delegate) {
+        if (![delegate requireReadAccess]) {
+            NSString * message = [NSString stringWithFormat:@"Read access not granted for session data. Instance: %@", _configuration.instanceId];
+            if (error) {
+                *error = powerAuth::BuildCoreNSError(PowerAuthCoreError_InternalError, message);
+            } else {
+                PowerAuthCoreLog(@"ERROR: %@", message);
+            }
+            return NO;
+        }
+    }
+    return YES;
+}
+
+- (BOOL) requireWriteAccess:(NSError**)error
+{
+    id<PowerAuthCoreSessionDelegate> delegate = _delegate;
+    if (delegate) {
+        if (![delegate requireWriteAccess]) {
+            NSString * message = [NSString stringWithFormat:@"Write access not granted for session data. Instance: %@", _configuration.instanceId];
+            if (error) {
+                *error = powerAuth::BuildCoreNSError(PowerAuthCoreError_InternalError, message);
+            } else {
+                PowerAuthCoreLog(@"ERROR: %@", message);
+            }
+            return NO;
+        }
+    }
+    return YES;
+}
 
 #pragma mark - Read only getters
 
@@ -97,43 +121,51 @@ using namespace powerAuth;
     return cc7::objc::CopyToNSString(_session->getConfiguration()->instanceId());
 }
 
-- (BOOL) canStartActivation
+- (BOOL) canCreateActivation
 {
-    [_delegate requireReadAccess];
+    [self requireReadAccess:nil];
     return _session->canCreateActivation();
+}
+
+- (BOOL) hasPendingCreateActivation
+{
+    [self requireReadAccess:nil];
+    return _session->hasPendingCreateActivation();
 }
 
 - (BOOL) hasValidActivationData
 {
-    [_delegate requireReadAccess];
+    [self requireReadAccess:nil];
     return _session->hasValidActivationData();
 }
 
 - (BOOL) hasProtocolUpgradeAvailable
 {
+    [self requireReadAccess:nil];
     // TODO: missing impl.
-    [_delegate requireReadAccess];
     return NO;
 }
 
 - (BOOL) hasPendingProtocolUpgrade
 {
+    [self requireReadAccess:nil];
     // TODO: missing impl.
-    [_delegate requireReadAccess];
     return NO;
 }
 
 - (PowerAuthCoreProtocolVersion) protocolVersion
 {
-    [_delegate requireReadAccess];
+    [self requireReadAccess:nil];
     return (PowerAuthCoreProtocolVersion) _session->getProtocolVersion();
 }
 
 #pragma mark - Serialization
 
-- (nonnull NSData*) serializedState:(NSError*_Nullable*_Nullable)error
+- (nullable NSData*) serializedState:(NSError*_Nullable*_Nullable)error
 {
-    [_delegate requireReadAccess];
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
     try {
         return cc7::objc::CopyToNSData(_session->saveState());
     } catch (...) {
@@ -148,7 +180,9 @@ using namespace powerAuth;
 - (BOOL) deserializeState:(nonnull NSData *)state
                     error:(NSError*_Nullable*_Nullable)error
 {
-    [_delegate requireWriteAccess];
+    if (![self requireWriteAccess:error]) {
+        return NO;
+    }
     try {
         _session->loadState(ByteRange(state.bytes, state.length));
         return YES;
@@ -166,27 +200,34 @@ using namespace powerAuth;
 
 - (nullable NSString*) activationIdentifier
 {
-    [_delegate requireReadAccess];
+    [self requireReadAccess:nil];
     return cc7::objc::CopyToNullableNSString(_session->activationId());
 }
 
 - (nullable NSString*) activationFingerprint
 {
-    [_delegate requireReadAccess];
-    // TODO: missing impl.
-    return nil;
+    [self requireReadAccess:nil];
+    return cc7::objc::CopyToNullableNSString(_session->activationFingerprint());
 }
 
 - (nullable PowerAuthCoreRequest*) createActivation:(nonnull NSDictionary*)L1Data
                                          withL2Data:(nonnull NSDictionary*)L2Data
                                               error:(NSError*_Nullable*_Nullable)error
 {
-    [_delegate requireWriteAccess];
+    if (![self requireWriteAccess:error]) {
+        return nil;
+    }
     try {
         auto L1 = objc::JsonValueFromObjC(L1Data);
         auto L2 = objc::JsonValueFromObjC(L2Data);
         auto request = _session->createActivation(L1, L2);
-        return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::Request &request) {
+            auto response = std::dynamic_pointer_cast<powerAuth::ActivationResult>(request.getResponseObject());
+            if (!response) {
+                throw Exception(EC_InternalError, "No ActivationResult object created");
+            }
+            return [[PowerAuthCoreActivationResult alloc] initWithActivationResult:*response];
+        }];
     } catch (...) {
         if (error) {
             *error = BuildNSErrorFromException();
@@ -207,12 +248,13 @@ using namespace powerAuth;
                                                  withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
                                                            error:(NSError*_Nullable*_Nullable)error
 {
-    [_delegate requireWriteAccess];
+    if (![self requireWriteAccess:error]) {
+        return nil;
+    }
     try {
         auto biometry = biometryKek ? biometryKek.byteArrayRef : ByteRange();
         auto credentials = InitialCredentials::credentials(password.passObjRef.passwordData(), biometry);
         auto request = _session->confirmActivation(credentials);
-        // TODO: use response builder here
         return [[PowerAuthCoreRequest alloc] initWithRequest:request];
     } catch (...) {
         if (error) {
@@ -288,11 +330,18 @@ using namespace powerAuth;
 
 #pragma mark - Utilities for generic keys
 
-+ (nonnull PowerAuthCoreData*) generateSignatureUnlockKeyForProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
+- (PowerAuthCoreData*) generateFactorKek:(NSError**)error
 {
-    if (protocolVersion == PowerAuthCoreProtocolVersion_NA) {
-        protocolVersion = PowerAuthCoreProtocolVersion_V4;
+    if (![self requireReadAccess:error]) {
+        return nil;
     }
+    return [[self class] generateFactorKekForProtocolVersion:(PowerAuthCoreProtocolVersion) _session->getProtocolVersion()
+                                                       error:error];
+}
+
++ (nullable PowerAuthCoreData*) generateFactorKekForProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
+                                                              error:(NSError**)error
+{
     auto kek = cc7::crypto::GetRandomData(protocolVersion == PowerAuthCoreProtocolVersion_V4 ? 32 : 16);
     return [[PowerAuthCoreData alloc] initWithByteRange:kek];
 }

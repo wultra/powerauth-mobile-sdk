@@ -20,7 +20,7 @@
  The `PA2DefaultSessionProvider` provides PowerAuthCoreSession when
  interprocess session sharing is required.
  */
-@interface PA2SharedSessionInterface : NSObject<PA2SessionInterface, PowerAuthCoreDebugMonitor>
+@interface PA2SharedSessionInterface : NSObject<PA2SessionInterface, PowerAuthCoreSessionDelegate>
 
 /**
  Initialize provider with session and persistent data provider.
@@ -32,7 +32,8 @@
                            sharedMemoryId:(nonnull NSString *)sharedMemoryId
                            statusLockPath:(nonnull NSString *)statusLockPath
                         operationLockPath:(nonnull NSString *)operationLockPath
-                            queueLockPath:(nonnull NSString *)queueLockPath;
+                            queueLockPath:(nonnull NSString *)queueLockPath
+                                    error:(NSError*_Nullable*_Nullable)error;
 
 @end
 

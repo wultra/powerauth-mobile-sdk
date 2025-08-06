@@ -192,13 +192,14 @@ cc7::json::JsonValue EciesEncryptorFactory::createTemporaryKeyRequest(EncryptorS
         auto secrets = _key_provider->unlockSecretKeys();
         // begin secrets
         auto mac_key = act_scope ? secrets->keyMacGetActTempKey() : secrets->keyMacGetAppTempKey();
-        // end secrets
-        _key_provider->lockSecretKeys(secrets);
 
         auto jwt = jwt::JwtWriter()
             .withJsonPayload(request.toJson())
             .sign({ jwt::JwtKey::symmetricKey("HS256", mac_key) })
             .toCompact();
+        
+        // end secrets
+        _key_provider->lockSecretKeys(secrets);
 
         // Build request payload
         return json::JsonValue::object({

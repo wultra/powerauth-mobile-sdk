@@ -37,5 +37,18 @@ cc7::ByteArray ExportKeyToNormalizedForm(const cc7::crypto::PublicKey& public_ke
 ///   - `Exception` with `EC_WrongParam` in case that `hash` is too short, or `code_size` is out of range.
 std::string CalculateHumanReadableCodeFromHash(const cc7::ByteRange& hash, size_t code_size);
 
+/// Normalize data for authentication code or header calculation.
+/// - Parameters:
+///   - method: HTTP method (use POST for offline code)
+///   - uri: URI identifier.
+///   - nonce_b64: Nonce in Base64 format.
+///   - body: Request body.
+///   - app_secret: Application secret.
+cc7::ByteArray NormalizeDataForAuthCodeCalculation(const std::string_view & method,
+                                                   const std::string_view & uri,
+                                                   const std::string_view & nonce_b64,
+                                                   const cc7::ByteRange & body,
+                                                   const std::string_view & app_secret);
+
 } // namespace common
 } // namespace powerAuth

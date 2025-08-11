@@ -87,10 +87,31 @@ void SecretKeysV4::loadInitialCredentials(const SessionData& session_data,
     
     setupSessionData(session_data);
     
+    _factors = FM_POSSESSION | FM_KNOWLEDGE;
     if ((_has_biometry = credentials.hasBiometryKEK())) {
+        _factors |= FM_BIOMETRY;
         _pool.setKey(KEK_AUTHENTICATION_BIOMETRY, default_input, credentials.biometryKEK());
     }
-    _has_credentials = true;
+}
+
+void SecretKeysV4::loadFactors(const SessionData &session_data,
+                               AuthFactors factors)
+{
+    if (session_data.hasPersistentData() || !session_data.hasRegistrationData()) {
+        throw Exception(EC_InternalError, "unlockSecretKeysForFactors() is not available");
+    }
+    setupCreationMode(CM_FACTORS);
+    setupSessionData(session_data);
+    switch (factors) {
+        case AuthFactors::POSSESSION:
+            _factors = FM_POSSESSION;
+            break;
+        case AuthFactors::POSSESSION_KNOWLEDGE:
+            _factors = FM_POSSESSION | FM_KNOWLEDGE;
+            break;
+        case AuthFactors::POSSESSION_BIOMETRY:
+            throw Exception(EC_BiometryNotAllowed, "Biometric factor is not allowed during pending registration");
+    }
 }
 
 void SecretKeysV4::loadCredentials(const SessionData& session_data,
@@ -176,27 +197,25 @@ void SecretKeysV4::setupCredentials(const SessionData& session_data, const Crede
     }
     credentials.validate(Version_V4);
 
-    bool credentials_with_biometry;
     switch (credentials.factors()) {
         case AuthFactors::POSSESSION:
-            credentials_with_biometry = false;
+            _factors = FM_POSSESSION;
             break;
         case AuthFactors::POSSESSION_KNOWLEDGE:
             _pool.setKey(IN_PASSWORD, any_input, credentials.knowledgeKEK());
             _pool.setKey(IN_PASSWORD_SALT, default_input, session_data.persistentData().v4().passwordSalt);
-            credentials_with_biometry = false;
+            _factors = FM_POSSESSION | FM_KNOWLEDGE;
             break;
         case AuthFactors::POSSESSION_BIOMETRY:
             _pool.setKey(KEK_AUTHENTICATION_BIOMETRY, default_input, credentials.biometryKEK());
-            credentials_with_biometry = true;
+            _factors = FM_POSSESSION | FM_BIOMETRY;
             break;
     }
     setupSessionData(session_data);
 
-    if (credentials_with_biometry && !_has_biometry) {
+    if ((_factors & FM_BIOMETRY) && !_has_biometry) {
         throw Exception(EC_BiometryNotAllowed, "Biometric factor is not configured");
     }
-    _has_credentials = true;
 }
 
 void SecretKeysV4::setupVaultKey(VaultKeyType key_type, const cc7::ByteRange &key_data)
@@ -267,7 +286,7 @@ cc7::ByteRange SecretKeysV4::kekAuthenticationCodeKnowledge()
 
 cc7::ByteRange SecretKeysV4::keyAuthenticationCodePossession()
 {
-    checkAccessLevel(KEY_AUTHENTICATION_POSSESSION, AL_ACTIVE, false);
+    checkAccessLevel(KEY_AUTHENTICATION_POSSESSION, AL_ACTIVE, FM_POSSESSION);
     
     if (_pool.isSet(CKEY_AUTHENTICATION_POSSESSION)) {
         // Encrypted key is set, so try to decrypt key
@@ -288,7 +307,7 @@ cc7::ByteRange SecretKeysV4::keyAuthenticationCodePossession()
 
 cc7::ByteRange SecretKeysV4::keyAuthenticationCodeKnowledge()
 {
-    checkAccessLevel(KEY_AUTHENTICATION_KNOWLEDGE, AL_ACTIVE, true);
+    checkAccessLevel(KEY_AUTHENTICATION_KNOWLEDGE, AL_ACTIVE, FM_KNOWLEDGE);
     
     if (_pool.isSet(CKEY_AUTHENTICATION_KNOWLEDGE)) {
         // Encrypted key is set, so try to decrypt key
@@ -309,7 +328,7 @@ cc7::ByteRange SecretKeysV4::keyAuthenticationCodeKnowledge()
 
 cc7::ByteRange SecretKeysV4::keyAuthenticationCodeBiometry()
 {
-    checkAccessLevel(KEY_AUTHENTICATION_BIOMETRY, AL_ACTIVE, true);
+    checkAccessLevel(KEY_AUTHENTICATION_BIOMETRY, AL_ACTIVE, FM_BIOMETRY);
     
     if (!_has_biometry) {
         throw Exception(EC_BiometryNotAllowed);
@@ -370,7 +389,7 @@ cc7::ByteRange SecretKeysV4::ckeyAuthenticationCodeBiometry()
 void SecretKeysV4::updateKeyAuthenticationCodeKnowledge(const cc7::ByteRange& new_key,
                                                         const cc7::ByteRange& new_kek)
 {
-    checkAccessLevel(KEY_AUTHENTICATION_KNOWLEDGE, AL_ACTIVE, true);
+    checkAccessLevel(KEY_AUTHENTICATION_KNOWLEDGE, AL_ACTIVE, FM_KNOWLEDGE);
     
     // cleanup
     _pool.clearKey(CKEY_AUTHENTICATION_KNOWLEDGE);
@@ -389,7 +408,7 @@ void SecretKeysV4::updateKeyAuthenticationCodeKnowledge(const cc7::ByteRange& ne
 void SecretKeysV4::updateKeyAuthenticationCodeBiometry(const cc7::ByteRange& new_key,
                                                        const cc7::ByteRange& new_kek)
 {
-    checkAccessLevel(KEY_AUTHENTICATION_BIOMETRY, AL_ACTIVE, false);
+    checkAccessLevel(KEY_AUTHENTICATION_BIOMETRY, AL_ACTIVE, FM_NONE);
     
     // cleanup
     _pool.clearKey(CKEY_AUTHENTICATION_BIOMETRY);
@@ -402,7 +421,7 @@ void SecretKeysV4::updateKeyAuthenticationCodeBiometry(const cc7::ByteRange& new
     
     _biometry_key_update = true;
     _has_biometry = true;
-    _has_credentials = true;
+    _factors |= FM_BIOMETRY;
 }
 
 void SecretKeysV4::removeKeyAuthenticationCodeBiometry()
@@ -415,6 +434,7 @@ void SecretKeysV4::removeKeyAuthenticationCodeBiometry()
     
     _biometry_key_update = true;
     _has_biometry = false;
+    _factors &= ~FM_BIOMETRY;
 }
 
 bool SecretKeysV4::isAuthenticationCodeKnowledgeUpdated() const noexcept
@@ -666,6 +686,9 @@ void SecretKeysV4::setupCreationMode(CreationMode mode)
             // If no activation, then AL_BASIC
             _access_level = AL_BASIC;
             break;
+        case CM_FACTORS:
+            // In factors, we pretend that we're active. Only selected factors
+            // will be available.
         case CM_ACTIVE:
             _access_level = AL_ACTIVE;
             break;
@@ -680,12 +703,12 @@ void SecretKeysV4::setupCreationMode(CreationMode mode)
     }
 }
 
-void SecretKeysV4::checkAccessLevel(int key_id, AccessLevel al, bool with_credentials) const
+void SecretKeysV4::checkAccessLevel(int key_id, AccessLevel al, FactorMask fm) const
 {
     if (al > _access_level) {
         throw Exception(EC_NotAllowed, "Access to key " + keyNameResolver(key_id) + " is denied");
     }
-    if (with_credentials && !_has_credentials) {
+    if (fm && !(_factors & fm)) {
         throw Exception(EC_NotAllowed, "Access to key " + keyNameResolver(key_id) + " require user credentials");
     }
 }

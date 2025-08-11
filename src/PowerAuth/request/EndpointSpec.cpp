@@ -33,7 +33,11 @@ const EndpointSpec Endpoint_ActivationCreate {
 };
 
 const EndpointSpec Endpoint_ActivationConfirm {
-    Version_V4, "/pa/v4/activation/confirm", "/pa/activation/confirm", EncryptorId::NONE
+    Version_V4, "/pa/v4/activation/confirm", "/pa/activation/confirm", EncryptorId::NONE, EndpointSpec::Flags::FL_PENDING_REGISTRATION
+};
+
+const EndpointSpec Endpoint_ActivationRemove {
+    Version_V4, "/pa/v4/activation/remove", "/pa/activation/remove", EncryptorId::NONE
 };
 
 const EndpointSpec Endpoint_ActivationStatus {
@@ -49,7 +53,7 @@ const EndpointSpec Endpoint_BiometryOn {
 };
 
 const EndpointSpec Endpoint_BiometryOff {
-    
+    Version_V4, "/pa/v4/biometry/remove", "/pa/biometry/remove", EncryptorId::NONE
 };
 
 const EndpointSpec Endpoint_VaultUnlock {
@@ -58,6 +62,10 @@ const EndpointSpec Endpoint_VaultUnlock {
 
 const EndpointSpec Endpoint_TokenCreate {
     
+};
+
+const EndpointSpec Endpoint_ValidateCredentials {
+    Version_V4, "/pa/v4/auth/validate", "/pa/auth/validate", EncryptorId::NONE
 };
 
 } // namespace v4

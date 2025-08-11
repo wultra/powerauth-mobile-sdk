@@ -15,7 +15,7 @@
  */
 
 #include "KeyProviderV3.h"
-#include "ProtocolFunctions.h"
+#include "FunctionsV3.h"
 
 namespace powerAuth {
 namespace v3 {

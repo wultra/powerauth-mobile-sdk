@@ -118,6 +118,11 @@ ISecretKeysPtr KeyProviderV3::unlockSecretKeys()
     return keys;
 }
 
+ISecretKeysPtr KeyProviderV3::unlockSecretKeysForFactors(AuthFactors factors)
+{
+    throw Exception(EC_InternalError, "unlockSecretKeysForFactors is not supported for protocol V3");
+}
+
 ISecretKeysPtr KeyProviderV3::unlockSecretKeys(const Credentials &credentials)
 {
     auto keys = createSecretKeys();

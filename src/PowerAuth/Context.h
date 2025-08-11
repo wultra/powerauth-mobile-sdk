@@ -24,7 +24,8 @@
 #include <PowerAuth/SharedSecret.h>
 #include <PowerAuth/PowerAuthSpec.h>
 #include <PowerAuth/ActivationService.h>
-#include <PowerAuth/AuthHeaderCalculator.h>
+#include <PowerAuth/AuthenticationService.h>
+#include <PowerAuth/TokenService.h>
 
 #include "model/SessionData.h"
 
@@ -55,6 +56,8 @@ public:
     TimeService& timeService() noexcept;
     IClientEncryptorFactory& encryptorFactory() noexcept;
     IActivationService& activationService() noexcept;
+    IAuthenticationService& authenticationService() noexcept;
+    ITokenService& tokenService() noexcept;
     
     ISharedSecret& sharedSecret();
     IKeyProvider& keyProvider();
@@ -71,7 +74,8 @@ public:
     const IKeyProviderPtr& getKeyProviderPtr() const noexcept;
     
     const IActivationServicePtr& getActivationServicePtr() const noexcept;
-    const IAuthHeaderCalculatorPtr& getAuthHeaderCalculatorPtr() const noexcept;
+    const IAuthenticationServicePtr& getAuthenticationServicePtr() const noexcept;
+    const ITokenServicePtr& getTokenServicePtr() const noexcept;
     const cc7::crypto::KeyPairFactoryPtr& getSigningKeyPairFactoryPtr() const noexcept;
         
     void updateAfterProtocolVersionChange();
@@ -95,7 +99,8 @@ private:
     IActivationServicePtr _activation_service;
     ISharedSecretPtr _shared_secret;
     IKeyProviderPtr _key_provider;
-    IAuthHeaderCalculatorPtr _auth_header_calculator;
+    IAuthenticationServicePtr _auth_service;
+    ITokenServicePtr _token_service;
     
     std::vector<IServicePtr> _services;
 };

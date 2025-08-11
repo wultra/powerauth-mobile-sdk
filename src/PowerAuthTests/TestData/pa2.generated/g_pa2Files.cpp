@@ -16,6 +16,7 @@ namespace powerAuthTests
      * pa2/ECDHE_P384_MLKEM_768_Client_Vectors.json
      * pa2/ECDHE_P384_MLKEM_768_Test_Vectors.json
      * pa2/ECDHE_P384_Test_Vectors.json
+     * pa2/Auth_Code_Test_Vectors.json
      * pa2/v4-kdf.json
      * pa2/v4-pbkdf.json
      * pa2/v4-aead.json
@@ -3372,6 +3373,923 @@ static cc7::tests::TestResource ECDHE_P384_Test_Vectors_json
 		reinterpret_cast<const cc7::byte*>(ECDHE_P384_Test_Vectors_json_bytes),
 		ECDHE_P384_Test_Vectors_json_size,
 		"pa2/ECDHE_P384_Test_Vectors.json"
+	);
+//
+// -----------------------------------------------------------------------------
+// File: pa2/Auth_Code_Test_Vectors.json
+// -----------------------------------------------------------------------------
+static const char Auth_Code_Test_Vectors_json_bytes[] = R"cc7resourcxx({
+  "auth_code_test_vectors": [
+    {
+      "key1": "ocpXKcj727AFs/JlFP8aiKR1Y3vdByHZTGiBkuCF0u0=",
+      "key2": "cSsN/bYLxnt/8uaQRp9+FspNyBNWpx/bViPNpuFSSYU=",
+      "key3": "RfiJzoP4/FpuVpPV01gtOIYwX/+oufW/aDM7bD/jyAY=",
+      "ctrData": "xIH7+37JBRqGDMxihVJGkwQa66XKyz+bFnfLJakrdIw=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "f0LKq3AVXO4unDIKhclgLfaxeMz4YBFJokAx8ZB6t2/ZfGzIQzdLHClynGqCNQ9O/0OUzOwWYEK/cS/CCJFqX4WkR8kRXpSFNz8BqmfkJwkhwS5WE1OTq+1P02GC6C0R",
+      "authCodeOffline": "76477807-43747679-48770321"
+    },
+    {
+      "key1": "FiTDzga3CXeNJAKaYHhwk9ls4hWYSnO9MRr0Cmh1Td4=",
+      "key2": "TjjjPauN59TLTOhzswUCBWcgnGzx9GEWbLH8LN3nLbU=",
+      "key3": "Gf+iyCyHoR6KPvvH3DcgyjZy3YeEsemyyY9cxilXJb4=",
+      "ctrData": "D2eZhPpNswyT87qzoXm/47/CmehSQ2h8pTDSmqavR6k=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "YatienrK/BQhtzEwTbwDsY6zbeiASVrs80VD2bC0HgloyHhaaahPYLN113E9Bu+nMZ1t3XlAgYGuiYpANoZoWQhKdUDObURdh3Lta/rPSB6mxIUXwgrJC2BFejJpFJLb",
+      "authCodeOffline": "17110537-14778201-62955995"
+    },
+    {
+      "key1": "uuaTSoC2YwLhnq2cgNDAeEfj1fRdKIPpuXUeXKimkOo=",
+      "key2": "lzjZC4ewpLMCyeOIgv6s+ucULoX4fyfMZlsuQrz0Qsg=",
+      "key3": "wvY8E4uzm4h32VJ5XoTGNxcKjqYoujAYNpgZxB6jQGs=",
+      "ctrData": "bO+ORhYJFX7jCRy/26v3cWilgLQPSbwa1bCk5cA+dR0=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "S0flLZ2WcF14MwW/XYWn/zlJbeZeKlzqTvseRaIeoKAt/vo3mYPz3ttKvo5bxtcYGQuTANob6AY719LRYCmCEKEh0G2TKHi4S36xHUWHM2p2Vv+sSdAsnlvw42uEtTPT",
+      "authCodeOffline": "72432544-13333008-78984147"
+    },
+    {
+      "key1": "TANQ0mYX0685YMeNW3P6hpMyYsJzP9sVMkdc2mMJFG8=",
+      "key2": "r+y/e/liexs77omIy5BAi+0ymSGwWcSaqWbsWXQQmI8=",
+      "key3": "q+aEbmkquh8ya4zAWCfJY+Pwy52L8Pry+3LMmUcjdGI=",
+      "ctrData": "W3bvLfBQEi4or8sl3N5/8O/B6OalFX5bzMkMCo9lKY4=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "e12pxuiWDeI0ysv7NP5S34tnPtjWlL0QxSzwGUhELL9WGBeN+OBYzH9ArBSAKPFszcrEqpBSNJVgIoaJccIsazx+T34q44oIObrl/K4SewjqkkAhWQLe1BqdiaARSNUw",
+      "authCodeOffline": "12427455-08550763-89985840"
+    },
+    {
+      "key1": "wlPxCnRLn7GnkCCjakqm/p/HOl0R9qgZZyFaaBX82DM=",
+      "key2": "BJG8u08f/z6OcBfbTL+/vWODP8mr6jbW8KGBJUyU3/0=",
+      "key3": "rzyqKz/zIzB5W0hmfcOmc2iaOPdHIH+iXjWBeDK15E8=",
+      "ctrData": "BkyVrF8nWd1tNxwVuRw8ksw1+npWtWi2MJJaPv2/Nmc=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "GMgtxbDy8tKM1WmGOUKztBfLOs6YauvwPSCBkOHJnkXrPCWjkZkNKYSwkWZg9RMxpx5Lt3ssxiJ5tvkvMmOmBPSIRJ4Bsgc3YdV+ObK0dkcv03murvApJKLOHr0mwoL5",
+      "authCodeOffline": "40603205-45391364-50281721"
+    },
+    {
+      "key1": "u45g81el0K3d7Ftdm9wNC9VIvWpyi/koh2Sc6lBo/BQ=",
+      "key2": "v/YypsSIjeVz1zOWvv4r1MYkRErzakzVS1QvCdGn4/o=",
+      "key3": "JEMjfycvCWTDUnIFLbnCziPYxuZHojjvgBUCIXcHCpo=",
+      "ctrData": "+hL/NuF6OsDPmFsRG1+oa6b+Rg4/MSaOSMiyazSaX6M=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "x9h/qid35u9BccFWuLZLt8eAvZtBDUEZQG+9w9LAAEYdVrWaOYXg7iAi9XNHJmB7xLvUINcQ29ktM8P5S11pWR3OSXedJESZswgrcDIJ1M7Z0LA8POVa9nbdahF0VboK",
+      "authCodeOffline": "88314694-64413017-51775242"
+    },
+    {
+      "key1": "oOCzqOuf+9upRl8q1eDz4hbj7PQSQgv98V4ApgdxgAM=",
+      "key2": "bSEwR22EY4td4u4bDQGH3RueBNDJ8/JQN/sbxad0d1k=",
+      "key3": "VbXem48QKVs9C0XBx9EuEg+qSEbUKVR+kfsA3ajAxHM=",
+      "ctrData": "kA1n1qf817lcY+H8yHmmyqqo7X6HpUJCr4+5vKoca30=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "lwrqXX1wcPMpff54hiRF6nGVCWf66hByW8KFX1Bz/RljrukSGOalMomimYI/HZxXIWLSIcxwMgCRKv3kN5pzBAtaZqzBZDoUO/eXqXMv7QMp1UXOxcjqweJI8LDdN4FK",
+      "authCodeOffline": "49778713-32868868-63918666"
+    },
+    {
+      "key1": "MrQQpwgRDDMSdV2FZA38QrD7HUNaztfCdgYTRCOZJh4=",
+      "key2": "+lHdMQjrpQ0Lwqr70BsljOE565gfANB0mFRFSGI264A=",
+      "key3": "eA1+HixOAvY4IZS4iNCzJA/ddvDmz2GmVItpcQurwEg=",
+      "ctrData": "/dQ32qj37/wT8ylE0oZHvdO7Qv3yN+I0bnCQtTdBjq4=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "lC1mJAIyAhTmOFREgM499D8vZiW7LkLFbFvTJ5ThBmffG0qpq7zOQXicsx5qIadDnVGK3NYiJWfcAZfzrmY2LFCotbaHsavSfnw2/IkRAHfUFGsBjvI59ezVXcWi5h46",
+      "authCodeOffline": "50291559-78450476-85506362"
+    },
+    {
+      "key1": "4wMi3bPmmm7DaaO/QUWLv4DDLNKIltt3a6EVMQ3OqS0=",
+      "key2": "Ht2fqJAslVjgmTqynxqTyGNWSTl7bLELt50DFXOLqxI=",
+      "key3": "BF5zN4LlCcsD7QrD+FizoY186w3iXwUaYFe72LWplkQ=",
+      "ctrData": "P5L4p5B1TJ9w8HRwcsb303Xd76G1dsZnrzfkNh/CAZQ=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "WykJDS8RCK5/Wg0W/Iut2t6kWT9zqv5T4Kjo7pA9SswDtSGh+KDL/lJyFosoq8r5+UH3ge7afhepWFeTnrPCvwtbcZ4eE8cZ65FOM/0tX8x4yfr7YLv/LXK35wEoSwOM",
+      "authCodeOffline": "72452300-15097279-76004748"
+    },
+    {
+      "key1": "bSwTaUYJGDURZbbXSMshytBov6mcGmbxWlm9d2V1HuM=",
+      "key2": "4UxGOLvHWu+jQ6u6vLiHvNQjKPY4vCFXZz5NXe/wBTU=",
+      "key3": "5tKVR8AwH+k5XqXkNRKdK+Lpn0ajMi03PYMkGiVvz0c=",
+      "ctrData": "jNkR+767S1s2eT1iL8fj0DFBspkgyCQ3pHaSb3kCeF0=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "zTLgewrlzg3vgVEX7xvlP9T81/tWOvuym3A2ge3RHT6V+c2T1HFsF/dFCma8ELnWP5WNe0aIGuPYFD9+vK7e4fk0nCfjbh5O+QmqL6kcyK6ORYB8b3r7XBDzNssMB+yk",
+      "authCodeOffline": "42421054-18093281-01845924"
+    },
+    {
+      "key1": "Zu+VmVc6u4jZaCH0hnYSCEe/Y02mlas689MayPEgSbk=",
+      "key2": "WNXVcIcEjPZ8uFkpsIrJaWJavAtT99xkcxhXLNKaHjo=",
+      "key3": "khoUcYUzuCQt66f1r18hZtVc2DGKUb3/WW4ys12+gWI=",
+      "ctrData": "ygICjzIDgSDk7QMTH7wPFVB8bLD8wDkQM2p8OimHoXY=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "whbEsfGn0ybVSsZaLXQ7SGvwRtzfBv18L1xje5nx2hc9E6d9L4uNUhTtRjzq7DJ90wdLLAwQZiV5L3c4RT0vl6+HPCXd5CWiVBKMti1iV13FQ5fzRKkT0+BBhloSAZ3f",
+      "authCodeOffline": "35280407-61637783-02095839"
+    },
+    {
+      "key1": "44Itj1XWen2PUzanowA2pFvNN5sIxiqsnhMbnQhCrwU=",
+      "key2": "TelAiPSgeZ9NefSS+AbSM2aI1PFBoOHgl1BVXP6YqOg=",
+      "key3": "au920fvXbaaVJySW3//w7o+Dd9pJbXZ10uc+lSO6MY8=",
+      "ctrData": "HFAWe//Ngl0E5DZHhvJwA57siHBxFVfbDUHwcM3N3Bc=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "IJ6cKD/f1FS6/vy1rn+Krj03L4xgBibfcu/1AAsWeUqkobc1XdJIAhwk7NbJLKTzhhmh/Ju4HIx8iNgkwB/4B77B1B5BOjYZSzqKGQe5gMyiXvy4LFDYjrpwEcGey+XI",
+      "authCodeOffline": "86022218-75836935-16679112"
+    },
+    {
+      "key1": "txoUvSREwUUqAwF5SqYvQ1D+t84hV2y2GtNefMYS8UA=",
+      "key2": "Mt94oHsaS8L1Yfg06dYxeLQzFzlcO2Cw5thBUGONWL0=",
+      "key3": "yHimSzXEy92FL5nlWwaz6VvPS+SyR5xqfIGCd2GDTPo=",
+      "ctrData": "sZzMQ2rDYOOtQl5VAE/hU4UEZZdZQq+Uobuk0eKz4dA=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "Ti8lWN4L77WOjwO6+eNGAQeoAKPfvyKy+kAD7BETZbA643NvLZ/6NCjQEP7tHcGl50zY9hgI3k3+Q/OV3rFp6V8QjllFWC6ttssZ0mJ8Kh7Rgj5ILivyAXYp61QetWMq",
+      "authCodeOffline": "86483888-88685289-15203882"
+    },
+    {
+      "key1": "c/xX6Qg11rFyNDKkKMwDRYz1qML/Y5GKYHU2eusPivY=",
+      "key2": "JsjJULoXFodMoGZ9rVpg4SClDpZN7lEmEKT8Xu8umB4=",
+      "key3": "5vkAId/A7QZeuDeZhdiIfS4igLN+d6lOHzRvOJCruRM=",
+      "ctrData": "F//wEvUdFRCH9L2iqg85DN5ISToPNKEGM4NO3GLtQro=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "dbB/AKwMExJeYhUwVq0nWTswZPmSRX1de6QT9AD9nHzlv6iE5JhA2Js4cLHvD9z54udphSivngd6HJmAnJSLD12YnI9udKrpw2bcgHq5WbqLnNiyXEhYOVnvn2iofy7p",
+      "authCodeOffline": "16620668-79496975-79423721"
+    },
+    {
+      "key1": "D7mCWc3pmkG4eBmgYA/DZxEEDCcPkROSE0dbQHIAsaI=",
+      "key2": "dYSx7sHlDx7MsNbLM5MBWl2pZqsg2czaAy+suK2yaAE=",
+      "key3": "gdOcZsdXpxRUh/e0eUQDS1Dbpm2zvngNe1XEvloWYJc=",
+      "ctrData": "D4e/NAc2XfViNdIRLdlXQ6LDMs4OArCwZfh3Yt8MzFs=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "txyyg5I7ZRckSNbATcMZkan/cRZIuL/hhxAK9Gla9qe5aZl73jzX4dE+SHDxYG8fvzCfQFQcpwQVtVHz6B30CQgrjbIxz+trq8wwA43hGU59f1Y38p0dRWJOzROdVVBY",
+      "authCodeOffline": "67569063-46793481-92130392"
+    },
+    {
+      "key1": "dbH77SmZjQXbA5C6MIbxH5No5z1fvucnWVp/wWm06xU=",
+      "key2": "yTQEAbuA83vJ7pykvZkwJGF9qF40AEo6vWjoSfXyTJs=",
+      "key3": "7Zis4qbILWNrmrC/hoZLtc/dY9+mYfdBdnHwhn5w6H8=",
+      "ctrData": "vG/bQJ1rV/GK1/01cX8CotgMoyAVFy2z5VPlRqBvCSw=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "qhP9c9SfK4oBJr9tpzO880oln2evdiPykAeRdv8TaF8X/sFGY+gvCsmMMmCGvwu6whVUF6D/sQalQPT/yrkNexGN7mJQbOLaJiwCViC72a3Y5qEDfV4VYhRvPfkhIhAS",
+      "authCodeOffline": "31978335-53641595-55880466"
+    },
+    {
+      "key1": "vuhRq86j+wv+HoYMTUb1VuA8owl1l0xplZRVxVAW/lg=",
+      "key2": "a5WeLelAQ4AWsnVNvVu0CAtv/7w+h82daXe6Fcg0Fug=",
+      "key3": "L/GQVks1x8vY7ulNUdCKwMZZ/h4xUjlRKOrUEDbU3r4=",
+      "ctrData": "tBlJZTn6NycNsDgNM+JjoEU/AlzdCu6qO/QA2QAXMGQ=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "POx1Tf9Jj+l67wdNqkethnHhUC2PIhtW78kD2MYHI7vQEjTWBwcgQCkLzdS9pHloOLnCYqNJak4KeT6Zq0944PblNJZ6kKWrFOht6f7MDDRk1uPlRtTblNQq+ETKeohV",
+      "authCodeOffline": "74873019-26628576-49544277"
+    },
+    {
+      "key1": "Cnzx4d22i1ScEh7SxGONTBKBqX8cCmQXkOFQEzZnDzc=",
+      "key2": "oxtzbxhGFZ5xfmIi/zHNjA7+cK49eNBCGKS7yBaG+OI=",
+      "key3": "lbenLMBqQ4TJtLhoMFqBWevk67YYMdhKJlE+p9NPYb4=",
+      "ctrData": "G7nCYc6T//hbrlu3/8ipFEA+aP68MBWMGaxAHEdliw8=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "fouA8M8M3hfnxXLT+hT+D/xn/et14qT1IjjxTUYbcvniQbfX6aqqrxU7R8r7p9Srh83ltQAdgULZkVK6tmtMgvegtwCPT/b1qo020IA44F1hSRl9g0hXV14WowBFyqLq",
+      "authCodeOffline": "76204025-13001602-70907882"
+    },
+    {
+      "key1": "OI7m81LTjthi8+A3pHdb3Rr1V193MQm+GDhGKFJggxg=",
+      "key2": "ik13t6jxb63F8bnEeR+hspgcxiwf4hHif76l+V3kfQc=",
+      "key3": "IB4wfOkQghS7prRdxvMU0+ZQNIRdVLI4gshb9n07g5k=",
+      "ctrData": "drIMPwqaSkBG8s+XAU8fHuWQK1IlRPscGmojR3YBmvA=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "4xqvcSHrcDgFChwJ6286lMHfvSPrKkrye8fw0YeEN4pol/gjxagUQzn22hyryXeUk+7HEuto7MIV/Fvwd3dbQczuxYi8LMyD1DsyFaiH/XoAwQIzweKtMGiGUasQGb6J",
+      "authCodeOffline": "26105482-04310849-70122633"
+    },
+    {
+      "key1": "QezpSvDpJFgdYbUN2tzALW3L5oqPSD4IEDGdf3rwvnw=",
+      "key2": "IGP9+tpaYhAuLgFpxgoP5Vj1wRyHsFhNO4avApKhJ78=",
+      "key3": "vQx9X+eeINu33HszANzNrHHcRqE3IJfip9PKvyzDXno=",
+      "ctrData": "RW3H48FY1HxCR9qzbFXPDS25MdNhPJI0Bj3i3WGyV7c=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "eBQVQ/TVYTmDNHsfi5Kz2YZfO5slKEiBVuoO5vPwj1Pym9JDDIbTYhd4b+mYSG/akfQ7/Wf+Z0UAZx4eZ3E3PpLIeRDBAMLrxX+su7yvBxoyYjYtOtann+j+4QG+L7Vw",
+      "authCodeOffline": "45145171-35472958-43314032"
+    },
+    {
+      "key1": "JV0TyCP08reSK/4yzOtvOVQ1X08kryaJdH3n/d1Sd+A=",
+      "key2": "4O2VDN5a0eJT5bCdLpBhl90HBTGf/IrUle9z0FgQdLw=",
+      "key3": "Bj5R/oT0dcHBssxS0/cx/yakyCsBuQXloBhxJEVF+Lk=",
+      "ctrData": "e37hBf7h+UV+O2I8n9pu05hqsoyZ0EN8m4hZp4jp6g0=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "412RW5QcRsQOZNR5OHwQRpGGJ/58jhhUkL32s6IN1+FAJ46TgL3nMHfCDW/JCHObQ7ER6TxMh1/U05ra/jO7f+TJtaOuTZpCtIyqp3r/Gm/QW5/T2XX6fVM2LcNpwlBc",
+      "authCodeOffline": "71332577-17319551-74342236"
+    },
+    {
+      "key1": "zHBjbJdADIwFm7WzR2M22cCW6opdcj8W9BkxGp7LkDo=",
+      "key2": "RXdAem0gSxn5wWz1+nAWvDR/0k4Lftt86Jq4NY8RfG4=",
+      "key3": "SfPOU3OBoa5fHL3DSFAL5tXMJZRZncXVt8AwI/YNWfM=",
+      "ctrData": "LcCQOoyS8HEECr9KoV6BLkLRtKaDgGD/FLgPSK3PI54=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "MaMvy3rDZ3YcxSwsT24ASY3d5DDHI3uuClUTLObGso1149h6OZqajRoEeFmEFjNBYt0y9b2Pnd71PufdtvHt8I9L9jwnQYB/QQBdNep+uTTmw/D5i2Rf88WPgVNkRCRB",
+      "authCodeOffline": "24297869-21824752-82187329"
+    },
+    {
+      "key1": "8wmHg/SFjPn4u5MqofCqC510GOHD+iCSln2LZtlPXe4=",
+      "key2": "wWAJ4xRD0GjdlBzMBKQKEcl3FOGJejmtP4c5Z9kFa6Q=",
+      "key3": "ka2+yrfzfdKrN3WqNKLIGd9Dt41UAiYIvISrB/Nk780=",
+      "ctrData": "fNzdUeYt+jiJcSLFxQ32P+MhS9d7sKItpA7cOA6x4rk=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "2mZmquFTkboGJfL8AnAcw190RuvsBpJ7lbTTiiaKfvN7p76LkupAG1rsJ2bgCgTs0J2GH/TCtMM4SAPcS8JtyubOtE4Ka0AAYfAh1543lklqufNPhnhSVF2VSQ58Zp75",
+      "authCodeOffline": "46610675-71033290-87100153"
+    },
+    {
+      "key1": "Jv2sjDUqyVdFMuibSpgt8LnZ6djOuQN8dyCo2ijXUNA=",
+      "key2": "qdprF0gJ2eVTCN1pYQ1t3j113Qlz49ikpvDkvVgnFZo=",
+      "key3": "f0oHw1aVvUisHLDgwX7CPyAuGgjC+ihEcZWqpQdZNIw=",
+      "ctrData": "gyqAjFirM8cwqTvSnll0VBuJucSpF1AFY+G6GuBncwI=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "Y/0jWLW5fSFsLxhp0x/rhEPit8rgoEcx2A0UU+Bvd3xyFqQ9Sd/PpAtoey422EOiAlihc2Qw0DT/v8uRALSufKMuWcgjfc4em/tvZoSPaTS+hnhlcKyk5RWKlKZCGE/V",
+      "authCodeOffline": "17917820-11841148-08889557"
+    },
+    {
+      "key1": "EnKftO8OVbnFr9DAO9O50t1b5zZMyBetyIIqGakltDw=",
+      "key2": "iYIMm+LN9/MhcUp0kyZwN8muV/T3xTNOGL08ONLCJRY=",
+      "key3": "X177KeW3ZK8VP4aebFGQCfr2faBDvHtGT/r7nV7Pgt4=",
+      "ctrData": "8vWmVCGb7wtWgUsBNeFG0aQSVDwX09eLbnvIqLtC43A=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "IQ+JbPQWbgt+YzgbPhXXufe0CFtr04yFj149tdOi+VhuIWhIDge4ZtS3E5D7m34iGEAwrOVIHlZ43wFUgMN1QXFwN38/GcsIr9J8BPluSG46u0h9f8DLbhyl/4V3O668",
+      "authCodeOffline": "03189592-12809537-00400060"
+    },
+    {
+      "key1": "nUwLDuOH4g+hV0TL1LRJikjjVdmH/nWeKQAXg32l0Xs=",
+      "key2": "9cO66HmWmXBKUkZuAIdMnOlogXE4f41nYQWzMjflNqE=",
+      "key3": "cViCWaDHS7ZIXt860ArE0TL7P1rlgYtGT7QlDmhsAOU=",
+      "ctrData": "xAzhrg8LA9GDBXRmIDkX8ZSnN61Q4Hn9j0qeuhb9mKs=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "7AHisoKnJWAdBl3vm7gzWZvOQCRxvoEtce3erJTdfYUiKCihYG7xxGXVfWL3SvFgMwGjQeoSfMJaMonIC+etpg0RgpxYTUglf5jSyGvbmHE3JxUC0NmlWEo8FdfbX2uO",
+      "authCodeOffline": "50059909-99732646-32980110"
+    },
+    {
+      "key1": "Tcy6ADF3w+gIWiCAiJsFMIUVoIui/dXKBwmsA/6LfxY=",
+      "key2": "Lc8sBNu0GtiOOVH4nSfOSl5fDtoK6w6VVEpaFB8CD9c=",
+      "key3": "g1trjpkDC7nvaTtxv3bfjBQELWbF09IsiCXT1Qq4IOM=",
+      "ctrData": "rgZAA9C6K/Ycu3hZWRULWGBvBqYcOPhlHWYvW74J3i4=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "vto9KcrHCwy+OaF9jS5gHYYfZu+ukOR4Byyfo2WC2sq894Wl36XtgbZHV74dd5+V+4HAGIoeTQQqsvDpTqvQNa46TFqaVPpDJWx8vWexL6TEUOnTaswTiduZ5/IaX1MF",
+      "authCodeOffline": "03074506-19882805-42454789"
+    },
+    {
+      "key1": "CuW2qDbCbVK/HMVrj6XMonhdjsbVOiSrt3uT/DkZpkQ=",
+      "key2": "f+QXTdL2CQhaIKjohSXaj885Qm9pwlkuUvrfz6J8Awg=",
+      "key3": "9Kup8TXHlcehERG1Gd83JfWLTizhSmIP172mEgV+QTY=",
+      "ctrData": "GmZZuUxUiacPXh7CljjHtluC6xOaTK4y6zXvn7iMXJg=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "w9CJ5mIcAgTSiNmPi5aNm2TDThM2G8Ywq3VjbJIpLU74uf9Esu/HQaANcEvSeUahiIIhCs3LRfKpeSZ76yPEF8lOu+r8tyrCzAxdp2zhc+4j42FGtLjl+H3Ugqt2HBaj",
+      "authCodeOffline": "04688462-97506071-81552291"
+    },
+    {
+      "key1": "BOluGL1X/6MHkTNqJ/5IwlXdoeEXYr3FVP2gT/ErElQ=",
+      "key2": "On0f0rzgWvejPGOM8JNS7/Wvj79ONy7WOEK6QC/nc8Q=",
+      "key3": "clGcrYRQp7EnQk118A9GfbNnsjqFgy+f1xerkmOFo4I=",
+      "ctrData": "zjszOyvAOLQaijZDh3dns5aW+zPOSu3PG2TrDaTpdLU=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "bajhR07nl4srfqIXicH76spigvvyFKd95f/xQRVv93fe0nvBEih1RJ6tCiVxSW0hx1kvyS2UojhVqCS6/0yL0N0U/7sKUnc3bRS1PIhB9ChlkWC/K3yJpOE+Lqi2sX3S",
+      "authCodeOffline": "59659383-35722960-17601746"
+    },
+    {
+      "key1": "5c5q7vKTTRs8yBIvMjfubY7nNfW8LgyD+kzWXArmiPk=",
+      "key2": "KJcYERWi6+xwshgN0Pqz4n6yEvKGplTCrGIdd95759A=",
+      "key3": "ytIBfyIbQe6V6EVHmdIZDPNdAENtejqduDVHakHHFFI=",
+      "ctrData": "lev8qNjkYUURWOW1ni2gmshfvYOAEempJoMEtIYU4Hc=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "z88Dwkbne7EibFz8En+cljZnTT4LJNIojpLIMnD+tTDS5Eum3rauQ4JE/yZXrg0icQFZjw+QMup7dBc/vLqYuGpB7JoJ5PMDHPzBWkwVTAN2edJvxRDLsEouHcdc6XrY",
+      "authCodeOffline": "95740720-18861752-58805208"
+    },
+    {
+      "key1": "BqMfLGkieAl12cxw+LwZsU9tqnewZsGXu/DT/Dd8yI4=",
+      "key2": "3w+y20VBFkBGZOx3tibwBB6SXfxQpI0dyxzN5UTuLrM=",
+      "key3": "jpRL29SvowfK72gQ9pcj42eeC2FWzPrlhFTaVJUF7UI=",
+      "ctrData": "By9DlbNyUaGwg0b1zW4O+O342KJkPNm/lQdlsgURNbI=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "Ge/jA5m08rWMHpnjG0OtcbuyRAshuMq6QKz1TeC7TosAJeE7L30dz+NjEWQkmj4E2xPS/PbMuegUuCgDWysxAJxqAclQDICOUqnWx2a23Kmijgye59rMURoXmW3YDGyK",
+      "authCodeOffline": "22888075-29557248-77209226"
+    },
+    {
+      "key1": "ARCU6Za3ukNDgIUbkvJsb7QLzxTaknLt+faZMVIx754=",
+      "key2": "eSkDxyad8eeqIdQ0YF/l432DlPutCG/7m0hMHWIAgbw=",
+      "key3": "w3hyV2cK89UrSf3RsQZ/msH0gW3nuE9jaBbk49Vsq/k=",
+      "ctrData": "lrUNcsYTtJKOuiDSVvPjJqCgp8SHj/MILXI2bW37mfg=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "5s9tGN2yFbsSm2K75qBUafrlTjFPNx9PX+LEfUS60pAyLiax9MkWWxQBMZTp3cPJKsMCMfmDFv2jbCvExk7RdFDn24ustuoj5lAhiEc02cUmuPv9Rz1npnYaGJotRW/1",
+      "authCodeOffline": "53094288-79570548-59525365"
+    },
+    {
+      "key1": "a+ihex0T3EAoq+388nCXEeb8sIi/TFZVf05khHCtDgQ=",
+      "key2": "uWHTQd3tuuvXIkutiPCKtmhBnK0FaHyRBaLA4DVSVtA=",
+      "key3": "xcaM7gZ2R7mJJbS/xyDTlgn1veU8aqACNqjuCLJbTkw=",
+      "ctrData": "cL54q+3qHtBmjZpfkNfNKUBzIk9mivVUVsFBmqg0IgE=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "I+rB3AlXSwPWtNZGM8e82sg4Nk5HXZMiPuIhF3dBQ8QhWHZ4RZ+JLkknT62AxEQ7Ya3mLJoBGwTL1cy508rif67yDVGv3vf1/RgFN6a+m2KNhzt9aS/ut3VlxFLFapO5",
+      "authCodeOffline": "00765892-05805183-64612537"
+    },
+    {
+      "key1": "QmBbaqckRTYSb643pVZ96+dWOMe9rCT6H2+Rzp4jCHg=",
+      "key2": "uDuivCEMPwIx3XBy048Ynl+6uYDmgMqIKrHzPGbX6wU=",
+      "key3": "oPLohlwGgE6HJ+TQ6nQAi1dJimYwMacFLP+K2HRqkP4=",
+      "ctrData": "n88HC6uPYCklqZ5r9JY/BFn4/jrSnA7m3zfO+Ke4HMM=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "sNd91V7x6G71sh/BrZFjhoq6QcyL67V4rQQowXbSRoJjLDWkG99F4BrpOnq/brZ1VWOCe1hHzCTRAPb1F5HdiByIBcNkUANx73jBw2HGGdfbcU8S7dp672SyZsR/V86o",
+      "authCodeOffline": "93492098-95435400-36460968"
+    },
+    {
+      "key1": "vzNuEQFGBB2I2sBdjFGMWzisa/uFghoWrZ8UbbaFx+I=",
+      "key2": "3I9H+9tqRaSSiCKAvNoCxOQTH0lrfjPPIizSVjM9y9Y=",
+      "key3": "GeZX7KfpyfDtGOryYOIsfzwtxbYfh8UlUBbZmfBHssM=",
+      "ctrData": "ahhdhpc3KP1tx+/d2jpi04LT/0eKGuFeIUJlXzp9/3A=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "jOTGMhDhKjNFPbFDekJgLnubjk2Gil3TKzxU/mmYAO8oF72OpqYSsVN48NWcA8FdN7T/lT/yvmtDiO4fvcHsM2wI7rTzNmSTPxNpSERnmDMUAKh4rw5Qw4mnYMCb93BC",
+      "authCodeOffline": "71569391-36119091-69200962"
+    },
+    {
+      "key1": "qTEVNhVcSi/gzXCXbaeAYszdjRCO8VMr95WZBJPYRoE=",
+      "key2": "ykpDifplOK39cRp3r/SZMp9bKKqdEq7CDa3AITW1ExQ=",
+      "key3": "A/2Ax3ExSPn9cZ3NkWKzR8rTb7ofDI1lQwr7lDxVovs=",
+      "ctrData": "xXRpXa1U7/6A46JbJ6vNa9m58MxEr+tZp+rMw67toNw=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "pj+MLLis6G05gBcHeHszkDhPW9rv1GAAg8QiU8p/KtaLoXVkDUtGbuDKWcfhBEe5J6mw17PJdzkH0PL2pu0AqdoH1Hu5Em7Vdk56CRaGsfbq5JV8HKE3IUFtF93eNcRo",
+      "authCodeOffline": "49848022-53066409-80581992"
+    },
+    {
+      "key1": "nycrfL01IWmDELwClzO8RXhdmBhQK2ewv3B4QF5QdGg=",
+      "key2": "pSeDziTZX97MDoBhGoGRIZBL6U7fgWPdMDf9AAqBLFM=",
+      "key3": "/biby5FiggFQ0YJfP0wQ75cq6mRJmLRVXub7vo1kD8c=",
+      "ctrData": "4gyj9w0tARfmBd6y83ONRozwsSMm0T5xN5PcccYCVpk=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "hc49nnBHTduWj92rQ38xDGLN5517C4e0/DVvFAAV0uq7tZj1aosQNC+cmhL7Row7bGsi3lXvaQUUHLwhUWvMabl5gQQTz7wYMxjP+yxhe7MsMBoABTeUgoC2o5rgV6LO",
+      "authCodeOffline": "01430250-66019177-16356046"
+    },
+    {
+      "key1": "YYl0By7dS8Q899BhuTygktdnoTS0FffRdRy+5OAKMtY=",
+      "key2": "zRCu1TniLg0Q034s1jBltXLoh3dkLruvM9wgUPzyk4E=",
+      "key3": "zXChQckURe3AOQ9dZdI5l4g1fHnXOOum+QOD0cp9Zc4=",
+      "ctrData": "09dSsx0l193Iwpjjr3rFePdehj5a31ZJWgC2WuTFMws=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "HJEbK9OSDXfrP7uAqcZDc5JMdRzij+ZtVq0jpN3QdWwp0QS6WJX/R2BQUWavllgYP6WrL9S8pJZKb9AUZDijm9QHvSnaDPtmAQlPbWuuIZXb3gMDtUsS6zZagaWPt71j",
+      "authCodeOffline": "73942636-81433499-63699811"
+    },
+    {
+      "key1": "xgI1C8kx7i4WzIgY7wDnOmHSMgiKovCkV580fKAxhEA=",
+      "key2": "PnKTDZmwMk/JypT/UHMg0Z+JOm0UV7kvy6qPlAmBGMA=",
+      "key3": "lHZuFEjStFvOKRst79QbaQ/hKUdFUn3EvGsxrHV+Pp4=",
+      "ctrData": "ry2E/2kVzohR3cBGAkOlXPBui8zYoNTpxGJF7NZuOmo=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "9w/VpdrJv1s8aajNb/KWrqAUhyUlnRmEGwN3qAbvg5Q3CatGZ8nD5wWsF8B0TWweRSa/2qHbnkFmDw9CeitX4R1dehiaZ8kHIDRhlwruRh/mkAw8tbNg7DU4Do5RiAD6",
+      "authCodeOffline": "16360084-49660897-67867642"
+    },
+    {
+      "key1": "pUOOt3APWzyVuYWEIVBEP4Hv4lGTkA8yQU3Ah/bY1YA=",
+      "key2": "j3XOrL0qFR5TN4gkaRXF10ONkdCexaSz9qWtqkuFQJQ=",
+      "key3": "IMFVCp19lh98p5WldJYt+fDvqgd0g2a7ACz091/yNTQ=",
+      "ctrData": "VxI47FlZlPVf1u1dacMz/pctb2l1LKJLgLBfsx/WzS4=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "5LKTqjH9OTPaPfDAV/7MRH93+t+fNbL8SfgGcNKwq2hsOsw5ACc9kKDzdOpc8PvSaGf744wJA4TlHFENG1t31ahfvtIRUzzme33030ipHNoU6eZKk5eI+ydRmaG4QE+u",
+      "authCodeOffline": "87309928-58979285-43738798"
+    },
+    {
+      "key1": "RNXVFzeqZpxvYTOJQkkzNPkfhq9NYYpazXjn2DyZMq0=",
+      "key2": "6k6h/h5i7icfOy1uvxaN9H0e+tz4fohneQJ+v2kDQBE=",
+      "key3": "g53VY1nDruwlIgKbfFtbzwM6MacpDWiBQJ+8qU6f44A=",
+      "ctrData": "2Ee6olc/MBqNL4rPXxY+OCd+OSLrzOokOqYWR9Smoto=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "uNR9ILHmykbXO45UjZ0sn6Ra7ROt1XeodNpIeSQJZp0FdNX6Bob/4iAEC/zI69TQig+w1nvqfN5Mz+KwH60WoGevQv3mDg52ku3hcCEveOcAkQqhKcVYJNgA12U8pThg",
+      "authCodeOffline": "04595869-31437216-17460832"
+    },
+    {
+      "key1": "D3+V8wDqy+eRFWlQKbaTHuNSgtGYq47N/FmZbIicABk=",
+      "key2": "+s3+ML+YP8c5lqbl6EZSM22OWbKXc57VHHUSVGNhZro=",
+      "key3": "vYYXeMKGF5hd9R1qq/V/cFw8vaFTgHZ5dPC9R9BCi9A=",
+      "ctrData": "9ZJinYjD8s613vjdoX9/uN2JYzc6w6T8LBbwHz6/MEE=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "LG96eKyFcNCnZJ0D5Pq9K23UMQnOXiOrxb9woxp19UZSFuO8j7Wp/RasyhxWz+mxcvjn6ip5WhdkROBlbpyCxFnqrIjRPqCMo3QFncvte1mtBDB6QbJ/iiBr58Vc4jED",
+      "authCodeOffline": "43938118-55750852-58327555"
+    },
+    {
+      "key1": "ElxrB18cN4Yj6bkGoEi8B3DCznHsYdmKQQuentZZZQQ=",
+      "key2": "ViVDdVv0xMF3pkzIacawuBQ++ADqCocN2d0V7Qifs7E=",
+      "key3": "sikUdaG7BNE7pPLukcNmEkqCVUWZLMCUFpSLsJRHEMs=",
+      "ctrData": "ydRVMJdFWxb9PsHhh5gRtdQiF8/LPi5T1NdkuNA/3+0=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "clJcEzeepf8fFg2LTscsTc0W2LbO3nMuBRQbkwhGOsprqfUgPGmAR+yjzHKsyycPFc8ywV+EI3m7O3SNl5CIV4N+0OvXXLu6GgJLpIudcxpTBpX0dD4JkTYx9rzvREEz",
+      "authCodeOffline": "38820298-95348055-66744115"
+    },
+    {
+      "key1": "f9Ss73JF7j2ijx0mNyXhHcc6FpNBLjSl78cdV+e3aYg=",
+      "key2": "o8Eh1XQbLgKJAdrcxcIglj9lhyJHc9OPFtgNST8rmbA=",
+      "key3": "QrbEWrMonyHp74sMzTT9n9VWueBO3PbpY+yUz3uIvrA=",
+      "ctrData": "UcdfRKcRkcsDupRPBT+q2YXlQH2Ca2X+Tuw1blmUnpg=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "CnUD8cKu+0BZ+L5nfY7zQMflnq6jVmIJHOWXdNC71kV4L+r/tasbavtv2uXUu/qfMUWvU3SjmD8XVbhTK0ORkogN62wdDdVN5h+lkxTPNqXUdHt+qWzsZU9Rn/k0u1Kq",
+      "authCodeOffline": "54487365-25848466-84691626"
+    },
+    {
+      "key1": "D93D5iQBe0ZVkbs+A0o6S/b3z2AyXrXFFATZw6TF+bw=",
+      "key2": "Frt9KEGJ0IsOWJlgVNSRkzP6hgR4w3Qf0EHaQwfxzmk=",
+      "key3": "71hOlc7V7kQ1pLqTJg/3VDXWILAPOWdYHFjs76Te5jk=",
+      "ctrData": "PpdNNT4KhJG7e2GnnAt/N6bwmWAdXyjAXJlsBINjZ6E=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "926GpV4RmGd9eb6P7Mla4oX1MQSP1pOO3DMzjIiuYX+oCIm7FF9rn7Jm8PdIWbPbap0O2tGIoC+3gk76oMmxGHtnIVnWqk0yAwmSTiHrZwzbmRw4Iuh7FxvFTPUeAmWO",
+      "authCodeOffline": "45645951-50088984-03473550"
+    },
+    {
+      "key1": "4qVp5CQfsSNoRs13jIUJ8QRyzi73WzXtk07xmycdYJ0=",
+      "key2": "JybC+pJIWMYMMgH9+vfCLMruVdgK3x1bSwpTj//lugc=",
+      "key3": "h+sXd0xMT610zCqiLIXgRnKGzi/seETRbXXxNo7ENLU=",
+      "ctrData": "cRzuEdnQS3gSfoGKOz8NCjSOe0RXkX/jpnvK+8C+76U=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "4qttXSrYxO7tNvOi9T3aVy9GvbsDS/x1dA1HmVukvqfLG2X7wAahgV7EwESVcvOzYn4wFIO3sfeMCV/B33eMniT/N3pIVqOzjg9GeCB+8k7np2UXcNqxJ3dCQIeW+R1k",
+      "authCodeOffline": "37523367-01670302-85424740"
+    },
+    {
+      "key1": "8FEP1/T3ZKX8z1bZZtOrMn5RMCsSRYwCy8le07/nfos=",
+      "key2": "eSl5CZfCl+4iSMhVDDHOAJCTK6wucxAYBoU3zeAHzJc=",
+      "key3": "nVhoyofkF7EY2ei3j1BaMsUMeau7WzidGir3BExw9n4=",
+      "ctrData": "LqhgkLI0uj0k++hGsxVy6J32zAiizu86hb2sTHIpuDE=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "nF24NyiDgBFZYyE7USry9oCLKUU9GJ18aJL+YYuPtIA+A/nMBQYYAdVvHejN3veGJREIRNTvGpnskWo98xzlHlTkg0ueDBwjOdSe5kz6t604dni+tUfPHr4KDotKz9Ve",
+      "authCodeOffline": "93967232-31273502-55134558"
+    },
+    {
+      "key1": "8jdA/8+td4iREkeLQK0Z8AClah75fPfl/afOO+tsRVQ=",
+      "key2": "62B3Z01c+LmopmZaq3b9yKwB/EqFp8WruSMb+030UjI=",
+      "key3": "+JRdkwRklxZNXd40ju0ED1ONWQo4l7McHcbitShXxVE=",
+      "ctrData": "NODAOhhjGU3DV+GRuL916/9tlDPTn0eEoxh0AW3hD+s=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "Qdz5D0P4jjfWK2BndiGy6iI7Z6rSSaVRZE1QAjqKVWPsOwpUI2a0kPpqSIXzxcQ1BrL9PX1E+ptiBnSsCD1RyAI3iXgKNojbopO9LzFM8B/owoAg+9rP7ohps9DSBPik",
+      "authCodeOffline": "82144355-38236360-76057508"
+    },
+    {
+      "key1": "3FCnm5mBlSu/AXmmRe3iBFOu6b7DmecBAF3Vxdu/59w=",
+      "key2": "UdvHlwHbP9AqB4i3Q5LhCNqQ8DJuh44hn4FJt1vCZNQ=",
+      "key3": "ObSIvJGXqT12G5+O/TQn1Pbfv/dzBeM4SaQHYiBapcs=",
+      "ctrData": "+U4XQxPKaqdCpCW68Id4WebpdFprKFCJp6jELAJrgmE=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "jW/rtHslrIIKd8tlfB9cMgV2/gUz3wY+o+ipvIt0slLGfYJc0LPZPMdLNYytxredL5Ul+ATYToaPxQcxjB2+AHlLMe8SlTBeYreU9FTJkTkZ+GL1ealWC+EMU3dLReji",
+      "authCodeOffline": "92197202-03275776-62872802"
+    },
+    {
+      "key1": "iohDlIrs8AU0cCNkw3tESf70tRKTf+HH5ASxYEIPgyA=",
+      "key2": "airOuo8FLLbtvBUWprUg3Ow9T1Ymq4jj+F3hlH5SI00=",
+      "key3": "irmABTwSCdKyrrg2o0FA/cgTZkpRJm8/f9XOuZQxk0U=",
+      "ctrData": "MP5FOTFIgsX5p3gKb8IX1KGuxcN+RNHQ/z+xNj6pX5E=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "XlorNPqoy4npozd94TuOBki1VVSwi8ja1qLfkARLVEJsEZKTgvXAUGkbWB9M5FAbqMy7nlZIOZ3PnrcFC04TnCsuSRqpStFp1YuPAlcFkWrT0yncCtg6QwXPdv1BJN1k",
+      "authCodeOffline": "72045634-89666204-92935012"
+    },
+    {
+      "key1": "rNKP7bUZN/M5ieTsW2yuu0P0xVyUt8Yw+QR1BPUO/Vk=",
+      "key2": "o8nnIYeWgy4tVa5DpcqnB8qxLegs4OADkTVVi5reUJw=",
+      "key3": "Rd/rqJXKX1YrKtoGvmYhTTBeDTWgnrqOtS62WQu6qLU=",
+      "ctrData": "Qy+Yaecf+iHAYL7ilnnDSOS8khaaVB6wSYGq0/indxc=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "Cy13l6Zrs17GMdXi1XEATS8IdClV8nrR+Y9HPeW4Ua4XaEIqjxysoO2x/MERiex+3JuMgHqUdK6JV+ZNuVxR8X/UvkHZAY4bcA5tWij46jStDNS5s7WwOfmFta1B/GAB",
+      "authCodeOffline": "06578350-62351601-07058689"
+    },
+    {
+      "key1": "dpMoUc8oQcJ+z5wR1dSqcZRovB45jk/YyvJjUvCTdVk=",
+      "key2": "nBy2BxC2Q68qAuPunQxoFwSGg43ULKyAX6IQ/0L7/cA=",
+      "key3": "hCe20gy8Jc6b0bDAH0jd7QYXi+2r0hPJnvaCjeXGOr4=",
+      "ctrData": "0PiYU586v8vFgv0L8n1jZYxE64aUoiScmCRvJVbZNeg=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "0bI6grP5JFc0jYQk+1nCt+JEpfvdABe/RANWumSoItU3OQ8y58xcbGNY4S/CnW6UUwACvb3J8MAFaZ54XT9XOvw2HOaLv5+w1pvug5Y3bVYyL3GTYCmUHBdY94OEDU+h",
+      "authCodeOffline": "88740565-64432186-67981217"
+    },
+    {
+      "key1": "04weh/q2aYn/J//rs47opJXz7n+pmhiiRBHh9DgIPKM=",
+      "key2": "qRwFp4WedCmDSlB40VBIbdnRFeC1vKa/T+Yj4zL4WtE=",
+      "key3": "8tJU3XjoaqZVz21U7uBdcVRwMPAH5YF803Idn5olU58=",
+      "ctrData": "TBhY5u3W5UoLTdVnimIXzxYsADOICV+WrhwoLJWqnds=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "/lpZHmhR6HXsCl5oP2rEhMW5sltEbt7XdARrDKnuognc8a33cnCOKKiTnf1VhlcoqXKZBVZjlDyzud+7WFFM0aRc4WKqLX9Nm8eRTZIdlkWG0yh9rx7NuqcRrfRzMvRj",
+      "authCodeOffline": "03504905-81723089-32719203"
+    },
+    {
+      "key1": "8oqzdotSUzAx0QzTCSiKl5Nj02b+cOHvaj83zQUNdWs=",
+      "key2": "A95yDMBFR/JXE3No4n+INFCcpQKtKBKTZvlAbS83W+k=",
+      "key3": "b6T/LwLqGLE96d57nTWxiqDzt+sJoVawtTdtQck5kFo=",
+      "ctrData": "9ZWFV24z0u1uy6DptMoonx+c58MlCetnXZKqqw6AggY=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "urPuMBOHFMGbuZ01MDTeuVKATcnIsYbEzW4rUdIyv700YVTZkbcI4ousRj/nKta9MSGxNSI+qlOkgIpXF3ZCwHgbixdTtjGijQYJYrz48i0pkbSkk5AenfziQ9DKkD7f",
+      "authCodeOffline": "79057597-93626304-50967263"
+    },
+    {
+      "key1": "uv0uYoMlkpDa9e08RG2v18nFe4/Afw+ILSYirvIPO94=",
+      "key2": "6rhKQnKY/7g+OasMCc+yCaYMAqhct/fK103roaWYGwI=",
+      "key3": "we+XCpTmevr39c9ZYfEiOuSQye/8bDyfk1i/jDNSGwk=",
+      "ctrData": "AuGi+4AWHGoZxF8LjomiekODYQQho3lEeHkKwzibMrk=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "JlvQPMdyZazGF50ZeYjja9lIo50lTFLhjnoAq67cXkxWo33ZhthebqyXBb56BaLORAjYsoCi5W/vLiJ3hZS6NJQO/4Rl+/c7uYfk8bWOjG8DjG3x47ICrsCDz/43b93X",
+      "authCodeOffline": "86193996-93633076-30078167"
+    },
+    {
+      "key1": "BI6POkE3dTQaTy/izLRx2GZ8awtLg1WNfPgkstKmZfM=",
+      "key2": "BzqdlXSAPAhl1ZD3DgGotZsBvZcRRl5VqpHwZE+o+dU=",
+      "key3": "a+e4cJt0jedbgLje3Xm+yxcTdcoWpslNrkWWciGe0l8=",
+      "ctrData": "/BFQfAtjxRTcqYwWlwa9hIMjmEyBoFOPFj08p+uUUuA=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "l2LkoJFXOiDcZJf7kz7ANJREPqP87Cp6DAlIJFeemgFGsP9bWQ/x4/2HV6kyvr7ZteV1Q2d2rJ2f0kn9Df5XMOIwC5gSxxZ+gq2rTHIw86WZkQZRHeu39VyTDUAAsQhq",
+      "authCodeOffline": "70011905-34772272-11602026"
+    },
+    {
+      "key1": "VZFmEZEw0nXZsHWMHB9nrvnbFPsC2LgqtQkAo1G8VzE=",
+      "key2": "tToouOvHV5vlw2zhwwIrRburJK1Pzk/qblUiaCbTisA=",
+      "key3": "DEnGpMXbjJtVwYsLhRLLA3TL/vJPuRDJJlPZpc4WS5Q=",
+      "ctrData": "GGgBpXfv2sWZSg6xzqI1YQIe0Sjo7Ap5X033cc7kVuI=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "hGJ3bsRMoSOjhfppRuds/zZlvqiHac2bGQLPL+GWqBQrRcVR3NJ14r9+POWkPghnTIIt4Wehf2PClZaQU1pezw2saVzcQqNo3QlDswLJg57Q+C7w0waZ2/ykrKa1jNYS",
+      "authCodeOffline": "37263380-98431439-98422290"
+    },
+    {
+      "key1": "6pk9iFbeMxw02Zie4a679crecIyE8LE5lzXxLmQn3jc=",
+      "key2": "DXfpi4ngOdWzimTvg4f3SrwTlrYeHm0PjfeIRGA5Vz4=",
+      "key3": "pF1vtLY0JP6JcpKgCPLItu9WFnOjRYYj3UezuCqzEpk=",
+      "ctrData": "Kd0xURapDjPpRuO/0dgP3eC3dU5VlOkzir4sCM9Y/9U=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "oACoYNvzOR8GkeEncHv553Dd7PlybgkboN/XDbnqgDid7/3fjGrINIpV0VBq+OH4EwTayplDdZZ2r5Fd0jHrmpqCzfSWC8f5UrE/IhhsW8G1PUowz3QeSnfogKBCEXBx",
+      "authCodeOffline": "71669560-79003290-08439153"
+    },
+    {
+      "key1": "MZrrZJX4XgXkMi6x1BM/Db6stjacZOshTlKQgZz0GHc=",
+      "key2": "25nwRPd1dJlTFKvwt9nmsYStzQ6Qa+FEvUlqqwqXK8M=",
+      "key3": "E2PNrEpKoa+jQd7DWAjjvNPlzQJhSQD6s7oh+1AIT3I=",
+      "ctrData": "yr8r5YMnctonHR3LDOYhrVvZQXTuZFP3vvvRf6lP1WU=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "zjDCU3CqBVo8YKiFihCGp9Hn/VgC24U8xxE+buYPP28skl9WVyZx2okQO03i4OWxld1BSsVrNb/TD31ug4mhvvUHJl4ER1uOI1p/fcKj1M+NESk2hv9bjjtNOvN4525f",
+      "authCodeOffline": "12275311-59351486-28432991"
+    },
+    {
+      "key1": "qtBWEHb9MjiJ5jqyjZBZ36RXcPaj0p0U8k1TbVk6pVQ=",
+      "key2": "JBFEi35fg5FTDDLhQe3e22vYV571nrMLb2fj4nS7ZGE=",
+      "key3": "/BjxZc33wGY5NhLaQdPVYVoc7mKXGkUsnCyJmUbxCWw=",
+      "ctrData": "lzheL+47978Cy9wY4qvIZ7amQq31mFmXX1nNatetfno=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "NLMIs7WNW7VkGdDgmNfIRvfLGH30Dh1j6DaMSH+gsc7nAMTj3yOV9xG1+1Q0WKrYWfewJShZV+EXnsmzSA1WcrihEb0+LvYBgOwPdItkHeQOJsQpqxuA8o28TuaScCYw",
+      "authCodeOffline": "41237710-08833650-09339696"
+    },
+    {
+      "key1": "IrJ1+nfGsxyfizf4SCzzm9XIxzvT5t6kE71fXv9u+Gk=",
+      "key2": "uwomMUzlXBw9uTID9RrKAYtCVKhEy93YIOyFHajK0ZI=",
+      "key3": "cvYGFEISkXDQPreEsq42xbfCbjn5a5Ya4ftp8fehZxg=",
+      "ctrData": "PeWJCbhyVzmEl/jzdgJdK/o/Y9e4PqN/zfHTqYlXi5A=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "BXyUZCVRSll2DftDe6dUGgEPhpXrEoeQGvAcJB2TneWw+YGSK6PGPJQ+2NjP8/tPiy2RY6rfi21XY++SqMHU1ZqHC9tUYSSWu23xTXTB0pPxi/4wfL+qb1BsUwileGWy",
+      "authCodeOffline": "96213477-83791573-28647346"
+    },
+    {
+      "key1": "0wtThHrg4UdH4PPPxtyaB/I3tso7L2wV5seZHph/njo=",
+      "key2": "4PCyQYUyKzvEvb54StINmotIkMq4Dz7QnHoeaKFeSWY=",
+      "key3": "iwyNZieXwvZbELqZw7LOOWFOeTaStVNb3a97VVx301E=",
+      "ctrData": "P2cWHF7+J39TJi0xVkMMXdk19pC9VBFXy+EOWkYjk+4=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "c/u60UsDCodXpB2GC4X3ElxbYjkQ1Zky/LjH71ClQxT0a8Rf/3OnhCOcK9VpOLEOtzhtF6m+CQWzP3sdvBWZqk3DwiUHbSATOlo6e6YW2Wn0cwHiQnOodgq3YIpkFo13",
+      "authCodeOffline": "53007892-08048554-79199607"
+    },
+    {
+      "key1": "te83dG3bBWB9yjOixgxCyNZjPAsEDVbUW7UlBEUkbiM=",
+      "key2": "sMtHBrGT8hif8LFaoecxHl3awK/Tcqrhk/ZMv9nap/M=",
+      "key3": "VdoCnE1aIOFG7W8VQ0ha6Gz7Ye1aL7uaA2lSoQjH/Sk=",
+      "ctrData": "M6JjwG4RWurcZANYA3MjGMCIRGhix3pJGYdpTxxzWlQ=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "1p1Ck1MzKmAflH1Mo0YigJbkYg+8baFsQJpILXoam7v59WVrkBo+isybCmFl/9jTFgsibtxlf1bjCS8qsAC8hdGKMV54wOTVetD3pLkfI9U96IXPXncgeOTjfI87eOLf",
+      "authCodeOffline": "48564155-05354629-97778143"
+    },
+    {
+      "key1": "cxF/FGaokiyl6PPSj+jhSCa46Fz0R/FFcWKlo/NiIYA=",
+      "key2": "Ggu8VdSVfxqTG8mDKyC/P7aweXryR0sKXAAd0h3Pzuc=",
+      "key3": "Fo3rIGh2vIiz193ids17bvMiT5y13mSXaV8cckIs7wM=",
+      "ctrData": "aZgXW9brNv16MklUxTAB77z12MoEK6FaXdVVmDzSV6Q=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "2boBLRvV3T35uHnthur83DhDQZUIqDP+g7SPnCbjU6AWyWFO8qxcudOYR7MUrKts1BN9xxkRQH1vo0Dl2EM5CIZ6I8rFAnNlw/QO7NY5CIvXKasYM2j2NpIYgplw1dYQ",
+      "authCodeOffline": "52432288-80800520-93062160"
+    },
+    {
+      "key1": "bsHfn4WnWmWJOthNZjPHSrtg5S6pROKSYHCdni9GW/U=",
+      "key2": "vDuKoBq/Y9Py6gDlrPwmJZdF7xO6m/wOQgIk+1sWcn8=",
+      "key3": "NVIO7UonvD4c8BOvRylJTZxpiP+PZ8nSkH8dYZ3Y0q0=",
+      "ctrData": "4O1kmBeVv0ZAejEVc4gPn480fn3qlIvmsAfoNzs9d2M=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "hfwHWjoIc3DcmP4FIrYPPiT7Z4+YD6uaAPDhes4B4oO2CMXStHTRUB8uOtk8R1OXFRv9rxM8ubrjLqa8ns6Xib38MZ7L5xKazR9+uzfjdn7CFY873NISJ+iK7JmcQ2Gb",
+      "authCodeOffline": "08746371-16855689-74177947"
+    },
+    {
+      "key1": "oHDhqCMLn7tD0K/Wn0X633ImTWDaoHt1psAp4nJVVu8=",
+      "key2": "YmtCF6vlOoVwWvhX5PsFQDtmMQrCuXaiK2aRlBLgeUs=",
+      "key3": "nDkMPoRxqmsxbRTuWYZW2kDzeKVxJRiVP0BUzfYcMN0=",
+      "ctrData": "QMCqneILnFoA4t8z2gLXoC4e1IM05RMZLE/ctnfcM0c=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "6WGBHJ1gmn9K+vA5vQ/msL8u6Y2ymNub7rwtJwY1hWnUH0DVKoRQU0gsylMzae4KzkX4qa2627Ga6j3vnMtMnSzVd45mbL4k51cC2QQVPeCJNphvL6xE06gbXI0HOA8W",
+      "authCodeOffline": "04170857-83085469-21114390"
+    },
+    {
+      "key1": "/qLmBlS6Rk7xZkGEIQzdfXzY0U+axRsbB1N/GZJGRp8=",
+      "key2": "Nbs9z8sxGjv78eFVMzDVKYJjT6h/QZ9YRWs2zcQ7BZY=",
+      "key3": "tMt3TlpN/RJY1+1QZYsvtsnYbRyAxSTOxrZMbfpq3pU=",
+      "ctrData": "0NljW2vJarGg7XdFmoIDh5b5BtYreuIuxU1AbMoq1PI=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "TYrtLxW/+119WUyXIO+HVip6yfPlOLnivOaSYMibesyGNaTPgUy/VvUSobxD2qyOCFBREm5mJAGWDcbajPYik5y91C3/bhVcZEoL777g0yjD8xlxUM9SvjcWCucmzoA9",
+      "authCodeOffline": "18149068-17457299-51067453"
+    },
+    {
+      "key1": "AdJOi5wvC1iroNPPjJVC00yHef35Bb2KBaWCbTxy89s=",
+      "key2": "51rhCO582eSyru55HNWK+W+bElDv0GHsPBbW005tz5Y=",
+      "key3": "8S9GsIb4wNCW0DidsrjQ0tKEBGJMxi/7e9o7s3M1A90=",
+      "ctrData": "8sz3DcgZDDPHMfiW/2VfZwtMk505Uqh6qyr1mbhYAEY=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "yHX8irZSrtbO22bsnGcpHVshK1mc9gdtyDR7G/a816Fn1Qqzeng+WV7PzOtmJjFXUfTC+qYSqOM+v9+dK/UKQzNOYGVLo9WX3WUGY5o7anNBsHxaAKK1Exx9MTNO9LX8",
+      "authCodeOffline": "92087457-37479235-24660220"
+    },
+    {
+      "key1": "ci0OhJW2mZEzuz45mP6FoBXwVpJa+Yv5r34lJqXaffU=",
+      "key2": "fkRIxEWczX8PxF/UPAwri23rAAL2i/3drwdz5e7J96E=",
+      "key3": "eofbIL+1YeyeQ4ZLHR5mRZvXFwXwAGJyJkBFyd8k7ek=",
+      "ctrData": "/kn/B+HNawAjkvk3j/safK4jQJYs+JsqDPXPUfYPvk4=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "8iLSqe5smWrNjcR9ANEhJPvldv4eDWJREOBE0O1DQDgRlmdpUMCnxj6vpm3law02IBt8YdFNJt7JWNm9gH9T7YiWFHIhesPpbe5amtMJuSCZtkZDNFrFsekdEDXSIDHX",
+      "authCodeOffline": "33123896-08344557-77841623"
+    },
+    {
+      "key1": "MYqUF55KHzFgKyrx4aeT7A5T1SvwusAYpp3UazTVk2c=",
+      "key2": "t9EwJQfXJSoR1v2n5ikcKcMPx760eAz+Ou21HaT3bDM=",
+      "key3": "6UE92QE0r5DpABotP7KO189/e52nZXXmU1g8L3jIgbE=",
+      "ctrData": "HhHj37UbP63+i/i1h2HXbG3gaG4mhkU93Tqaa/Cugb0=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "htgw6crsIMGvbJoKfvP5xxdxxo6X4SNch8A5nN96E7+8hL/oySVemTnSpI7UuJtMFlFQfY5iN76KVwANhSOitCyy61Wd27L8oYoQhOuoHBis8ZNiO9ERPbBRecStFf/B",
+      "authCodeOffline": "01835967-86221492-56416449"
+    },
+    {
+      "key1": "I616aMHDfn8JT6Ei1zMk2r1ycNxwzf6dStrSPCmBAC8=",
+      "key2": "7o1MJefSBfH8+MDWG3JmaEDYLVDvv1SusSnTkK1EIPE=",
+      "key3": "2ez3ZAOrLvzL66h+xaywTX46LQch7LIslIlQlOup+Ao=",
+      "ctrData": "7BQ5bK0G0MGnviV6mK0cv/LqKoXZBTo/+JhlRlATYF8=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "ZZlOh6io65bebyQRQkrw4+GVbVvyRCWWsv5bGraSfBeHpmhEkgNP++d7RfCEy7/7PFVs9GCB3gBjoAHSqgwMMITC4QiXZ/Ic6QTn7ZlZDHrda4Vql3318U3eXvcUfdXS",
+      "authCodeOffline": "15569687-05432624-43791058"
+    },
+    {
+      "key1": "wCQZihZ9s3ltEttQXBMWpU9ps04/tyu8H9pLx+kpLAk=",
+      "key2": "2FoJvfJu7trcaxBD/gGu/DZ+/vb3ipD3hEq71q1BE6c=",
+      "key3": "RNtoWDsc2vMMvwmpBjAXH0MVwO/sDlnAmd6c0LTUE/U=",
+      "ctrData": "Dkjrbab9tbqI+ppbQSNPwjEtMlcVoWPY+v9RojPy/Jg=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "Rker7iHTxPrkaeCSsGfs3nN7Sz+Q2l87YIGgTUpbDoM/HX5W6XtY9aevewASSFRShbKxczTS0kIm9S/jtAxst0PyP/2M1/zPXcOz6P34hIB3GEThJEGTSmMLBhGTHZoz",
+      "authCodeOffline": "47481475-73229495-20707123"
+    },
+    {
+      "key1": "+REdhpthyamssARvlmzNJ+YAg8ZbWRHh8j6CqXmYDso=",
+      "key2": "V9aSjTvr2QE+OsLFnlSkSeCg7DfGtfOf3Tsy22i7+BQ=",
+      "key3": "LBageDtbvp8qYMi7PSPga4Tf2slkkLjMS81RVWrFcs8=",
+      "ctrData": "HVR9DXTEpna74sRSpwIIV+OC/tzNS6IvnZe8qY1lgNo=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "SIxRzilTFnGyyA82SZg1Mun+8YVfOUCltx/8bRzKzeeNl8iu+1CYE23UG1NMvGOcxPDZvD7wQd9S3L1e6S9m7WTupurCbwTbhvJ3hgPREyAn/JNPSnZJSPtTaPRC3/X3",
+      "authCodeOffline": "83053031-64714221-21973751"
+    },
+    {
+      "key1": "OMVuWu1oXOBzyFZYJkR7asjUK6tb3/EChVwmgvUELpk=",
+      "key2": "5Gc3Vz1ZpwDin3wg8On7Ct53boje1xLLucrrOnL13AI=",
+      "key3": "GPF7WHg577Q4hRKkfRjuFEM2me3fLBjWK41W8D/FH8U=",
+      "ctrData": "Pw5nnldp0kE48pbfhioipXuDzptWPZmuZtbzwc2g/GQ=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "7N4/H4UOQV97DADglTJag3mR5C21W/db9N2w2T5gC6zVjMWTUcRnZR/V4L4u1o9y/x+J0+SM6WseGD8emsIdXgr3Cke/3y/xKgBxF7QaQwiyLw4naAe7xkEg9xQJg23b",
+      "authCodeOffline": "46481836-48929118-59608283"
+    },
+    {
+      "key1": "coIG+8qmSLMAUId21bTEbVvouPGKqrV5OY3xTi7+IRw=",
+      "key2": "E2wK/6q3cV40LHQiSrI5TzdvaXjImBSa9QeiPeI8+aI=",
+      "key3": "9GSXLHMMr33xIiHnHDkUdy1GH6NApYDmgsj2o9dzs/w=",
+      "ctrData": "Y4tkXuA4WDQMuaw2CYZxgPsLJTj4dw9tX9VDtyySFoE=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "rLTymtjgF8I8UIOPpxlGwqiZp0VgBNEDtgu43qACevFs0MeJBjSSAk8lT60NVb9+cIas0ouPmkTVZv8igkPESMaMlIdbrLGCa17bKZ3F5tU7Gs2ZHKYxZdD43ouEtXde",
+      "authCodeOffline": "37033457-37995592-79001438"
+    },
+    {
+      "key1": "AlE6QrphCwyPdYHfG/uOgrOM2PGH0D3+9cHJCLj3YD0=",
+      "key2": "elkC4Pjy3ebuMSxeGWvQdEis2CT2TjuhBv9b/paTE9Q=",
+      "key3": "Nzk3G97AVDVkTWdjGWk2Z4NtFUswcRORgH6sFqiQthY=",
+      "ctrData": "+5xDVnEz8X7gIUcl9zc+5y9467oaV6/qJYwjSlexHTY=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "VFhjQKMRJIzKcOh1m1Y5GYBsS3R0trbeeQBwHrm4WUSIhom7/59RgwWQtFmLt0kXgxpYDyjlOeUv6yAN+7EZwjW3kj8r7gs5LScwGILt5Bm/q1zgr/9g53h4CmdpZ8vW",
+      "authCodeOffline": "68382788-75204034-68410070"
+    },
+    {
+      "key1": "Ndsa1Ctp5FyOYByPZB8AgRhfD0tJQ/At3mTVOkodrF8=",
+      "key2": "CPXqU53937VO0IbTQiZyBmRHbXtWFO6l1y2XbgRwRPo=",
+      "key3": "GCDzS5TNKk6zRFlVMups4s90YPLPB54FNcMVra1++UY=",
+      "ctrData": "LUeY4xNQzEXeQQPWwMojojEeCr1+hyIIWUloRRBlp2A=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "C/cO5Tom026h6PKRXhkIZ9zRWwWaIPOBPxA8RCxoYAflOFAjVwjNiLTxUIKVInvBjVyBe4WFP6Qj9jdDNAmUSe5EuQw0f4VnS/lq4osf8DEtM4sWsytgxT0JApinqqqX",
+      "authCodeOffline": "45037831-73043017-65496215"
+    },
+    {
+      "key1": "/M1j8kuliopofKi7hjwqMwfTsl1IgDqZ3XFWPvZV+IE=",
+      "key2": "vzZ4BZzp6ayAniisceAhRmBKcFI1jeCVVEliYbEq0+w=",
+      "key3": "oBLmwNJMAtKXmZhnI19jT8RO+Yy7JANgogWsUbdJJh4=",
+      "ctrData": "JGuB1YBX9j9EYeEWb29s9w12cHjBglTW4tu4/37wan0=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "ut3FMoR9pGkGEQwxz5Nf8IR8zwWZyjc9jpH/56pU+cJCJIeyCeOIfMbyJIimYNcijuVu5dlaelcl9q8hr48EcSHXnZA0tGQEihE7c+Yy7u/XTAjv9YsOMakzPQXGpseT",
+      "authCodeOffline": "10212034-97901937-85335187"
+    },
+    {
+      "key1": "M+qBdg9k2HDmaAxC4+xJknionT9paT+oPsb6wZhsWQo=",
+      "key2": "5g0lW+KTS4t20k5JE0nA65drpG/tlA+ak3fL+n3FbT8=",
+      "key3": "70CC3MJ2vdYJs9W3YUHvXEKGpzBCcWPHE2dFt2kkB+Y=",
+      "ctrData": "wzVo6WETsnxWrbxFj86+Bcz27jaqtH0C08ziDWaopPM=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "xUgEDD4JB1PkXZJFnmOuEYJCm9RcUYE3pMCUm+kUpCkkpOingH/26fibYfgYaP/ZPotVzYT5xhiWha/qtQbB8A1+wsCDlauUg5pEJUhph9HWPc9xfEfjs+2AUr3Ep8BZ",
+      "authCodeOffline": "62960425-89635312-51844441"
+    },
+    {
+      "key1": "uHPHQ1sRD00/Rwer6EOwZW4MCwTqXfwJM7WyFnUFhlY=",
+      "key2": "JhkzpPevCNVAZ2PgQ05IQanPsi8jqefn5nS65whysZw=",
+      "key3": "04A2KwpyoWusuajfpGLMs/3X8Bg0XkT0EJD72rGrfQg=",
+      "ctrData": "EgZmxHGR5YqTpXzrQuc0nNqlpkQlZWWj1ht1gG5a62Y=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "giugGMWPJ9Eq0wHQhCTrMme8ITonY3353WezjSHiv3QJdtWXzc+EpSVPlGSoAYS/ACdvjfYS0UTuEbJBLujUYMK/H7TWnSjy8n3ijXmF0P4y7VfWVE3Z+lLnVM2c9jDM",
+      "authCodeOffline": "68508276-87010656-85896396"
+    },
+    {
+      "key1": "SEWoVXkrpSym8kImLNGJordQxR4dPdtwqPSWU2SLPXo=",
+      "key2": "Gy5+cwj9d9MKXYy1tlkZVJ/MYDeyt3GYO3MvLdjq/iY=",
+      "key3": "Sc9ZsD/xWXjkPJ9lS3dLTkgnx9/ismWaKA5YC6YHNfg=",
+      "ctrData": "uHZxaJXeN+o7dvTVux0/bIwfVk6r5Y016kjSqO8VjwY=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "lViD5lboktwJypztnE5Mx67cuct38W1k5TiPR+rkp8IPdVvyJ3UL0rPRBRxGy3Bli1zY1f12qi+WXBcNff0SVkOSGFOrNrnegaMx1UVkePnn0UQmEIoSp9T6X/+0VtzN",
+      "authCodeOffline": "93370050-13737302-78107853"
+    },
+    {
+      "key1": "Gp9B6vVzXi/WX2WpYSe10qaobUugtQu1cn/d3U4ID5E=",
+      "key2": "R7DYUjyVX6TvKXLJYE3jWasYs6A+mjTPvDczlvghBPk=",
+      "key3": "o6AO1AHD2GSpr4mhZGrrc+pDOWfqpZiavLPMSQ9sxP8=",
+      "ctrData": "nzevViom15rrcqWQ1KSZjIyvgqcprdtnTDZH0GLGZ0U=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "DW6IAX7Si+tMhaQxNyLIyGvQ4nVImBFnENt7zLKIgr6u7RliYkb1MvorUWh7VNV324JR+KYwhtVfhUdlI/BVzUO0Liq69o1GoVIP+xNAwNARjErIgeY5JDdIuziBmrn/",
+      "authCodeOffline": "47807166-02953165-26917375"
+    },
+    {
+      "key1": "ShHsqhVSosxAnJ5BK5vhthSyQtENT+SxVYbcffPNHkw=",
+      "key2": "zNtyUTTvHD90HYRxwmtg1TtOcl8ni3IMFGGp3L0iVkY=",
+      "key3": "PYQZnli4NNNfj2YUOkaNhQdZeeVoiuYLjZ/TnzsL45s=",
+      "ctrData": "bspl1xzH/W2kJm+VGywKnAziJ9+WtVdpFl+FreEDbGk=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "I7r+hYeSqtqj54alBu/8xmhecSajF/eY4M+YzmLSu0y2hQBhS8zHP9lxw8medWkRnDWKCmaNWACWU5YbWKaH2HPVgjifNs92lVKlHC4+TBnTKcqOeKvvqO/dDpkeADFg",
+      "authCodeOffline": "57977676-87308760-03329120"
+    },
+    {
+      "key1": "xt8xSwhf4fHhQdmIy101SBw033oKTW/mFBlqdbRGW8g=",
+      "key2": "n8xZeJ+D05+HFgrqrIe7qAAbMS6cbAIZNzyHYTSRZLs=",
+      "key3": "b+IeS9iJNKkAytgszoVttXYe80gTdWcdIOFc8pr6cus=",
+      "ctrData": "sSiDT0SaRge62AbKhXk8/XRrTNkrYg1tcyvbGb4N7lI=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "6FYsnegHygMo/+aCJM4c8nMZdz4oZsZ3J5d7D5Npfq4bCecKeiVAu0Mq2yEj76RR9wlkCs4+vDhLOFNZD2C5Pd+vD76FZSOanGZ396Zfth/4qV0wKeHHRtJOg0TLPXgG",
+      "authCodeOffline": "25680814-57997117-62319622"
+    },
+    {
+      "key1": "jbNZ0Th0MzF+EGJCkgIq+E2KGHAkh2YQxJqsiMevbnc=",
+      "key2": "p1yROqrJCWs6fs2pOBQyZS2SiB3XCeb+Zlw2mmi4UlU=",
+      "key3": "/nnzMkMF+1BUJf9g8sEVSvnG9EVJB6ZfrS0UclZ18Dc=",
+      "ctrData": "tdOSDWB7FU+3ELtcRen5AVADDgF1yWOeARR2ytUy0zE=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "ogX17BFmzABLeJHTDqilb8txJfcefyTObCugAeLjB7S1UatGZyBnyVRoU81ktR8nV+dHEbzK3Z8RbUCMswSErj+d6E6NRR8E4wbe+cM+UaJmXy2cKxIE8T59nizLAUmJ",
+      "authCodeOffline": "59045812-55934126-58375561"
+    },
+    {
+      "key1": "SZ/X35EZ1DnIolnjyfi8TaCUEK61R9COVodFJ92QvHY=",
+      "key2": "nWJNHe2tkVMkLeA2FdQQRhTT20gKXyi4KgRzldFAEdM=",
+      "key3": "ItqwatAC1v7gpiu471b0VRQ0SoLBOxXaAP+lnmeDt0Y=",
+      "ctrData": "DGIwgC3mQauuojf/VtDpJBftHl9ZaU67HNTdoNfMcP0=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "6wxzqIatUp3nslZMiQPXCAvwQ/QyO2rRTcOg3jI6vtXVa8YVCBMavRr6Nn5/NEbcLv0TyD9kdlgvtFMaMPgzqoxlAQKMc2RX9tBfY7jMMw/13urLWnqR3nkMK8SuJkfk",
+      "authCodeOffline": "42710741-21572522-74260708"
+    },
+    {
+      "key1": "7N74BlnODw7pnCWuzfE4hT1WtujTZv/Yq9ToRIq8yxw=",
+      "key2": "Axwc2jdDye2xFSuY9wW7oczh5to5bmyMoMUsEaSn5D4=",
+      "key3": "T9NPvkIWlOunM3JPeaug5DuO/s01X1/aeBbPBGTogjg=",
+      "ctrData": "Sk8mLYQUDWHVwn2y/1oGZseYWMqkxKcdPszSF8iFHhk=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "h4Ah15Q0yUHKxH6tRZ9lZqul9a72Sarbbgw06JhrWvjPUmgxihyT/E3R6ftkzSAaqA22nCUizzaN6vgJlSUXWUA6lUcuhelcgkYsKnp3tvX3r9r9E60uGWiY5IRyB3vJ",
+      "authCodeOffline": "09688824-54752345-13093065"
+    },
+    {
+      "key1": "KjWBMu11Wg3Eyx5JCO6UdSXBna3LVVUB6PHTZQ9bcTE=",
+      "key2": "C+1/j8RmBVM3KHZE/ftzM2CCcXvQ4r9SjMD6o5b2uHU=",
+      "key3": "TaVc0bi4jUL21rqIC7EYZa7VIExPnWx5WIA1v7E54Gs=",
+      "ctrData": "cXiLH6EBKb+cOUgha0xpbSlDekWxBM7yskmtv9ZPuU0=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "COhsabKo6W7liBqk37a4O/lGVH5e1DY6j3RjcpHmWeygj3mDj7O9jijOCEIYTtS+vdONHYMtWK1NjNf35HvZXBd60erzyl4Fpz8YcuglRLOcVRgUbLO7/dYbAqR+eeRT",
+      "authCodeOffline": "00308972-85838172-21917523"
+    },
+    {
+      "key1": "3TsrsOHXFZgBs3+8Zk04U4PPSELFs8b6LAabQgN3AbQ=",
+      "key2": "ccphc5H31w6ZN/vMWa+bViAF/tDibqmCTBZ3DWjfaX4=",
+      "key3": "Zmw8CZIDeWkyjw4uaxoqvd2+eGAE502aRRIXAmbxseU=",
+      "ctrData": "FWiSjzqOiD+L3gRbUgbFNU+VemUGhXiQdvjc/h0Jg/c=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "iXyji9DA3cElvLQL0Cqw0TEpCHtpr6ttjWeDF/VMKKPSBFDCLqW620Z+0hppcEfYzxG4wmH23YYx3SevFauMHbVW8t1u4e+trJLMwxbo7SyXLckcQps+UsIYQEqOFmNx",
+      "authCodeOffline": "67925411-63564061-36348273"
+    },
+    {
+      "key1": "b00PE8HWFKH+ERgdkzNnhI2cwXKmZB/LFZS/DF5pgpY=",
+      "key2": "l7IxTzlXFqovetjYQeoqm3aULaiiS+A00vetUYIso1k=",
+      "key3": "fDZ4kjxUFC1Epjss6KlCOh1N6BRcX9MqAnSMNQcB9MA=",
+      "ctrData": "TW4xCGLq/tVG1DUMCn8/Qem0hyAoCkeZlHdjEEebG/I=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "K67A48ZXOOABgQhvOfh8t8rTsE3k1NWHQHyhdJeU9/UV2cEPGQCX2EB5cmaficRqBSu6MDnfJ8VMmVkCgNH5rfsJao8ZGWwaQklTNX0GNS6rL44NFJ+NqItJCYyU3eZk",
+      "authCodeOffline": "95638773-13760941-50086756"
+    },
+    {
+      "key1": "dt8AqNz9Q8wKLqt/mRSPuXcpSvkuhFdOu3z/4p1rtmg=",
+      "key2": "0R6mQe4oPSNUB72WMZong3fyiIicp14kGlcG0QYF1qY=",
+      "key3": "5uwPsn8xh0YSYb3qdHrBht4VAda8CJkJ0bzOfDRezSE=",
+      "ctrData": "z8BUr3n4XsiUdPUbdA15ZFN13oZDELVbv4yNn32yYOs=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "8qmKemjM9c7x/3XF30oY3DHBcQN7LZV1jZgtbHdgrASP23sM3C+XAcABjYDU1qa8FEJkNxDenOu6BZAr2RyexrgASr+9VrNBhBLugS57p9ECjzRKfCeBKMdRgThcBD+1",
+      "authCodeOffline": "02824196-95047878-43782325"
+    },
+    {
+      "key1": "dMYQUuppbAU+9+buW6Ggb+jX9tDUNrnao2Zbjvr75sQ=",
+      "key2": "v46UK+CjXUVP+eJN0WXfNWTwF41ltrrg2Du/nEOIpxg=",
+      "key3": "vmYO3SVPKqsQ2rYHUQFdV3toOZ1gDSAJpaYa7D8Vpps=",
+      "ctrData": "EdAo5P6UTaqN94p3z6CBDS/YDiowU6QGQ+TATEVJoKA=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "rWQTOvGhoxyrv+oYA3LbP+Dz0/MLUvQbuGp3m0uh+wT08ouiQCmoFrkZ53OPQqLc+35Oq5szOjZiN2ESf6h36CIrLodDMahFpsbdrdxX+DPH1jElWxNQlkW2smPP+ZzI",
+      "authCodeOffline": "68906756-41747176-41758664"
+    },
+    {
+      "key1": "NVezhAvVEZzGnAns+/llNmqJ5wMh0pu260C88MTCPqI=",
+      "key2": "pK3rfWtrXY3c1nIGXzzt0lwtG4/TwIwRLcc4Cmtw4yw=",
+      "key3": "C6eqUkyQdAGylWFPY4KFsPZ6GfdxnVApd0QJT709mJM=",
+      "ctrData": "/jGYew2pHH4uYBjiydNA21OB9JOEV1NjPot/nHpIFEI=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "A3AidcWoSS4oZ1mY/kCLM7wvSPCCQk+CEcWD/toLvMrDcln2UssbIrY6eu7HAAejHRQLPaxWDw8y1dj1RGHCUICIZNvY1RmSFI+q1UY6Vj9f/vOO51OKiIPB+j3FAR7v",
+      "authCodeOffline": "10718666-47257424-57701359"
+    },
+    {
+      "key1": "0qU09bhGXBWAbLix/unFj+x1qtQo+w9YGwBnwErUnVA=",
+      "key2": "EQRPKZwc/tqE9ognuFalIbNOfVHriVaB21S2wGikUpc=",
+      "key3": "12itkMps5WZ2HzI+nfDgQXATOWRy0sprpLTufzTou5c=",
+      "ctrData": "0BFJqZufV+nJnouXwxCC3QfKHYBlAaRkRaHGaQOv+98=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "XhX43X/u6mq2+zQ3QPY3HzvZ4fE+puCvE4Ard69RsHgNkuCHx7ti+K3Uxj49gDj8S5aJVB+At1My6Vqv8/9lZvJbpUNCj0swAcw6jlkc+3mBCgh0NzFMxO3UVQgMfg71",
+      "authCodeOffline": "93882744-46117478-09587957"
+    },
+    {
+      "key1": "60PPgHWI2ZN55WSQ+Kn/n5BUbOEIOJysNldjetNeQ0A=",
+      "key2": "AwEUJOhPXWeOTQLfg2obT1RNajtetQGQxIi4nSNRh/I=",
+      "key3": "bKxbAdnJ6e8zzG8xezCsXuZlecn1PfaqLMvc90FhgYo=",
+      "ctrData": "I1baP39gzIsVguCBcPYZVrRLjHEz8/k0YwTQA2fzjcA=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "FwoVGhSrWZBgJGAy/mjQ2PdNubXN9NKrAQVgaw0v5I2gKYdJfB7A36KNlVQpLBGtTm6/t8sPh/fHPIYjRxKhOpBCyV+qHKZ2Ujt+jzvsytmjwGexm6z3syan8WqRre7u",
+      "authCodeOffline": "21242509-92403258-96611566"
+    },
+    {
+      "key1": "yTv496e1RbfRxjQLDWKHM+qUxC1lmNW20XnRq6quLtk=",
+      "key2": "zALSY2p5JKJ0O4rnBZP0CC1haVXEOExwQHvV+Zsq1B8=",
+      "key3": "+BEsJnvdzkYvWxARc8MjPSc5UhnGqYy2ma58i+5JKgM=",
+      "ctrData": "AhVLLqqKS9GSmMXj7dC9Jq4eid8DG+OAj8TRGNDruDQ=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "2n96ZoBR4GXwu4GBh8982+6t76FYn9sRYIKAnXwR7IhqFUu5XLrJLwq6ascKz4GK26cMva2yl9Wa4FZrytirS7qZWEl69FVRBjnydIgrOihYf+VYLahpTxgGKNSqoYs2",
+      "authCodeOffline": "81549448-55713611-15230006"
+    },
+    {
+      "key1": "i+2wuwUgDQlG07nHZUSNsR0pfSJYT8LtZq8FNiY4DYg=",
+      "key2": "UzhkkSFxdcSxUiVBVEJIKKbe+3rsZ7SzYVRn9t7GtrY=",
+      "key3": "7r7WXsVU6NGG3U5s7g7XyTAkl47+SzkMwpzYEX0py8A=",
+      "ctrData": "ffUX4Pkz+JafiUIXx4E2aotMARJdxKB7ROQoYPrZaQA=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "4OFYRz0IdTun9MPAdAp9SDUrUN8DilEkeqypbYaTtJaKplBajv5nY5tI9rdEpB755w0qnoS8xxmoh2hcwQmRumlsdKAV23622GwZ+6WbUG2U0QxIYpKkhFQ6HVbfRgWz",
+      "authCodeOffline": "10343318-91146170-98424499"
+    },
+    {
+      "key1": "PF0sWHcqCHtUfz+BR2j7d51kE8DwU5X1bY5qYt/ccdU=",
+      "key2": "artD1dWl9CL7IvJRoQtt3vbS9SQw5HaVQ9Z7TJYcYdE=",
+      "key3": "uySOHRIxUvTAYH2E1VKVSrJ4x9s9IKQZRRNsRKdxhck=",
+      "ctrData": "56MYfbVkMrBJWLNAYPbSKsJKk6tHF0qCYHubkqlcY/Q=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "tqEvdf5oFC4ZtdJyiMesuy0lzMrwM18KvFfNs7/K+WYQH4hihRsefoxPBnQEJhxcjxgdeoD7nh0XVKIuWTowDWM51+wQHiONlKujvsgm0WtBjQvBayXrPpP4e9EWqO1e",
+      "authCodeOffline": "70266726-96985613-80169566"
+    },
+    {
+      "key1": "9j79Z5/2bItBTyq9S5zhlzp9U1W/prC14vqIIkc1ogE=",
+      "key2": "0FQ21uFZ1M+kiXV4jgnVQWFwjI5KLblXLEuapnUHoOQ=",
+      "key3": "El8HQGpB1MNEesblHplpiP91XQueeTkdgYSMG00VPcg=",
+      "ctrData": "0vPLllZ45EMLY8MVANCsFmphiesYSC20uBsLIsu5BXw=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "6DUVMc7wKNUfcq8gfb818YDBiUYR/nwz2pCqNqdi5LU7eUAZb+qMjsghPexzU4T2qONe736ZdCBcGbcTOl+4VINsgQV08DnH1kpqShzipXyJpv/sDgNjqt56NsHICJSj",
+      "authCodeOffline": "60792501-79351636-08521891"
+    },
+    {
+      "key1": "qfxej9uTLquxFfiFSZ/ncR3kucznx5QLTCPVHZAWiOI=",
+      "key2": "buvN1dn3cQnaKOiOz42W1pxGgGk1V06rEh5EAwfCk9Y=",
+      "key3": "lk0NUPGcHMjwTzl/sGwARl3wZxbwYNN/Ynp3qI5GES8=",
+      "ctrData": "KRn0ajG3pkVjWjboxg6r0DzSAxhT2+YMFZJ+BEPSq0k=",
+      "inputData": "dGVzdF9kYXRh",
+      "authCodeOnline": "qujJPeQJjwGfzcv91aOzBXbLLan+6h2pvNqIg/hRAmpqK/3RWBFlixgFILrmjTOhApyDRtolDAo2ygnKv4eH9cICNICiw8EUZw3hxiJ0Df/qekBzJEggdkIsBgWy232I",
+      "authCodeOffline": "18574954-65846773-53245320"
+    }
+  ]
+})cc7resourcxx";
+static const size_t Auth_Code_Test_Vectors_json_size = 50936;
+// -----------------------------------------------------------------------------
+//
+static cc7::tests::TestResource Auth_Code_Test_Vectors_json
+	(
+		reinterpret_cast<const cc7::byte*>(Auth_Code_Test_Vectors_json_bytes),
+		Auth_Code_Test_Vectors_json_size,
+		"pa2/Auth_Code_Test_Vectors.json"
 	);
 //
 // -----------------------------------------------------------------------------
@@ -22106,6 +23024,7 @@ cc7::tests::TestDirectory g_pa2Files({
 	&ECDHE_P384_MLKEM_768_Client_Vectors_json,
 	&ECDHE_P384_MLKEM_768_Test_Vectors_json,
 	&ECDHE_P384_Test_Vectors_json,
+	&Auth_Code_Test_Vectors_json,
 	&v4_kdf_json,
 	&v4_pbkdf_json,
 	&v4_aead_json,

@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-#include <PowerAuth/AuthHeaderCalculator.h>
+#pragma once
+
+#include <PowerAuth/Types.h>
 
 namespace powerAuth {
+namespace v4 {
+
+cc7::ByteArray CalculateOnlineAuthorizationCode(const std::vector<cc7::ByteRange>& factor_keys,
+                                                const cc7::ByteRange& counter,
+                                                const cc7::ByteRange& data);
+
+std::string CalculateOfflineAuthorizationCode(const std::vector<cc7::ByteRange>& factor_keys,
+                                              const cc7::ByteRange& counter,
+                                              const cc7::ByteRange& data,
+                                              size_t component_size);
 
 
-
+} // namespace v4
 } // namespace powerAuth

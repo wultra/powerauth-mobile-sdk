@@ -62,5 +62,31 @@ std::string CalculateHumanReadableCodeFromHash(const cc7::ByteRange& hash, size_
     return result;
 }
 
+cc7::ByteArray NormalizeDataForAuthCodeCalculation(const std::string_view & method,
+                                                   const std::string_view & uri,
+                                                   const std::string_view & nonce_b64,
+                                                   const cc7::ByteRange & body,
+                                                   const std::string_view & app_secret)
+{
+    std::string body_b64 = body.base64();
+    std::string uri_b64  = cc7::MakeRange(uri).base64();
+    
+    cc7::ByteArray data_for_signing;
+    data_for_signing.reserve(method.size() + uri_b64.size() + nonce_b64.size() + body_b64.size() + app_secret.size() + 5);
+    
+    // Construct data for signing
+    data_for_signing.assign(method.begin(), method.end());
+    data_for_signing.push_back('&');
+    data_for_signing.append(uri_b64.begin(), uri_b64.end());
+    data_for_signing.push_back('&');
+    data_for_signing.append(nonce_b64.begin(), nonce_b64.end());
+    data_for_signing.push_back('&');
+    data_for_signing.append(body_b64.begin(), body_b64.end());
+    data_for_signing.push_back('&');
+    data_for_signing.append(app_secret.begin(), app_secret.end());
+    
+    return data_for_signing;
+}
+
 } // namespace common
 } // namespace powerAuth

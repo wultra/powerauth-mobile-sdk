@@ -75,6 +75,23 @@ struct HttpHeader
 /// List of headers.
 typedef std::vector<HttpHeader> HttpHeaderList;
 
+/// Data for constructing authentication header.
+struct AuthorizationHeaderData
+{
+    /// Protocol version.
+    ProtocolVersion version;
+    /// PowerAuth application key.
+    std::string applicationKey;
+    /// Activation identifier.
+    std::string activationIdentifier;
+    /// Factors used in authentication code.
+    std::string authenticationFactors;
+    /// Nonce.
+    std::string nonce;
+    /// Authentication code.
+    std::string authenticationCode;
+};
+
 // Encryption
 
 /// The `EncryptorScope` enumeration defines scope of the encryptor.
@@ -132,21 +149,6 @@ class Context;
 
 
 // TODO: missing documentation, unfinished API
-
-struct AuthenticationHeaderData
-{
-    std::string version;
-    std::string activationId;
-    std::string authorizationCode;
-    std::string authorizationFactors;
-    std::string nonce;
-};
-
-struct EncryptionHeaderData
-{
-    std::string version;
-    std::string activationId;
-};
 
 struct TokenHeaderData
 {

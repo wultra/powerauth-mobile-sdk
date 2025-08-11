@@ -17,7 +17,6 @@
 #pragma once
 
 #include <PowerAuth/ActivationService.h>
-#include "../model/SessionData.h"
 #include "../Context.h"
 
 namespace powerAuth {
@@ -71,6 +70,8 @@ private:
     /// - Returns: Response object. The current implementation always returns `nullptr`.
     ResponseObjectPtr processResponseActivationConfirm(Context& context, InitialCredentialsPtr credentials);
     
+    // Activation fingerprint
+    
     /// Calculate human readable fingerprint from device and server's public keys.
     /// - Parameters:
     ///   - context: Context reference.
@@ -80,6 +81,14 @@ private:
     std::string calculateActivationFingerprint(Context& context,
                                                const cc7::crypto::PublicKey& device_public_key,
                                                const cc7::crypto::PublicKey& server_public_key) const;
+    
+    // Biometry
+
+    
+    /// Process response from remove biometry request.
+    /// - Parameter context: Context reference.
+    /// - Returns: Always `nullptr`.
+    ResponseObjectPtr processResponseRemoveBiometry(Context& context);
     
     /// Acquire context from weak context pointer. If context no longer exists, then throws exception.
     ContextPtr lockContext();

@@ -137,11 +137,10 @@ RequestPtr ActivationServiceV4::confirmActivation(InitialCredentialsPtr credenti
     auto request = cc7::json::JsonValue::object({
         { "enableBiometry", cc7::json::JsonValue(credentials->hasBiometryKEK()) }
     });
-    auto auth = Credentials::knowledge(credentials->knowledgeKEK());
     auto self = shared_from_this();
     return RequestBuilder(*context, v4::Endpoint_ActivationConfirm)
         .withJson(request)
-        .withAuthentication(auth)
+        .withAuthentication(Credentials::knowledge(credentials->knowledgeKEK()))
         .withResponseCallback([self, credentials, context](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
             return self->processResponseActivationConfirm(*context, credentials);
         })
@@ -206,9 +205,9 @@ std::string ActivationServiceV4::calculateActivationFingerprint(Context& context
     } else {
         activation_data = cc7::ConcatByteRanges({
             cc7::MakeRange(algorithm),
-            common::ExportKeyToNormalizedForm(device_public_key),
+            common::ExportKeyToNormalizedForm(HybridKey_GetKey1(device_public_key)),
             cc7::MakeRange(activation_id),
-            common::ExportKeyToNormalizedForm(server_public_key)
+            common::ExportKeyToNormalizedForm(HybridKey_GetKey1(server_public_key))
         });
     }
     auto hash = algorithms().v4.sha3_256().digest(activation_data);
@@ -231,7 +230,16 @@ RequestPtr ActivationServiceV4::fetchActivationStatus()
 
 RequestPtr ActivationServiceV4::removeActivation(CredentialsPtr credentials)
 {
-    throw Exception(EC_InternalError, "TODO");
+    LOCK_GUARD();
+    auto context = lockContext();
+    auto self = shared_from_this();
+    return RequestBuilder(*context, v4::Endpoint_ActivationRemove)
+        .withAuthentication(credentials)
+        .withResponseCallback([self](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            self->resetState();
+            return nullptr;
+        })
+        .build();
 }
 
 RequestPtr ActivationServiceV4::changePassword(PasswordPtr old_password, PasswordPtr new_password)
@@ -248,7 +256,25 @@ RequestPtr ActivationServiceV4::addBiometricFactor(PasswordPtr password)
 
 RequestPtr ActivationServiceV4::removeBiometricFactor()
 {
-    throw Exception(EC_InternalError, "TODO");
+    LOCK_GUARD();
+    auto context = lockContext();
+    auto self = shared_from_this();
+    return RequestBuilder(*context, v4::Endpoint_BiometryOff)
+        .withAuthentication(Credentials::possession())
+        .withResponseCallback([self, context](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            return self->processResponseRemoveBiometry(*context);
+        })
+        .build();
+}
+
+ResponseObjectPtr ActivationServiceV4::processResponseRemoveBiometry(Context& context)
+{
+    LOCK_GUARD();
+    auto& key_provider = context.keyProvider();
+    auto secrets = key_provider.unlockSecretKeys();
+    secrets->removeKeyAuthenticationCodeBiometry();
+    key_provider.lockSecretKeys(secrets);
+    return nullptr;
 }
 
 } // namespace v4

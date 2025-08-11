@@ -383,6 +383,17 @@ public:
     ///     - `PowerAuthException` with code `EC_MissingActivation` if there's no activation available.
     ///     - `PowerAuthException` with code `EC_NotAllowed` if secret keys are already acquired.
     virtual ISecretKeysPtr unlockSecretKeys(const Credentials& auth) = 0;
+    
+    /// Acquire interface providing secret keys for computing signature with requested factors.
+    /// The method should fail for `POSSESSION_BIOMETRY` factors or if implementation supports V3 protocol.
+    /// The method is useful for computing authentication code during the pending registration process.
+    ///
+    /// - Parameter factors: Prepare keys for factors.
+    /// - Returns: Unique pointer to `ISecretKeys` interface.
+    /// - Throws:
+    ///     - `PowerAuthException` with code `EC_MissingActivation` if there's no activation available.
+    ///     - `PowerAuthException` with code `EC_NotAllowed` if secret keys are already acquired.
+    virtual ISecretKeysPtr unlockSecretKeysForFactors(AuthFactors factors) = 0;
 
     /// Acquire interface providing vault key. If the secret keys are no longer required for performed
     /// cryptographic operation, then you must call `lockSecretKeys()` and give the object back

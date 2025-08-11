@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "ProtocolFunctions.h"
+#include "FunctionsV3.h"
 #include "../model/Constants.h"
 
 namespace powerAuth {

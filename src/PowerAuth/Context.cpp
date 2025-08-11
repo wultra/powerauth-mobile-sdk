@@ -19,6 +19,7 @@
 #include "v4/KeyProviderV4.h"
 #include "v4/AeadEncryptorFactory.h"
 #include "v4/ActivationServiceV4.h"
+#include "v4/AuthenticationServiceV4.h"
 
 #include "v3/KeyProviderV3.h"
 #include "v3/EciesEncryptorFactory.h"
@@ -58,6 +59,16 @@ IClientEncryptorFactory& Context::encryptorFactory() noexcept
 IActivationService& Context::activationService() noexcept
 {
     return *_activation_service;
+}
+
+IAuthenticationService& Context::authenticationService() noexcept
+{
+    return *_auth_service;
+}
+
+ITokenService& Context::tokenService() noexcept
+{
+    return *_token_service;
 }
 
 ISharedSecret& Context::sharedSecret()
@@ -125,9 +136,14 @@ const IActivationServicePtr& Context::getActivationServicePtr() const noexcept
     return _activation_service;
 }
 
-const IAuthHeaderCalculatorPtr& Context::getAuthHeaderCalculatorPtr() const noexcept
+const IAuthenticationServicePtr& Context::getAuthenticationServicePtr() const noexcept
 {
-    return _auth_header_calculator;
+    return _auth_service;
+}
+
+const ITokenServicePtr& Context::getTokenServicePtr() const noexcept
+{
+    return _token_service;
 }
 
 const cc7::crypto::KeyPairFactoryPtr& Context::getSigningKeyPairFactoryPtr() const noexcept
@@ -171,16 +187,17 @@ void Context::createBasicServices(bool initial_setup)
         _key_provider = std::make_shared<v4::KeyProviderV4>(self);
         _encryptor_factory = std::make_shared<v4::AeadEncryptorFactory>(self);
         _activation_service = std::make_shared<v4::ActivationServiceV4>(self);
+        _auth_service = std::make_shared<v4::AuthenticationServiceV4>(self);
     } else {
         // V3
         _key_provider = std::make_shared<v3::KeyProviderV3>(self);
-        //throw Exception(EC_InternalError, "V3 is not implemented yet");
     }
     
     _services.push_back(_key_provider->asService());
     // TODO: uncomment when V3 services are implemented
-    // _services.push_back(_encryptor_factory->asService());
+    //_services.push_back(_encryptor_factory->asService());
     //_services.push_back(_activation_service->asService());
+    //_services.push_back(_auth_service->asService());
 }
 
 void Context::destroyServices()

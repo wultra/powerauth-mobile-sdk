@@ -71,4 +71,10 @@ std::string RegistrationData::getActivationId() const
     return activation_id;
 }
 
+bool RegistrationData::isKeyExchangeComplete() const noexcept
+{
+    auto activation_id = _version == Version_V4 ? _v4->activationId : _v3->activationId;
+    return !activation_id.empty();
+}
+
 } // namespace powerAuth

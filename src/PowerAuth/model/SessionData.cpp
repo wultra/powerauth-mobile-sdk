@@ -86,6 +86,12 @@ bool SessionData::hasPersistentData() const noexcept
     return _pd != nullptr;
 }
 
+bool SessionData::hasUpgradeData() const noexcept
+{
+    // TODO: protocol upgrade
+    return false;
+}
+
 void SessionData::resetSessionData()
 {
     _modified = _pd != nullptr;

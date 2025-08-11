@@ -25,7 +25,15 @@ public:
     
     HttpHeaderHelper() = delete;
     
-    static HttpHeader buildEncryptionRequestHeader(const EncryptorParameters& parameters) noexcept;
+    /// Function builds HTTP header for encrypted request.
+    /// - Parameter parameters: Encryption header parameters.
+    /// - Returns: HttpHeader structure.
+    static HttpHeader buildEncryptionRequestHeader(const EncryptorParameters& parameters);
+    
+    /// Function builds HTTP authorization header.
+    /// - Parameter header_data: Data for authorization header construction.
+    /// - Returns: HttpHeader structure.
+    static HttpHeader buildAuthorizationHeader(const AuthorizationHeaderData& header_data);
 };
 
 } // namespace powerAuth

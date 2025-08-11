@@ -19,7 +19,7 @@
 
 namespace powerAuth {
 
-HttpHeader HttpHeaderHelper::buildEncryptionRequestHeader(const EncryptorParameters& parameters) noexcept
+HttpHeader HttpHeaderHelper::buildEncryptionRequestHeader(const EncryptorParameters& parameters)
 {
     std::string value;
     value.reserve(60 + parameters.protocolVersion.size() + parameters.applicationKey.size() + parameters.activationIdentifier.size());
@@ -33,6 +33,38 @@ HttpHeader HttpHeaderHelper::buildEncryptionRequestHeader(const EncryptorParamet
     }
     value += "\"";
     return { common::PA_ENCRYPTION_HEADER_NAME, value };
+}
+
+HttpHeader HttpHeaderHelper::buildAuthorizationHeader(const AuthorizationHeaderData& header_data)
+{
+    std::string proto_version = ProtocolVersion_GetHttpHeaderVersion(header_data.version);
+    std::string value;
+    value.reserve(120 + proto_version.size() +
+                  header_data.applicationKey.size() +
+                  header_data.activationIdentifier.size() +
+                  header_data.authenticationCode.size() +
+                  header_data.authenticationFactors.size());
+    value = "PowerAuth pa_version=\"";
+    value += proto_version;
+    value += "\", pa_application_key=\"";
+    value += header_data.applicationKey;
+    value += "\", pa_activation_id=\"";
+    value += header_data.activationIdentifier;
+    if (header_data.version >= Version_V4) {
+        value += "\", pa_auth_code_type=\"";
+        value += header_data.authenticationFactors;
+        value += "\", pa_auth_code=\"";
+        value += header_data.authenticationCode;
+    } else {
+        value += "\", pa_signature_type=\"";
+        value += header_data.authenticationFactors;
+        value += "\", pa_signature=\"";
+        value += header_data.authenticationCode;
+    }
+    value += "\", pa_nonce=\"";
+    value += header_data.nonce;
+    value += "\"";
+    return { common::PA_AUTHORIZATION_HEADER_NAME, value };
 }
 
 } // namespace powerAuth

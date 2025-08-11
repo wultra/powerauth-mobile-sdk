@@ -27,6 +27,9 @@ namespace common {
 /// Encryption header name
 extern const std::string PA_ENCRYPTION_HEADER_NAME;
 
+/// Authorization header name
+extern const std::string PA_AUTHORIZATION_HEADER_NAME;
+
 /// App secret for offline authentication code.
 extern const std::string PA_OFFLINE_APP_SECRET;
 
@@ -45,6 +48,9 @@ const size_t APPLICATION_SECRET_SIZE = 16;
 
 /// Minimal password length
 const size_t MINIMAL_PASSWORD_LENGTH = 4;
+
+/// 16 bytes encoded in Base64 equals to 24 characters long string.
+const size_t OFFLINE_AUTH_CODE_NONCE_LENGTH = 24;
 
 /// Minimum length for human readable authentication code.
 const size_t DECIMAL_AUTH_CODE_MIN_LENGTH = 4;
@@ -89,12 +95,11 @@ const size_t LOOK_AHEAD_DEFAULT = 20;
 /// Maximum supported look ahead.
 const size_t LOOK_AHEAD_MAX = 64;
 
-/// 16 bytes encoded in Base64 equals to 24 characters long string.
-const size_t OFFLINE_SIGNATURE_NONCE_LENGTH = 24;
-/// Minimum decimal signature component length.
-const size_t DECIMAL_SIGNATURE_MIN_LENGTH = 4;
-/// Maximum decimal signature component length.
-const size_t DECIMAL_SIGNATURE_MAX_LENGTH = 8;
+/// Length of nonce in bytes, in online authentication header.
+const size_t ONLINE_AUTH_CODE_NONCE_LENGTH = 16;
+
+/// Length of authentication code component
+const size_t AUTH_CODE_COMPONENT_LENGTH = 32;
 
 } // namespace v4
 
@@ -143,13 +148,6 @@ const size_t STATUS_BLOB_NONCE_SIZE = STATUS_BLOB_CHALLENGE_SIZE;
 const size_t LOOK_AHEAD_DEFAULT = 20;
 /// Maximum supported look ahead.
 const size_t LOOK_AHEAD_MAX = 64;
-
-/// 16 bytes encoded in Base64 equals to 24 characters long string.
-const size_t OFFLINE_SIGNATURE_NONCE_LENGTH = 24;
-/// Minimum decimal signature component length.
-const size_t DECIMAL_SIGNATURE_MIN_LENGTH = 4;
-/// Maximum decimal signature component length.
-const size_t DECIMAL_SIGNATURE_MAX_LENGTH = 8;
 
 } // namespace v3
 

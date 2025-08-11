@@ -92,6 +92,7 @@ public:
     enum CreationMode
     {
         CM_BASIC,
+        CM_FACTORS,
         CM_INITIAL,
         CM_ACTIVE,
         CM_VAULT
@@ -105,6 +106,14 @@ public:
         AL_ACTIVE,
         /// Access to vault keys
         AL_VAULT,
+    };
+    
+    enum FactorMask
+    {
+        FM_NONE       = 0x000,
+        FM_POSSESSION = 0x001,
+        FM_KNOWLEDGE  = 0x010,
+        FM_BIOMETRY   = 0x100,
     };
     
     ProtocolVersion protocolVersion() const noexcept override;
@@ -173,6 +182,9 @@ public:
                                 const InitialCredentials& credentials,
                                 const cc7::ByteRange& shared_secret);
     
+    void loadFactors(const SessionData& session_data,
+                     AuthFactors factors);
+    
     void loadCredentials(const SessionData& session_data,
                          const Credentials& credentials);
 
@@ -203,10 +215,11 @@ private:
     cc7::U64 _instance_token;
     CreationMode _creation_mode = CM_BASIC;
     AccessLevel _access_level = AL_BASIC;
+    int  _factors = FM_POSSESSION;
     bool _loaded = false;
     bool _has_activation = false;
-    bool _has_credentials = false;
     bool _has_biometry = false;
+    bool _allow_knowledge = false;
     bool _knowledge_key_update = false;
     bool _biometry_key_update = false;
 
@@ -215,7 +228,7 @@ private:
     cc7::crypto::PrivateKeyPtr _device_private;
 
     void setupCreationMode(CreationMode mode);
-    void checkAccessLevel(int key_id, AccessLevel al, bool with_credentials = false) const;
+    void checkAccessLevel(int key_id, AccessLevel al, FactorMask fm = FM_NONE) const;
     
     void setupSessionData(const SessionData& session_data);
     void setupCredentials(const SessionData& session_data, const Credentials& credentials);

@@ -49,6 +49,9 @@ public:
     /// Returns `true` if session data contains registration data (e.g. activation is in progress).
     bool hasRegistrationData() const noexcept;
     
+    /// Returns `true` if session data contains upgrade data (e.g. activation upgrade is in progress).
+    bool hasUpgradeData() const noexcept;
+    
     /// Returns `true` if session data is modified and needs to be serialized.
     bool isModified() const noexcept;
     

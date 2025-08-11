@@ -92,7 +92,7 @@ RequestPtr RequestBuilder::build()
         if (_request->_authentication == nullptr) {
             throw Exception(EC_InternalError, "Authentication object is missing");
         }
-        _request->_authenticator = _context.getAuthHeaderCalculatorPtr();
+        _request->_authenticator = _context.getAuthenticationServicePtr();
     }
     if (_request->_endpoint.isEncrypted()) {
         _request->_encryptor_factory = _context.getEncryptorFactoryPtr();

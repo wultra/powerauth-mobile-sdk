@@ -432,7 +432,7 @@ SharedSecretResponse SharedSecretResponse::fromJson(const cc7::json::JsonValue& 
 {
     return {
         value["ecdhe"].asString(),
-        value.containsValueAtPath("mlkem") ? value["mlkem"].asString() : std::string()
+        value.containsValueAtPath("mlkem", cc7::json::JsonValue::String) ? value["mlkem"].asString() : std::string()
     };
 }
 

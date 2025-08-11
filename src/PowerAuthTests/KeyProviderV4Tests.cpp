@@ -178,6 +178,7 @@ public:
         testPublicKeys();
         testBasicUnlockedKeys();
         testVaultKeyUnlock(true);
+        testFactorsInRegistration();
         
         // activation commit
         testInitialCredentials();
@@ -279,6 +280,44 @@ public:
         // return keys back to provider
         keyProvider().lockSecretKeys(secrets);
         ccstAssertNull(secrets);
+    }
+    
+    void testFactorsInRegistration()
+    {
+        if (!hasPendingActivation()) {
+            // Do nothing
+            return;
+        }
+        
+        // possession
+        auto secrets = keyProvider().unlockSecretKeysForFactors(AuthFactors::POSSESSION);
+        ccstAssertNotNull(secrets);
+        {
+            // always available keys
+            verifyBasicKeys(secrets);
+            // verify factor keys
+            verifyFactorKeys(secrets, true, false, false);
+        }
+        // return keys back to provider
+        
+        keyProvider().lockSecretKeys(secrets);
+        ccstAssertNull(secrets);
+        
+        // knowledge
+        secrets = keyProvider().unlockSecretKeysForFactors(AuthFactors::POSSESSION_KNOWLEDGE);
+        ccstAssertNotNull(secrets);
+        {
+            // always available keys
+            verifyBasicKeys(secrets);
+            // verify factor keys
+            verifyFactorKeys(secrets, true, true, false);
+        }
+        // return keys back to provider
+        keyProvider().lockSecretKeys(secrets);
+        ccstAssertNull(secrets);
+        
+        // biometry factor must throw
+        ccstMustThrow(Exception, keyProvider().unlockSecretKeysForFactors(AuthFactors::POSSESSION_BIOMETRY));
     }
     
     void testInitialCredentials()

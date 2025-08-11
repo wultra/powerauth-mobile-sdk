@@ -15,7 +15,7 @@
  */
 
 #include "EciesEncryptor.h"
-#include "ProtocolFunctions.h"
+#include "FunctionsV3.h"
 #include <PowerAuth/ByteUtils.h>
 #include "../HttpHeaderHelper.h"
 

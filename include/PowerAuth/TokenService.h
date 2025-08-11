@@ -14,10 +14,24 @@
  * limitations under the License.
  */
 
-#include <PowerAuth/TokenHeaderCalculator.h>
+#pragma once
+
+#include <PowerAuth/Types.h>
 
 namespace powerAuth {
 
+struct TokenCalculatorRequestData
+{
+    std::string tokenIdentifier;
+    cc7::ByteArray tokenSecret;
+};
 
+class ITokenService
+{
+public:
+    virtual TokenHeaderData calculateTokenHeader(const TokenCalculatorRequestData& request) = 0;
+};
+
+CC7_SHARED_PTR(ITokenService)
 
 } // namespace powerAuth

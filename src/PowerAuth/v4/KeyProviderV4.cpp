@@ -132,6 +132,13 @@ ISecretKeysPtr KeyProviderV4::unlockSecretKeys()
     return keys;
 }
 
+ISecretKeysPtr KeyProviderV4::unlockSecretKeysForFactors(AuthFactors factors)
+{
+    auto keys = createSecretKeys();
+    keys->loadFactors(*_session_data, factors);
+    return keys;
+}
+
 ISecretKeysPtr KeyProviderV4::unlockSecretKeys(const Credentials &credentials)
 {
     auto keys = createSecretKeys();
@@ -245,7 +252,7 @@ std::unique_ptr<PersistentData> KeyProviderV4::createPDFromSecretKeys(SecretKeys
     
     pd->algorithmId = spec->algorithmId();
     pd->activationId = rd.activationId;
-    pd->authCodeCounterByte = 0;
+    pd->authCodeCounterByte = rd.authCodeCounterByte;
     pd->authCodeCounterData = rd.authCodeCounterData;
     pd->passwordSalt = secret_keys.getInputData(SecretKeysV4::IN_PASSWORD_SALT);
     

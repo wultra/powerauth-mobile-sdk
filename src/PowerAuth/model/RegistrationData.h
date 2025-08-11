@@ -39,6 +39,7 @@ public:
         ISharedSecretPtr sharedSecretAlgorithm;
         SharedSecretContextPtr sharedSecretContext;
         cc7::ByteArray calculatedSharedSecret;
+        cc7::byte authCodeCounterByte = 0;
     };
     
     struct V3
@@ -64,6 +65,10 @@ public:
     /// Get activation ID from registration data. If activation ID is not available yet,
     /// then throws exception.
     std::string getActivationId() const;
+    
+    /// Get information that key-exchange is completed and the registration data structure
+    /// contains essential information, such as activation ID.
+    bool isKeyExchangeComplete() const noexcept;
     
 private:
     

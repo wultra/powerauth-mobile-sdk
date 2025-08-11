@@ -16,7 +16,7 @@
 
 #include <PowerAuth/Request.h>
 #include <PowerAuth/Encryptor.h>
-#include <PowerAuth/AuthHeaderCalculator.h>
+#include <PowerAuth/AuthenticationService.h>
 
 #include "request/EndpointSpec.h"
 
@@ -216,10 +216,18 @@ void Request::doPrepareRequest()
 {
     auto is_encrypted = isEncrypted();
     auto is_authenticated = isAuthenticated();
+    
+    // Sanity checks
+    if (is_encrypted && !_encryptor_factory) {
+        throw Exception(EC_InternalError, "No encryptor factory is set for encrypted request");
+    }
+    if (is_authenticated && !_authenticator) {
+        throw Exception(EC_InternalError, "No authenticator is set for authenticated request");
+    }
 
     prepareRequestBody();
 
-    if (_encryptor_factory) {
+    if (is_encrypted) {
         // Endpoint needs encryption
         _encryptor = _encryptor_factory->getClientEncryptor(_endpoint.encryptorId);
         auto cryptogram = _encryptor->encryptRequest(_request_body);
@@ -233,13 +241,14 @@ void Request::doPrepareRequest()
                                     cryptogram.requestHeaders.end());
         }
     }
-    if (_authenticator) {
-        // Calculate authorization header
+    if (is_authenticated) {
+        // Calculate authentication header
         auto header = _authenticator->calculateOnlineAuthenticationHeader(*_authentication, {
-            _endpoint.method,
             _endpoint.uriId,
-            _request_body
-        });
+            _endpoint.method,
+            _endpoint.isAllowedInPendingRegistration(),
+            _endpoint.isAllowedInUpgrade()
+        }, _request_body);
         _authenticator = nullptr;
         _request_headers.push_back(header);
     }
@@ -300,7 +309,11 @@ void Request::doProcessResponse(const cc7::ByteRange& response_data)
     auto root = cc7::json::JsonReader::fromJsonData(response_data);
     if (_endpoint.requireWrappedRequestResponse()) {
         if (root["status"].asString() == "OK") {
-            _response_json = root["responseObject"];
+            if (root.containsValueAtPath("responseObject")) {
+                _response_json = root["responseObject"];
+            } else {
+                _response_json = cc7::json::JsonValue::null();
+            }
         } else {
             throw Exception(EC_InvalidData, "Non-OK response received");
         }

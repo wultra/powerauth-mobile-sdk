@@ -40,7 +40,7 @@ using CancelCallback   = std::function<void()>;
 struct EndpointSpec;
 class IClientEncryptorFactory;
 class IClientEncryptor;
-class IAuthHeaderCalculator;
+class IAuthenticationService;
 class Credentials;
 
 /// The `Request` class contains information about HTTP request created in the core module.
@@ -232,7 +232,7 @@ private:
     /// If request is encrypted then contains encryptor for response decryption.
     std::shared_ptr<IClientEncryptor> _encryptor;
     /// If request is authenticated then contains authentication code calculator.
-    std::shared_ptr<IAuthHeaderCalculator> _authenticator;
+    std::shared_ptr<IAuthenticationService> _authenticator;
     /// If request is authenticated then contains user's credentials.
     std::shared_ptr<Credentials> _authentication;
     

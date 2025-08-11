@@ -23,6 +23,9 @@ namespace common {
     // Encryption header name
     const std::string PA_ENCRYPTION_HEADER_NAME("X-PowerAuth-Encryption");
 
+    // Encryption header name
+    const std::string PA_AUTHORIZATION_HEADER_NAME("X-PowerAuth-Authorization");
+
     // App secret & key for offline signatures
     const std::string PA_OFFLINE_APP_SECRET("offline");
 

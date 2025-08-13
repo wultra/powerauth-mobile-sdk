@@ -255,7 +255,7 @@ using namespace powerAuth;
         auto biometry = biometryKek ? biometryKek.byteArrayRef : ByteRange();
         auto credentials = InitialCredentials::credentials(password.passObjRef.passwordData(), biometry);
         auto request = _session->confirmActivation(credentials);
-        return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+        return request ? [[PowerAuthCoreRequest alloc] initWithRequest:request] : nil;
     } catch (...) {
         if (error) {
             *error = BuildNSErrorFromException();

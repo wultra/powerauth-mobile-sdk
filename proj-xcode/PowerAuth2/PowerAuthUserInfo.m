@@ -53,7 +53,7 @@ inline static NSDate * _GetterTimestamp(id object)
 
 - (instancetype) initWithDictionary:(NSDictionary<NSString*, NSObject*>*)dictionary
 {
-    if (!dictionary) {
+    if (!dictionary || [dictionary isKindOfClass:[NSNull class]]) {
         return nil;
     }
     self = [super init];

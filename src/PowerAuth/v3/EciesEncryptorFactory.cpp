@@ -31,7 +31,7 @@ namespace v3 {
 
 #define LOCK_GUARD() std::lock_guard<std::recursive_mutex> _lock_guard(*_lock)
 
-const Timestamp EciesEncryptorFactory::KEY_EXPIRATION_THRESHOLD = 10000;
+const TimeInterval EciesEncryptorFactory::KEY_EXPIRATION_THRESHOLD = 10.0;
 const size_t EciesEncryptorFactory::GET_TEMP_KEY_CHALLENGE_SIZE = 18;
 
 EciesEncryptorFactory::EciesEncryptorFactory(const ContextPtr & context) :
@@ -83,7 +83,7 @@ bool EciesEncryptorFactory::hasTemporaryKey(EncryptorScope scope)
     checkNotDestroyed();
     auto& ki = keyInfo(scope);
     if (ki.isValid()) {
-        if (!ki.isExpired(_time_service->currentTimeMillis())) {
+        if (!ki.isExpired(_time_service->currentTime())) {
             return true;
         }
         ki.clear();
@@ -254,8 +254,8 @@ void EciesEncryptorFactory::completeTemporaryKeyRequest(EncryptorScope scope, co
         _time_service->completeTimeSynchronizationTask(cdata.timeSynchronization, 0.001 * response.serverTime);
 
         // Store all data
-        ki.created = 0.001 * response.serverTime;
-        ki.expires = 0.001 * response.expiration;
+        ki.created = TimestampToTimeInterval(response.serverTime);
+        ki.expires = TimestampToTimeInterval(response.expiration);
         ki.keyIdentifier = response.keyId;
 
         ki.publicKey = crypto::PublicKey::getInstance("P-256");
@@ -334,7 +334,7 @@ EciesEncryptorFactory::TemporaryKeyData& EciesEncryptorFactory::keyInfo(Encrypto
 EciesEncryptorFactory::TemporaryKeyData& EciesEncryptorFactory::validKeyInfo(EncryptorScope scope)
 {
     auto& ki = keyInfo(scope);
-    if (ki.isExpired(_time_service->currentTimeMillis())) {
+    if (ki.isExpired(_time_service->currentTime())) {
         ki.clear();
         throw Exception(EC_NotAllowed, "Temporary key is not valid or is expired");
     }

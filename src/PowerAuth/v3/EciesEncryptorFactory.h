@@ -52,7 +52,7 @@ protected:
 private:
     /// We don't want to use the key that's close to its expiration on the server. This constant specifies for how much
     /// we move the expiration time to backward.
-    static const Timestamp KEY_EXPIRATION_THRESHOLD;
+    static const TimeInterval KEY_EXPIRATION_THRESHOLD;
     
     /// Size of challenge for getting temporary key.
     static const size_t GET_TEMP_KEY_CHALLENGE_SIZE;

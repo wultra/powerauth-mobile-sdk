@@ -79,6 +79,10 @@ const EndpointSpec Endpoint_TemporaryKey {
     Version_V3, "/pa/v3/keystore/create", "", EncryptorId::NONE
 };
 
+const EndpointSpec Endpoint_ActivationCreate {
+    Version_V3, "/pa/v3/activation/create", "", EncryptorId::APPLICATION_SCOPE_GENERIC
+};
+
 } // namespace v3
 
 } // namespace powerAuth

@@ -50,5 +50,13 @@ cc7::ByteArray NormalizeDataForAuthCodeCalculation(const std::string_view & meth
                                                    const cc7::ByteRange & body,
                                                    const std::string_view & app_secret);
 
+/// Function calculates distance between server and client counter. Each counter is represented
+/// as least significant byte from the counter.
+/// - Parameters:
+///   - local_ctr: Local counter.
+///   - server_ctr: Counter received from the server.
+/// - Returns: Absolute distance between the counters.
+int CalculateDistanceBetweenByteCounters(cc7::byte local_ctr, cc7::byte server_ctr);
+
 } // namespace common
 } // namespace powerAuth

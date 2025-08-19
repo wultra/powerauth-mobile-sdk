@@ -125,6 +125,10 @@ enum class EncryptorId
     VAULT_UNLOCK,
     /// Activation scoped encryptor for creating a PowerAuth token.
     CREATE_TOKEN,
+    /// Activation scoped encryptor for changing a password.
+    PASSWORD_CHANGE,
+    /// Activation scoped encryptor for adding biometric factor.
+    BIOMETRY_ADD,
     /// Application scoped encryptor for starting the upgrade to protocol V4+.
     UPGRADE_START
 };

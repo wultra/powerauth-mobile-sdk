@@ -52,6 +52,8 @@ enum class VerifyCredentialsReason
 {
     /// Request is issued for password validation purpose.
     VALIDATE_PASSWORD,
+    /// Request is issued for confirm password.
+    CONFIRM_NEW_PASSWORD,
     /// Request is issued for authorization code's counter synchronization.
     COUNTER_SYNCHRONIZATION
 };

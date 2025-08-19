@@ -1,0 +1,13 @@
+{
+    "path": "/rest/v4/application/create",
+    "parameters": [ 
+        "applicationId" 
+    ],
+    "response": {
+        "class": "PATSApplication",
+        "properties": {
+            "applicationId":   { "class" : "string" },
+            "applicationName": { "class" : "string", "key" : "applicationId" }
+        }
+    }
+}

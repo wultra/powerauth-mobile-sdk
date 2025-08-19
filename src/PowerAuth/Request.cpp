@@ -174,6 +174,18 @@ const cc7::json::JsonValue& Request::getResponseJson() const
     return _response_json;
 }
 
+void Request::setResponseInterceptor(ResponseInterceptor interceptor)
+{
+    LOCK_GUARD();
+    if (_state != WAITING) {
+        throw Exception(EC_NotAllowed, "Too late to set response interceptor");
+    }
+    if (_response_interceptor != nullptr) {
+        throw Exception(EC_NotAllowed, "Response interceptor is already set");
+    }
+    _response_interceptor = interceptor;
+}
+
 void Request::processFailure(ErrorCode ec, const std::string& msg, std::exception_ptr failure)
 {
     _state = FAILED;
@@ -194,6 +206,7 @@ void Request::cleanup()
     _on_prepare = nullptr;
     _on_cancel = nullptr;
     _on_response = nullptr;
+    _response_interceptor = nullptr;
 }
 
 // MARK: - Request prepare
@@ -297,6 +310,9 @@ void Request::processResponse(const cc7::ByteRange& response_data)
         if (_on_response) {
             _response_object = _on_response(*this, _response_json);
             _on_response = nullptr;
+        }
+        if (_response_interceptor) {
+            _response_interceptor(_response_object);
         }
         cleanup();
     } catch (...) {

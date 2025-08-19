@@ -88,5 +88,27 @@ cc7::ByteArray NormalizeDataForAuthCodeCalculation(const std::string_view & meth
     return data_for_signing;
 }
 
+int CalculateDistanceBetweenByteCounters(cc7::byte local_ctr, cc7::byte server_ctr)
+{
+    int L = local_ctr;
+    int S = server_ctr;
+    // Calculate possible distances
+    int d1 = L - S;
+    int d2 = 256 + L - S;
+    int d3 = L - (256 + S);
+    // Find minimum absolute distance from possible distances
+    int d1a = abs(d1);
+    int d2a = abs(d2);
+    int d3a = abs(d3);
+    int distance_abs = std::min(d1a, std::min(d2a, d3a));
+    // Determine which one is it.
+    if (distance_abs == d1a) {
+        return d1;
+    } else if (distance_abs == d2a) {
+        return d2;
+    }
+    return d3;
+}
+
 } // namespace common
 } // namespace powerAuth

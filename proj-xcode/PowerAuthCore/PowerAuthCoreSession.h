@@ -20,6 +20,7 @@
 #import <PowerAuthCore/PowerAuthCoreRequest.h>
 #import <PowerAuthCore/PowerAuthCoreTimeService.h>
 #import <PowerAuthCore/PowerAuthCoreEncryptorFactory.h>
+#import <PowerAuthCore/PowerAuthCoreCredentials.h>
 
 
 /// The `PowerAuthCoreSessionDelegate` provide interface required for interaction
@@ -154,9 +155,9 @@
 - (nullable NSData*) serializedState:(NSError*_Nullable*_Nullable)error;
 
 /// Loads state of session from previously saved sequence of bytes. If the serialized state is
-/// invalid then the session ends in empty, unitialized state.
+/// invalid then the session ends in empty, uninitialized state.
 ///
-/// Returns YES if operation succeeds. In case of faulure, you can determine the failure reason from
+/// Returns YES if operation succeeds. In case of failure, you can determine the failure reason from
 /// DEBUG log.
 ///
 /// This function changes the session's state, so write access must be guaranteed.
@@ -196,7 +197,18 @@
                                          withL2Data:(nonnull NSDictionary*)L2Data
                                               error:(NSError*_Nullable*_Nullable)error;
 
+/// Fetch activation status from the server.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameter error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for fetch status.
+- (nullable PowerAuthCoreRequest*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error;
+
 /// Confirm activation and complete the activation process with user's password.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
 /// - Parameters:
 ///   - password: User's password.
 ///   - biometryKek: Optional biometric factor KEK. If `nil` then this session will not have biometry configured.
@@ -205,6 +217,17 @@
 - (nullable PowerAuthCoreRequest*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
                                                  withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
                                                            error:(NSError*_Nullable*_Nullable)error;
+
+/// Remove activation from the server.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameters:
+///   - credentials: Credentials with at least two factors.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for activation remove.
+- (nullable PowerAuthCoreRequest*) removeActivationWithCredentials:(nonnull PowerAuthCoreCredentials*)credentials
+                                                             error:(NSError*_Nullable*_Nullable)error;
 
 #pragma mark - Data signing
 
@@ -219,7 +242,7 @@
  Compatibility note
  
  This interface doesn't support multiple values for the same key. This is a known limitation, due to fact, that
- underlying std::map<> doesn't allow duplicit keys. The arrays in GET requests are so rare that I've decided to do not support
+ underlying std::map<> doesn't allow duplicate keys. The arrays in GET requests are so rare that I've decided to do not support
  them. You can still implement your own data normalization, if this is your situation.
  */
 + (nullable NSData*) prepareKeyValueDictionaryForDataSigning:(nonnull NSDictionary<NSString*, NSString*>*)dictionary;
@@ -227,56 +250,59 @@
 
 #pragma mark - Signature keys management
 
-/**
- Changes user's password. You have to save session's state to keep this change for later.
- 
- The method doesn't perform old password validation and therefore, if the wrong password is provided,
- then the internal knowledge key will be permanently lost. Before calling this method, you have to validate
- old password by calling some server's endpoint, which requires at least knowledge factor for completion.
- 
- So, the typical flow for password change has a following steps:
- 
- 1. ask user for an old password
- 2. send HTTP request, signed with knowledge factor, use an old password for key unlock
-    - if operation fails, then you can repeat step 1 or exit the flow
- 3. ask user for a new password as usual (e.g. ask for passwd for twice, compare both,
-    check minimum length, entropy, etc...)
- 4. call `changeUserPassword` with old and new password
- 5. save session's state
- 
- WARNING
- 
- All this, is just a preliminary proposal functionality and is not covered by PowerAuth specification.
- The behavior or a whole flow of password changing may be a subject of change in the future.
- 
- Returns YES if operation succeeds or NO in case of failure. You can determine the failure reason from
- DEBUG log:
-    PowerAuthCoreErrorCode_Encryption,  if underlying cryptograhic operation did fail or
-                                        if you provided too short passwords.
-    PowerAuthCoreErrorCode_WrongState,  if the session has no valid activation
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (BOOL) changeUserPassword:(nonnull PowerAuthCorePassword *)old_password newPassword:(nonnull PowerAuthCorePassword*)new_password;
+/// Verify user's password on the server.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameters:
+///   - password: User's password.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for password verify.
+- (nullable PowerAuthCoreRequest*) verifyPassword:(nonnull PowerAuthCorePassword*)password
+                                            error:(NSError*_Nullable*_Nullable)error;
 
+/// Change user's password.
+///
+/// This function may change the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - oldPassword: Old password.
+///   - newPassword: New password.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request in case that operation require communication with the server, or `nil` in case the
+///            password has been changed synchronously. Check the returned error to distinguish between the success
+///            and the failure.
+- (nullable PowerAuthCoreRequest*) changePassword:(nonnull PowerAuthCorePassword*)oldPassword
+                                       toPassword:(nonnull PowerAuthCorePassword*)newPassword
+                                            error:(NSError*_Nullable*_Nullable)error;
 
-/** Checks if there is a biometry factor present in a current session.
- 
- This function access the session's state, so read access must be guaranteed.
- 
- @return YES if there is a biometry factor related key present, NO otherwise.
- */
+/// Returns `YES` in case the biometric factor is set.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
 - (BOOL) hasBiometryFactor;
 
-/**
- Removes existing key for biometric signatures from the session. You have to save state of the session
- after the operation. Returns YES if operation succeeds or NO in case of failure. You can determine
- the failure reason from DEBUG log:
-    PowerAuthCoreErrorCode_WrongState, if the session has no valid activation
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (BOOL) removeBiometryFactor;
+/// Add biometry factor.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameters:
+///   - password: User's password.
+///   - biometryKek: New biometry KEK.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for biometry add.
+- (nullable PowerAuthCoreRequest*) addBiometryFactorWithPassword:(nonnull PowerAuthCorePassword*)password
+                                                 withBiometryKek:(nonnull PowerAuthCoreData*)biometryKek
+                                                           error:(NSError*_Nullable*_Nullable)error;
+/// Remove biometry factor.
+///
+/// This function may change the session's state, so write access must be guaranteed.
+///
+/// - Parameter error: Pointer where error is stored in case of failure.
+/// - Returns: Core request in case that operation require communication with the server, or `nil` in case the
+///            biometry has been removed synchronously. Check the returned error to distinguish between the success
+///            and the failure.
+- (nullable PowerAuthCoreRequest*) removeBiometryFactor:(NSError*_Nullable*_Nullable)error;
+
 
 #pragma mark - Vault operations
 

@@ -56,6 +56,8 @@ static std::string VerifyCredentialsReasonToString(VerifyCredentialsReason reaso
             return "VALIDATE_PASSWORD";
         case VerifyCredentialsReason::COUNTER_SYNCHRONIZATION:
             return "COUNTER_SYNCHRONIZATION";
+        case VerifyCredentialsReason::CONFIRM_NEW_PASSWORD:
+            return "CONFIRM_NEW_PASSWORD";
     }
 }
 

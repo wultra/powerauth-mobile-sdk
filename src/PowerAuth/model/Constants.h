@@ -101,6 +101,12 @@ const size_t ONLINE_AUTH_CODE_NONCE_LENGTH = 16;
 /// Length of authentication code component
 const size_t AUTH_CODE_COMPONENT_LENGTH = 32;
 
+/// Length of activation status blob
+const size_t STATUS_BLOB_SIZE = 48;
+
+/// Length of MAC calculated from activation status blob
+const size_t STATUS_MAC_SIZE = 32;
+
 } // namespace v4
 
 
@@ -148,6 +154,7 @@ const size_t STATUS_BLOB_NONCE_SIZE = STATUS_BLOB_CHALLENGE_SIZE;
 const size_t LOOK_AHEAD_DEFAULT = 20;
 /// Maximum supported look ahead.
 const size_t LOOK_AHEAD_MAX = 64;
+
 
 } // namespace v3
 

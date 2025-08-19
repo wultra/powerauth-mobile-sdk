@@ -225,7 +225,148 @@ void ActivationServiceV4::resetState()
 
 RequestPtr ActivationServiceV4::fetchActivationStatus()
 {
-    throw Exception(EC_InternalError, "TODO");
+    LOCK_GUARD();
+    auto context = lockContext();
+    auto self = shared_from_this();
+    return RequestBuilder(*context, v4::Endpoint_ActivationStatus)
+        .withResponseCallback([self, context](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            return self->processResponseActivationStatus(*context, body);
+        })
+        .build();
+}
+
+ResponseObjectPtr ActivationServiceV4::processResponseActivationStatus(Context &context, const cc7::json::JsonValue &response)
+{
+    LOCK_GUARD();
+    // Extract values
+    auto status_blob = response["activationStatus"].asBase64();
+    auto custom_object = response.containsValueAtPath("customObject", cc7::json::JsonValue::Object) ? response["customObject"] : cc7::json::JsonValue::object();
+    if (status_blob.size() < v4::STATUS_BLOB_SIZE + v4::STATUS_MAC_SIZE) {
+        throw Exception(EC_InvalidData, "Binary status blob is too short");
+    }
+    // Verify status MAC
+    auto status_blob_data = status_blob.byteRange().subRangeTo(v4::STATUS_BLOB_SIZE);
+    auto status_blob_mac  = status_blob.byteRange().subRangeFrom(v4::STATUS_BLOB_SIZE);
+        
+    auto& keyProvider = context.keyProvider();
+    auto secrets = keyProvider.unlockSecretKeys();
+    auto verified = algorithms().v4.kmac256().verifyToken(secrets->keyMacStatus(), status_blob_data, status_blob_mac, {
+        { cc7::crypto::MAC_PARAM_DIGEST_LENGTH, cc7::crypto::Parameter::take(v4::STATUS_MAC_SIZE) },
+        { cc7::crypto::MAC_PARAM_CUSTOM_STRING, cc7::crypto::Parameter::ref("PA4MAC-STATUS") }
+    });
+    cc7::ByteArray key_mac_ctr_data = secrets->keyMacCtrData();
+    keyProvider.lockSecretKeys(secrets);
+    if (!verified) {
+        throw Exception(EC_InvalidData, "Activation status MAC is not valid");
+    }
+    
+    // Parse binary data
+    auto binary_data = ActivationStatus::parseStatusBlobV4(status_blob_data);
+    ActivationState local_state;
+    switch (binary_data.state) {
+        case ActivationStatus::ServerState_PendingCommit:
+            local_state = ActivationState::PendingCommit;
+            break;
+        case ActivationStatus::ServerState_Active:
+            local_state = ActivationState::Active;
+            break;
+        case ActivationStatus::ServerState_Blocked:
+            local_state = ActivationState::Blocked;
+            break;
+        case ActivationStatus::ServerState_Removed:
+            local_state = ActivationState::Removed;
+            break;
+        default:
+            throw Exception(EC_InvalidData, "Unsupported activation state in binary status blob");
+    }
+
+    // try synchronize counter
+    auto counter_state = trySynchronizeCounter(binary_data, key_mac_ctr_data);
+    if (counter_state == ActivationStatus::CounterState_Invalid) {
+        // force state to deadlock
+        local_state = ActivationState::Deadlock;
+    }
+    // Check counter synchronization
+    return std::make_shared<ActivationStatus>(Version_V4, local_state, counter_state, binary_data, custom_object);
+}
+
+int ActivationServiceV4::calculateHashCounterDistance(cc7::ByteArray& local_ctr_data,
+                                 const cc7::ByteRange& server_ctr_data_hash,
+                                 const cc7::ByteRange& key_ctr_data,
+                                 int max_iterations)
+{
+    const cc7::crypto::ParameterList params {
+        { cc7::crypto::MAC_PARAM_CUSTOM_STRING, cc7::crypto::Parameter::ref("PA4MAC-CTR") },
+        { cc7::crypto::MAC_PARAM_DIGEST_LENGTH, cc7::crypto::Parameter::take((size_t)32) }
+    };
+    const auto& kmac = algorithms().v4.kmac256();
+    const auto& hash = algorithms().v4.sha3_256();
+    int iteration = 0;
+    while (max_iterations > 0) {
+        auto local_ctr_data_hash = kmac.token(key_ctr_data, local_ctr_data, params);
+        if (local_ctr_data_hash == server_ctr_data_hash) {
+            return iteration;
+        }
+        // next counter value
+        local_ctr_data = hash.digest(local_ctr_data);
+        ++iteration;
+        --max_iterations;
+    }
+    return -1;
+}
+
+ActivationStatus::CounterState ActivationServiceV4::trySynchronizeCounter(const ActivationStatus::BinaryData& data, const cc7::ByteRange& key_ctr_data)
+{
+    auto has_pd = _session_data->hasPersistentData();
+    const int look_ahead_window = data.lookAheadCount;
+    auto local_ctr_byte = has_pd
+                            ? _session_data->persistentData().v4().authCodeCounterByte
+                            : _session_data->registrationData().v4().authCodeCounterByte;
+    auto local_ctr_data = has_pd
+                            ? _session_data->persistentData().v4().authCodeCounterData
+                            : _session_data->registrationData().v4().authCodeCounterData;
+    // Calculate hash counters distance
+    auto hash_distance = calculateHashCounterDistance(local_ctr_data, data.counterHash, key_ctr_data, look_ahead_window);
+    // Calculate byte counters distance
+    auto byte_distance = common::CalculateDistanceBetweenByteCounters(local_ctr_byte, data.counterByte);
+    if (hash_distance == 0 && byte_distance == 0) {
+        // Everything's OK
+        return ActivationStatus::CounterState_OK;
+    }
+    if (byte_distance > 0 && hash_distance == -1) {
+        // Client's ahead. Determine for how much and decide the synchronization result.
+        if (byte_distance > look_ahead_window) {
+            // We cannot recover from this state. Client is too much ahead against the server.
+            // The activation is technically blocked.
+            return ActivationStatus::CounterState_Invalid;
+        }
+        if (byte_distance > look_ahead_window / 2) {
+            // The local counter is more than half the allowed interval ahead to server.
+            // It's recommended to calculate some signature soon.
+            return ActivationStatus::CounterState_CalculateAuthCode;
+        }
+        // Counter will be synchronized automatically
+        return ActivationStatus::CounterState_OK;
+    }
+    if (-byte_distance == hash_distance) {
+        // hash distance is always greater than 0, but byte distance is negative in case that server's ahead.
+        // We have last matched CTR_DATA value in local_ctr_data variable.
+        if (has_pd) {
+            auto& pd = _session_data->persistentData().v4();
+            pd.authCodeCounterData = local_ctr_data;
+            pd.authCodeCounterByte = data.counterByte;
+            // Report that persistent data should be saved
+            return ActivationStatus::CounterState_Updated;
+        }
+        // We're still in the middle of the registration process, do we don't need to
+        // persist the data. Just update the counter.
+        auto& rd = _session_data->registrationData().v4();
+        rd.authCodeCounterData = local_ctr_data;
+        rd.authCodeCounterByte = data.counterByte;
+        return ActivationStatus::CounterState_OK;
+    }
+    // Looks like that counters cannot be synchronized and the activation is technically blocked.
+    return ActivationStatus::CounterState_Invalid;
 }
 
 RequestPtr ActivationServiceV4::removeActivation(CredentialsPtr credentials)
@@ -242,16 +383,83 @@ RequestPtr ActivationServiceV4::removeActivation(CredentialsPtr credentials)
         .build();
 }
 
-RequestPtr ActivationServiceV4::changePassword(PasswordPtr old_password, PasswordPtr new_password)
-{
-    throw Exception(EC_InternalError, "TODO");
-}
-
 // MARK: - Factors
 
-RequestPtr ActivationServiceV4::addBiometricFactor(PasswordPtr password)
+RequestPtr ActivationServiceV4::changePassword(PasswordPtr old_password, PasswordPtr new_password)
 {
-    throw Exception(EC_InternalError, "TODO");
+    LOCK_GUARD();
+    auto context = lockContext();
+    auto old_credentials = Credentials::knowledge(old_password->passwordData());
+    auto new_credentials = Credentials::knowledge(new_password->passwordData());
+    SharedSecretRequest ss_request;
+    SharedSecretContextPtr ss_context;
+    std::tie(ss_request, ss_context) = context->sharedSecret().generateRequestCryptogram();
+    auto request = cc7::json::JsonValue::object({
+        { "sharedSecretRequest", ss_request.toJson() }
+    });
+    auto self = shared_from_this();
+    return RequestBuilder(*context, Endpoint_PasswordChange)
+        .withJson(request)
+        .withAuthentication(old_credentials)
+        .withResponseCallback([self, context, ss_context, old_credentials, new_credentials](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            return self->processResponseChangePassword(*context, ss_context, body, old_credentials, new_credentials);
+        })
+        .build();
+}
+
+ResponseObjectPtr ActivationServiceV4::processResponseChangePassword(Context &context,
+                                                                     SharedSecretContextPtr ss_context,
+                                                                     const cc7::json::JsonValue &response,
+                                                                     CredentialsPtr old_credentials,
+                                                                     CredentialsPtr new_credentials)
+{
+    LOCK_GUARD();
+    auto ss_response = SharedSecretResponse::fromJson(response["sharedSecretResponse"]);
+    auto new_knowledge_factor = context.sharedSecret().computeSharedSecret(ss_context, ss_response);
+    auto& key_provider = context.keyProvider();
+    
+    auto secrets = key_provider.unlockSecretKeys(*old_credentials);
+    secrets->updateKeyAuthenticationCodeKnowledge(new_knowledge_factor, new_credentials->knowledgeKEK());
+    key_provider.lockSecretKeys(secrets);
+    
+    return nullptr;
+}
+
+RequestPtr ActivationServiceV4::addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek)
+{
+    LOCK_GUARD();
+    auto context = lockContext();
+    SharedSecretRequest ss_request;
+    SharedSecretContextPtr ss_context;
+    std::tie(ss_request, ss_context) = context->sharedSecret().generateRequestCryptogram();
+    auto request = cc7::json::JsonValue::object({
+        { "sharedSecretRequest", ss_request.toJson() }
+    });
+    auto self = shared_from_this();
+    cc7::ByteArray new_kek = new_biometry_kek;
+    return RequestBuilder(*context, Endpoint_BiometryAdd)
+        .withJson(request)
+        .withAuthentication(Credentials::knowledge(password->passwordData()))
+        .withResponseCallback([self, context, ss_context, new_kek](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            return self->processResponseAddBiometricFactor(*context, ss_context, body, new_kek);
+        })
+        .build();
+}
+
+ResponseObjectPtr ActivationServiceV4::processResponseAddBiometricFactor(Context &context,
+                                                                         SharedSecretContextPtr ss_context,
+                                                                         const cc7::json::JsonValue &response,
+                                                                         const cc7::ByteRange& new_biometry_kek)
+{
+    LOCK_GUARD();
+    auto ss_response = SharedSecretResponse::fromJson(response["sharedSecretResponse"]);
+    auto new_biometry_factor = context.sharedSecret().computeSharedSecret(ss_context, ss_response);
+    
+    auto& key_provider = context.keyProvider();
+    auto secrets = key_provider.unlockSecretKeys();
+    secrets->updateKeyAuthenticationCodeBiometry(new_biometry_factor, new_biometry_kek);
+    key_provider.lockSecretKeys(secrets);
+    return nullptr;
 }
 
 RequestPtr ActivationServiceV4::removeBiometricFactor()
@@ -259,22 +467,22 @@ RequestPtr ActivationServiceV4::removeBiometricFactor()
     LOCK_GUARD();
     auto context = lockContext();
     auto self = shared_from_this();
-    return RequestBuilder(*context, v4::Endpoint_BiometryOff)
+    return RequestBuilder(*context, v4::Endpoint_BiometryRemove)
         .withAuthentication(Credentials::possession())
         .withResponseCallback([self, context](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
-            return self->processResponseRemoveBiometry(*context);
+            self->doRemoveBiometricFactor(*context);
+            return nullptr;
         })
         .build();
 }
 
-ResponseObjectPtr ActivationServiceV4::processResponseRemoveBiometry(Context& context)
+void ActivationServiceV4::doRemoveBiometricFactor(Context& context)
 {
     LOCK_GUARD();
     auto& key_provider = context.keyProvider();
     auto secrets = key_provider.unlockSecretKeys();
     secrets->removeKeyAuthenticationCodeBiometry();
     key_provider.lockSecretKeys(secrets);
-    return nullptr;
 }
 
 } // namespace v4

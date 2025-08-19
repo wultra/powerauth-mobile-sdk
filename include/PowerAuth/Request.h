@@ -34,8 +34,9 @@ public:
 CC7_SHARED_PTR(ResponseObject)
 
 using PrepareRequestCallback = std::function<cc7::json::JsonValue(const Request&)>;
-using ResponseCallback = std::function<ResponseObjectPtr(const Request&, const cc7::json::JsonValue&)>;
-using CancelCallback   = std::function<void()>;
+using ResponseCallback       = std::function<ResponseObjectPtr(const Request&, const cc7::json::JsonValue&)>;
+using CancelCallback         = std::function<void()>;
+using ResponseInterceptor    = std::function<void(const ResponseObjectPtr&)>;
 
 struct EndpointSpec;
 class IClientEncryptorFactory;
@@ -173,6 +174,11 @@ public:
         return operation();
     }
     
+    /// Set additional callback that's called when request succeeds and the response object is created.
+    /// - Parameter interceptor: Response interceptor.
+    /// - Throws: `Exception` in case the interceptor is already set, or request is already processed.
+    void setResponseInterceptor(ResponseInterceptor interceptor);
+    
 private:
     
     enum State
@@ -226,6 +232,8 @@ private:
     ResponseCallback _on_response;
     /// Cancel callback.
     CancelCallback _on_cancel;
+    /// Response interceptor
+    ResponseInterceptor _response_interceptor;
     
     /// If request is encrypted then contains encryptor factory.
     std::shared_ptr<IClientEncryptorFactory> _encryptor_factory;

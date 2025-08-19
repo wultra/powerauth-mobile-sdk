@@ -17,6 +17,7 @@
 #import <PowerAuth2/PowerAuthAuthentication.h>
 
 @class PowerAuthKeychainAuthentication;
+@class PowerAuthCoreCredentials;
 
 @interface PowerAuthAuthentication (Private)
 /**

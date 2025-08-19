@@ -437,37 +437,39 @@ static NSData * _BuildDeviceSpecificData(void)
 }
 
 
-- (id) signatureKeysForAuthentication:(nonnull PowerAuthAuthentication*)authentication
-                                                               error:(NSError **)error
+/// Convert PowerAuthAuthentication object into PowerAuthCoreCredentials object.
+/// - Parameters:
+///   - authentication: Authentication object to translate
+///   - error: Pointer to store error in case of failure.
+/// - Returns: `PowerAuthCoreCredentials` created from factors provided in authentication object.
+- (PowerAuthCoreCredentials*) resolveCredentialsWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                             error:(NSError **)error
 {
     // Validate authentication object usage
     [authentication validateUsage:NO];
     
-//    // Generate signature key encryption keys
-//    PowerAuthCoreData *possessionKey = nil;
-//    PowerAuthCoreData *biometryKey = nil;
-//    if (authentication.usePossession) {
-//        if (authentication.customPossessionKey) {
-//            possessionKey = authentication.customPossessionKey;
-//        } else {
-//            possessionKey = [self deviceRelatedKey];
-//        }
-//    }
-//    if (authentication.useBiometry) {
-//        if (authentication.customBiometryKey) {
-//            // application specified a custom biometry key
-//            biometryKey = authentication.customBiometryKey;
-//        } else {
-//            // default biometry key should be fetched
-//            PowerAuthLog(@"WARNING: Biometric factor key is not fetched in advance and therefore the calling thread may be blocked.");
-//            biometryKey = [self biometryRelatedKeyWithAuthentication:authentication.keychainAuthentication error:error];
-//            if (!biometryKey) {
-//                return nil;
-//            }
-//        }
-//    }
-    // TODO: missing impl.
-    return nil;
+    if (authentication.password) {
+        // possession + knowledge
+        return [PowerAuthCoreCredentials knowledge:authentication.password];
+    } else if (authentication.useBiometry) {
+        // possession + biometry
+        PowerAuthCoreData *biometryKey = nil;
+        if (authentication.customBiometryKey) {
+            // application specified a custom biometry key
+            biometryKey = authentication.customBiometryKey;
+        } else {
+            // default biometry key should be fetched
+            PowerAuthLog(@"WARNING: Biometric factor key is not fetched in advance and therefore the calling thread may be blocked.");
+            biometryKey = [self biometryRelatedKeyWithAuthentication:authentication.keychainAuthentication error:error];
+            if (!biometryKey) {
+                return nil;
+            }
+        }
+        return [PowerAuthCoreCredentials biometry:biometryKey];
+    } else {
+        // Possession only
+        return [PowerAuthCoreCredentials possession];
+    }
 }
 
 #pragma mark - Public methods
@@ -844,38 +846,36 @@ static PowerAuthSDK * s_inst;
 
 - (id<PowerAuthOperationTask>) getActivationStatusWithCallback:(void(^)(PowerAuthActivationStatus * status, NSError * error))callback
 {
-    // TODO: missing impl.
-    return nil;
-//    [self checkForValidSetup];
-//    // Check for activation
-//    NSError * stateError = [_sessionInterface readTaskWithSession:^id (PowerAuthCoreSession * session) {
-//        if (!session.hasValidActivationData) {
-//            NSInteger errorCode = session.hasPendingActivation ? PowerAuthErrorCode_ActivationPending : PowerAuthErrorCode_MissingActivation;
-//            return PA2MakeError(errorCode, nil);
-//        }
-//        return nil;
-//    }];
-//    if (stateError) {
-//        callback(nil, stateError);
-//        return nil;
-//    }
-//    
-//    [_lock lock];
-//    //
-//    id<PowerAuthOperationTask> task = [_getActivationStatusTask createChildTask:callback];
-//    if (!task) {
-//        // If there's no grouping task, or task is already finished, then simply create new one with the child task.
-//        _getActivationStatusTask = [[PA2GetActivationStatusTask alloc] initWithHttpClient:_client
-//                                                               deviceRelatedKey:[self deviceRelatedKey]
-//                                                                sessionProvider:_sessionInterface
-//                                                                       delegate:self
-//                                                                     sharedLock:_lock
-//                                                                 disableUpgrade:_configuration.disableAutomaticProtocolUpgrade];
-//        task = [_getActivationStatusTask createChildTask:callback];
-//    }
-//    //
-//    [_lock unlock];
-//    return task;
+    NSError * localError = nil;
+    // Check for activation
+    BOOL success = [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
+        if (!session.hasValidActivationData) {
+            NSInteger errorCode = session.hasPendingCreateActivation ? PowerAuthErrorCode_ActivationPending : PowerAuthErrorCode_MissingActivation;
+            PA2SetError(error, errorCode, nil);
+            return NO;
+        }
+        return YES;
+    } error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    
+    [_lock lock];
+    //
+    id<PowerAuthOperationTask> task = [_getActivationStatusTask createChildTask:callback];
+    if (!task) {
+        // If there's no grouping task, or task is already finished, then simply create new one with the child task.
+        _getActivationStatusTask = [[PA2GetActivationStatusTask alloc] initWithHttpClient:_client
+                                                                          sessionProvider:_sessionInterface
+                                                                                 delegate:self
+                                                                               sharedLock:_lock
+                                                                           disableUpgrade:_configuration.disableAutomaticProtocolUpgrade];
+        task = [_getActivationStatusTask createChildTask:callback];
+    }
+    //
+    [_lock unlock];
+    return task;
 }
 
 - (void) getActivationStatusTask:(PA2GetActivationStatusTask*)task didFinishedWithStatus:(PowerAuthActivationStatus*)status error:(NSError*)error
@@ -913,18 +913,22 @@ static PowerAuthSDK * s_inst;
 - (id<PowerAuthOperationTask>) removeActivationWithAuthentication:(PowerAuthAuthentication*)authentication
                                                          callback:(void(^)(NSError *error))callback
 {
-    // TODO: missing impl.
-    return nil;
-//    return [_client postObject:nil
-//                            to:[PA2RestApiEndpoint removeActivation]
-//                          auth:authentication
-//                    completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
-//                        // Network communication completed correctly
-//                        if (status == PowerAuthRestApiResponseStatus_OK) {
-//                            [self removeActivationLocal];
-//                        }
-//                        callback(error);
-//                    }];
+    NSError * localError = nil;
+    PowerAuthCoreCredentials * credentials = [self resolveCredentialsWithAuthentication:authentication error:&localError];
+    if (localError) {
+        callback(localError);
+        return nil;
+    }
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
+        return [session removeActivationWithCredentials:credentials error:error];
+    } error:&localError];
+    if (localError) {
+        callback(localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+        callback(error);
+    }];
 }
 
 - (void) removeActivationLocal
@@ -1188,43 +1192,49 @@ static PowerAuthSDK * s_inst;
 - (BOOL) unsafeChangeCorePasswordFrom:(PowerAuthCorePassword*)oldPassword
                                    to:(PowerAuthCorePassword*)newPassword
 {
-//    return [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session) {
-//        return [session changeUserPassword:oldPassword newPassword:newPassword];
-//    }];
-    // TODO: missing impl.
-    return NO;
+    NSError * localError = nil;
+    [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
+        PowerAuthCoreRequest * request = [session changePassword:oldPassword toPassword:newPassword error:error];
+        if (request) {
+            [request cancel];
+            PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"Synchronous password change is not supported at this protocol version");
+        }
+        return nil;
+    } error:&localError];
+    return localError ? NO : YES;
 }
 
 - (id<PowerAuthOperationTask>) changeCorePasswordFrom:(PowerAuthCorePassword*)oldPassword
                                                    to:(PowerAuthCorePassword*)newPassword
                                              callback:(void(^)(NSError *error))callback
 {
-//    return [self validateCorePassword:oldPassword callback:^(NSError * error) {
-//        if (!error) {
-//            error = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
-//                // Let's change the password
-//                BOOL result = [session changeUserPassword:oldPassword newPassword:newPassword];
-//                return result ? nil : PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
-//            }];
-//        }
-//        // Call back to application
-//        callback(error);
-//    }];
-    // TODO: missing impl.
-    return nil;
+    NSError * localError = nil;
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
+        return [session changePassword:oldPassword toPassword:newPassword error:error];
+    } error:&localError];
+    if (localError || !request) {
+        // V3 change password is executed immediately, so it's OK to exit with no request and no local error.
+        callback(localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+        callback(error);
+    }];
 }
 
 - (id<PowerAuthOperationTask>) validateCorePassword:(PowerAuthCorePassword*)password callback:(void(^)(NSError * error))callback
 {
-//    [self checkForValidSetup];
-//    return [_client postObject:[PA2ValidateSignatureRequest requestWithReason:@"VALIDATE_PASSWORD"]
-//                            to:[PA2RestApiEndpoint validateSignature]
-//                          auth:[PowerAuthAuthentication possessionWithCorePassword:password]
-//                    completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
-//                        callback(error);
-//                    }];
-    // TODO: missing impl.
-    return nil;
+    NSError * localError = nil;
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
+        return [session verifyPassword:password error:error];
+    } error:&localError];
+    if (localError) {
+        callback(localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+        callback(error);
+    }];
 }
 
 // NSString versions
@@ -1232,12 +1242,8 @@ static PowerAuthSDK * s_inst;
 - (BOOL) unsafeChangePasswordFrom:(NSString*)oldPassword
                                to:(NSString*)newPassword
 {
-//    return [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session) {
-//        return [session changeUserPassword:[PowerAuthCorePassword passwordWithString:oldPassword]
-//                               newPassword:[PowerAuthCorePassword passwordWithString:newPassword]];
-//    }];
-    // TODO: missing impl.
-    return NO;
+    return [self unsafeChangeCorePasswordFrom:[PowerAuthCorePassword passwordWithString:oldPassword]
+                                           to:[PowerAuthCorePassword passwordWithString:newPassword]];
 }
 
 - (id<PowerAuthOperationTask>) changePasswordFrom:(NSString*)oldPassword
@@ -1264,9 +1270,25 @@ static PowerAuthSDK * s_inst;
         callback(PA2MakeError(PowerAuthErrorCode_BiometryNotAvailable, nil));
         return nil;
     }
-    // TODO: missing impl.
-    callback(PA2MakeError(PowerAuthErrorCode_BiometryNotAvailable, nil));
-    return nil;
+    NSError * localError = nil;
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
+        PowerAuthCoreData * biometryKek = [session generateFactorKek:error];
+        if (!biometryKek) {
+            return nil;
+        }
+        PowerAuthCoreRequest * request = [session addBiometryFactorWithPassword:password withBiometryKek:biometryKek error:error];
+        if (!*error) {
+            [_biometryOnlyKeychain setCoreData:biometryKek forKey:_biometryKeyIdentifier access:_biometricConfiguration.biometricItemAccess];
+        }
+        return request;
+    } error:&localError];
+    if (localError) {
+        callback(localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+        callback(error);
+    }];
 }
 
 - (id<PowerAuthOperationTask>) addBiometryFactorWithPassword:(NSString *)password callback:(void (^)(NSError *))callback
@@ -1286,35 +1308,41 @@ static PowerAuthSDK * s_inst;
 - (BOOL) removeBiometryFactor
 {
     return [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
-        BOOL result = [session removeBiometryFactor];
-        if (result) {
-            // Update keychain values after each successful calculations
-            [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+        [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+        PowerAuthCoreRequest * request = [session removeBiometryFactor:error];
+        if (request) {
+            [request cancel];
+            PowerAuthLog(@"Synchronous biometry factor remove is not supported at this protocol level");
+            return NO;
         }
-        return result;
+        return YES;
     } error:nil];
 }
 
 - (id<PowerAuthOperationTask>) removeBiometryFactorWithCallback:(void (^)(NSError * _Nullable))callback
 {
     NSError* localError = nil;
-    [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
-        if (![session removeBiometryFactor]) {
-            // Current impl. can fail only if there's no valid activation.
-            *error = PA2MakeError(PowerAuthErrorCode_MissingActivation, nil);
-            return NO;
-        }
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest*(PowerAuthCoreSession * session, NSError ** error) {
+        return [session removeBiometryFactor:error];
+    } error:&localError];
+    if (localError) {
+        callback(localError);
+        return nil;
+    }
+    if (!request) {
+        // V3 activation, remove doesn't use request
         // Delete biometric KEK from the keychain
         [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-        return YES;
-    } error:&localError];
-    PA2CompositeTask * task = [[PA2CompositeTask alloc] initWithCancelBlock:nil];
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if ([task setCompleted]) {
-            callback(localError);
+        callback(nil);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * _Nonnull request, id  _Nullable response, NSError * _Nullable error) {
+        if (!error) {
+            // V4 activation, delete biometric KEK from the keychain after successful request
+            [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
         }
-    });
-    return task;
+        callback(error);
+    }];
 }
 
 #if PA2_HAS_LACONTEXT

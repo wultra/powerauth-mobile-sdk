@@ -310,14 +310,10 @@ static NSString * PA_Ver = @"3.3";
     XCTAssertNotNil(activationFingerprintBeforeCommit);
     
     // 2.1) CLIENT: Try to fetch status. At this point, it should not work! The activation is not completed yet.
-    PowerAuthActivationStatus * activationStatus = nil;
-    // TODO: temporarily disabled
-    /*
     PowerAuthActivationStatus * activationStatus = [self fetchActivationStatus];
     XCTAssertNil(activationStatus);
     XCTAssertTrue([_sdk hasPendingActivation]);
     XCTAssertFalse([_sdk hasValidActivation]);
-    */
      
     // 3) CLIENT: Now it's time to commit activation locally
     PowerAuthAuthentication * auth = commitWithBio ? [self createAuthenticationWithBiometry] : [self createAuthentication];

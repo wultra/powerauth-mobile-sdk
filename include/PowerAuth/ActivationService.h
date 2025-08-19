@@ -20,6 +20,7 @@
 #include <PowerAuth/Credentials.h>
 #include <PowerAuth/Request.h>
 #include <PowerAuth/ActivationResult.h>
+#include <PowerAuth/ActivationStatus.h>
 
 namespace powerAuth {
 
@@ -92,11 +93,14 @@ public:
     
     /// Remove biometric factor.
     ///
+    /// - Parameters:
+    ///   - password: User's password.
+    ///   -
     /// - Returns: Request data for remove biometric factor endpoint.
     /// - Throws:
     ///   - `Exception` in case of failure.
 
-    virtual RequestPtr addBiometricFactor(PasswordPtr password) = 0;
+    virtual RequestPtr addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek) = 0;
 
     /// Remove biometric factor.
     ///

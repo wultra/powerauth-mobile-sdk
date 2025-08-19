@@ -81,7 +81,7 @@ typedef NS_ENUM(NSInteger, PowerAuthAlgorithm) {
 /// Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
 @property (nonatomic, strong, nullable) PowerAuthCoreData * externalEncryptionKey;
 
-/// Algorithm selected for
+/// Algorithm selected for communication with the server.
 @property (nonatomic, assign) PowerAuthAlgorithm algorithm;
 
 /**

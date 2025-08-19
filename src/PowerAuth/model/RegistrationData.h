@@ -52,6 +52,7 @@ public:
         cc7::crypto::PublicKeyPtr serverPublicKey;
         
         cc7::ByteArray calculatedSharedSecret;
+        IClientEncryptorPtr requestEncryptor;
     };
     
     V4& v4();

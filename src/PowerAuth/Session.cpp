@@ -115,8 +115,8 @@ RequestPtr Session::confirmActivation(InitialCredentialsPtr credentials)
     if (!sd.hasRegistrationData()) {
         throw Exception(EC_WrongActivationState, "Cannot confirm activation. There's no pending activation");
     }
-    auto& rd = sd.registrationData().v4();
-    if (rd.activationId.empty()) {
+    auto& rd = sd.registrationData();
+    if (rd.getActivationId().empty()) {
         throw Exception(EC_WrongActivationState, "Cannot confirm activation. Key-exchange is not completed yet");
     }
     return _context->activationService().confirmActivation(credentials);

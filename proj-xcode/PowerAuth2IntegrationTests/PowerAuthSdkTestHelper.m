@@ -76,9 +76,9 @@ static NSString * PA_Ver = @"3.3";
 {
     NSLog(@"=======================================================================");
     NSLog(@"The integration tests will run against following servers:");
-    NSLog(@"    REST API Server: %@", _testServerConfig.enrollmentUrl);
-    NSLog(@"    SOAP API Server: %@", _testServerConfig.serverApiUrl);
-    NSLog(@"               User: %@", _testServerConfig.userIdentifier);
+    NSLog(@"    Enrollment Server API: %@", _testServerConfig.enrollmentUrl);
+    NSLog(@"     PowerAuth Server API: %@", _testServerConfig.serverApiUrl);
+    NSLog(@"                     User: %@", _testServerConfig.userIdentifier);
     NSLog(@"=======================================================================");
 }
 

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8F97E43F2E4B3C3F00063075 /* ActivationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */; };
+		8F97E4402E4B3C3F00063075 /* ActivationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */; };
 		BF0825C52E01594B00B89A68 /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4520753444008A6A52 /* libcc7-ios.a */; };
 		BF0825C62E01597B00B89A68 /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4520753444008A6A52 /* libcc7-ios.a */; };
 		BF0825C72E01598800B89A68 /* libcc7-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF734A852485250D001F46BA /* libcc7-tvos.a */; };
@@ -450,6 +452,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		8F97E43D2E4B3C3F00063075 /* ActivationServiceV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActivationServiceV3.h; sourceTree = "<group>"; };
+		8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ActivationServiceV3.cpp; sourceTree = "<group>"; };
 		BF0825CD2E015B4B00B89A68 /* RequestBuilderTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RequestBuilderTests.cpp; sourceTree = "<group>"; };
 		BF0825D02E01629500B89A68 /* AeadEncryptorFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AeadEncryptorFactory.h; sourceTree = "<group>"; };
 		BF0825D12E01629500B89A68 /* AeadEncryptorFactory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AeadEncryptorFactory.cpp; sourceTree = "<group>"; };
@@ -850,6 +854,8 @@
 		BF4D86052DEDB5D800D32F55 /* v3 */ = {
 			isa = PBXGroup;
 			children = (
+				8F97E43D2E4B3C3F00063075 /* ActivationServiceV3.h */,
+				8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */,
 				BFCA38392E255987002F595F /* SecretKeysV3.h */,
 				BFCA383A2E255987002F595F /* SecretKeysV3.cpp */,
 				BFCA383D2E255A18002F595F /* KeyProviderV3.h */,
@@ -1605,6 +1611,7 @@
 				BFC891F92E44A408009169A9 /* AuthenticationServiceV4.cpp in Sources */,
 				BF4D862F2DF0621B00D32F55 /* SessionData.cpp in Sources */,
 				BF4D852E2DDF08E300D32F55 /* TimeService.cpp in Sources */,
+				8F97E43F2E4B3C3F00063075 /* ActivationServiceV3.cpp in Sources */,
 				BF4D86362DF1A96900D32F55 /* PowerAuthSpec.cpp in Sources */,
 				BF0825E82E0308AA00B89A68 /* SecretKeysPool.cpp in Sources */,
 				BF4D86432DF2DF3400D32F55 /* Configuration.cpp in Sources */,
@@ -1715,6 +1722,7 @@
 				BFC891FA2E44A408009169A9 /* AuthenticationServiceV4.cpp in Sources */,
 				BF4D862E2DF0621B00D32F55 /* SessionData.cpp in Sources */,
 				BF4D852D2DDF08E300D32F55 /* TimeService.cpp in Sources */,
+				8F97E4402E4B3C3F00063075 /* ActivationServiceV3.cpp in Sources */,
 				BF4D86372DF1A96900D32F55 /* PowerAuthSpec.cpp in Sources */,
 				BF0825E92E0308AA00B89A68 /* SecretKeysPool.cpp in Sources */,
 				BF4D86422DF2DF3400D32F55 /* Configuration.cpp in Sources */,

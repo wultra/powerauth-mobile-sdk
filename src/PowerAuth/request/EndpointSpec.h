@@ -97,6 +97,7 @@ namespace v3 {
 //extern const EndpointSpec Endpoint_ValidateSignature;
 
 extern const EndpointSpec Endpoint_TemporaryKey;
+extern const EndpointSpec Endpoint_ActivationCreate;
 
 } // namespace v3
 

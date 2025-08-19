@@ -197,7 +197,7 @@ RequestPtr ActivationServiceV3::changePassword(PasswordPtr old_password, Passwor
     throw Exception(EC_InternalError, "TODO");
 }
 
-RequestPtr ActivationServiceV3::addBiometricFactor(PasswordPtr password)
+RequestPtr ActivationServiceV3::addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek)
 {
     throw Exception(EC_InternalError, "TODO");
 }

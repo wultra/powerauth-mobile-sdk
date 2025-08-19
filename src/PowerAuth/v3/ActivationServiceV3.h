@@ -41,7 +41,7 @@ public:
     RequestPtr removeActivation(CredentialsPtr credentials) override;
     
     RequestPtr changePassword(PasswordPtr old_password, PasswordPtr new_password) override;
-    RequestPtr addBiometricFactor(PasswordPtr password) override;
+    RequestPtr addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek) override;
     RequestPtr removeBiometricFactor() override;
     
     

@@ -41,12 +41,12 @@ public:
     RequestPtr removeActivation(CredentialsPtr credentials) override;
     
     RequestPtr changePassword(PasswordPtr old_password, PasswordPtr new_password) override;
-    RequestPtr addBiometricFactor(PasswordPtr password) override;
+    RequestPtr addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek) override;
     RequestPtr removeBiometricFactor() override;
     
 private:
     
-    // Create
+    // Activation create
     
     /// Prepare data for create activation request.
     /// - Parameters:
@@ -70,7 +70,16 @@ private:
     /// - Returns: Response object. The current implementation always returns `nullptr`.
     ResponseObjectPtr processResponseActivationConfirm(Context& context, InitialCredentialsPtr credentials);
     
-    // Activation fingerprint
+    // Activation fingerprint & status
+    
+    ResponseObjectPtr processResponseActivationStatus(Context& context, const cc7::json::JsonValue& response);
+    
+    ActivationStatus::CounterState trySynchronizeCounter(const ActivationStatus::BinaryData& data, const cc7::ByteRange& key_ctr_data);
+    
+    int calculateHashCounterDistance(cc7::ByteArray& local_ctr_data,
+                                     const cc7::ByteRange& server_ctr_data_hash,
+                                     const cc7::ByteRange& key_ctr_data,
+                                     int max_iterations);
     
     /// Calculate human readable fingerprint from device and server's public keys.
     /// - Parameters:
@@ -82,13 +91,25 @@ private:
                                                const cc7::crypto::PublicKey& device_public_key,
                                                const cc7::crypto::PublicKey& server_public_key) const;
     
+    
+    // Password
+    
+    ResponseObjectPtr processResponseChangePassword(Context& context,
+                                                    SharedSecretContextPtr ss_context,
+                                                    const cc7::json::JsonValue& response,
+                                                    CredentialsPtr old_credentials,
+                                                    CredentialsPtr new_credentials);
+    
     // Biometry
 
+    ResponseObjectPtr processResponseAddBiometricFactor(Context& context,
+                                                        SharedSecretContextPtr ss_context,
+                                                        const cc7::json::JsonValue& response,
+                                                        const cc7::ByteRange& new_biometry_kek);
     
     /// Process response from remove biometry request.
     /// - Parameter context: Context reference.
-    /// - Returns: Always `nullptr`.
-    ResponseObjectPtr processResponseRemoveBiometry(Context& context);
+    void doRemoveBiometricFactor(Context& context);
     
     /// Acquire context from weak context pointer. If context no longer exists, then throws exception.
     ContextPtr lockContext();

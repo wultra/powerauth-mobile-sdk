@@ -47,7 +47,24 @@
             "TokenValidate":                "TokenValidate_v15",
             "VerifyECDSASignature":         "VerifyECDSASignature_v19"
         },
-        "v20": { "#base": "v19",
+        "v20": {
+            "ActivationInit":               "ActivationInit_v20",
+            "ActivationCommit":             "ActivationCommit_v20",
+            "ActivationBlock":              "ActivationBlock_v20",
+            "ActivationUnblock":            "ActivationUnblock_v20",
+            "ActivationRemove":             "ActivationRemove_v20",
+            "ActivationStatus":             "ActivationStatus_v20",
+            "CreateApplication":            "CreateApplication_v20",
+            "CreateApplicationVersion":     "CreateApplicationVersion_v20",
+            "GetApplicationList":           "GetApplicationList_v20",
+            "GetApplicationDetail":         "GetApplicationDetail_v20",
+            "GetSystemStatus":              "GetSystemStatus_v20",
+            "SupportApplicationVersion":    "SupportApplicationVersion_v20",
+            "UnsupportApplicationVersion":  "UnsupportApplicationVersion_v20",
+            "TokenValidate":                "TokenValidate_v20",
+            "VerifyECDSASignature":         "VerifyECDSASignature_v20",
+            "CreateNonPersonalizedOfflineSignaturePayload":     "CreateNonPersonalizedOfflineSignaturePayload_v20",
+            "CreatePersonalizedOfflineSignaturePayload":        "CreatePersonalizedOfflineSignaturePayload_v20",
         }
     }
 }

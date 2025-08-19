@@ -43,7 +43,7 @@ using namespace cc7;
 
 + (nullable PowerAuthCoreCredentials*) knowledge:(nonnull PowerAuthCorePassword*)password
 {
-    return [[PowerAuthCoreCredentials alloc] initWithCredentials:Credentials::knowledge(password.passObjRef.passwordData())];
+    return [[PowerAuthCoreCredentials alloc] initWithCredentials:Credentials::knowledge(password.passObjRef->passwordData())];
 }
 
 + (nullable PowerAuthCoreCredentials*) biometry:(nonnull PowerAuthCoreData*)biometryKek

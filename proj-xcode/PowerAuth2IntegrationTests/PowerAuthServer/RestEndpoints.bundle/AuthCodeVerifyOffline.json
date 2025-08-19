@@ -1,5 +1,5 @@
 {
-    "path": "/rest/v3/auth/offline/verify",
+    "path": "/rest/v4/auth/offline/verify",
     "parameters": [
         "activationId",
         "data",

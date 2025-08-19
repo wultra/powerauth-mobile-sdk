@@ -32,6 +32,9 @@
 - (id) initWithRequest:(powerAuth::RequestPtr&)request
            withBuilder:(PowerAuthCoreResponseBuilder)builder
 {
+    if (!request) {
+        throw powerAuth::Exception(powerAuth::EC_InternalError, "No request object provided");
+    }
     self = [super init];
     if (self) {
         _request = std::move(request);

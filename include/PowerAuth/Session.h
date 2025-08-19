@@ -20,6 +20,7 @@
 #include <PowerAuth/Configuration.h>
 
 #include <PowerAuth/TimeService.h>
+#include <PowerAuth/AuthenticationService.h>
 #include <PowerAuth/ByteUtils.h>
 #include <PowerAuth/Debug.h>
 
@@ -152,7 +153,14 @@ public:
     /// - Returns: Request data for remove activation endpoint.
     /// - Throws:
     ///   - `Exception` in case of failure.
-    RequestPtr removeActivation(CredentialsPtr credentials);
+    RequestPtr removeActivation(const CredentialsPtr& credentials);
+    
+    /// Verify user's password on the server.
+    /// - Parameter password: Password to verify.
+    /// - Returns: Request data for verify password endpoint.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    RequestPtr verifyPassword(const PasswordPtr& password);
     
     /// Change user's password from old to new one.
     ///
@@ -163,14 +171,24 @@ public:
     ///            then the protocol has no such endpoint defined and password is changed immediately.
     /// - Throws:
     ///   - `Exception` in case of failure.
-    RequestPtr changePassword(PasswordPtr old_password, PasswordPtr new_password);
+    RequestPtr changePassword(const PasswordPtr& old_password, const PasswordPtr& new_password);
+    
+    
+    /// Test whether session has biometric factor set.
+    /// - Returns: `true` if biometric factor is set.
+    /// - Throws:
+    ///   - `Exception` in case of failure, for example, if there's no registration.
+    bool hasBiometricFactor() const;
     
     /// Remove biometric factor.
     ///
+    /// - Parameters:
+    ///   - password: User's password.
+    ///   - new_biometry_kek: New KEK protecting biometric factor.
     /// - Returns: Request data for remove biometric factor endpoint.
     /// - Throws:
     ///   - `Exception` in case of failure.
-    RequestPtr addBiometricFactor(PasswordPtr password);
+    RequestPtr addBiometricFactor(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek);
 
     /// Remove biometric factor.
     ///
@@ -196,6 +214,9 @@ public:
     
     /// Get smart pointer with object implementing `IEncryptorFactory` and providing End-To-End encryption.
     const IClientEncryptorFactoryPtr& getEncryptorFactory() const noexcept;
+    
+    /// Get smart pointer with object implementing `IAuthenticationService`.
+    const IAuthenticationServicePtr& getAuthenticationService() const noexcept;
 
 private:
     

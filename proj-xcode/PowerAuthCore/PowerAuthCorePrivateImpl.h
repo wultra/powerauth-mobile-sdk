@@ -38,6 +38,7 @@
 #import <PowerAuthCore/PowerAuthCoreCredentials.h>
 #import <PowerAuthCore/PowerAuthCoreTimeService.h>
 #import <PowerAuthCore/PowerAuthCoreActivationResult.h>
+#import <PowerAuthCore/PowerAuthCoreActivationStatus.h>
 
 /*
  This header contains various private interfaces, internally used
@@ -46,7 +47,7 @@
  */
 
 @interface PowerAuthCorePassword (Private)
-- (powerAuth::Password &) passObjRef;
+- (const powerAuth::PasswordPtr &) passObjRef;
 @end
 
 @interface PowerAuthCoreData (Private)
@@ -75,6 +76,10 @@ typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::Request& request);
 
 @interface PowerAuthCoreActivationResult (Private)
 - (instancetype) initWithActivationResult:(const powerAuth::ActivationResult&)activationResult;
+@end
+
+@interface PowerAuthCoreActivationStatus (Private)
+- (instancetype) initWithActivationStatus:(const powerAuth::ActivationStatusPtr&)activationStatus;
 @end
 
 // Services

@@ -159,28 +159,42 @@ RequestPtr Session::fetchActivationStatus()
     return _context->activationService().fetchActivationStatus();
 }
 
-RequestPtr Session::removeActivation(CredentialsPtr credentials)
+RequestPtr Session::removeActivation(const CredentialsPtr& credentials)
 {
     LOCK_GUARD();
     checkActivationData();
     return _context->activationService().removeActivation(credentials);
 }
 
-RequestPtr Session::changePassword(PasswordPtr old_password, PasswordPtr new_password)
+RequestPtr Session::verifyPassword(const PasswordPtr &password)
+{
+    LOCK_GUARD();
+    checkActivationData();
+    return _context->authenticationService().verifyPassword(*password);
+}
+
+RequestPtr Session::changePassword(const PasswordPtr& old_password, const PasswordPtr& new_password)
 {
     LOCK_GUARD();
     checkActivationData();
     return _context->activationService().changePassword(old_password, new_password);
 }
 
-RequestPtr Session::addBiometricFactor(PasswordPtr password)
+bool Session::hasBiometricFactor() const
+{
+    LOCK_GUARD();
+    checkActivationData();
+    return sessionData().persistentData().hasBiometricFactorKey();
+}
+
+RequestPtr Session::addBiometricFactor(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek)
 {
     LOCK_GUARD();
     checkActivationData();
     if (sessionData().persistentData().hasBiometricFactorKey()) {
         throw Exception(EC_NotAllowed, "Biometric factor is already set");
     }
-    return _context->activationService().addBiometricFactor(password);
+    return _context->activationService().addBiometricFactor(password, new_biometry_kek);
 }
 
 RequestPtr Session::removeBiometricFactor()
@@ -212,6 +226,12 @@ const IClientEncryptorFactoryPtr& Session::getEncryptorFactory() const noexcept
 {
     LOCK_GUARD();
     return _context->getEncryptorFactoryPtr();
+}
+
+const IAuthenticationServicePtr& Session::getAuthenticationService() const noexcept
+{
+    LOCK_GUARD();
+    return _context->getAuthenticationServicePtr();
 }
 
 // Private service functions

@@ -207,6 +207,10 @@
 		BFC892112E49E2B5009169A9 /* FunctionsV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFC8920F2E49E2B5009169A9 /* FunctionsV4.cpp */; };
 		BFC8921A2E49F54E009169A9 /* AuthCodeV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFC892192E49F54E009169A9 /* AuthCodeV4.cpp */; };
 		BFC8921B2E49F54E009169A9 /* AuthCodeV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFC892192E49F54E009169A9 /* AuthCodeV4.cpp */; };
+		BFC8923A2E5486BD009169A9 /* PowerAuthCoreActivationStatus.h in Headers */ = {isa = PBXBuildFile; fileRef = BFC892382E5486BD009169A9 /* PowerAuthCoreActivationStatus.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFC8923B2E5486BD009169A9 /* PowerAuthCoreActivationStatus.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFC892392E5486BD009169A9 /* PowerAuthCoreActivationStatus.mm */; };
+		BFC8923C2E5486BD009169A9 /* PowerAuthCoreActivationStatus.h in Headers */ = {isa = PBXBuildFile; fileRef = BFC892382E5486BD009169A9 /* PowerAuthCoreActivationStatus.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFC8923D2E5486BD009169A9 /* PowerAuthCoreActivationStatus.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFC892392E5486BD009169A9 /* PowerAuthCoreActivationStatus.mm */; };
 		BFC92DF02073E3860087851C /* pa2CryptoAESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */; };
 		BFC92DF12073E3860087851C /* pa2CryptoHMACTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BD2073E00D00735ED2 /* pa2CryptoHMACTests.cpp */; };
 		BFC92DF22073E3860087851C /* pa2CryptoECDHKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C82073E00D00735ED2 /* pa2CryptoECDHKDFTests.cpp */; };
@@ -642,6 +646,8 @@
 		BFC8920F2E49E2B5009169A9 /* FunctionsV4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FunctionsV4.cpp; sourceTree = "<group>"; };
 		BFC892182E49F4DD009169A9 /* Auth_Code_Test_Vectors.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Auth_Code_Test_Vectors.json; sourceTree = "<group>"; };
 		BFC892192E49F54E009169A9 /* AuthCodeV4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AuthCodeV4.cpp; sourceTree = "<group>"; };
+		BFC892382E5486BD009169A9 /* PowerAuthCoreActivationStatus.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreActivationStatus.h; sourceTree = "<group>"; };
+		BFC892392E5486BD009169A9 /* PowerAuthCoreActivationStatus.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreActivationStatus.mm; sourceTree = "<group>"; };
 		BFCA38352E1D5E4B002F595F /* Service.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Service.cpp; sourceTree = "<group>"; };
 		BFCA38392E255987002F595F /* SecretKeysV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SecretKeysV3.h; sourceTree = "<group>"; };
 		BFCA383A2E255987002F595F /* SecretKeysV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SecretKeysV3.cpp; sourceTree = "<group>"; };
@@ -1042,6 +1048,7 @@
 				BF4D864B2DF31B4500D32F55 /* Context.h */,
 				BF4D854C2DE476CD00D32F55 /* Context.cpp */,
 				BFAAC9972E3E6B0600062165 /* ActivationResult.cpp */,
+				BF4D863D2DF2D91900D32F55 /* ActivationStatus.cpp */,
 				BF4D86842DFAD29D00D32F55 /* HttpHeaderHelper.h */,
 				BF4D86852DFAD29D00D32F55 /* HttpHeaderHelper.cpp */,
 				BF5A8CAC2DCDF8DA00B3FB01 /* Algorithms.cpp */,
@@ -1052,7 +1059,6 @@
 				BF4D869A2E00397900D32F55 /* Request.cpp */,
 				BF4D85582DE48AA900D32F55 /* Credentials.cpp */,
 				BFCA38352E1D5E4B002F595F /* Service.cpp */,
-				BF4D863D2DF2D91900D32F55 /* ActivationStatus.cpp */,
 				BF4D86662DF7077800D32F55 /* Encryptor.cpp */,
 				BF4D85502DE483DB00D32F55 /* AuthenticationService.cpp */,
 				BF4D85592DE48AA900D32F55 /* TokenService.cpp */,
@@ -1101,6 +1107,8 @@
 				BFA98087253DA559004D2CF9 /* PowerAuthCoreSession.mm */,
 				BFAAC98B2E3E609700062165 /* PowerAuthCoreActivationResult.h */,
 				BFAAC98C2E3E609700062165 /* PowerAuthCoreActivationResult.mm */,
+				BFC892382E5486BD009169A9 /* PowerAuthCoreActivationStatus.h */,
+				BFC892392E5486BD009169A9 /* PowerAuthCoreActivationStatus.mm */,
 				BFF21BAF2E170C48000BF450 /* PowerAuthCoreEncryptorFactory.h */,
 				BFF21BB02E170C48000BF450 /* PowerAuthCoreEncryptorFactory.mm */,
 				BFA9807F253DA559004D2CF9 /* PowerAuthCoreOtpUtil.h */,
@@ -1222,6 +1230,7 @@
 				BFF21B972E155B7A000BF450 /* PowerAuthCoreConfig.h in Headers */,
 				BFF21BAD2E169569000BF450 /* PowerAuthCoreSession.h in Headers */,
 				BFA980AC253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.h in Headers */,
+				BFC8923A2E5486BD009169A9 /* PowerAuthCoreActivationStatus.h in Headers */,
 				BFA980A2253DA55A004D2CF9 /* PowerAuthCore.h in Headers */,
 				BFF21BB12E170C48000BF450 /* PowerAuthCoreEncryptorFactory.h in Headers */,
 				BFA980AE253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h in Headers */,
@@ -1248,6 +1257,7 @@
 				BFF21B952E155B7A000BF450 /* PowerAuthCoreConfig.h in Headers */,
 				BFF21BAE2E169569000BF450 /* PowerAuthCoreSession.h in Headers */,
 				BFA980AD253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.h in Headers */,
+				BFC8923C2E5486BD009169A9 /* PowerAuthCoreActivationStatus.h in Headers */,
 				BFA980A3253DA55A004D2CF9 /* PowerAuthCore.h in Headers */,
 				BFF21BB32E170C48000BF450 /* PowerAuthCoreEncryptorFactory.h in Headers */,
 				BFA980AF253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h in Headers */,
@@ -1644,6 +1654,7 @@
 				BFF21BAB2E169554000BF450 /* PowerAuthCoreSession.mm in Sources */,
 				BFF21BB22E170C48000BF450 /* PowerAuthCoreEncryptorFactory.mm in Sources */,
 				BF3DADE92D65EDD90096ED4F /* PowerAuthCoreData.mm in Sources */,
+				BFC8923B2E5486BD009169A9 /* PowerAuthCoreActivationStatus.mm in Sources */,
 				BFF21B982E155B7A000BF450 /* PowerAuthCoreConfig.mm in Sources */,
 				BFF21BA62E158E61000BF450 /* PowerAuthCoreRequest.mm in Sources */,
 				BFF21BA02E157263000BF450 /* PowerAuthCoreError.mm in Sources */,
@@ -1666,6 +1677,7 @@
 				BFA980AB253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm in Sources */,
 				BFF21BAC2E169554000BF450 /* PowerAuthCoreSession.mm in Sources */,
 				BFF21BB42E170C48000BF450 /* PowerAuthCoreEncryptorFactory.mm in Sources */,
+				BFC8923D2E5486BD009169A9 /* PowerAuthCoreActivationStatus.mm in Sources */,
 				BFAAC99A2E3E6B0600062165 /* ActivationResult.cpp in Sources */,
 				BF3DADE82D65EDD90096ED4F /* PowerAuthCoreData.mm in Sources */,
 				BFF21B962E155B7A000BF450 /* PowerAuthCoreConfig.mm in Sources */,

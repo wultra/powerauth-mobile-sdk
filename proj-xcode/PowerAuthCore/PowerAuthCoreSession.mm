@@ -253,9 +253,33 @@ using namespace powerAuth;
     }
     try {
         auto biometry = biometryKek ? biometryKek.byteArrayRef : ByteRange();
-        auto credentials = InitialCredentials::credentials(password.passObjRef.passwordData(), biometry);
+        auto credentials = InitialCredentials::credentials(password.passObjRef->passwordData(), biometry);
         auto request = _session->confirmActivation(credentials);
-        return request ? [[PowerAuthCoreRequest alloc] initWithRequest:request] : nil;
+        if (request) {
+            return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+        }
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
+}
+
+- (nullable PowerAuthCoreRequest*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error
+{
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
+    try {
+        auto request = _session->fetchActivationStatus();
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::Request &request) {
+            auto response = std::dynamic_pointer_cast<powerAuth::ActivationStatus>(request.getResponseObject());
+            if (!response) {
+                throw Exception(EC_InternalError, "No ActivationStatus object created");
+            }
+            return [[PowerAuthCoreActivationStatus alloc] initWithActivationStatus:response];
+        }];
     } catch (...) {
         if (error) {
             *error = BuildNSErrorFromException();
@@ -264,6 +288,22 @@ using namespace powerAuth;
     }
 }
 
+- (nullable PowerAuthCoreRequest*) removeActivationWithCredentials:(nonnull PowerAuthCoreCredentials*)credentials
+                                                             error:(NSError * _Nullable __autoreleasing * _Nullable)error
+{
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
+    try {
+        auto request = _session->removeActivation(credentials.credentialsRef);
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
 
 #pragma mark - Data signing
 
@@ -290,25 +330,92 @@ using namespace powerAuth;
 
 - (BOOL) verifyServerSignedData:(nonnull PowerAuthCoreSignedData*)signedData
 {
+    // TODO: missing impl
     return NO;;
 }
 
 
 #pragma mark - Signature keys management
 
-- (BOOL) changeUserPassword:(nonnull PowerAuthCorePassword *)old_password newPassword:(nonnull PowerAuthCorePassword*)new_password
+- (nullable PowerAuthCoreRequest*) verifyPassword:(nonnull PowerAuthCorePassword*)password
+                                            error:(NSError*_Nullable*_Nullable)error
 {
-    return NO;
+    try {
+        auto request = _session->verifyPassword(password.passObjRef);
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
+
+- (nullable PowerAuthCoreRequest*) changePassword:(nonnull PowerAuthCorePassword*)oldPassword
+                                       toPassword:(nonnull PowerAuthCorePassword*)newPassword
+                                            error:(NSError*_Nullable*_Nullable)error
+{
+    try {
+        auto request = _session->changePassword(oldPassword.passObjRef, newPassword.passObjRef);
+        if (request) {
+            return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+        }
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
 }
 
 - (BOOL) hasBiometryFactor
 {
-    return NO;
+    if (![self requireReadAccess:nil]) {
+        return NO;
+    }
+    try {
+        return _session->hasBiometricFactor();
+    } catch (...) {
+        // TODO: log exception
+        return NO;
+    }
 }
 
-- (BOOL) removeBiometryFactor
+- (nullable PowerAuthCoreRequest*) addBiometryFactorWithPassword:(nonnull PowerAuthCorePassword*)password
+                                                 withBiometryKek:(nonnull PowerAuthCoreData *)biometryKek
+                                                           error:(NSError **)error
 {
-    return NO;
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
+    try {
+        auto request = _session->addBiometricFactor(password.passObjRef, biometryKek.byteArrayRef);
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
+
+- (nullable PowerAuthCoreRequest*) removeBiometryFactor:(NSError*_Nullable*_Nullable)error
+{
+    if (![self requireWriteAccess:error]) {
+        return nil;
+    }
+    
+    try {
+        auto request = _session->removeBiometricFactor();
+        if (request) {
+            return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+        }
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
 }
 
 

@@ -41,18 +41,18 @@ const EndpointSpec Endpoint_ActivationRemove {
 };
 
 const EndpointSpec Endpoint_ActivationStatus {
-    
+    Version_V4, "/pa/v4/activation/status", "", EncryptorId::ACTIVATION_SCOPE_GENERIC, EndpointSpec::Flags::FL_PENDING_REGISTRATION // NOTE: V4 allows status during registration
 };
 
 const EndpointSpec Endpoint_PasswordChange {
-    
+    Version_V4, "/pa/v4/password/change", "/pa/password/change", EncryptorId::PASSWORD_CHANGE
 };
 
-const EndpointSpec Endpoint_BiometryOn {
-    
+const EndpointSpec Endpoint_BiometryAdd {
+    Version_V4, "/pa/v4/biometry/add", "/pa/biometry/add", EncryptorId::BIOMETRY_ADD
 };
 
-const EndpointSpec Endpoint_BiometryOff {
+const EndpointSpec Endpoint_BiometryRemove {
     Version_V4, "/pa/v4/biometry/remove", "/pa/biometry/remove", EncryptorId::NONE
 };
 

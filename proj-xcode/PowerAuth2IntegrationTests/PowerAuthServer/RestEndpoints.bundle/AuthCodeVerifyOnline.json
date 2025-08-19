@@ -1,10 +1,13 @@
 {
-    "path": "/rest/v3/auth/offline/verify",
+    "path": "/rest/v4/auth/verify",
     "parameters": [
         "activationId",
+        "applicationKey",
         "data",
         "signature",
-        "allowBiometry"
+        "signatureType",
+        "signatureVersion",
+        "forcedSignatureVersion"
     ],
     "response": {
         "class": "PATSVerifySignatureResponse",

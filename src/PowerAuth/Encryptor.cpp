@@ -67,6 +67,14 @@ static const EncryptorSpec spec_VAULT_UNLOCK {
     FL_PROTO_ALL
 };
 
+static const EncryptorSpec spec_PASSWORD_CHANGE {
+    EncryptorId::PASSWORD_CHANGE,
+    EncryptorScope::ACTIVATION,
+    "PASSWORD_CHANGE",
+    "/pa/password/change",
+    FL_PROTO_V4
+};
+
 static const EncryptorSpec spec_CREATE_TOKEN {
     EncryptorId::CREATE_TOKEN,
     EncryptorScope::ACTIVATION,
@@ -79,6 +87,7 @@ static const EncryptorSpec * spec_list[] = {
     &spec_APPLICATION_SCOPE_GENERIC,
     &spec_ACTIVATION_SCOPE_GENERIC,
     &spec_ACTIVATION_LAYER_2,
+    &spec_PASSWORD_CHANGE,
     &spec_UPGRADE_START,
     &spec_VAULT_UNLOCK,
     &spec_CREATE_TOKEN,
@@ -93,6 +102,8 @@ EncryptorSpecPtr EncryptorSpec::specForId(EncryptorId identifier)
             return &spec_ACTIVATION_SCOPE_GENERIC;
         case EncryptorId::ACTIVATION_LAYER_2:
             return &spec_ACTIVATION_LAYER_2;
+        case EncryptorId::PASSWORD_CHANGE:
+            return &spec_PASSWORD_CHANGE;
         case EncryptorId::UPGRADE_START:
             return &spec_UPGRADE_START;
         case EncryptorId::VAULT_UNLOCK:

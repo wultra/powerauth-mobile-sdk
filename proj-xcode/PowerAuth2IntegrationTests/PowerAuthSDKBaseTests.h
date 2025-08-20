@@ -25,10 +25,12 @@
  need to switch to "PA2_IntegrationTests" scheme and create a configuration.
  Check 'TestConfig/Readme.md' for details.
  */
-@interface PowerAuthSDKDefaultTests : XCTestCase
+@interface PowerAuthSDKBaseTests : XCTestCase
 
 @property (nonatomic, strong, readonly) PowerAuthSdkTestHelper * helper;
 @property (nonatomic, strong, readonly) PowerAuthSDK * sdk;
+@property (nonatomic, readonly) PowerAuthAlgorithm powerAuthAlgorithm;  // override in subclass
+@property (nonatomic, readonly) BOOL supportsActivationWithSignature;
 
 - (void) prepareConfigs:(PowerAuthConfiguration**)configuration
         biometricConfig:(PowerAuthBiometricConfiguration**)biometricConfiguration

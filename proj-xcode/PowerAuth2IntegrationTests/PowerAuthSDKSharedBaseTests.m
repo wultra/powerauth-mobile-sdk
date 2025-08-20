@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-#import "PowerAuthSDKDefaultTests.h"
+#import "PowerAuthSDKSharedBaseTests.h"
 
-@interface PowerAuthSDKSharedTests : PowerAuthSDKDefaultTests
-@end
-
-@implementation PowerAuthSDKSharedTests
+@implementation PowerAuthSDKSharedBaseTests
 {
     PowerAuthSdkTestHelper * _altHelper;
     PowerAuthSDK * _altSdk;

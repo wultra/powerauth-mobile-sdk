@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#import "PowerAuthSDKDefaultTests.h"
+#import "PowerAuthSDKBaseTests.h"
 #import "PA2ObjectSerialization.h"
 
-@implementation PowerAuthSDKDefaultTests
+@implementation PowerAuthSDKBaseTests
 
 #pragma mark - Test setup
 
@@ -43,16 +43,17 @@
     if ([testName isEqualToString:@"testCustomOfflineSignature"]) {
         (*configuration).offlineAuthorizationCodeComponentLength = 4;
     }
-    
-    if ([testName isEqualToString:@"testCreateActivationV4_EC_P384_ML_L3"]) {
-        (*configuration).algorithm = PowerAuthAlgorithm_EC_P384_ML_L3;
-    } else if ([testName isEqualToString:@"testCreateActivationV4_EC_P384"]) {
-        (*configuration).algorithm = PowerAuthAlgorithm_EC_P384;
-    } else if ([testName isEqualToString:@"testCreateActivationV3"]) {
-        (*configuration).algorithm = PowerAuthAlgorithm_LEGACY_P256;
-    } else {
-        (*configuration).algorithm = PowerAuthAlgorithm_DEFAULT;
-    }
+    (*configuration).algorithm = self.powerAuthAlgorithm;
+}
+
+- (PowerAuthAlgorithm) powerAuthAlgorithm
+{
+    return PowerAuthAlgorithm_DEFAULT;
+}
+
+- (BOOL) supportsActivationWithSignature
+{
+    return self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256;
 }
 
 - (void) reconfigureForTest:(NSString *)testName
@@ -102,30 +103,6 @@
  In positive scenarios we're testing situations, when everything looks fine.
  */
 #pragma mark - Tests: Positive scenarios
-
-- (void) testCreateActivationV3
-{
-    CHECK_TEST_CONFIG();
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES removeAfter:YES];
-    XCTAssertTrue(activation.success);
-}
-
-- (void) testCreateActivationV4_EC_P384
-{
-    CHECK_TEST_CONFIG();
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:NO removeAfter:YES];
-    XCTAssertTrue(activation.success);
-}
-
-- (void) testCreateActivationV4_EC_P384_ML_L3
-{
-    CHECK_TEST_CONFIG();
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:NO removeAfter:YES];
-    XCTAssertTrue(activation.success);
-}
 
 - (void) testCreateActivationWithSignature
 {

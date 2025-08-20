@@ -394,12 +394,9 @@ RequestPtr ActivationServiceV4::changePassword(PasswordPtr old_password, Passwor
     SharedSecretRequest ss_request;
     SharedSecretContextPtr ss_context;
     std::tie(ss_request, ss_context) = context->sharedSecret().generateRequestCryptogram();
-    auto request = cc7::json::JsonValue::object({
-        { "sharedSecretRequest", ss_request.toJson() }
-    });
     auto self = shared_from_this();
     return RequestBuilder(*context, Endpoint_PasswordChange)
-        .withJson(request)
+        .withJson(ss_request.toJson())
         .withAuthentication(old_credentials)
         .withResponseCallback([self, context, ss_context, old_credentials, new_credentials](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
             return self->processResponseChangePassword(*context, ss_context, body, old_credentials, new_credentials);
@@ -414,7 +411,7 @@ ResponseObjectPtr ActivationServiceV4::processResponseChangePassword(Context &co
                                                                      CredentialsPtr new_credentials)
 {
     LOCK_GUARD();
-    auto ss_response = SharedSecretResponse::fromJson(response["sharedSecretResponse"]);
+    auto ss_response = SharedSecretResponse::fromJson(response);
     auto new_knowledge_factor = context.sharedSecret().computeSharedSecret(ss_context, ss_response);
     auto& key_provider = context.keyProvider();
     
@@ -432,13 +429,10 @@ RequestPtr ActivationServiceV4::addBiometricFactor(PasswordPtr password, const c
     SharedSecretRequest ss_request;
     SharedSecretContextPtr ss_context;
     std::tie(ss_request, ss_context) = context->sharedSecret().generateRequestCryptogram();
-    auto request = cc7::json::JsonValue::object({
-        { "sharedSecretRequest", ss_request.toJson() }
-    });
     auto self = shared_from_this();
     cc7::ByteArray new_kek = new_biometry_kek;
     return RequestBuilder(*context, Endpoint_BiometryAdd)
-        .withJson(request)
+        .withJson(ss_request.toJson())
         .withAuthentication(Credentials::knowledge(password->passwordData()))
         .withResponseCallback([self, context, ss_context, new_kek](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
             return self->processResponseAddBiometricFactor(*context, ss_context, body, new_kek);
@@ -452,7 +446,7 @@ ResponseObjectPtr ActivationServiceV4::processResponseAddBiometricFactor(Context
                                                                          const cc7::ByteRange& new_biometry_kek)
 {
     LOCK_GUARD();
-    auto ss_response = SharedSecretResponse::fromJson(response["sharedSecretResponse"]);
+    auto ss_response = SharedSecretResponse::fromJson(response);
     auto new_biometry_factor = context.sharedSecret().computeSharedSecret(ss_context, ss_response);
     
     auto& key_provider = context.keyProvider();

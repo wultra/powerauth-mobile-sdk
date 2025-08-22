@@ -181,7 +181,7 @@ bool ActivationStatus::validateStatusBlobV3(const BinaryData &data) noexcept
 {
     return data.state >= ServerState_Created && data.state <= ServerState_Removed &&
            data.currentVersion == Version_V3 &&
-           data.upgradeVersion >= Version_V4 &&
+           data.upgradeVersion >= Version_V3 &&
            data.failCount <= data.maxFailCount &&
            data.lookAheadCount > 0 && data.lookAheadCount <= v3::LOOK_AHEAD_MAX;
 }

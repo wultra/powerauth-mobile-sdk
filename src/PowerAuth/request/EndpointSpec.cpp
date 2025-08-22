@@ -83,6 +83,10 @@ const EndpointSpec Endpoint_ActivationCreate {
     Version_V3, "/pa/v3/activation/create", "", EncryptorId::APPLICATION_SCOPE_GENERIC
 };
 
+const EndpointSpec Endpoint_ActivationStatus {
+    Version_V3, "/pa/v3/activation/status", "", EncryptorId::NONE
+};
+
 } // namespace v3
 
 } // namespace powerAuth

@@ -108,10 +108,10 @@ void Configuration::validatePublicKeys() const
     }
 }
 
-bool Configuration::validateSdkConfig(const std::string& sdk_config) noexcept
+bool Configuration::validateSdkConfig(const std::string& sdk_config, PowerAuthSpec::Algorithm algorithm) noexcept
 {
     try {
-        auto foo = Builder(sdk_config);
+        auto foo = Builder(sdk_config, algorithm);
         return true;
     } catch (Exception & e) {
         return false;

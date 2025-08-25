@@ -274,24 +274,11 @@ ActivationStatus::CounterState ActivationServiceV3::trySynchronizeCounter(const 
     auto local_ctr_data = pd.authCodeCounterData;
     const int look_ahead_window = data.lookAheadCount;
     
-    // At first, try to check whether the counter hash is OK
+    // Calculate hash counters distance
     auto hash_distance = calculateHashCounterDistance(local_ctr_data, data.counterHash, key_ctr_data, look_ahead_window);
-    if (!pd.flags.hasAuthCodeCounterByte) {
-        // We don't have captured counter byte yet, so test whether the hash is OK and if yes, then keep the received byte.
-        if (hash_distance == 0) {
-            // Everything's OK, keep received byte in persistent data and suggest save the session's state.
-            pd.flags.hasAuthCodeCounterByte = 1;
-            pd.authCodeCounterByte = data.counterByte;
-        }
-        // Otherwise it's not possible to determine whether the counter's OK. We have to wait to sync counters
-        // in the next regular authorization code calculation. In this case, we must pretend that everything's OK.
-        return ActivationStatus::CounterState_OK;
-    }
-    
-    // Counter byte is available, so it's possible to estimate distance between the counters.
-    // Negative 'byte_distance' means that the server is ahead. On opposite to that, positive value indicates
-    // that the client's ahead.
+    // Calculate byte counters distance
      auto byte_distance = common::CalculateDistanceBetweenByteCounters(pd.authCodeCounterByte, data.counterByte);
+    
     if (hash_distance == 0 && byte_distance == 0) {
         // Everything's OK.
         return ActivationStatus::CounterState_OK;

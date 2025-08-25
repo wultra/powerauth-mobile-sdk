@@ -174,6 +174,11 @@ const cc7::json::JsonValue& Request::getResponseJson() const
     return _response_json;
 }
 
+const cc7::crypto::Parameter& Request::getCustomParameter() const noexcept
+{
+    return _custom_parameter;
+}
+
 void Request::setResponseInterceptor(ResponseInterceptor interceptor)
 {
     LOCK_GUARD();

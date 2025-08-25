@@ -83,6 +83,12 @@ RequestBuilder& RequestBuilder::withCancelCallback(CancelCallback callback)
     return *this;
 }
 
+RequestBuilder& RequestBuilder::withCustomParameter(const cc7::crypto::Parameter &parameter)
+{
+    _request->_custom_parameter = parameter;
+    return *this;
+}
+
 RequestPtr RequestBuilder::build()
 {
     if (!_has_body) {

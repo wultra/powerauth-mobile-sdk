@@ -17,6 +17,7 @@
 #pragma once
 
 #include <PowerAuth/Types.h>
+#include <cc7/crypto/Parameter.h>
 
 #include <functional>
 #include <memory>
@@ -146,6 +147,9 @@ public:
     /// the exception is raised.
     const cc7::json::JsonValue& getResponseJson() const;
     
+    /// Returns custom parameter associated with the request.
+    const cc7::crypto::Parameter& getCustomParameter() const noexcept;
+    
     /// Get typed response object.
     ///
     /// - Parameter required: If true, then exception is raised if type of object is different
@@ -261,6 +265,8 @@ private:
     cc7::json::JsonValue _response_json;
     /// Response object, if created.
     ResponseObjectPtr _response_object;
+    /// Custom parameter
+    cc7::crypto::Parameter _custom_parameter;
 };
 
 typedef std::unique_ptr<Request> RequestPtr;

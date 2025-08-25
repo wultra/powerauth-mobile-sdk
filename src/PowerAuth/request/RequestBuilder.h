@@ -58,6 +58,11 @@ public:
     /// - Parameter authentication: Credentials for authentication.
     RequestBuilder& withAuthentication(const CredentialsPtr& authentication);
     
+    /// Add a custom parameter to the request. Note that you must use the `Parameter::copy()`
+    /// method if you want to include a byte array or text as part of the request.
+    /// - Parameter parameter: Custom parameter.
+    RequestBuilder& withCustomParameter(const cc7::crypto::Parameter& parameter);
+    
     /// Add request body preparation callback.
     /// - Parameter callback: Preparation callback.
     /// - Throws: `Exception` in case the body is already set.

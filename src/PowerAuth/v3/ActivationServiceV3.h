@@ -66,9 +66,8 @@ private:
     
     // Activation status
     
-    cc7::json::JsonValue prepareRequestActivationStatus();
-    ResponseObjectPtr processResponseActivationStatus(Context& context, const cc7::json::JsonValue& response);
-    cc7::ByteArray decryptActivationStatusBlob(const cc7::json::JsonValue& response, const ISecretKeysPtr& secrets);
+    ResponseObjectPtr processResponseActivationStatus(Context& context, const Request& request, const cc7::json::JsonValue& response);
+    cc7::ByteArray decryptActivationStatusBlob(const cc7::json::JsonValue& response, const cc7::ByteRange& challenge, const ISecretKeysPtr& secrets);
     ActivationStatus::CounterState trySynchronizeCounter(const ActivationStatus::BinaryData& data, const cc7::ByteRange& key_ctr_data);
     int calculateHashCounterDistance(cc7::ByteArray& local_ctr_data,
                                      const cc7::ByteRange& server_ctr_data_hash,
@@ -94,7 +93,6 @@ private:
     const SessionDataPtr _session_data;
     
     std::string _activation_fingerprint;
-    cc7::ByteArray _status_challenge;
 };
 
 } // namespace v3

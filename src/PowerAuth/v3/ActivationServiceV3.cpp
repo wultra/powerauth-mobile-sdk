@@ -185,30 +185,26 @@ RequestPtr ActivationServiceV3::fetchActivationStatus()
     LOCK_GUARD();
     auto context = lockContext();
     auto self = shared_from_this();
+    
+    auto challenge = cc7::crypto::GetRandomData(v3::STATUS_BLOB_CHALLENGE_SIZE);
     return RequestBuilder(*context, v3::Endpoint_ActivationStatus)
-        .withJson(prepareRequestActivationStatus())
-        .withResponseCallback([self, context](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
-            return self->processResponseActivationStatus(*context, body);
+        .withJson(cc7::json::JsonValue::object({
+            {"activationId", cc7::json::JsonValue(_session_data->getActivationId())},
+            {"challenge", cc7::json::JsonValue(challenge.base64())}
+        }))
+        .withCustomParameter(cc7::crypto::Parameter::copy(challenge))
+        .withResponseCallback([self, context](const Request& request, const cc7::json::JsonValue& response) -> ResponseObjectPtr {
+            return self->processResponseActivationStatus(*context, request, response);
         })
         .build();
 }
 
-cc7::json::JsonValue ActivationServiceV3::prepareRequestActivationStatus()
-{
-    _status_challenge = cc7::crypto::GetRandomData(v3::STATUS_BLOB_CHALLENGE_SIZE);
-    auto json = cc7::json::JsonValue::object({
-        {"activationId", cc7::json::JsonValue(_session_data->getActivationId())},
-        {"challenge", cc7::json::JsonValue(_status_challenge.base64())}
-    });
-    
-    return json;
-}
-
-ResponseObjectPtr ActivationServiceV3::processResponseActivationStatus(Context& context, const cc7::json::JsonValue& response)
+ResponseObjectPtr ActivationServiceV3::processResponseActivationStatus(Context& context, const Request& request, const cc7::json::JsonValue& response)
 {
     LOCK_GUARD();
     
     // Extract values
+    auto challenge = request.getCustomParameter().asByteRange();
     auto activation_id = response["activationId"].asString();
     if (activation_id != _session_data->getActivationId()) {
         throw Exception(EC_InvalidData, "Unexpected activation ID");
@@ -216,8 +212,7 @@ ResponseObjectPtr ActivationServiceV3::processResponseActivationStatus(Context& 
     
     auto& keyProvider = context.keyProvider();
     auto secrets = keyProvider.unlockSecretKeys();
-    auto status_blob = decryptActivationStatusBlob(response, secrets);
-    _status_challenge.secureClear();
+    auto status_blob = decryptActivationStatusBlob(response, challenge, secrets);
     if (status_blob.size() != v3::STATUS_BLOB_SIZE) {
         throw Exception(EC_InvalidData, "Invalid size of binary status blob");
     }
@@ -259,7 +254,7 @@ ResponseObjectPtr ActivationServiceV3::processResponseActivationStatus(Context& 
     return std::make_shared<ActivationStatus>(Version_V3, local_state, counter_state, binary_data, custom_object);
 }
 
-cc7::ByteArray ActivationServiceV3::decryptActivationStatusBlob(const cc7::json::JsonValue& response, const ISecretKeysPtr& secrets)
+cc7::ByteArray ActivationServiceV3::decryptActivationStatusBlob(const cc7::json::JsonValue& response, const cc7::ByteRange& challenge, const ISecretKeysPtr& secrets)
 {
     auto nonce = response["nonce"].asBase64();
     if (nonce.size() != v3::STATUS_BLOB_NONCE_SIZE) {
@@ -267,7 +262,7 @@ cc7::ByteArray ActivationServiceV3::decryptActivationStatusBlob(const cc7::json:
     }
     auto encrypted_status_blob = response["encryptedStatusBlob"].asBase64();
     
-    auto status_iv_data = cc7::ConcatByteRanges({_status_challenge, nonce});
+    auto status_iv_data = cc7::ConcatByteRanges({challenge, nonce});
     auto status_iv = algorithms().v3.kdfInternal().derive(secrets->legacyKeyTransportIV(), status_iv_data);
 
     return algorithms().v3.aes128cbcNoPad().decrypt(secrets->legacyKeyTransport(), status_iv, encrypted_status_blob);

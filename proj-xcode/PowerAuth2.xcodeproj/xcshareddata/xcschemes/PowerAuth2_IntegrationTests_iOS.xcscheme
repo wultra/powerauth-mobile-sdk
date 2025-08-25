@@ -192,22 +192,10 @@
                   Identifier = "BaseTests_V4_EC_P384/testCounterSync_ServerIsAhead">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCreateActivationAndPersistWithCorePassword">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCreateActivationAndPersistWithPassword">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384/testCreateActivationWhenApplicationIsUnsupported">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testCreateActivationWithBiometry">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCreateActivationWithOtpAndSignature">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCreateActivationWithSignature">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testCustomOfflineSignature">
@@ -267,22 +255,10 @@
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testCounterSync_ServerIsAhead">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCreateActivationAndPersistWithCorePassword">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCreateActivationAndPersistWithPassword">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testCreateActivationWhenApplicationIsUnsupported">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testCreateActivationWithBiometry">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCreateActivationWithOtpAndSignature">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCreateActivationWithSignature">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testCustomOfflineSignature">

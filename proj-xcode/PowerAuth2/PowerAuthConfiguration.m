@@ -64,7 +64,8 @@
     if (_sharingConfiguration) {
         result = result && [_sharingConfiguration validateConfiguration];
     }
-    result = result && [PowerAuthCoreConfig validateConfiguration:_configuration];
+    result = result && [PowerAuthCoreConfig validateConfiguration:_configuration
+                                                        algorithm:(PowerAuthCoreAlgorithm)_algorithm];
     return result;
 }
 

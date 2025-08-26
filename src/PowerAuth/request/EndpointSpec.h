@@ -98,6 +98,7 @@ namespace v3 {
 
 extern const EndpointSpec Endpoint_TemporaryKey;
 extern const EndpointSpec Endpoint_ActivationCreate;
+extern const EndpointSpec Endpoint_ActivationStatus;
 
 } // namespace v3
 

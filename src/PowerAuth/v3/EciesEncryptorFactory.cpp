@@ -145,12 +145,12 @@ IClientEncryptorPtr EciesEncryptorFactory::getClientEncryptor(EncryptorId encryp
                                                           ki.keyIdentifier,
                                                           activationId());
 
-    ByteArray e2ee_shared_info2_key;
+    ByteArray transport_key;
     if (spec->isActivationScoped()) {
-        e2ee_shared_info2_key = _key_provider->unlockSecretKeys()->keyE2EESharedInfo2();
+        transport_key = _key_provider->unlockSecretKeys()->legacyKeyTransport();
     }
 
-    auto secrets = ECIES_MakeClientSecrets(*parameters, *ki.publicKey, e2ee_shared_info2_key);
+    auto secrets = ECIES_MakeClientSecrets(*parameters, *ki.publicKey, transport_key);
 
     return std::make_shared<EciesClientEncryptor>(parameters,
                                                   secrets,

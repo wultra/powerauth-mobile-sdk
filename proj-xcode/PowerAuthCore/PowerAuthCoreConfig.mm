@@ -50,8 +50,9 @@
 }
 
 + (BOOL) validateConfiguration:(nonnull NSString*)configuration
+                     algorithm:(PowerAuthCoreAlgorithm)algorithm
 {
-    return powerAuth::Configuration::validateSdkConfig(cc7::objc::CopyFromNSString(configuration));
+    return powerAuth::Configuration::validateSdkConfig(cc7::objc::CopyFromNSString(configuration), static_cast<powerAuth::PowerAuthSpec::Algorithm>(algorithm));
 }
 
 + (nullable PowerAuthCoreConfig*) buildWithConfiguration:(nonnull NSString*)configuration

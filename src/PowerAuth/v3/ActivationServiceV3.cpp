@@ -17,6 +17,8 @@
 #include "ActivationServiceV3.h"
 #include "../request/RequestBuilder.h"
 #include "../common/CommonFunctions.h"
+#include "./LegacyKDF.h"
+#include "FunctionsV3.h"
 
 namespace powerAuth {
 namespace v3 {
@@ -180,7 +182,158 @@ void ActivationServiceV3::resetState()
 
 RequestPtr ActivationServiceV3::fetchActivationStatus()
 {
-    throw Exception(EC_InternalError, "TODO");
+    LOCK_GUARD();
+    auto context = lockContext();
+    auto self = shared_from_this();
+    
+    auto challenge = cc7::crypto::GetRandomData(v3::STATUS_BLOB_CHALLENGE_SIZE);
+    return RequestBuilder(*context, v3::Endpoint_ActivationStatus)
+        .withJson(cc7::json::JsonValue::object({
+            {"activationId", cc7::json::JsonValue(_session_data->getActivationId())},
+            {"challenge", cc7::json::JsonValue(challenge.base64())}
+        }))
+        .withCustomParameter(cc7::crypto::Parameter::copy(challenge))
+        .withResponseCallback([self, context](const Request& request, const cc7::json::JsonValue& response) -> ResponseObjectPtr {
+            return self->processResponseActivationStatus(*context, request, response);
+        })
+        .build();
+}
+
+ResponseObjectPtr ActivationServiceV3::processResponseActivationStatus(Context& context, const Request& request, const cc7::json::JsonValue& response)
+{
+    LOCK_GUARD();
+    
+    // Extract values
+    auto challenge = request.getCustomParameter().asByteRange();
+    auto activation_id = response["activationId"].asString();
+    if (activation_id != _session_data->getActivationId()) {
+        throw Exception(EC_InvalidData, "Unexpected activation ID");
+    }
+    
+    auto& keyProvider = context.keyProvider();
+    auto secrets = keyProvider.unlockSecretKeys();
+    auto status_blob = decryptActivationStatusBlob(response, challenge, secrets);
+    if (status_blob.size() != v3::STATUS_BLOB_SIZE) {
+        throw Exception(EC_InvalidData, "Invalid size of binary status blob");
+    }
+
+    auto custom_object = response.containsValueAtPath("customObject", cc7::json::JsonValue::Object) ? response["customObject"] : cc7::json::JsonValue::object();
+    
+    // Parse binary status blob
+    auto binary_data = ActivationStatus::parseStatusBlobV3(status_blob);
+
+    // Try synchronize counter
+    auto counter_state = trySynchronizeCounter(binary_data, secrets->keyMacCtrData());
+    
+    keyProvider.lockSecretKeys(secrets);
+
+    ActivationState local_state;
+    switch (binary_data.state) {
+        case ActivationStatus::ServerState_PendingCommit:
+            local_state = ActivationState::PendingCommit;
+            break;
+        case ActivationStatus::ServerState_Active:
+            local_state = ActivationState::Active;
+            break;
+        case ActivationStatus::ServerState_Blocked:
+            local_state = ActivationState::Blocked;
+            break;
+        case ActivationStatus::ServerState_Removed:
+            local_state = ActivationState::Removed;
+            break;
+        default:
+            throw Exception(EC_InvalidData, "Unsupported activation state in binary status blob");
+    }
+    
+    if (counter_state == ActivationStatus::CounterState_Invalid) {
+        // force state to deadlock
+        local_state = ActivationState::Deadlock;
+    }
+    
+    // Check counter synchronization
+    return std::make_shared<ActivationStatus>(Version_V3, local_state, counter_state, binary_data, custom_object);
+}
+
+cc7::ByteArray ActivationServiceV3::decryptActivationStatusBlob(const cc7::json::JsonValue& response, const cc7::ByteRange& challenge, const ISecretKeysPtr& secrets)
+{
+    auto nonce = response["nonce"].asBase64();
+    if (nonce.size() != v3::STATUS_BLOB_NONCE_SIZE) {
+        throw Exception(EC_InvalidData, "Invalid size of status blob nonce");
+    }
+    auto encrypted_status_blob = response["encryptedStatusBlob"].asBase64();
+    
+    auto status_iv_data = cc7::ConcatByteRanges({challenge, nonce});
+    auto status_iv = algorithms().v3.kdfInternal().derive(secrets->legacyKeyTransportIV(), status_iv_data);
+
+    return algorithms().v3.aes128cbcNoPad().decrypt(secrets->legacyKeyTransport(), status_iv, encrypted_status_blob);
+}
+
+ActivationStatus::CounterState ActivationServiceV3::trySynchronizeCounter(const ActivationStatus::BinaryData& data, const cc7::ByteRange& key_ctr_data)
+{
+    auto& pd = _session_data->persistentData().v3();
+    auto local_ctr_data = pd.authCodeCounterData;
+    const int look_ahead_window = data.lookAheadCount;
+    
+    // Calculate hash counters distance
+    auto hash_distance = calculateHashCounterDistance(local_ctr_data, data.counterHash, key_ctr_data, look_ahead_window);
+    // Calculate byte counters distance
+     auto byte_distance = common::CalculateDistanceBetweenByteCounters(pd.authCodeCounterByte, data.counterByte);
+    
+    if (hash_distance == 0 && byte_distance == 0) {
+        // Everything's OK.
+        return ActivationStatus::CounterState_OK;
+    }
+    
+    if (byte_distance > 0 && hash_distance == -1) {
+        // Client's ahead. Determine for how much and decide the synchronization result.
+        if (byte_distance > look_ahead_window) {
+            // We cannot recover from this state. Client is too much ahead against the server.
+            // The activation is technically blocked.
+            return ActivationStatus::CounterState_Invalid;
+        }
+        
+        if (byte_distance > look_ahead_window / 2) {
+            // The local counter is more than half the allowed interval ahead to server.
+            // It's recommended to calculate some signature soon.
+            return ActivationStatus::CounterState_CalculateAuthCode;
+        }
+        
+        // Counter will be synchronized automatically
+        return ActivationStatus::CounterState_OK;
+    }
+    
+    if (-byte_distance == hash_distance) {
+        // hash distance is always greater than 0, but byte distance is negative in case that server's ahead.
+        // We have last matched CTR_DATA value in local_ctr_data variable.
+        pd.authCodeCounterData = local_ctr_data;
+        pd.authCodeCounterByte = data.counterByte;
+        // Report that persistent data should be saved now.
+        return ActivationStatus::CounterState_Updated;
+    }
+    
+    // Looks like that counters cannot be synchronized and the activation is technically blocked.
+    return ActivationStatus::CounterState_Invalid;
+}
+
+int ActivationServiceV3::calculateHashCounterDistance(cc7::ByteArray& local_ctr_data,
+                                                      const cc7::ByteRange& server_ctr_data_hash,
+                                                      const cc7::ByteRange& key_ctr_data,
+                                                      int max_iterations)
+{
+    const auto& sha256 = algorithms().v3.sha256();
+    
+    int iteration = 0;
+    while (max_iterations > 0) {
+        auto local_ctr_data_hash = DeriveSecretKeyFromIndex(key_ctr_data, local_ctr_data);
+        if (local_ctr_data_hash == server_ctr_data_hash) {
+            return iteration;
+        }
+        
+        local_ctr_data = ReduceSharedSecret(sha256.digest(local_ctr_data));
+        ++iteration;
+        --max_iterations;
+    }
+    return -1;
 }
 
 // MARK: - Remove

@@ -119,8 +119,9 @@ public:
     /// performed afterwards by calling `validatePublicKeys()` on created instance of configuration.
     ///
     /// - Parameter sdk_config: SDK configuration string to validate.
+    /// - Parameter algorithm: Algorithm to use.
     /// - Returns: `true` if SDK configuration is correct.
-    static bool validateSdkConfig(const std::string& sdk_config) noexcept;
+    static bool validateSdkConfig(const std::string& sdk_config, PowerAuthSpec::Algorithm algorithm) noexcept;
     
 private:
     

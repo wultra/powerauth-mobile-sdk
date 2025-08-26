@@ -47,7 +47,7 @@ public:
     
 private:
     
-    // Create
+    // Activation create
     
     /// Prepare data for create activation request.
     /// - Parameters:
@@ -63,6 +63,16 @@ private:
     ///   - L1_data: L1 activation data received from the server
     /// - Returns: `ActivationResult` object.
     ResponseObjectPtr processResponseActivationData(Context& context, const cc7::json::JsonValue& L1_data);
+    
+    // Activation status
+    
+    ResponseObjectPtr processResponseActivationStatus(Context& context, const Request& request, const cc7::json::JsonValue& response);
+    cc7::ByteArray decryptActivationStatusBlob(const cc7::json::JsonValue& response, const cc7::ByteRange& challenge, const ISecretKeysPtr& secrets);
+    ActivationStatus::CounterState trySynchronizeCounter(const ActivationStatus::BinaryData& data, const cc7::ByteRange& key_ctr_data);
+    int calculateHashCounterDistance(cc7::ByteArray& local_ctr_data,
+                                     const cc7::ByteRange& server_ctr_data_hash,
+                                     const cc7::ByteRange& key_ctr_data,
+                                     int max_iterations);
     
     // Activation fingerprint
     

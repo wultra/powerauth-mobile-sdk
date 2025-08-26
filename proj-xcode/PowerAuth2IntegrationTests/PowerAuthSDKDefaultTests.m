@@ -261,14 +261,15 @@
             result = [_helper validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0];
             XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
         }
-        result = [_helper validateSignature:auth_possession_knowledge data:data method:online_mode ? @"GET" : @"POST" uriId:@"/hello/hacker" online:online_mode cripple:0];
+        NSString * get_method = online_mode ? @"GET" : @"POST";
+        result = [_helper validateSignature:auth_possession_knowledge data:data method:get_method uriId:@"/hello/hacker" online:online_mode cripple:0];
         XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
         // Negative
         result = [_helper validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0x0001];
         XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
-        result = [_helper validateSignature:auth_possession_knowledge data:data method:@"GET" uriId:@"/hello/hacker" online:online_mode cripple:0x0010];
+        result = [_helper validateSignature:auth_possession_knowledge data:data method:get_method uriId:@"/hello/hacker" online:online_mode cripple:0x0010];
         XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
-        result = [_helper validateSignature:auth_possession data:data method:@"GET" uriId:@"/hello/from/test" online:online_mode cripple:0x0100];
+        result = [_helper validateSignature:auth_possession data:data method:get_method uriId:@"/hello/from/test" online:online_mode cripple:0x0100];
         XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
         result = [_helper validateSignature:auth_possession_knowledge data:data method:@"POST" uriId:@"/hello/from/test" online:online_mode cripple:0x1000];
         XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");

@@ -93,12 +93,13 @@ extern const EndpointSpec Endpoint_ValidateCredentials;
 
 namespace v3 {
 
-//extern const EndpointSpec Endpoint_RemoveActivation;
 //extern const EndpointSpec Endpoint_ValidateSignature;
 
 extern const EndpointSpec Endpoint_TemporaryKey;
 extern const EndpointSpec Endpoint_ActivationCreate;
 extern const EndpointSpec Endpoint_ActivationStatus;
+extern const EndpointSpec Endpoint_ActivationRemove;
+extern const EndpointSpec Endpoint_VaultUnlock;
 
 } // namespace v3
 

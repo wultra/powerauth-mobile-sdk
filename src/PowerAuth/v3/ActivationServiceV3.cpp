@@ -340,24 +340,78 @@ int ActivationServiceV3::calculateHashCounterDistance(cc7::ByteArray& local_ctr_
 
 RequestPtr ActivationServiceV3::removeActivation(CredentialsPtr credentials)
 {
-    throw Exception(EC_InternalError, "TODO");
+    LOCK_GUARD();
+    auto context = lockContext();
+    auto self = shared_from_this();
+    
+    return RequestBuilder(*context, v3::Endpoint_ActivationRemove)
+        .withAuthentication(credentials)
+        .withResponseCallback([self](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            self->resetState();
+            return nullptr;
+        })
+        .build();
 }
 
 // MARK: - Factors
 
 RequestPtr ActivationServiceV3::changePassword(PasswordPtr old_password, PasswordPtr new_password)
 {
-    throw Exception(EC_InternalError, "TODO");
+    LOCK_GUARD();
+    auto context = lockContext();
+    auto& key_provider = context->keyProvider();
+    
+    auto old_credentials = Credentials::knowledge(old_password->passwordData());
+    auto new_credentials = Credentials::knowledge(new_password->passwordData());
+    
+    auto secrets = key_provider.unlockSecretKeys(*old_credentials);
+    secrets->updateKeyAuthenticationCodeKnowledge(cc7::ByteRange(), new_credentials->knowledgeKEK());
+    key_provider.lockSecretKeys(secrets);
+    
+    return nullptr;
 }
 
 RequestPtr ActivationServiceV3::addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek)
 {
-    throw Exception(EC_InternalError, "TODO");
+    LOCK_GUARD();
+    auto context = lockContext();
+    
+    auto credentials = Credentials::knowledge(password->passwordData());
+    
+    auto self = shared_from_this();
+    cc7::ByteArray new_kek = new_biometry_kek;
+    return RequestBuilder(*context, v3::Endpoint_VaultUnlock)
+        .withJson(cc7::json::JsonValue::object({
+            {"reason", cc7::json::JsonValue("ADD_BIOMETRY")}
+        }))
+        .withAuthentication(credentials)
+        .withResponseCallback([self, context, new_kek](const Request& request, const cc7::json::JsonValue& response) -> ResponseObjectPtr {
+            self->doAddBiometricFactor(*context, response, new_kek);
+            return nullptr;
+        })
+        .build();
+}
+
+void ActivationServiceV3::doAddBiometricFactor(Context& context, const cc7::json::JsonValue& response, const cc7::ByteRange& new_biometry_kek)
+{
+    auto& key_provider = context.keyProvider();
+    
+    auto secrets = key_provider.unlockVaultKey(VaultKeyType::KEK_DEVICE_PRIVATE, response["encryptedVaultEncryptionKey"].asBase64());
+    secrets->updateKeyAuthenticationCodeBiometry(cc7::ByteRange(), new_biometry_kek);
+    key_provider.lockSecretKeys(secrets);
 }
 
 RequestPtr ActivationServiceV3::removeBiometricFactor()
 {
-    throw Exception(EC_InternalError, "TODO");
+    LOCK_GUARD();
+    auto context = lockContext();
+    auto& key_provider = context->keyProvider();
+    
+    auto secrets = key_provider.unlockSecretKeys();
+    secrets->removeKeyAuthenticationCodeBiometry();
+    key_provider.lockSecretKeys(secrets);
+    
+    return nullptr;
 }
 
 } // namespace v3

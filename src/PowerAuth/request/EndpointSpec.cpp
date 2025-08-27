@@ -72,7 +72,6 @@ const EndpointSpec Endpoint_ValidateCredentials {
 
 namespace v3 {
 
-//extern const EndpointSpec Endpoint_RemoveActivation;
 //extern const EndpointSpec Endpoint_ValidateSignature;
 
 const EndpointSpec Endpoint_TemporaryKey {
@@ -85,6 +84,14 @@ const EndpointSpec Endpoint_ActivationCreate {
 
 const EndpointSpec Endpoint_ActivationStatus {
     Version_V3, "/pa/v3/activation/status", "", EncryptorId::NONE
+};
+
+const EndpointSpec Endpoint_ActivationRemove {
+    Version_V3, "/pa/v3/activation/remove", "/pa/activation/remove", EncryptorId::NONE
+};
+
+const EndpointSpec Endpoint_VaultUnlock {
+    Version_V3, "/pa/v3/vault/unlock", "/pa/vault/unlock", EncryptorId::VAULT_UNLOCK
 };
 
 } // namespace v3

@@ -96,7 +96,7 @@ std::string AuthenticationServiceV4::calculateOfflineAuthenticationCode(const Cr
                                                                         const cc7::ByteRange& data)
 {
     LOCK_GUARD();
-    if (auth_data.authorizationCodeLength < common::DECIMAL_AUTH_CODE_MIN_LENGTH || auth_data.authorizationCodeLength > common::DECIMAL_AUTH_CODE_MAX_LENGTH) {
+    if (auth_data.authenticationCodeLength < common::DECIMAL_AUTH_CODE_MIN_LENGTH || auth_data.authenticationCodeLength > common::DECIMAL_AUTH_CODE_MAX_LENGTH) {
         throw Exception(EC_WrongParameter, "Offline code length is out of supported range");
     }
     if (auth_data.offlineNonce.size() != common::OFFLINE_AUTH_CODE_NONCE_LENGTH) {
@@ -112,13 +112,13 @@ std::string AuthenticationServiceV4::calculateOfflineAuthenticationCode(const Cr
                                                                        auth_data.uriIdentifier,
                                                                        auth_data.offlineNonce,
                                                                        data,
-                                                                       _configuration->applicationSecret());
+                                                                       common::PA_OFFLINE_APP_SECRET);
     auto& pd = _session_data->persistentData().v4();
     // unlock secret keys
     auto secrets = _key_provider->unlockSecretKeys(credentials);
     //
     auto factor_keys = prepareFactorKeys(*secrets, credentials.factors());
-    auto result = CalculateOfflineAuthorizationCode(factor_keys, pd.authCodeCounterData, normalized_data, auth_data.authorizationCodeLength);
+    auto result = CalculateOfflineAuthorizationCode(factor_keys, pd.authCodeCounterData, normalized_data, auth_data.authenticationCodeLength);
     // lock secret keys
     _key_provider->lockSecretKeys(secrets);
     // move counter forward and return result

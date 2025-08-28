@@ -18,6 +18,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
 #import <PowerAuth2/PowerAuthAuthorizationHttpHeader.h>
+@import PowerAuthCore;
 
 @implementation PowerAuthAuthorizationHttpHeader
 
@@ -31,11 +32,18 @@
     return self;
 }
 
++ (PowerAuthAuthorizationHttpHeader*) createWithCoreHeader:(PowerAuthCoreHttpHeader*)coreHeader
+{
+    return [[self alloc] initWithKey:coreHeader.headerName value:coreHeader.headerValue];
+}
+
+//PA2_DEPRECATED(2.0)
 + (PowerAuthAuthorizationHttpHeader*) authorizationHeaderWithValue:(NSString *)value
 {
     return !value ? nil : [[self alloc] initWithKey:@"X-PowerAuth-Authorization" value:value];
 }
 
+//PA2_DEPRECATED(2.0)
 + (PowerAuthAuthorizationHttpHeader*) tokenHeaderWithValue:(NSString *)value
 {
     return !value ? nil : [[self alloc] initWithKey:@"X-PowerAuth-Token" value:value];

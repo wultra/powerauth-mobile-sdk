@@ -36,6 +36,11 @@
  Server's configuration.
  */
 @property (nonatomic, readonly, strong) PowerAuthTestServerConfig * testServerConfig;
+/**
+ Protocol version used in PowerAuth mobile SDK. Value is updated in `validateConnection`
+ but can be altered afterwards.
+ */
+@property (nonatomic, assign) PowerAuthProtocolVersion clientProtocolVersion;
 
 /**
  Initializes a test server API object for given |testServerConfig|.
@@ -156,11 +161,11 @@
  Request for PA2 signature calculation.
  Returns result object created from SOAP response or nil in case of failure.
  */
-- (PATSVerifySignatureResponse*) verifySignature:(NSString*)activationId
-                                            data:(NSString*)normalizedData
-                                       signature:(NSString*)signature
-                                   signatureType:(NSString*)signatureType
-                                signatureVersion:(NSString*)signatureVersion;
+- (PATSVerifySignatureResponse*) verifyAuthHeader:(NSString*)activationId
+                                             data:(NSString*)normalizedData
+                                         authCode:(NSString*)authCode
+                                          factors:(NSString*)factors
+                                          version:(NSString*)version;
 
 /**
  Returns normalized data from given parameters.
@@ -189,10 +194,11 @@
  Request for PA2 signature calculation.
  Returns result object created from SOAP response or nil in case of failure.
  */
-- (PATSVerifySignatureResponse*) verifyOfflineSignature:(NSString*)activationId
-                                                   data:(NSString*)normalizedData
-                                              signature:(NSString*)signature
-                                          allowBiometry:(BOOL)allowBiometry;
+- (PATSVerifySignatureResponse*) verifyOfflineAuthCode:(NSString*)activationId
+                                                  data:(NSString*)normalizedData
+                                              authCode:(NSString*)authCode
+                                         allowBiometry:(BOOL)allowBiometry
+                                       componentLength:(NSInteger)componentLength;
 
 /**
  Request for the asymmetric signature (ECDSA) validation procedure. The signature format is DER.

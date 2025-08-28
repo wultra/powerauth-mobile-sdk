@@ -19,6 +19,20 @@
 
 using namespace powerAuth;
 
+@implementation PowerAuthCoreHttpHeader
+
+- (instancetype) initWithHttpHeader:(const powerAuth::HttpHeader &)httpHeader
+{
+    self = [super init];
+    if (self) {
+        _headerName = cc7::objc::CopyToNSString(httpHeader.headerName);
+        _headerValue = cc7::objc::CopyToNSString(httpHeader.headerValue);
+    }
+    return self;
+}
+
+@end
+
 //#pragma mark - Public types implementation
 //
 //@implementation PowerAuthCoreSessionSetup

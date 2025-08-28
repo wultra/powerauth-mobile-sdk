@@ -23,7 +23,7 @@
 
 namespace powerAuth {
 
-/// Data for calculating HTTP authorization header.
+/// Data for calculating HTTP authentication header.
 struct OnlineAuthenticationData
 {
     /// Request's URI identifier.
@@ -36,15 +36,15 @@ struct OnlineAuthenticationData
     bool allowedInUpgrade = false;
 };
 
-/// Data for calculating offline authorization code.
+/// Data for calculating offline authentication code.
 struct OfflineAuthenticationData
 {
     /// Request's URI identifier.
     std::string_view uriIdentifier;
     /// Offline nonce.
     std::string_view offlineNonce;
-    /// Length of output authorization code.
-    size_t authorizationCodeLength = 8;
+    /// Length of output authentication code.
+    size_t authenticationCodeLength = 8;
 };
 
 /// Reason send to request verifying user's credentials on the server.
@@ -54,7 +54,7 @@ enum class VerifyCredentialsReason
     VALIDATE_PASSWORD,
     /// Request is issued for confirm password.
     CONFIRM_NEW_PASSWORD,
-    /// Request is issued for authorization code's counter synchronization.
+    /// Request is issued for authentication code's counter synchronization.
     COUNTER_SYNCHRONIZATION
 };
 
@@ -78,7 +78,7 @@ public:
                                                            const OnlineAuthenticationData& auth_data,
                                                            const cc7::ByteRange& body) = 0;
     
-    /// Calculate human readable header for offline authorization.
+    /// Calculate human readable code for offline authentication.
     /// - Parameters:
     ///   - credentials: User's credentials.
     ///   - auth_data: Data for constructing authentication code.

@@ -108,6 +108,20 @@ void Credentials::validate(ProtocolVersion v) const
     }
 }
 
+void Credentials::validatePassword(const Password &password)
+{
+    if (password.length() < common::MINIMAL_PASSWORD_LENGTH) {
+        throw Exception(EC_WrongParameter, "Password is too short");
+    }
+}
+
+void Credentials::validateFactorKek(const cc7::ByteRange &factor_kek, ProtocolVersion version)
+{
+    if (factor_kek.size() != _FactorKeySizeForProtocol(version)) {
+        throw Exception(EC_WrongParameter, "Invalid size of factor KEK");
+    }
+}
+
 // MARK: - InitialCredentials
 
 InitialCredentialsPtr InitialCredentials::credentials(const cc7::ByteRange &password,

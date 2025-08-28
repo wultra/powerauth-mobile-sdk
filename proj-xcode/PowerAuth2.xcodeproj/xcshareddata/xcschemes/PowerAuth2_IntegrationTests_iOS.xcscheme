@@ -93,6 +93,9 @@
                   Identifier = "BaseTests_V3/testAddingBiometryFactor">
                </Test>
                <Test
+                  Identifier = "BaseTests_V3/testAuthentication">
+               </Test>
+               <Test
                   Identifier = "BaseTests_V3/testBiometrySignatureWhenNotConfigured">
                </Test>
                <Test
@@ -111,22 +114,16 @@
                   Identifier = "BaseTests_V3/testCounterSync_ServerIsAhead">
                </Test>
                <Test
-                  Identifier = "BaseTests_V3/testCreateActivationAndPersistWithCorePassword">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testCreateActivationAndPersistWithPassword">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V3/testCreateActivationWhenApplicationIsUnsupported">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testCreateActivationWithBiometry">
                </Test>
                <Test
-                  Identifier = "BaseTests_V3/testCreateActivationWithOtpAndSignature">
+                  Identifier = "BaseTests_V3/testCreateActivationWithExternalBiometry">
                </Test>
                <Test
-                  Identifier = "BaseTests_V3/testCreateActivationWithoutSignature">
+                  Identifier = "BaseTests_V3/testCustomOfflineAuthCode">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testCustomOfflineSignature">
@@ -138,6 +135,9 @@
                   Identifier = "BaseTests_V3/testJwtSignature">
                </Test>
                <Test
+                  Identifier = "BaseTests_V3/testOfflineAuthCode">
+               </Test>
+               <Test
                   Identifier = "BaseTests_V3/testPasswordCorrect">
                </Test>
                <Test
@@ -145,6 +145,9 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testRemoveActivation">
+               </Test>
+               <Test
+                  Identifier = "BaseTests_V3/testRemoveActivationWithBiometry">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testSignDataWithDevicePrivateKey">
@@ -165,21 +168,6 @@
                   Identifier = "BaseTests_V3/testWithWrongLAContext">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384/testActivationStatusConcurrent">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testActivationStatusFailCounters">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testActivationStatusMaxFailAttempts">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testAddingBiometryFactor">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testBiometrySignatureWhenNotConfigured">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384/testCallToCreateActivationInWrongState">
                </Test>
                <Test
@@ -193,12 +181,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testCreateActivationWhenApplicationIsUnsupported">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCreateActivationWithBiometry">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCustomOfflineSignature">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testEncryptorCreation">
@@ -219,28 +201,10 @@
                   Identifier = "BaseTests_V4_EC_P384/testUserInfo">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384/testValidateSignature">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384/testVerifyServerSignedData">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testWithWrongLAContext">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testActivationStatusConcurrent">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testActivationStatusFailCounters">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testActivationStatusMaxFailAttempts">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testAddingBiometryFactor">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testBiometrySignatureWhenNotConfigured">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testCallToCreateActivationInWrongState">
@@ -256,12 +220,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testCreateActivationWhenApplicationIsUnsupported">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCreateActivationWithBiometry">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCustomOfflineSignature">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testEncryptorCreation">
@@ -280,9 +238,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testUserInfo">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testValidateSignature">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testVerifyServerSignedData">

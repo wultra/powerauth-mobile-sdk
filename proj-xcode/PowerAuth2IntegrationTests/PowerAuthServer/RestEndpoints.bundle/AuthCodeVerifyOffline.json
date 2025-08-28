@@ -3,8 +3,9 @@
     "parameters": [
         "activationId",
         "data",
-        "signature",
-        "allowBiometry"
+        "authenticationCode",
+        "allowBiometry",
+        "componentLength"
     ],
     "response": {
         "class": "PATSVerifySignatureResponse",
@@ -13,7 +14,7 @@
             "userId":               { "class" : "string" },
             "activationStatus":     { "class" : "string" },
             "remainingAttempts":    { "class" : "int" },
-            "signatureValid":       { "class" : "bool" }
+            "authenticationValid":  { "class" : "bool" }
         }
     }
 }

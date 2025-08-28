@@ -353,6 +353,17 @@ static NSData * _BuildDeviceSpecificData(void)
     return _sessionInterface;   // same as "sessionProvider" but exposes private interfaces
 }
 
+- (PowerAuthAlgorithm) currentAlgorithm
+{
+    NSNumber * enumValue = [_sessionInterface readTaskWithSession:^NSNumber*(PowerAuthCoreSession *session, NSError **error) {
+        return @([session currentAlgorithm]);
+    } error:nil];
+    if (!enumValue) {
+        return _configuration.algorithm;
+    }
+    return [enumValue intValue];
+}
+
 #pragma mark - Key management
 
 - (PA2KeystoreService*) keystoreService
@@ -817,8 +828,8 @@ static PowerAuthSDK * s_inst;
         
         // Prepare key encryption keys
         PowerAuthCorePassword * password = authentication.password;
-        PowerAuthCoreData *biometryKek = nil;
-        if (authentication.useBiometry) {
+        PowerAuthCoreData *biometryKek = authentication.customBiometryKey;
+        if (authentication.useBiometry && !biometryKek) {
             if (!(biometryKek = [session generateFactorKek:&localError])) {
                 if (error) *error = localError;
                 return nil;
@@ -848,7 +859,7 @@ static PowerAuthSDK * s_inst;
 {
     NSError * localError = nil;
     // Check for activation
-    BOOL success = [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
+    [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
         if (!session.hasValidActivationData) {
             NSInteger errorCode = session.hasPendingCreateActivation ? PowerAuthErrorCode_ActivationPending : PowerAuthErrorCode_MissingActivation;
             PA2SetError(error, errorCode, nil);
@@ -963,31 +974,63 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark - Authorization codes
 
+- (PowerAuthAuthorizationHttpHeader*) calculateAuthHeaderWithSession:(PowerAuthCoreSession*)session
+                                                      authentication:(PowerAuthAuthentication*)authentication
+                                                              method:(NSString*)method
+                                                               uriId:(NSString*)uriId
+                                                                body:(NSData*)body
+                                                                error:(NSError **)error
+{
+    PowerAuthCoreCredentials * credentials = [self resolveCredentialsWithAuthentication:authentication error:error];
+    if (!credentials) {
+        return nil;
+    }
+    PowerAuthCoreHttpHeader * header = [session calculateOnlineAuthenticationHeader:credentials
+                                                                      uriIdentifier:uriId
+                                                                         httpMethod:method
+                                                                        requestBody:body
+                                                                              error:error];
+    if (!header) {
+        return nil;
+    }
+    return [PowerAuthAuthorizationHttpHeader createWithCoreHeader:header];
+}
+
+- (NSString*) offlineAuthorizationCodeImpl:(PowerAuthAuthentication*)authentication
+                                     uriId:(NSString*)uriId
+                                      body:(NSData*)body
+                                     nonce:(NSString*)nonce
+                                     error:(NSError**)error
+{
+    PowerAuthCoreCredentials * credentials = [self resolveCredentialsWithAuthentication:authentication error:error];
+    if (!credentials) {
+        return nil;
+    }
+    return [_sessionInterface writeTaskWithSession:^NSString*(PowerAuthCoreSession * session, NSError **error) {
+        return [session calculateOfflineAuthenticationCode:credentials
+                                             uriIdentifier:uriId
+                                              offlineNonce:nonce
+                                                codeLength:_configuration.offlineAuthorizationCodeComponentLength
+                                                      data:body
+                                                     error:error];
+    } error:error];
+}
+
+
 - (PowerAuthAuthorizationHttpHeader*) authorizationHeaderForRequestWithBodyWithAuthentication:(PowerAuthAuthentication*)authentication
                                                                                      method:(NSString*)method
                                                                                       uriId:(NSString*)uriId
                                                                                        body:(NSData*)body
                                                                                       error:(NSError **)error
 {
-//    return [[_sessionInterface readTaskWithSession:^PA2Result<PowerAuthAuthorizationHttpHeader*>* (PowerAuthCoreSession * session) {
-//        if (session.hasPendingProtocolUpgrade) {
-//            return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_PendingProtocolUpgrade, @"Data signing is temporarily unavailable, due to pending protocol upgrade.")];
-//        }
-//        NSError * localError = nil;
-//        PowerAuthCoreHTTPRequestData * requestData = [[PowerAuthCoreHTTPRequestData alloc] init];
-//        requestData.body = body;
-//        requestData.method = method;
-//        requestData.uri = uriId;
-//        PowerAuthCoreHTTPRequestDataSignature * signature = [self signHttpRequestData:requestData
-//                                                                       authentication:authentication
-//                                                                                error:&localError];
-//        if (signature) {
-//            return [PA2Result success:[PowerAuthAuthorizationHttpHeader authorizationHeaderWithValue:signature.authHeaderValue]];
-//        }
-//        return [PA2Result failure:localError];
-//    }] extractResult:error];
-    // TODO: missing impl.
-    return nil;
+    return [_sessionInterface writeTaskWithSession:^PowerAuthAuthorizationHttpHeader*(PowerAuthCoreSession * session, NSError **error) {
+        return [self calculateAuthHeaderWithSession:session
+                                     authentication:authentication
+                                             method:method
+                                              uriId:uriId
+                                               body:body
+                                              error:error];
+    } error:error];
 }
 
 - (PowerAuthAuthorizationHttpHeader*) authorizationHeaderForRequestWithParamsWithAuthentication:(PowerAuthAuthentication*)authentication
@@ -996,11 +1039,18 @@ static PowerAuthSDK * s_inst;
                                                                                        params:(NSDictionary<NSString*, NSString*>*)params
                                                                                         error:(NSError **)error
 {
-    return [self authorizationHeaderForRequestWithBodyWithAuthentication:authentication
-                                                                method:method
-                                                                 uriId:uriId
-                                                                  body:[PowerAuthCoreSession prepareKeyValueDictionaryForDataSigning:params]
-                                                                 error:error];
+    return [_sessionInterface writeTaskWithSession:^PowerAuthAuthorizationHttpHeader*(PowerAuthCoreSession * session, NSError **error) {
+        NSData * normalizedParams = [session normalizeGetRequestParameters:params error:error];
+        if (!normalizedParams) {
+            return nil;
+        }
+        return [self calculateAuthHeaderWithSession:session
+                                     authentication:authentication
+                                             method:method
+                                              uriId:uriId
+                                               body:normalizedParams
+                                              error:error];
+    } error:error];
 }
 
 - (id<PowerAuthOperationTask>) offlineAuthorizationCodeWithAuthentication:(PowerAuthAuthentication*)authentication
@@ -1068,40 +1118,6 @@ static PowerAuthSDK * s_inst;
 }
 
 
-- (NSString*) offlineAuthorizationCodeImpl:(PowerAuthAuthentication*)authentication
-                                     uriId:(NSString*)uriId
-                                      body:(NSData*)body
-                                     nonce:(NSString*)nonce
-                                     error:(NSError**)error
-{
-    // TODO: missing impl.
-    return nil;
-//    return [[_sessionInterface readTaskWithSession:^PA2Result<NSString*>* (PowerAuthCoreSession * session) {
-//        NSError * localError = nil;
-//        if (!nonce) {
-//            return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Nonce parameter is missing.")];
-//        }
-//        
-//        if (session.hasPendingProtocolUpgrade) {
-//            return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_PendingProtocolUpgrade, @"Offline data signing is temporarily unavailable, due to pending protocol upgrade.")];
-//        }
-//        
-//        PowerAuthCoreHTTPRequestData * requestData = [[PowerAuthCoreHTTPRequestData alloc] init];
-//        requestData.body = body;
-//        requestData.method = @"POST";
-//        requestData.uri = uriId;
-//        requestData.offlineNonce = nonce;
-//        requestData.offlineSignatureSize = _configuration.offlineAuthorizationCodeComponentLength;
-//        PowerAuthCoreHTTPRequestDataSignature * signature = [self signHttpRequestData:requestData
-//                                                                       authentication:authentication
-//                                                                                error:&localError];
-//        if (signature) {
-//            return [PA2Result success:signature.signature];
-//        }
-//        return [PA2Result failure:localError];
-//    }] extractResult:error];
-}
-
 
 #pragma mark - Computing signatures (deprecated naming)
 
@@ -1144,28 +1160,6 @@ static PowerAuthSDK * s_inst;
                                          body:body
                                         nonce:nonce
                                         error:error];
-}
-
-
-/**
- This private method implements both online & offline authorization code calculations. Unlike the public interfaces, method accepts
- PA2HTTPRequestData object as a source for data for signing and returns structured PA2HTTPRequestDataSignature object.
- */
-- (PowerAuthCoreHTTPRequestDataSignature*) signHttpRequestData:(PowerAuthCoreHTTPRequestData*)requestData
-                                                authentication:(PowerAuthAuthentication*)authentication
-                                                         error:(NSError**)error
-{
-    // TODO: missing impl.
-    return nil;
-//    return [[_sessionInterface writeTaskWithSession:^PA2Result<PowerAuthCoreHTTPRequestDataSignature*>* (PowerAuthCoreSession * session) {
-//        // Check if there is an activation present
-//        if (!session.hasValidActivation) {
-//            return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_MissingActivation, nil)];
-//        }
-//        // TODO: missing impl.
-//        return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_Other, @"Missing implementation")];
-//        
-//    }] extractResult:error];
 }
 
 - (BOOL) verifyServerSignedData:(nonnull NSData*)data
@@ -1265,6 +1259,13 @@ static PowerAuthSDK * s_inst;
 - (id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(PowerAuthCorePassword*)password
                                                         callback:(void(^)(NSError *error))callback
 {
+    return [self addBiometryFactorWithCorePassword:password customBiometryKek:nil callback:callback];
+}
+
+- (id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(PowerAuthCorePassword*)password
+                                               customBiometryKek:(PowerAuthCoreData *)customBiometryKek
+                                                        callback:(void(^)(NSError *error))callback
+{
     // Check if biometry can be used
     if (![PowerAuthKeychain canUseBiometricAuthentication]) {
         callback(PA2MakeError(PowerAuthErrorCode_BiometryNotAvailable, nil));
@@ -1272,7 +1273,7 @@ static PowerAuthSDK * s_inst;
     }
     NSError * localError = nil;
     PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
-        PowerAuthCoreData * biometryKek = [session generateFactorKek:error];
+        PowerAuthCoreData * biometryKek = customBiometryKek ? customBiometryKek : [session generateFactorKek:error];
         if (!biometryKek) {
             return nil;
         }
@@ -1293,7 +1294,12 @@ static PowerAuthSDK * s_inst;
 
 - (id<PowerAuthOperationTask>) addBiometryFactorWithPassword:(NSString *)password callback:(void (^)(NSError *))callback
 {
-    return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] callback:callback];
+    return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] customBiometryKek:nil callback:callback];
+}
+
+- (id<PowerAuthOperationTask>) addBiometryFactorWithPassword:(NSString *)password customBiometryKek:(PowerAuthCoreData *)customBiometryKek callback:(void (^)(NSError *))callback
+{
+    return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] customBiometryKek:customBiometryKek callback:callback];
 }
 
 - (BOOL) hasBiometryFactor
@@ -1322,7 +1328,7 @@ static PowerAuthSDK * s_inst;
 - (id<PowerAuthOperationTask>) removeBiometryFactorWithCallback:(void (^)(NSError * _Nullable))callback
 {
     NSError* localError = nil;
-    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest*(PowerAuthCoreSession * session, NSError ** error) {
+    PowerAuthCoreRequest * request = [_sessionInterface writeTaskWithSession:^PowerAuthCoreRequest*(PowerAuthCoreSession * session, NSError ** error) {
         return [session removeBiometryFactor:error];
     } error:&localError];
     if (localError) {

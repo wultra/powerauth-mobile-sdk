@@ -72,6 +72,10 @@ public:
     /// - Returns: Protocol version at which the session currently runs.
     ProtocolVersion getProtocolVersion() const noexcept;
     
+    /// Get current algorithm used in the session. If there's no activation, then
+    /// contains inf
+    ConstPowerAuthSpecPtr getPowerAuthSpec() const noexcept;
+    
     /// Get session's configuration.
     /// - Returns: Session's configuration.
     const ConfigurationPtr& getConfiguration() const noexcept;

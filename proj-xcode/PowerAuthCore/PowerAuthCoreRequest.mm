@@ -96,10 +96,10 @@
     }
 }
 
-- (NSDictionary*) requestHeaders
+- (NSArray*) requestHeaders
 {
     try {
-        return powerAuth::BuildNSDictionaryWithHeaders(_request->getRequestHeaders());
+        return powerAuth::BuildNSArrayWithHeaders(_request->getRequestHeaders());
     } catch (...) {
         _failure = powerAuth::BuildNSErrorFromException();
         return nil;
@@ -199,12 +199,11 @@
 
 namespace powerAuth {
 
-NSDictionary* BuildNSDictionaryWithHeaders(const HttpHeaderList& headers)
+NSArray<PowerAuthCoreHttpHeader*>* BuildNSArrayWithHeaders(const HttpHeaderList& headers)
 {
-    NSMutableDictionary * result = [NSMutableDictionary dictionaryWithCapacity:headers.size()];
+    NSMutableArray * result = [NSMutableArray arrayWithCapacity:headers.size()];
     for (const auto& header : headers) {
-        [result setValue:cc7::objc::CopyToNSString(header.headerValue)
-                  forKey:cc7::objc::CopyToNSString(header.headerName)];
+        [result addObject:[[PowerAuthCoreHttpHeader alloc] initWithHttpHeader:header]];
     }
     return result;
 }

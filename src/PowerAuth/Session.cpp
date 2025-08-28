@@ -38,7 +38,13 @@ SessionPtr Session::createInstance(ConfigurationPtr configuration)
 ProtocolVersion Session::getProtocolVersion() const noexcept
 {
     LOCK_GUARD();
-    return sessionData().getProtocolVersion();
+    return _context->protocolVersion();
+}
+
+ConstPowerAuthSpecPtr Session::getPowerAuthSpec() const noexcept
+{
+    LOCK_GUARD();
+    return _context->specification();
 }
 
 const ConfigurationPtr& Session::getConfiguration() const noexcept
@@ -111,6 +117,9 @@ RequestPtr Session::createActivation(const cc7::json::JsonValue& L1_data, const 
 RequestPtr Session::confirmActivation(InitialCredentialsPtr credentials)
 {
     LOCK_GUARD();
+    // Validate credentials in advance. This is typically done also in key provider,
+    // but we don't want to wait for the response from the server.
+    credentials->validate(_context->protocolVersion());
     auto& sd = sessionData();
     if (!sd.hasRegistrationData()) {
         throw Exception(EC_WrongActivationState, "Cannot confirm activation. There's no pending activation");
@@ -194,6 +203,9 @@ RequestPtr Session::addBiometricFactor(const PasswordPtr& password, const cc7::B
     if (sessionData().persistentData().hasBiometricFactorKey()) {
         throw Exception(EC_NotAllowed, "Biometric factor is already set");
     }
+    // Check inputs in advance
+    Credentials::validatePassword(*password);
+    Credentials::validateFactorKek(new_biometry_kek, _context->protocolVersion());
     return _context->activationService().addBiometricFactor(password, new_biometry_kek);
 }
 

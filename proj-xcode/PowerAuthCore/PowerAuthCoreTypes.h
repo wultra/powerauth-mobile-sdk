@@ -49,79 +49,19 @@ typedef NS_ENUM(int, PowerAuthCoreProtocolVersion) {
     PowerAuthCoreProtocolVersion_V4 = 4,
 };
 
+/// The `PowerAuthCoreHttpHeader` object represents HTTP header with its name and value.
+@interface PowerAuthCoreHttpHeader : NSObject
 
-/**
- The PowerAuthCoreHTTPRequestData object contains all data required for calculating signature from
- HTTP request. You have to provide values at least non-empty strings to `method` and `uri` 
- members, to pass a data validation.
- */
-@interface PowerAuthCoreHTTPRequestData : NSObject
+/// Default construction is unavailable
+- (nonnull instancetype) init NS_UNAVAILABLE;
 
-/**
- A whole POST body or data blob prepared in 'Session::prepareKeyValueMapForDataSigning'
- method. You can also calculate signature for an empty request with no body or without
- any GET parameters. In this case the member may be empty.
- */
-@property (nonatomic, strong, nullable) NSData * body;
-/**
- HTTP method ("POST", "GET", "HEAD", "PUT", "DELETE" value is expected)
- */
-@property (nonatomic, strong, nonnull) NSString * method;
-/**
- Relative URI of the request.
- */
-@property (nonatomic, strong, nonnull) NSString * uri;
-/**
- Optional, contains NONCE generated externally. The value should be used for offline data
- signing purposes only. The Base64 string is expected.
- */
-@property (nonatomic, strong, nullable) NSString * offlineNonce;
-
-/**
- Length of offline signature component. The values between 4 and 8 are allowed.
- The default value is 8.
- */
-@property (nonatomic, assign) NSUInteger offlineSignatureSize;
+/// Contains HTTP header name
+@property (nonatomic, strong, readonly, nonnull) NSString * headerName;
+/// Contains HTTP header value
+@property (nonatomic, strong, readonly, nonnull) NSString * headerValue;
 
 @end
 
-
-/**
- The PowerAuthCoreHTTPRequestDataSignature object contains result from HTTP request data signing
- operation.
- */
-@interface PowerAuthCoreHTTPRequestDataSignature : NSObject
-
-/**
- Version of PowerAuth protocol.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * version;
-/**
- Activation identifier received during the activation process.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * activationId;
-/**
- Application key copied from Session.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * applicationKey;
-/**
- NONCE used for the offline authorization code calculation.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * nonce;
-/**
- String representation of signature factor or combination of factors.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * factor;
-/**
- Calculated signature
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * signature;
-/**
- Contains a complete value for "X-PowerAuth-Authorization" HTTP header.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * authHeaderValue;
-
-@end
 
 /**
  The PowerAuthCoreSigningDataKey enumeration defines key type used for signature calculation.

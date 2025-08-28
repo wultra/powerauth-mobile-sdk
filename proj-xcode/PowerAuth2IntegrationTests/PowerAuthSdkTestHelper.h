@@ -31,6 +31,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
     TestActivationFlags_PersistWithPlainPassword = 1 << 1,
     TestActivationFlags_PersistWithCorePassword  = 1 << 2,
     TestActivationFlags_PersistWithBiometry      = 1 << 3,
+    TestActivationFlags_PersistWithFakeBiometry  = 1 << 4,
     TestActivationFlags_RemoveAfter              = 1 << 31,
 };
 
@@ -41,6 +42,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 
 @property (nonatomic, strong, readonly) PATSInitActivationResponse * activationData;
 @property (nonatomic, strong, readonly) PowerAuthAuthentication * credentials;
+@property (nonatomic, strong, readonly) PowerAuthAuthentication * biometryCredentials;
 @property (nonatomic, strong, readonly) PowerAuthActivationResult * activationResult;
 @property (nonatomic, strong, readonly) NSString * activationId;
 
@@ -105,6 +107,10 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
  Contains possession + knowledge authentication object, after last successful activation.
  */
 @property (nonatomic, strong, readonly) PowerAuthAuthentication * authPossessionWithKnowledge;
+/**
+ Contains possession + biometry authentication object.
+ */
+@property (nonatomic, strong, readonly) PowerAuthAuthentication * authPossessionWithBiometry;
 /**
  Contains possession + knowledge authentication object. The password is always wrong.
  */
@@ -179,7 +185,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
     0x0100 - will cripple method string
     0x1000 - will cripple uriId string
  */
-- (BOOL) validateSignature:(PowerAuthAuthentication*)auth data:(NSData*)data method:(NSString*)method uriId:(NSString*)uriId
+- (BOOL) validateAuthentication:(PowerAuthAuthentication*)auth data:(NSData*)data method:(NSString*)method uriId:(NSString*)uriId
                     online:(BOOL)online
                    cripple:(NSInteger)cripple;
 
@@ -246,6 +252,10 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
  Create copy from this authentication object, suited for the signature calculation.
  */
 - (PowerAuthAuthentication*) copyForSigning;
+/**
+ Create copy from this authentication object, suited for the signature calculation.
+ */
+- (PowerAuthAuthentication*) copyBiometryForSigning;
 
 /**
  Create a broken copy from this authentication object.

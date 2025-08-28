@@ -70,6 +70,21 @@ public:
     ///   - `PowerAuthException` with `EC_InternalError` code if unsupported version is used.
     ///   - `PowerAuthException` with `EC_WrongParameter` code if keys with wrong size provided.
     void validate(ProtocolVersion version) const;
+    
+    /// Validate whether password has sufficient length.
+    /// - Parameter password: Password to validate.
+    /// - Throws:
+    ///   - `PowerAuthException` with `EC_WrongParameter` if password's length is insufficient.
+    static void validatePassword(const Password& password);
+    
+    /// Validate whether factor KEK has right size.
+    /// - Parameters:
+    ///   - factor_kek: Factor KEK to validate.
+    ///   - version: Version of protocol.
+    /// - Throws:
+    ///   - `PowerAuthException` with `EC_InternalError` code if unsupported version is used.
+    ///   - `PowerAuthException` with `EC_WrongParameter` code if keys with wrong size provided.
+    static void validateFactorKek(const cc7::ByteRange& factor_kek, ProtocolVersion version);
         
 private:
     Credentials(AuthFactors factors,

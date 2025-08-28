@@ -17,6 +17,7 @@
     },
     "mappings": {
         "v10": {
+            "ActivationStatus":             "ActivationStatus_P3",
             "GetApplicationList":           "GetApplicationList_v10",
             "CreateApplication":            "CreateApplication_v10",
             "GetApplicationDetail":         "GetApplicationDetail_v10",
@@ -48,12 +49,12 @@
             "VerifyECDSASignature":         "VerifyECDSASignature_v19"
         },
         "v20": {
+            "ActivationStatus":             "ActivationStatus_P4",
             "ActivationInit":               "ActivationInit_v20",
             "ActivationCommit":             "ActivationCommit_v20",
             "ActivationBlock":              "ActivationBlock_v20",
             "ActivationUnblock":            "ActivationUnblock_v20",
             "ActivationRemove":             "ActivationRemove_v20",
-            "ActivationStatus":             "ActivationStatus_v20",
             "CreateApplication":            "CreateApplication_v20",
             "CreateApplicationVersion":     "CreateApplicationVersion_v20",
             "GetApplicationList":           "GetApplicationList_v20",

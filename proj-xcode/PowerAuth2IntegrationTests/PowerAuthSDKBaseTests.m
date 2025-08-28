@@ -40,7 +40,7 @@
            clientConfig:(PowerAuthClientConfiguration**)clientConfiguration
             forTestName:(NSString*)testName
 {
-    if ([testName isEqualToString:@"testCustomOfflineSignature"]) {
+    if ([testName isEqualToString:@"testCustomOfflineAuthCode"]) {
         (*configuration).offlineAuthorizationCodeComponentLength = 4;
     }
     (*configuration).algorithm = self.powerAuthAlgorithm;
@@ -63,6 +63,7 @@
     }];
     [_helper printConfig];
     _sdk = _helper.sdk;
+    _helper.testServerApi.clientProtocolVersion = _sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? PATS_P33 : PATS_P40;
 }
 
 #pragma mark - Helper utilities
@@ -96,6 +97,11 @@
 
 
 #pragma mark - Integration tests
+
+- (void) testAlgorithmSetup
+{
+    XCTAssertEqual(self.powerAuthAlgorithm, _sdk.currentAlgorithm);
+}
 
 #pragma mark - Activation
 
@@ -183,7 +189,7 @@
     PowerAuthAuthentication * auth = activation.credentials;
     
     // 1) At first, use invalid password
-    result = [_helper checkForPassword:@"MustBeWring"];
+    result = [_helper checkForPassword:@"MustBeWrong"];
     XCTAssertFalse(result); // if YES then something is VERY wrong. The wrong password passed the test.
     
     // 2) Now use a valid password
@@ -240,7 +246,7 @@
 
 
 
-- (void) testValidateSignature
+- (void) testAuthentication
 {
     CHECK_TEST_CONFIG();
     
@@ -249,13 +255,14 @@
     //
     
     BOOL result;
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithFakeBiometry activationOtp:nil];
     if (!activation) {
         return;
     }
     PowerAuthAuthentication * auth = activation.credentials;
     PowerAuthAuthentication * auth_possession = _helper.authPossession;
     PowerAuthAuthentication * auth_possession_knowledge = _helper.authPossessionWithKnowledge;
+    PowerAuthAuthentication * auth_possession_biometry = _helper.authPossessionWithBiometry;
     
     //
     // Online & offline signatures (calculated as http auth header)
@@ -269,23 +276,26 @@
                             : [[NSData alloc] initWithBase64EncodedString:@"zYnF8edfgfgT2TcZjupjppBHoUJGjONkk6H+eThIsi0=" options:0] ;
         // Positive
         if (online_mode) {
-            result = [_helper validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0];
+            result = [_helper validateAuthentication:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0];
             XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
         }
-        result = [_helper validateSignature:auth_possession_knowledge data:data method:online_mode ? @"GET" : @"POST" uriId:@"/hello/hacker" online:online_mode cripple:0];
+        NSString * get_method = online_mode ? @"GET" : @"POST";
+        result = [_helper validateAuthentication:auth_possession_knowledge data:data method:get_method uriId:@"/hello/hacker" online:online_mode cripple:0];
+        XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
+        result = [_helper validateAuthentication:auth_possession_biometry data:data method:get_method uriId:@"/hello/hacker" online:online_mode cripple:0];
         XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
         // Negative
-        result = [_helper validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0x0001];
+        result = [_helper validateAuthentication:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0x0001];
         XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
-        result = [_helper validateSignature:auth_possession_knowledge data:data method:@"GET" uriId:@"/hello/hacker" online:online_mode cripple:0x0010];
+        result = [_helper validateAuthentication:auth_possession_knowledge data:data method:get_method uriId:@"/hello/hacker" online:online_mode cripple:0x0010];
         XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
-        result = [_helper validateSignature:auth_possession data:data method:@"GET" uriId:@"/hello/from/test" online:online_mode cripple:0x0100];
+        result = [_helper validateAuthentication:auth_possession data:data method:get_method uriId:@"/hello/from/test" online:online_mode cripple:0x0100];
         XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
-        result = [_helper validateSignature:auth_possession_knowledge data:data method:@"POST" uriId:@"/hello/from/test" online:online_mode cripple:0x1000];
+        result = [_helper validateAuthentication:auth_possession_knowledge data:data method:@"POST" uriId:@"/hello/from/test" online:online_mode cripple:0x1000];
         XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
     }
     
-    // Do more valid signatures. Count is important, due to fact that we have 8-bit local counter sice V3.1
+    // Do more valid signatures. Count is important, due to fact that we have 8-bit local counter since V3.1
     for (int i = 1; i < 264; i++) {
         result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
             id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * error) {
@@ -302,27 +312,52 @@
     XCTAssertTrue(PowerAuthActivationState_Active == [_helper fetchActivationStatus].state);
 }
 
-- (void) testCustomOfflineSignature
+- (void) testCustomOfflineAuthCode
 {
     CHECK_TEST_CONFIG();
     
     //
     // This test validates offline signatures with custom length.
     //
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithFakeBiometry activationOtp:nil];
     if (!activation) {
         return;
     }
-    
+    NSUInteger componentLength = _sdk.configuration.offlineAuthorizationCodeComponentLength;
+    XCTAssertNotEqual(8, componentLength);
     NSString * nonce = @"QVZlcnlDbGV2ZXJOb25jZQ==";
-    NSString * signature = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk offlineAuthorizationCodeWithAuthentication:[PowerAuthAuthentication possession] uriId:@"/some/uriId" body:nil nonce:nonce callback:^(NSString * _Nullable authorizationCode, NSError * _Nullable error) {
+    
+    // possession + knowledge
+    NSString * code = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk offlineAuthorizationCodeWithAuthentication:_helper.authPossessionWithKnowledge uriId:@"/some/uriId" body:nil nonce:nonce callback:^(NSString * _Nullable authorizationCode, NSError * _Nullable error) {
             [waiting reportCompletion:authorizationCode];
         }];
     }];
-    XCTAssertNotNil(signature);
-    XCTAssertEqual(4, signature.length);
+    XCTAssertNotNil(code);
+    XCTAssertEqual(componentLength*2+1, code.length);
+    NSString * normalized_data = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/some/uriId" nonce:nonce data:nil];
+    PATSVerifySignatureResponse * response = [_helper.testServerApi verifyOfflineAuthCode:activation.activationData.activationId
+                                                                                     data:normalized_data
+                                                                                 authCode:code
+                                                                            allowBiometry:NO
+                                                                          componentLength:componentLength];
+    XCTAssertTrue(response.signatureValid);
+    
+    // possession + biometry
+    code = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk offlineAuthorizationCodeWithAuthentication:_helper.authPossessionWithBiometry uriId:@"/some/uriId" body:nil nonce:nonce callback:^(NSString * _Nullable authorizationCode, NSError * _Nullable error) {
+            [waiting reportCompletion:authorizationCode];
+        }];
+    }];
+    XCTAssertNotNil(code);
+    XCTAssertEqual(componentLength*2+1, code.length);
+    response = [_helper.testServerApi verifyOfflineAuthCode:activation.activationData.activationId
+                                                       data:normalized_data
+                                                   authCode:code
+                                              allowBiometry:YES
+                                            componentLength:componentLength];
+    XCTAssertTrue(response.signatureValid);
 }
 
 - (void) testVerifyServerSignedData
@@ -380,7 +415,11 @@
 
     NSString * normalized_data = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:uriId nonce:nonce data:body];
     XCTAssertNotNil(normalized_data);
-    PATSVerifySignatureResponse * response = [_helper.testServerApi verifyOfflineSignature:activation.activationData.activationId data:normalized_data signature:local_signature allowBiometry:NO];
+    PATSVerifySignatureResponse * response = [_helper.testServerApi verifyOfflineAuthCode:activation.activationData.activationId
+                                                                                     data:normalized_data
+                                                                                 authCode:local_signature
+                                                                            allowBiometry:NO
+                                                                          componentLength:0];
     XCTAssertTrue(response.signatureValid);
 }
 
@@ -566,7 +605,11 @@
     XCTAssertNotNil(sig_nonce);
     // Verify on the server (we're using SOAP because vanilla PA REST server doesn't have endpoint signed with possession
     NSString * normalized_data = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/hello/world" nonce:sig_nonce[1] data:data];
-    PATSVerifySignatureResponse * response = [_helper.testServerApi verifySignature:activation.activationId data:normalized_data signature:sig_nonce[0] signatureType:@"POSSESSION" signatureVersion:_helper.paVer];
+    PATSVerifySignatureResponse * response = [_helper.testServerApi verifyAuthHeader:activation.activationId
+                                                                                data:normalized_data
+                                                                            authCode:sig_nonce[0]
+                                                                             factors:@"POSSESSION"
+                                                                             version:_helper.paVer];
     XCTAssertNotNil(response);
     XCTAssertTrue(response.signatureValid, @"Calculated signature is not valid");
 
@@ -703,7 +746,11 @@
             }];
         }];
         NSString * normalized_data = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/test/id" nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" data:data_to_sign];
-        PATSVerifySignatureResponse * response = [_helper.testServerApi verifyOfflineSignature:_sdk.activationIdentifier data:normalized_data signature:local_signature allowBiometry:NO];
+        PATSVerifySignatureResponse * response = [_helper.testServerApi verifyOfflineAuthCode:_sdk.activationIdentifier
+                                                                                         data:normalized_data
+                                                                                     authCode:local_signature
+                                                                                allowBiometry:NO
+                                                                              componentLength:0];
         XCTAssertNotNil(response, @"Online response must be received");
         XCTAssertTrue(response.signatureValid);
     }
@@ -726,7 +773,11 @@
             }];
         }];
         NSString * normalized_data = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/test/id" nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" data:data_to_sign];
-        PATSVerifySignatureResponse * response = [_helper.testServerApi verifyOfflineSignature:_sdk.activationIdentifier data:normalized_data signature:local_signature allowBiometry:NO];
+        PATSVerifySignatureResponse * response = [_helper.testServerApi verifyOfflineAuthCode:_sdk.activationIdentifier
+                                                                                         data:normalized_data
+                                                                                     authCode:local_signature
+                                                                                allowBiometry:NO
+                                                                              componentLength:0];
         XCTAssertNotNil(response, @"Online response must be received");
         XCTAssertTrue(response.signatureValid);
     }
@@ -1133,6 +1184,29 @@
     XCTAssertTrue([_sdk hasBiometryFactor]);
 }
 
+- (void) testCreateActivationWithExternalBiometry
+{
+    CHECK_TEST_CONFIG();
+        
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithFakeBiometry activationOtp:nil];
+    if (!activation) {
+        return;
+    }
+    XCTAssertTrue([_sdk hasBiometryFactor]);
+    
+    PowerAuthAuthentication * auth = _helper.authPossessionWithBiometry;
+
+    // Remove activation from the server
+    NSError * removeError = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk removeActivationWithAuthentication:auth callback:^(NSError * error) {
+            [waiting reportCompletion:error];
+        }];
+        XCTAssertNotNil(task);
+    }];
+    XCTAssertNil(removeError);
+    XCTAssertNil(_sdk.activationIdentifier);
+}
+
 - (void) testAddingBiometryFactor
 {
     CHECK_TEST_CONFIG();
@@ -1147,17 +1221,27 @@
     if (!activation) {
         return;
     }
-    
     XCTAssertFalse([_sdk hasBiometryFactor]);
-    
+    PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
+    PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:63] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk addBiometryFactorWithCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
+        [_sdk addBiometryFactorWithCorePassword:activation.credentials.password customBiometryKek:newBiometryKek callback:^(NSError * _Nullable error) {
             XCTAssertNil(error);
             [waiting reportCompletion:nil];
         }];
     }];
     
     XCTAssertTrue([_sdk hasBiometryFactor]);
+
+    
+    BOOL result = [_helper validateAuthentication:newBiometryAuth
+                                             data:randomData
+                                           method:@"POST"
+                                            uriId:@"/hello/biohacker"
+                                           online:YES
+                                          cripple:0];
+    XCTAssertTrue(result);
     
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         [_sdk removeBiometryFactorWithCallback:^(NSError * error) {
@@ -1168,14 +1252,33 @@
     
     XCTAssertFalse([_sdk hasBiometryFactor]);
     
+    result = [_helper validateAuthentication:newBiometryAuth
+                                        data:randomData
+                                      method:@"POST"
+                                       uriId:@"/hello/biohacker"
+                                      online:YES
+                                     cripple:0];
+    XCTAssertFalse(result);
+
+    newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
+    newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+    randomData = [[[PowerAuthCoreCryptoUtils randomBytes:63] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk addBiometryFactorWithPassword:activation.credentials.password.extractedPassword callback:^(NSError * _Nullable error) {
+        [_sdk addBiometryFactorWithPassword:activation.credentials.password.extractedPassword customBiometryKek:newBiometryKek callback:^(NSError * _Nullable error) {
             XCTAssertNil(error);
             [waiting reportCompletion:nil];
         }];
     }];
     
     XCTAssertTrue([_sdk hasBiometryFactor]);
+    
+    result = [_helper validateAuthentication:newBiometryAuth
+                                             data:[PowerAuthCoreCryptoUtils randomBytes:63]
+                                           method:@"POST"
+                                            uriId:@"/hello/biohacker"
+                                           online:YES
+                                          cripple:0];
+    XCTAssertTrue(result);
 }
 
 - (void) testWithWrongLAContext

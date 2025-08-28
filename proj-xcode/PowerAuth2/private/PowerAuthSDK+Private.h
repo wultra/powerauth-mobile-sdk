@@ -17,8 +17,8 @@
 #import <PowerAuth2/PowerAuthSDK.h>
 #import <PowerAuth2/PowerAuthKeychain.h>
 
-#import "PA2PrivateCryptoHelper.h"
 #import "PA2GetActivationStatusTask.h"
+#import "PA2KeystoreService.h"
 #import "PowerAuthActivationStatus+Private.h"
 #import "PowerAuthActivationCode+Private.h"
 #import "PowerAuthAuthentication+Private.h"
@@ -40,22 +40,10 @@
 @property (nonatomic, strong, readonly) PA2KeystoreService * keystoreService;
 
 /**
- Low level authorization code calculation. Unlike the high level interface, this method doesn't check
- the protocol upgrade flag. This is useful for situations, where the flag is validated elsewhere, or
- when the request can be signed during the pending protocol upgrade.
- */
-- (PowerAuthCoreHTTPRequestDataSignature*) signHttpRequestData:(PowerAuthCoreHTTPRequestData*)requestData
-                                                authentication:(PowerAuthAuthentication*)authentication
-                                                         error:(NSError**)error;
-/**
  Update last fetched user info.
  */
 - (void) setLastFetchedUserInfo:(PowerAuthUserInfo*)lastFetchedUserInfo;
 
-@end
-
-// Declaration for PA2PrivateCryptoHelper
-@interface PowerAuthSDK (CryptoHelper) <PA2PrivateCryptoHelper>
 @end
 
 // -----------------------------------------------------------------------

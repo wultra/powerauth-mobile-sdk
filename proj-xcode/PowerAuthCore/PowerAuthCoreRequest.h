@@ -55,7 +55,7 @@ typedef void(^PowerAuthCoreRequestCallback)(id _Nullable response, NSError * _Nu
 /// Contains HTTP request body. Be aware, that you have to call `prepareRequest()` method
 /// to prepare the headers. If the request is not prepared, then contains `nil` and `failure`
 /// property is updated with the error.
-@property (nonatomic, readonly, strong, nonnull) NSDictionary<NSString*,NSString*>* requestHeaders;
+@property (nonatomic, readonly, strong, nonnull) NSArray<PowerAuthCoreHttpHeader*>* requestHeaders;
 
 /// Contains YES if the request is completed and successfully processed.
 @property (nonatomic, readonly) BOOL isCompleted;

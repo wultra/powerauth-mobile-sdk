@@ -164,7 +164,7 @@ using namespace powerAuth;
     self = [super init];
     if (self) {
         _requestBody = cc7::objc::CopyToNSData(cc7::json::JsonWriter::toJsonData(request.requestPayload));
-        _requestHeaders = BuildNSDictionaryWithHeaders(request.requestHeaders);
+        _requestHeaders = BuildNSArrayWithHeaders(request.requestHeaders);
     }
     return self;
 }

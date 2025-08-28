@@ -4,10 +4,10 @@
         "activationId",
         "applicationKey",
         "data",
-        "signature",
-        "signatureType",
-        "signatureVersion",
-        "forcedSignatureVersion"
+        "authenticationCode",
+        "authenticationCodeType",
+        "authenticationVersion",
+        "forcedAuthenticationVersion"
     ],
     "response": {
         "class": "PATSVerifySignatureResponse",
@@ -16,7 +16,7 @@
             "userId":               { "class" : "string" },
             "activationStatus":     { "class" : "string" },
             "remainingAttempts":    { "class" : "int" },
-            "signatureValid":       { "class" : "bool" }
+            "authenticationValid":  { "class" : "bool" }
         }
     }
 }

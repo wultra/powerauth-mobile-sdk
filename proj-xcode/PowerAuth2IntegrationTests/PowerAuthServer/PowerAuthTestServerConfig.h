@@ -83,7 +83,7 @@ extern PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVe
 /**
  Maximum supported protocol version.
  */
-@property (nonatomic, assign) PowerAuthProtocolVersion serverMaxProtovolVersion;
+@property (nonatomic, assign) PowerAuthProtocolVersion serverMaxProtocolVersion;
 /**
  A name for application, which will be used on the PA2 server.
  Default value is @"AutomaticTest-IOS"

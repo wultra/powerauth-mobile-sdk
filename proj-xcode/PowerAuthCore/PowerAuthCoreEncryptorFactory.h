@@ -25,11 +25,11 @@
 
 /// Contains request body.
 @property (nonatomic, strong, readonly, nonnull) NSData* requestBody;
-/// Contains request headers that should be included in HTTP request.
+/// Contains request header that should be included in HTTP request.
 ///
 /// - Note: You should not include the headers in case the request also contains header with
 ///         PowerAuth authentication code
-@property (nonatomic, strong, readonly, nonnull) NSDictionary* requestHeaders;
+@property (nonatomic, strong, readonly, nonnull) NSArray<PowerAuthCoreHttpHeader*>* requestHeaders;
 
 @end
 

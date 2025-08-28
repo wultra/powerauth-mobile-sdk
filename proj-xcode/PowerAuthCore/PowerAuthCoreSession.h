@@ -99,6 +99,10 @@
 /// Contains weak reference to delegate.
 @property (nonatomic, weak, nullable) id<PowerAuthCoreSessionDelegate> delegate;
 
+/// Contains current effective algorithm used in the session. If there's no activation, then returns
+/// algorithm provided in the configuration.
+@property (nonatomic, readonly) PowerAuthCoreAlgorithm currentAlgorithm;
+
 #pragma mark - Session state
 
 /**
@@ -229,25 +233,6 @@
 - (nullable PowerAuthCoreRequest*) removeActivationWithCredentials:(nonnull PowerAuthCoreCredentials*)credentials
                                                              error:(NSError*_Nullable*_Nullable)error;
 
-#pragma mark - Data signing
-
-/**
- Converts NSDictionary into normalized data, suitable for data signing. The method is useful in cases where
- you want to sign parameters of GET request. You have to provide key-value map constructed from your GET parameters.
- The result is normalized byte sequence, prepared for data signing. For POST requests it's recommended to sign
- a whole POST body.
- 
- The method returns always NSData object, unless you provide the NSDictionary with wrong type of objects.
- 
- Compatibility note
- 
- This interface doesn't support multiple values for the same key. This is a known limitation, due to fact, that
- underlying std::map<> doesn't allow duplicate keys. The arrays in GET requests are so rare that I've decided to do not support
- them. You can still implement your own data normalization, if this is your situation.
- */
-+ (nullable NSData*) prepareKeyValueDictionaryForDataSigning:(nonnull NSDictionary<NSString*, NSString*>*)dictionary;
-
-
 #pragma mark - Signature keys management
 
 /// Verify user's password on the server.
@@ -303,6 +288,45 @@
 ///            and the failure.
 - (nullable PowerAuthCoreRequest*) removeBiometryFactor:(NSError*_Nullable*_Nullable)error;
 
+
+#pragma mark - Authentication
+
+/// Calculate online authentication header for HTTP request.
+/// - Parameters:
+///   - credentials: Credentials used for authentication.
+///   - uriIdentifier: URI identfier
+///   - httpMethod: HTTP method
+///   - requestBody: Request body.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: `PowerAuthCoreHttpHeader` object if succeeds.
+- (nullable PowerAuthCoreHttpHeader*) calculateOnlineAuthenticationHeader:(nonnull PowerAuthCoreCredentials*)credentials
+                                                            uriIdentifier:(nonnull NSString*)uriIdentifier
+                                                               httpMethod:(nonnull NSString*)httpMethod
+                                                              requestBody:(nullable NSData*)requestBody
+                                                                    error:(NSError *_Nullable*_Nullable)error;
+
+/// Calculate human readable authentication code for offline authentication.
+/// - Parameters:
+///   - credentials: Credentials used for authentication.
+///   - uriIdentifier: URI identifier.
+///   - offlineNonce: Offline nonce.
+///   - codeLength: Length of calculated code.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Human readable authentication code if succeeds.
+- (nullable NSString*) calculateOfflineAuthenticationCode:(nonnull PowerAuthCoreCredentials*)credentials
+                                            uriIdentifier:(nonnull NSString*)uriIdentifier
+                                             offlineNonce:(nonnull NSString*)offlineNonce
+                                               codeLength:(NSUInteger)codeLength
+                                                     data:(nullable NSData*)data
+                                                    error:(NSError *_Nullable*_Nullable)error;
+
+/// Normalize parameters of GET HTTP request into data suitable for function that calculate online authentication header.
+/// - Parameters:
+///   - parameters: Dictionary with get parameters.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Normalized data.
+- (nullable NSData*) normalizeGetRequestParameters:(nonnull NSDictionary<NSString*, NSString*>*)parameters
+                                             error:(NSError *_Nullable*_Nullable)error;
 
 #pragma mark - Vault operations
 

@@ -58,6 +58,14 @@
 @end
 
 @implementation PATSVerifySignatureResponse
+- (void) setSignatureValid:(BOOL)signatureValid
+{
+    _authenticationValid = signatureValid;
+}
+- (BOOL) signatureValid
+{
+    return _authenticationValid;
+}
 @end
 
 @implementation PATSOfflineSignaturePayload

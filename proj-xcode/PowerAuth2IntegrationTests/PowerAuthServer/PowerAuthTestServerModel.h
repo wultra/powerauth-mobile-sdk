@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import <PowerAuth2/PowerAuthMacros.h>
 
 #pragma mark - System status
 
@@ -148,7 +148,8 @@ extern NSString * PATSActivationOtpValidationEnumToString(PATSActivationOtpValid
 @property (nonatomic, strong) NSString * activationStatus;
 @property (nonatomic, assign) PATSActivationStatusEnum activationStatusEnum;
 @property (nonatomic, assign) NSInteger remainingAttempts;
-@property (nonatomic, assign) BOOL signatureValid;
+@property (nonatomic, assign) BOOL signatureValid; // mapped to `authenticationValid`
+@property (nonatomic, assign) BOOL authenticationValid;
 
 @end
 

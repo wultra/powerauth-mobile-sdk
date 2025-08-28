@@ -289,7 +289,7 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         PA2WrapError(coreRequest.failure, error);
         return nil;
     }
-    NSDictionary<NSString*,NSString*>* requestHeaders = coreRequest.requestHeaders;
+    NSArray<PowerAuthCoreHttpHeader*>* requestHeaders = coreRequest.requestHeaders;
     if (!requestHeaders) {
         PA2WrapError(coreRequest.failure, error);
         return nil;
@@ -304,8 +304,8 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
     }
     request.HTTPMethod = coreRequest.httpMethod;
     request.HTTPBody = coreRequest.requestBody;
-    [requestHeaders enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * obj, BOOL * stop) {
-        [request addValue:obj forHTTPHeaderField:key];
+    [requestHeaders enumerateObjectsUsingBlock:^(PowerAuthCoreHttpHeader * header, NSUInteger idx, BOOL *stop) {
+        [request addValue:header.headerValue forHTTPHeaderField:header.headerName];
     }];
     return request;
 }

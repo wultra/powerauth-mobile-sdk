@@ -26,6 +26,8 @@ using namespace powerAuth;
 @implementation PowerAuthCoreSession
 {
     SessionPtr _session;
+    BOOL _hasDelegate;
+    __weak id<PowerAuthCoreSessionDelegate> _delegate;
 }
 
 #pragma mark - Initialization / Reset
@@ -39,6 +41,7 @@ using namespace powerAuth;
         _configuration = configuration;
         _session = session;
         _delegate = delegate;
+        _hasDelegate = delegate != nil;
         _timeSynchronizationService = [[PowerAuthCoreTimeService alloc] initWithService:_session->getTimeService()];
     }
     return self;
@@ -73,21 +76,43 @@ using namespace powerAuth;
     _session->resetState();
 }
 
+- (id<PowerAuthCoreSessionDelegate>) delegate
+{
+    return _delegate;
+}
+
+- (void) setDelegate:(id<PowerAuthCoreSessionDelegate>)delegate
+{
+    _delegate = delegate;
+    _hasDelegate = delegate != nil;
+}
+
 #pragma mark - Read / Write access
 
+static void _ReportError(PowerAuthCoreError code, NSString * message, NSError ** outError)
+{
+    if (outError) {
+        *outError = powerAuth::BuildCoreNSError(code, message);
+    } else {
+        PowerAuthCoreLog(@"ERROR: %@", message);
+    }
+}
+                        
 - (BOOL) requireReadAccess:(NSError**)error
 {
     id<PowerAuthCoreSessionDelegate> delegate = _delegate;
     if (delegate) {
         if (![delegate requireReadAccess]) {
-            NSString * message = [NSString stringWithFormat:@"Read access not granted for session data. Instance: %@", _configuration.instanceId];
-            if (error) {
-                *error = powerAuth::BuildCoreNSError(PowerAuthCoreError_InternalError, message);
-            } else {
-                PowerAuthCoreLog(@"ERROR: %@", message);
-            }
+            _ReportError(PowerAuthCoreError_InternalError,
+                         [NSString stringWithFormat:@"Read access not granted for session data. Instance: %@", _configuration.instanceId],
+                         error);
             return NO;
         }
+    } else if (_hasDelegate) {
+        _ReportError(PowerAuthCoreError_InternalError,
+                     [NSString stringWithFormat:@"PowerAuthCoreSessionDelegate is no longer valid. Instance: %@", _configuration.instanceId],
+                     error);
+        return NO;
     }
     return YES;
 }
@@ -97,14 +122,16 @@ using namespace powerAuth;
     id<PowerAuthCoreSessionDelegate> delegate = _delegate;
     if (delegate) {
         if (![delegate requireWriteAccess]) {
-            NSString * message = [NSString stringWithFormat:@"Write access not granted for session data. Instance: %@", _configuration.instanceId];
-            if (error) {
-                *error = powerAuth::BuildCoreNSError(PowerAuthCoreError_InternalError, message);
-            } else {
-                PowerAuthCoreLog(@"ERROR: %@", message);
-            }
+            _ReportError(PowerAuthCoreError_InternalError,
+                         [NSString stringWithFormat:@"Write access not granted for session data. Instance: %@", _configuration.instanceId],
+                         error);
             return NO;
         }
+    } else if (_hasDelegate) {
+        _ReportError(PowerAuthCoreError_InternalError,
+                     [NSString stringWithFormat:@"PowerAuthCoreSessionDelegate is no longer valid. Instance: %@", _configuration.instanceId],
+                     error);
+        return NO;
     }
     return YES;
 }
@@ -119,6 +146,12 @@ using namespace powerAuth;
 - (NSString*) instanceId
 {
     return cc7::objc::CopyToNSString(_session->getConfiguration()->instanceId());
+}
+
+- (PowerAuthCoreAlgorithm) currentAlgorithm
+{
+    [self requireReadAccess:nil];
+    return static_cast<PowerAuthCoreAlgorithm>(_session->getPowerAuthSpec()->algorithm());
 }
 
 - (BOOL) canCreateActivation
@@ -305,29 +338,6 @@ using namespace powerAuth;
     }
 }
 
-#pragma mark - Data signing
-
-+ (nullable NSData*) prepareKeyValueDictionaryForDataSigning:(nonnull NSDictionary<NSString*, NSString*>*)dictionary
-{
-//    __block std::map<std::string, std::string> map;
-//    __block BOOL error = NO;
-//    [dictionary enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * value, BOOL * stop) {
-//        if (![key isKindOfClass:[NSString class]] || ![value isKindOfClass:[NSString class]]) {
-//            CC7_ASSERT(false, "Wrong type of object or key in provided NSDictionary.");
-//            *stop = error = YES;
-//            return;
-//        }
-//        map[std::string(key.UTF8String)] = std::string(value.UTF8String);
-//    }];
-//    if (error) {
-//        return nil;
-//    }
-//    cc7::ByteArray normalized_data = Session::prepareKeyValueMapForDataSigning(map);
-//    return cc7::objc::CopyToNSData(normalized_data);
-    return nil;
-}
-
-
 - (BOOL) verifyServerSignedData:(nonnull PowerAuthCoreSignedData*)signedData
 {
     // TODO: missing impl
@@ -418,6 +428,82 @@ using namespace powerAuth;
     return nil;
 }
 
+#pragma mark - Authentication
+
+- (nullable PowerAuthCoreHttpHeader*) calculateOnlineAuthenticationHeader:(nonnull PowerAuthCoreCredentials*)credentials
+                                                            uriIdentifier:(nonnull NSString*)uriIdentifier
+                                                               httpMethod:(nonnull NSString*)httpMethod
+                                                              requestBody:(nullable NSData*)requestBody
+                                                                    error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireWriteAccess:error]) {
+        return nil;
+    }
+    try {
+        auto header = _session->getAuthenticationService()->calculateOnlineAuthenticationHeader(*credentials.credentialsRef, {
+            objc::CopyFromNSString(uriIdentifier),
+            objc::CopyFromNSString(httpMethod),
+        }, objc::CopyFromNSData(requestBody));
+        return [[PowerAuthCoreHttpHeader alloc] initWithHttpHeader:header];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
+}
+
+- (nullable NSString*) calculateOfflineAuthenticationCode:(nonnull PowerAuthCoreCredentials*)credentials
+                                            uriIdentifier:(nonnull NSString*)uriIdentifier
+                                             offlineNonce:(nonnull NSString*)offlineNonce
+                                               codeLength:(NSUInteger)codeLength
+                                                     data:(nullable NSData*)data
+                                                    error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireWriteAccess:error]) {
+        return nil;
+    }
+    try {
+        auto code = _session->getAuthenticationService()->calculateOfflineAuthenticationCode(*credentials.credentialsRef, {
+            objc::CopyFromNSString(uriIdentifier),
+            objc::CopyFromNSString(offlineNonce),
+            codeLength
+        }, objc::CopyFromNSData(data));
+        return objc::CopyToNSString(code);
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
+}
+
+- (nullable NSData*) normalizeGetRequestParameters:(nonnull NSDictionary<NSString*, NSString*>*)parameters
+                                             error:(NSError *_Nullable*_Nullable)error
+{
+    __block std::map<std::string, std::string> map;
+    __block BOOL failure = NO;
+    [parameters enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * value, BOOL * stop) {
+        if (![key isKindOfClass:[NSString class]] || ![value isKindOfClass:[NSString class]]) {
+            *stop = failure = YES;
+            return;
+        }
+        map[objc::CopyFromNSString(key)] = objc::CopyFromNSString(value);
+    }];
+    if (failure) {
+        _ReportError(PowerAuthCoreError_WrongParameter, @"Wrong object type provided in parameters dictionary", error);
+        return nil;
+    }
+    try {
+        auto normalized = _session->getAuthenticationService()->normalizeGetRequestParameters(map);
+        return objc::CopyToNSData(normalized);
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
+}
 
 
 #pragma mark - External encryption key

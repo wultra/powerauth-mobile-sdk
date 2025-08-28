@@ -19,6 +19,8 @@
 
 #import <PowerAuth2/PowerAuthMacros.h>
 
+@class PowerAuthCoreHttpHeader;
+
 /**
  Class representing authorization HTTP header with the PowerAuth-Authorization
  or PowerAuth-Token authorization.
@@ -37,16 +39,21 @@
  */
 @property (nonatomic, strong, readonly, nonnull) NSString *value;
 
+/// Create authorization header with content from core header.
+/// - Parameter coreHeader: Header returned from PowerAuthCore module.
+/// - Returns: New instance of authorization header created with content from core header.
++ (nullable PowerAuthAuthorizationHttpHeader*) createWithCoreHeader:(nonnull PowerAuthCoreHttpHeader*)coreHeader;
+
 /**
  Returns a new header object created for standard authorization header.
  If the value parameter contains nil, then returns nil object.
  */
-+ (nullable PowerAuthAuthorizationHttpHeader*) authorizationHeaderWithValue:(nullable NSString*)value;
++ (nullable PowerAuthAuthorizationHttpHeader*) authorizationHeaderWithValue:(nullable NSString*)value PA2_DEPRECATED(2.0);
 
 /**
  Returns a new header object created for token based authorization header.
  If the value parameter contains nil, then returns nil object.
  */
-+ (nullable PowerAuthAuthorizationHttpHeader*) tokenHeaderWithValue:(nullable NSString*)value;
++ (nullable PowerAuthAuthorizationHttpHeader*) tokenHeaderWithValue:(nullable NSString*)value PA2_DEPRECATED(2.0);
 
 @end

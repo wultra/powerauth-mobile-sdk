@@ -72,7 +72,7 @@ std::string CalculateOfflineAuthorizationCode(const std::vector<cc7::ByteRange>&
 {
     auto components = CalculateAuthorizationCodeComponents(factor_keys, counter, data);
     std::string result;
-    result.reserve((component_size + 1)* components.size() - 1);
+    result.reserve((component_size + 1) * components.size() - 1);
     for (const auto& c : components) {
         auto code = common::CalculateHumanReadableCodeFromHash(c, component_size);
         if (result.empty()) {

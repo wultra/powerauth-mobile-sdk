@@ -92,6 +92,9 @@
  */
 @property (nonatomic, strong, nonnull, readonly) id<PowerAuthTimeSynchronizationService> timeSynchronizationService;
 
+/// Contains current algorithm. If PowerAuthSDK has no activation, then algorithm is equal to algorithm provided in the configuration.
+@property (nonatomic, readonly) PowerAuthAlgorithm currentAlgorithm;
+
 /**
  Constructor with no parameters is not available.
  */
@@ -377,7 +380,7 @@
  */
 - (void) removeActivationLocal;
 
-/// MARK: - Authorization codes
+/// MARK: - Authentication codes
 
 /**
  Computes the HTTP header containing the authorization code for an HTTP method, URI identifier, and HTTP body using the provided authentication information.

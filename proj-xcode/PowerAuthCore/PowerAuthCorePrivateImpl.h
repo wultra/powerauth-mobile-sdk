@@ -20,6 +20,7 @@
 #include <PowerAuth/Request.h>
 #include <PowerAuth/Encryptor.h>
 #include <PowerAuth/TimeService.h>
+#include <PowerAuth/AuthenticationService.h>
 #include <PowerAuth/ActivationResult.h>
 #include <PowerAuth/ActivationStatus.h>
 
@@ -27,16 +28,8 @@
 #include <cc7/objc/ObjcHelper.h>
 #include <cc7/objc/ObjcJson.h>
 
-#import <PowerAuthCore/PowerAuthCoreTypes.h>
-#import <PowerAuthCore/PowerAuthCorePassword.h>
-#import <PowerAuthCore/PowerAuthCoreConfig.h>
-#import <PowerAuthCore/PowerAuthCoreError.h>
 #import <PowerAuthCore/PowerAuthCoreLog.h>
-#import <PowerAuthCore/PowerAuthCoreData.h>
-#import <PowerAuthCore/PowerAuthCoreRequest.h>
-#import <PowerAuthCore/PowerAuthCoreEncryptorFactory.h>
-#import <PowerAuthCore/PowerAuthCoreCredentials.h>
-#import <PowerAuthCore/PowerAuthCoreTimeService.h>
+#import <PowerAuthCore/PowerAuthCoreSession.h>
 #import <PowerAuthCore/PowerAuthCoreActivationResult.h>
 #import <PowerAuthCore/PowerAuthCoreActivationStatus.h>
 
@@ -82,6 +75,10 @@ typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::Request& request);
 - (instancetype) initWithActivationStatus:(const powerAuth::ActivationStatusPtr&)activationStatus;
 @end
 
+@interface PowerAuthCoreHttpHeader (Private)
+- (instancetype) initWithHttpHeader:(const powerAuth::HttpHeader&)httpHeader;
+@end
+
 // Services
 
 @interface PowerAuthCoreTimeService (Private)
@@ -124,7 +121,7 @@ extern NSError* BuildNSErrorFromException(std::exception_ptr ptr = std::current_
 
 /// Build `NSDictionary` object from provided list of HTTP headers.
 /// - Parameter headers: Vector with headers.
-/// - Returns: NSDictionary with headers.
-extern NSDictionary* BuildNSDictionaryWithHeaders(const HttpHeaderList& headers);
+/// - Returns: NSArray with headers.
+extern NSArray<PowerAuthCoreHttpHeader*>* BuildNSArrayWithHeaders(const HttpHeaderList& headers);
 
 } // namespace powerAuth

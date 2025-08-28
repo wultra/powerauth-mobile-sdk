@@ -614,6 +614,21 @@
                                                              callback:(nonnull void(^)(NSError * _Nullable error))callback
                             NS_SWIFT_NAME(addBiometryFactor(password:callback:));
 
+/** Regenerate a biometry related factor key. In this variant, you can provide your own KEK protecting the biometric factor.
+ 
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
+ The method is deprecated in favor of `addBiometryFactor(password:callback:)` variant.
+ 
+ @param password Password used for authentication during vault unlocking call.
+ @param customBiometryKek Custom key encryption key protecting the biometric factor. If nil is provided, then new KEK is generated internally.
+ @param callback The callback method with the biometry key adding operation result.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) addBiometryFactorWithPassword:(nonnull NSString*)password
+                                                    customBiometryKek:(nullable PowerAuthCoreData*)customBiometryKek
+                                                             callback:(nonnull void(^)(NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(addBiometryFactor(password:customBiometryKek:callback:));
+
 /** Regenerate a biometry related factor key.
  
  This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
@@ -626,6 +641,22 @@
 - (nullable id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(nonnull PowerAuthCorePassword*)password
                                                                  callback:(nonnull void(^)(NSError * _Nullable error))callback
                             NS_SWIFT_NAME(addBiometryFactor(password:callback:));
+
+/** Regenerate a biometry related factor key. In this variant, you can provide your own KEK protecting the biometric factor.
+ 
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
+ The method is deprecated in favor of `addBiometryFactor(password:callback:)` variant.
+ 
+ @param password Password used for authentication during vault unlocking call.
+ @param customBiometryKek Custom key encryption key protecting the biometric factor. If nil is provided, then new KEK is generated internally.
+ @param callback The callback method with the biometry key adding operation result.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(nonnull PowerAuthCorePassword*)password
+                                                        customBiometryKek:(nullable PowerAuthCoreData*)customBiometryKek
+                                                                 callback:(nonnull void(^)(NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(addBiometryFactor(password:customBiometryKek:callback:));
+
 
 /** Checks if a biometry related factor is present.
  

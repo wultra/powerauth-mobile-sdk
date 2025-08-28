@@ -746,7 +746,6 @@ static NSString * PA_Ver_Current = @"4.0";
         local_sig_nonce = [self calculateOfflineSignature:local_data uriId:local_uriId auth:local_auth];
     }
     if (!local_sig_nonce) {
-        XCTAssertNotNil(local_sig_nonce, @"Wrong test code. The signature must be calculated here.");
         return NO;
     }
     NSString * local_signature = local_sig_nonce[0];

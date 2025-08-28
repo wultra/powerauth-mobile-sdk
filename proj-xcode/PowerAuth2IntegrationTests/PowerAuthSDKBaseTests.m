@@ -346,7 +346,7 @@
     
     // possession + biometry
     code = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk offlineAuthorizationCodeWithAuthentication:_helper.authPossessionWithKnowledge uriId:@"/some/uriId" body:nil nonce:nonce callback:^(NSString * _Nullable authorizationCode, NSError * _Nullable error) {
+        [_sdk offlineAuthorizationCodeWithAuthentication:_helper.authPossessionWithBiometry uriId:@"/some/uriId" body:nil nonce:nonce callback:^(NSString * _Nullable authorizationCode, NSError * _Nullable error) {
             [waiting reportCompletion:authorizationCode];
         }];
     }];
@@ -1184,6 +1184,29 @@
     XCTAssertTrue([_sdk hasBiometryFactor]);
 }
 
+- (void) testCreateActivationWithExternalBiometry
+{
+    CHECK_TEST_CONFIG();
+        
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithFakeBiometry activationOtp:nil];
+    if (!activation) {
+        return;
+    }
+    XCTAssertTrue([_sdk hasBiometryFactor]);
+    
+    PowerAuthAuthentication * auth = _helper.authPossessionWithBiometry;
+
+    // Remove activation from the server
+    NSError * removeError = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk removeActivationWithAuthentication:auth callback:^(NSError * error) {
+            [waiting reportCompletion:error];
+        }];
+        XCTAssertNotNil(task);
+    }];
+    XCTAssertNil(removeError);
+    XCTAssertNil(_sdk.activationIdentifier);
+}
+
 - (void) testAddingBiometryFactor
 {
     CHECK_TEST_CONFIG();
@@ -1198,17 +1221,27 @@
     if (!activation) {
         return;
     }
-    
     XCTAssertFalse([_sdk hasBiometryFactor]);
-    
+    PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
+    PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:63] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk addBiometryFactorWithCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
+        [_sdk addBiometryFactorWithCorePassword:activation.credentials.password customBiometryKek:newBiometryKek callback:^(NSError * _Nullable error) {
             XCTAssertNil(error);
             [waiting reportCompletion:nil];
         }];
     }];
     
     XCTAssertTrue([_sdk hasBiometryFactor]);
+
+    
+    BOOL result = [_helper validateAuthentication:newBiometryAuth
+                                             data:randomData
+                                           method:@"POST"
+                                            uriId:@"/hello/biohacker"
+                                           online:YES
+                                          cripple:0];
+    XCTAssertTrue(result);
     
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         [_sdk removeBiometryFactorWithCallback:^(NSError * error) {
@@ -1219,14 +1252,33 @@
     
     XCTAssertFalse([_sdk hasBiometryFactor]);
     
+    result = [_helper validateAuthentication:newBiometryAuth
+                                        data:randomData
+                                      method:@"POST"
+                                       uriId:@"/hello/biohacker"
+                                      online:YES
+                                     cripple:0];
+    XCTAssertFalse(result);
+
+    newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
+    newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+    randomData = [[[PowerAuthCoreCryptoUtils randomBytes:63] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk addBiometryFactorWithPassword:activation.credentials.password.extractedPassword callback:^(NSError * _Nullable error) {
+        [_sdk addBiometryFactorWithPassword:activation.credentials.password.extractedPassword customBiometryKek:newBiometryKek callback:^(NSError * _Nullable error) {
             XCTAssertNil(error);
             [waiting reportCompletion:nil];
         }];
     }];
     
     XCTAssertTrue([_sdk hasBiometryFactor]);
+    
+    result = [_helper validateAuthentication:newBiometryAuth
+                                             data:[PowerAuthCoreCryptoUtils randomBytes:63]
+                                           method:@"POST"
+                                            uriId:@"/hello/biohacker"
+                                           online:YES
+                                          cripple:0];
+    XCTAssertTrue(result);
 }
 
 - (void) testWithWrongLAContext

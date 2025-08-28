@@ -83,6 +83,14 @@ static const EncryptorSpec spec_CREATE_TOKEN {
     FL_PROTO_ALL
 };
 
+static const EncryptorSpec spec_BIOMETRY_ADD {
+    EncryptorId::BIOMETRY_ADD,
+    EncryptorScope::ACTIVATION,
+    "BIOMETRY_ADD",
+    "/pa/biometry/add",
+    FL_PROTO_V4
+};
+
 static const EncryptorSpec * spec_list[] = {
     &spec_APPLICATION_SCOPE_GENERIC,
     &spec_ACTIVATION_SCOPE_GENERIC,
@@ -91,6 +99,7 @@ static const EncryptorSpec * spec_list[] = {
     &spec_UPGRADE_START,
     &spec_VAULT_UNLOCK,
     &spec_CREATE_TOKEN,
+    &spec_BIOMETRY_ADD,
 };
 
 EncryptorSpecPtr EncryptorSpec::specForId(EncryptorId identifier)
@@ -110,6 +119,8 @@ EncryptorSpecPtr EncryptorSpec::specForId(EncryptorId identifier)
             return &spec_VAULT_UNLOCK;
         case EncryptorId::CREATE_TOKEN:
             return &spec_CREATE_TOKEN;
+        case EncryptorId::BIOMETRY_ADD:
+            return &spec_BIOMETRY_ADD;
         case EncryptorId::NONE:
             // This situation
             throw Exception(EC_NotAllowed, "No encryptor is set");

@@ -829,17 +829,11 @@ static PowerAuthSDK * s_inst;
         // Prepare key encryption keys
         PowerAuthCorePassword * password = authentication.password;
         PowerAuthCoreData *biometryKek = authentication.customBiometryKey;
-        BOOL storeBiometryKek;
         if (authentication.useBiometry && !biometryKek) {
             if (!(biometryKek = [session generateFactorKek:&localError])) {
                 if (error) *error = localError;
                 return nil;
             }
-            // Indicate that we have to store biometry KEK at the end of process.
-            storeBiometryKek = YES;
-        } else {
-            // If biometry KEK is not provided, or is provided from outside, then do not store this key.
-            storeBiometryKek = NO;
         }
         PowerAuthCoreRequest * request = [session confirmActivationWithPassword:password withBiometryKek:biometryKek error:error];
         if (localError) {
@@ -849,7 +843,7 @@ static PowerAuthSDK * s_inst;
         
         // success remove biometry key and store new one (if available)
         [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-        if (storeBiometryKek) {
+        if (biometryKek) {
             [_biometryOnlyKeychain setCoreData:biometryKek forKey:_biometryKeyIdentifier access:_biometricConfiguration.biometricItemAccess];
         }
         // Clear TokenStore
@@ -1265,6 +1259,13 @@ static PowerAuthSDK * s_inst;
 - (id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(PowerAuthCorePassword*)password
                                                         callback:(void(^)(NSError *error))callback
 {
+    return [self addBiometryFactorWithCorePassword:password customBiometryKek:nil callback:callback];
+}
+
+- (id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(PowerAuthCorePassword*)password
+                                               customBiometryKek:(PowerAuthCoreData *)customBiometryKek
+                                                        callback:(void(^)(NSError *error))callback
+{
     // Check if biometry can be used
     if (![PowerAuthKeychain canUseBiometricAuthentication]) {
         callback(PA2MakeError(PowerAuthErrorCode_BiometryNotAvailable, nil));
@@ -1272,7 +1273,7 @@ static PowerAuthSDK * s_inst;
     }
     NSError * localError = nil;
     PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
-        PowerAuthCoreData * biometryKek = [session generateFactorKek:error];
+        PowerAuthCoreData * biometryKek = customBiometryKek ? customBiometryKek : [session generateFactorKek:error];
         if (!biometryKek) {
             return nil;
         }
@@ -1293,7 +1294,12 @@ static PowerAuthSDK * s_inst;
 
 - (id<PowerAuthOperationTask>) addBiometryFactorWithPassword:(NSString *)password callback:(void (^)(NSError *))callback
 {
-    return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] callback:callback];
+    return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] customBiometryKek:nil callback:callback];
+}
+
+- (id<PowerAuthOperationTask>) addBiometryFactorWithPassword:(NSString *)password customBiometryKek:(PowerAuthCoreData *)customBiometryKek callback:(void (^)(NSError *))callback
+{
+    return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] customBiometryKek:customBiometryKek callback:callback];
 }
 
 - (BOOL) hasBiometryFactor
@@ -1322,7 +1328,7 @@ static PowerAuthSDK * s_inst;
 - (id<PowerAuthOperationTask>) removeBiometryFactorWithCallback:(void (^)(NSError * _Nullable))callback
 {
     NSError* localError = nil;
-    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest*(PowerAuthCoreSession * session, NSError ** error) {
+    PowerAuthCoreRequest * request = [_sessionInterface writeTaskWithSession:^PowerAuthCoreRequest*(PowerAuthCoreSession * session, NSError ** error) {
         return [session removeBiometryFactor:error];
     } error:&localError];
     if (localError) {

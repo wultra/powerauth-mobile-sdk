@@ -120,6 +120,9 @@
                   Identifier = "BaseTests_V3/testCreateActivationWithBiometry">
                </Test>
                <Test
+                  Identifier = "BaseTests_V3/testCreateActivationWithExternalBiometry">
+               </Test>
+               <Test
                   Identifier = "BaseTests_V3/testCustomOfflineAuthCode">
                </Test>
                <Test
@@ -144,6 +147,9 @@
                   Identifier = "BaseTests_V3/testRemoveActivation">
                </Test>
                <Test
+                  Identifier = "BaseTests_V3/testRemoveActivationWithBiometry">
+               </Test>
+               <Test
                   Identifier = "BaseTests_V3/testSignDataWithDevicePrivateKey">
                </Test>
                <Test
@@ -162,12 +168,6 @@
                   Identifier = "BaseTests_V3/testWithWrongLAContext">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384/testAddingBiometryFactor">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testBiometrySignatureWhenNotConfigured">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384/testCallToCreateActivationInWrongState">
                </Test>
                <Test
@@ -181,9 +181,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testCreateActivationWhenApplicationIsUnsupported">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCreateActivationWithBiometry">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testEncryptorCreation">
@@ -210,12 +207,6 @@
                   Identifier = "BaseTests_V4_EC_P384/testWithWrongLAContext">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testAddingBiometryFactor">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testBiometrySignatureWhenNotConfigured">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testCallToCreateActivationInWrongState">
                </Test>
                <Test
@@ -229,9 +220,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testCreateActivationWhenApplicationIsUnsupported">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCreateActivationWithBiometry">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testEncryptorCreation">

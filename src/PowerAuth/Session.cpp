@@ -203,6 +203,9 @@ RequestPtr Session::addBiometricFactor(const PasswordPtr& password, const cc7::B
     if (sessionData().persistentData().hasBiometricFactorKey()) {
         throw Exception(EC_NotAllowed, "Biometric factor is already set");
     }
+    // Check inputs in advance
+    Credentials::validatePassword(*password);
+    Credentials::validateFactorKek(new_biometry_kek, _context->protocolVersion());
     return _context->activationService().addBiometricFactor(password, new_biometry_kek);
 }
 

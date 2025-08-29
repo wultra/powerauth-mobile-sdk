@@ -167,6 +167,11 @@ const size_t LOOK_AHEAD_MAX = 64;
 /// Size of token's secret.
 const size_t TOKEN_SECRET_SIZE = 16;
 
+/// Length of nonce in bytes, in online authentication header.
+const size_t ONLINE_AUTH_CODE_NONCE_LENGTH = 16;
+/// Length of authentication code component
+const size_t AUTH_CODE_COMPONENT_LENGTH = 16;
+
 } // namespace v3
 
 } // namespace powerAuth

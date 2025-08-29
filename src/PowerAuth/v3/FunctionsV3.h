@@ -40,5 +40,14 @@ cc7::ByteArray DeriveSecretKeyFromPassword(const cc7::ByteRange & password, cons
  */
 cc7::ByteArray DeriveSecretKeyFromIndex(const cc7::ByteRange & masterKey, const cc7::ByteRange & index);
 
+cc7::ByteArray CalculateOnlineAuthenticationCode(const std::vector<cc7::ByteRange>& factor_keys,
+                                                const cc7::ByteRange& counter,
+                                                const cc7::ByteRange& data);
+
+std::string CalculateOfflineAuthenticationCode(const std::vector<cc7::ByteRange>& factor_keys,
+                                              const cc7::ByteRange& counter,
+                                              const cc7::ByteRange& data,
+                                              size_t component_size);
+
 } // namespace v3
 } // namespace powerAuth

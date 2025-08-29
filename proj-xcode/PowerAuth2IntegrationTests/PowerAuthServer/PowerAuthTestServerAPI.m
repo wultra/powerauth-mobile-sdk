@@ -293,7 +293,7 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
                                           version:(NSString*)version
 {
     [self checkForValidConnection];
-    NSString * apiCall = _serverVersion < PATS_V2_0 ? @"VerifySignature" : @"AuthCodeVerifyOnline";
+    NSString * apiCall = _clientProtocolVersion < PATS_P40 ? @"VerifySignature" : @"AuthCodeVerifyOnline";
     NSArray * params = @[activationId, _appVersion.applicationKey, normalizedData, authCode, factors.uppercaseString, version];
     PATSVerifySignatureResponse * response = [_rest request:apiCall params:params];
     response.activationStatusEnum   = _String_to_ActivationStatusEnum(response.activationStatus);
@@ -335,7 +335,7 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
     if (componentLength == 0) {
         componentLength = 8;
     }
-    NSString * apiCall = _serverVersion < PATS_V2_0 ? @"VerifyOfflineSignature" : @"AuthCodeVerifyOffline";
+    NSString * apiCall = _clientProtocolVersion < PATS_P40 ? @"VerifyOfflineSignature" : @"AuthCodeVerifyOffline";
     PATSVerifySignatureResponse * response = [_rest request:apiCall params:@[activationId, normalizedData, authCode, @(allowBiometry), @(componentLength)]];
     response.activationStatusEnum = _String_to_ActivationStatusEnum(response.activationStatus);
     return response;

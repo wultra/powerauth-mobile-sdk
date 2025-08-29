@@ -15,6 +15,8 @@
 		BF062BA62E61D78A001436AD /* PowerAuthCoreTokenData.h in Headers */ = {isa = PBXBuildFile; fileRef = BF062BA32E61D78A001436AD /* PowerAuthCoreTokenData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF062BA72E61D78A001436AD /* PowerAuthCoreTokenData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF062BA42E61D78A001436AD /* PowerAuthCoreTokenData.mm */; };
 		BF062BA82E61D78A001436AD /* PowerAuthCoreTokenData.h in Headers */ = {isa = PBXBuildFile; fileRef = BF062BA32E61D78A001436AD /* PowerAuthCoreTokenData.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		8F97E47C2E58AC9E00063075 /* AuthenticationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E47B2E58AC9E00063075 /* AuthenticationServiceV3.cpp */; };
+		8F97E47D2E58AC9E00063075 /* AuthenticationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E47B2E58AC9E00063075 /* AuthenticationServiceV3.cpp */; };
 		BF0825C52E01594B00B89A68 /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4520753444008A6A52 /* libcc7-ios.a */; };
 		BF0825C62E01597B00B89A68 /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4520753444008A6A52 /* libcc7-ios.a */; };
 		BF0825C72E01598800B89A68 /* libcc7-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF734A852485250D001F46BA /* libcc7-tvos.a */; };
@@ -464,6 +466,8 @@
 		BF062B9A2E61B4DC001436AD /* TokenServiceV4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TokenServiceV4.cpp; sourceTree = "<group>"; };
 		BF062BA32E61D78A001436AD /* PowerAuthCoreTokenData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreTokenData.h; sourceTree = "<group>"; };
 		BF062BA42E61D78A001436AD /* PowerAuthCoreTokenData.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreTokenData.mm; sourceTree = "<group>"; };
+		8F97E47A2E58AC9E00063075 /* AuthenticationServiceV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AuthenticationServiceV3.h; sourceTree = "<group>"; };
+		8F97E47B2E58AC9E00063075 /* AuthenticationServiceV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AuthenticationServiceV3.cpp; sourceTree = "<group>"; };
 		BF0825CD2E015B4B00B89A68 /* RequestBuilderTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RequestBuilderTests.cpp; sourceTree = "<group>"; };
 		BF0825D02E01629500B89A68 /* AeadEncryptorFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AeadEncryptorFactory.h; sourceTree = "<group>"; };
 		BF0825D12E01629500B89A68 /* AeadEncryptorFactory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AeadEncryptorFactory.cpp; sourceTree = "<group>"; };
@@ -864,6 +868,8 @@
 		BF4D86052DEDB5D800D32F55 /* v3 */ = {
 			isa = PBXGroup;
 			children = (
+				8F97E47A2E58AC9E00063075 /* AuthenticationServiceV3.h */,
+				8F97E47B2E58AC9E00063075 /* AuthenticationServiceV3.cpp */,
 				8F97E43D2E4B3C3F00063075 /* ActivationServiceV3.h */,
 				8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */,
 				BFCA38392E255987002F595F /* SecretKeysV3.h */,
@@ -1617,6 +1623,7 @@
 				BFC892102E49E2B5009169A9 /* FunctionsV4.cpp in Sources */,
 				BF4D865D2DF4F46600D32F55 /* EndpointSpec.cpp in Sources */,
 				BF4D86822DFACDFE00D32F55 /* EciesUtils.cpp in Sources */,
+				8F97E47D2E58AC9E00063075 /* AuthenticationServiceV3.cpp in Sources */,
 				BF75F9A92E0490DF00D1E4F0 /* SecretKeysV4.cpp in Sources */,
 				BF4D86672DF7077800D32F55 /* Encryptor.cpp in Sources */,
 				BF4D863E2DF2D91900D32F55 /* ActivationStatus.cpp in Sources */,
@@ -1731,6 +1738,7 @@
 				BFC892112E49E2B5009169A9 /* FunctionsV4.cpp in Sources */,
 				BF4D865C2DF4F46600D32F55 /* EndpointSpec.cpp in Sources */,
 				BF4D86832DFACDFE00D32F55 /* EciesUtils.cpp in Sources */,
+				8F97E47C2E58AC9E00063075 /* AuthenticationServiceV3.cpp in Sources */,
 				BF75F9A82E0490DF00D1E4F0 /* SecretKeysV4.cpp in Sources */,
 				BF4D86682DF7077800D32F55 /* Encryptor.cpp in Sources */,
 				BF4D863F2DF2D91900D32F55 /* ActivationStatus.cpp in Sources */,

@@ -16,6 +16,7 @@
 
 #include "FunctionsV3.h"
 #include "../model/Constants.h"
+#include "../common/CommonFunctions.h"
 
 namespace powerAuth {
 namespace v3 {
@@ -82,6 +83,63 @@ cc7::ByteArray DeriveSecretKeyFromIndex(const cc7::ByteRange & masterKey, const 
         return result;
     }
     throw Exception(EC_InternalError, "Provided masterKey or index has wrong size.");
+}
+
+static std::vector<cc7::ByteArray> CalculateAuthenticationCodeComponents(const std::vector<cc7::ByteRange>& factor_keys,
+                                                                        const cc7::ByteRange& counter,
+                                                                        const cc7::ByteRange& data)
+{
+    const auto& hmacSha256 = algorithms().v3.hmacWithSha256();
+    
+    std::vector<cc7::ByteArray> components;
+    components.reserve(factor_keys.size());
+    
+    for (auto i = 0; i < factor_keys.size(); ++i) {
+        auto key_derived = hmacSha256.token(factor_keys[i], counter);
+        for (auto j = 0; j < i; ++j) {
+            auto key_derived_current = hmacSha256.token(factor_keys[j + 1], counter);
+            key_derived = hmacSha256.token(key_derived_current, key_derived);
+        }
+        components.push_back(hmacSha256.token(key_derived, data).byteRange().subRangeFrom(16));
+    }
+    
+    return components;
+}
+
+cc7::ByteArray CalculateOnlineAuthenticationCode(const std::vector<cc7::ByteRange>& factor_keys,
+                                                const cc7::ByteRange& counter,
+                                                const cc7::ByteRange& data)
+{
+    auto components = CalculateAuthenticationCodeComponents(factor_keys, counter, data);
+        
+    cc7::ByteArray auth_code;
+    auth_code.reserve(components.size() * v3::AUTH_CODE_COMPONENT_LENGTH);
+    for (const auto& c : components) {
+        auth_code.append(c);
+    }
+    return auth_code;
+}
+
+std::string CalculateOfflineAuthenticationCode(const std::vector<cc7::ByteRange>& factor_keys,
+                                              const cc7::ByteRange& counter,
+                                              const cc7::ByteRange& data,
+                                              size_t component_size)
+{
+    auto components = CalculateAuthenticationCodeComponents(factor_keys, counter, data);
+    
+    std::string result;
+    result.reserve((component_size + 1) * components.size() - 1);
+    for (const auto& c : components) {
+        auto code = common::CalculateHumanReadableCodeFromHash(c, component_size);
+        if (result.empty()) {
+            result.assign(code);
+        } else {
+            result.append("-");
+            result.append(code);
+        }
+    }
+    
+    return result;
 }
 
 } // namespace v3

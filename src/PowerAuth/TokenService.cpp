@@ -18,6 +18,28 @@
 
 namespace powerAuth {
 
+GetAccessTokenResponse::GetAccessTokenResponse(AuthFactors factors,
+                                               const std::string_view& identifier,
+                                               const cc7::ByteRange& secret) :
+    _factors(factors),
+    _identifier(identifier),
+    _secret(secret)
+{
+}
 
+AuthFactors GetAccessTokenResponse::getFactors() const noexcept
+{
+    return _factors;
+}
+
+const std::string& GetAccessTokenResponse::getIdentifier() const noexcept
+{
+    return _identifier;
+}
+
+const cc7::ByteArray& GetAccessTokenResponse::getSecret() const noexcept
+{
+    return _secret;
+}
 
 } // namespace powerAuth

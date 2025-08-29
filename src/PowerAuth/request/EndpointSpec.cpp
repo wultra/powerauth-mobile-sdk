@@ -61,7 +61,11 @@ const EndpointSpec Endpoint_VaultUnlock {
 };
 
 const EndpointSpec Endpoint_TokenCreate {
-    
+    Version_V4, "/pa/v4/token/create", "/pa/token/create", EncryptorId::CREATE_TOKEN
+};
+
+const EndpointSpec Endpoint_TokenRemove {
+    Version_V4, "/pa/v4/token/remove", "/pa/token/remove", EncryptorId::NONE
 };
 
 const EndpointSpec Endpoint_ValidateCredentials {

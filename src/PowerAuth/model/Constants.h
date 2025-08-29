@@ -30,6 +30,9 @@ extern const std::string PA_ENCRYPTION_HEADER_NAME;
 /// Authorization header name
 extern const std::string PA_AUTHORIZATION_HEADER_NAME;
 
+/// Token header name
+extern const std::string PA_TOKEN_HEADER_NAME;
+
 /// App secret for offline authentication code.
 extern const std::string PA_OFFLINE_APP_SECRET;
 

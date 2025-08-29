@@ -21,6 +21,7 @@
 
 #include <PowerAuth/TimeService.h>
 #include <PowerAuth/AuthenticationService.h>
+#include <PowerAuth/TokenService.h>
 #include <PowerAuth/ByteUtils.h>
 #include <PowerAuth/Debug.h>
 
@@ -159,6 +160,10 @@ public:
     ///   - `Exception` in case of failure.
     RequestPtr removeActivation(const CredentialsPtr& credentials);
     
+    // --------------------------------------------------------------------------------------------
+    // Credentials
+    // --------------------------------------------------------------------------------------------
+    
     /// Verify user's password on the server.
     /// - Parameter password: Password to verify.
     /// - Returns: Request data for verify password endpoint.
@@ -239,6 +244,36 @@ public:
                                                    const std::string_view& offline_nonce,
                                                    const cc7::ByteRange& data,
                                                    size_t code_length);
+    
+public:
+    // --------------------------------------------------------------------------------------------
+    // Tokens
+    // --------------------------------------------------------------------------------------------
+
+    /// Calculate token HTTP header.
+    /// - Parameters:
+    ///   - token_identifier: Token's identifier.
+    ///   - token_secret: Token's secret.
+    /// - Returns: HTTP header structure.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    HttpHeader calculateTokenHeader(const std::string_view& token_identifier,
+                                    const cc7::ByteRange& token_secret);
+    
+    /// Create access token on the server.
+    /// - Parameter credentials: Credentials to use for authentication.
+    /// - Returns: Request data for getting token endpoint.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    RequestPtr createAccessToken(const CredentialsPtr& credentials);
+    
+    /// Remove access token from the server.
+    /// - Parameter token_identifier: Token's identifier.
+    /// - Returns: Request data for removing token endpoint.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    RequestPtr removeAccessToken(const std::string_view& token_identifier);
+    
 public:
     // --------------------------------------------------------------------------------------------
     // Services
@@ -253,7 +288,10 @@ public:
     
     /// Get smart pointer with object implementing `IAuthenticationService`.
     const IAuthenticationServicePtr& getAuthenticationService() const noexcept;
-
+    
+    /// Get smart pointer with object implementing `ITokenService`.
+    const ITokenServicePtr& getTokenService() const noexcept;
+    
 private:
     
     SharedMutexPtr _lock;

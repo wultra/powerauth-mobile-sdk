@@ -76,7 +76,7 @@ struct HttpHeader
 typedef std::vector<HttpHeader> HttpHeaderList;
 
 /// Data for constructing authentication header.
-struct AuthorizationHeaderData
+struct AuthenticationHeaderData
 {
     /// Protocol version.
     ProtocolVersion version;
@@ -90,6 +90,21 @@ struct AuthorizationHeaderData
     std::string nonce;
     /// Authentication code.
     std::string authenticationCode;
+};
+
+/// Data for constructing token header.
+struct TokenHeaderData
+{
+    /// Protocol version.
+    ProtocolVersion version;
+    /// Token identifier
+    std::string tokenIdentifier;
+    /// Nonce
+    std::string nonce;
+    /// Timestamp
+    std::string timestamp;
+    /// Token digest
+    std::string tokenDigest;
 };
 
 // Encryption
@@ -149,19 +164,5 @@ enum class AuthFactors
 // Forward declarations for internal objects
 
 class Context;
-
-
-
-// TODO: missing documentation, unfinished API
-
-struct TokenHeaderData
-{
-    std::string version;
-    std::string tokenId;
-    std::string tokenDigest;
-    std::string nonce;
-    Timestamp timestamp = 0;
-};
-
 
 } // namespace powerAuth

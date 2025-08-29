@@ -20,6 +20,7 @@
 #include "v4/AeadEncryptorFactory.h"
 #include "v4/ActivationServiceV4.h"
 #include "v4/AuthenticationServiceV4.h"
+#include "v4/TokenServiceV4.h"
 
 #include "v3/KeyProviderV3.h"
 #include "v3/EciesEncryptorFactory.h"
@@ -189,6 +190,7 @@ void Context::createBasicServices(bool initial_setup)
         _encryptor_factory = std::make_shared<v4::AeadEncryptorFactory>(self);
         _activation_service = std::make_shared<v4::ActivationServiceV4>(self);
         _auth_service = std::make_shared<v4::AuthenticationServiceV4>(self);
+        _token_service = std::make_shared<v4::TokenServiceV4>(self);
     } else {
         // V3
         _key_provider = std::make_shared<v3::KeyProviderV3>(self);
@@ -201,6 +203,7 @@ void Context::createBasicServices(bool initial_setup)
     //_services.push_back(_encryptor_factory->asService());
     //_services.push_back(_activation_service->asService());
     //_services.push_back(_auth_service->asService());
+    //_services.push_back(_token_service->asService());
 }
 
 void Context::destroyServices()

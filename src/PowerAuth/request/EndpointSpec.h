@@ -87,6 +87,7 @@ extern const EndpointSpec Endpoint_BiometryAdd;
 extern const EndpointSpec Endpoint_BiometryRemove;
 extern const EndpointSpec Endpoint_VaultUnlock;
 extern const EndpointSpec Endpoint_TokenCreate;
+extern const EndpointSpec Endpoint_TokenRemove;
 extern const EndpointSpec Endpoint_ValidateCredentials;
 
 } // namespace v4

@@ -257,6 +257,27 @@ std::string Session::calculateOfflineAuthenticationCode(const Credentials& crede
     }, data);
 }
 
+// MARK: - Tokens
+
+HttpHeader Session::calculateTokenHeader(const std::string_view &token_identifier,
+                                         const cc7::ByteRange &token_secret)
+{
+    LOCK_GUARD();
+    return _context->tokenService().calculateTokenHeader({ token_identifier, token_secret });
+}
+
+RequestPtr Session::createAccessToken(const CredentialsPtr &credentials)
+{
+    LOCK_GUARD();
+    return _context->tokenService().createAccessToken(credentials);
+}
+
+RequestPtr Session::removeAccessToken(const std::string_view &token_identifier)
+{
+    LOCK_GUARD();
+    return _context->tokenService().removeAccessToken(token_identifier);
+}
+
 // MARK: - Services
 
 const TimeServicePtr& Session::getTimeService() const noexcept
@@ -274,6 +295,12 @@ const IAuthenticationServicePtr& Session::getAuthenticationService() const noexc
 {
     LOCK_GUARD();
     return _context->getAuthenticationServicePtr();
+}
+
+const ITokenServicePtr& Session::getTokenService() const noexcept
+{
+    LOCK_GUARD();
+    return _context->getTokenServicePtr();
 }
 
 // Private service functions

@@ -206,7 +206,39 @@ private:
     
     /// Throw exception if no activation data is present.
     void checkActivationData() const;
-        
+    
+public:
+    // --------------------------------------------------------------------------------------------
+    // Authentication
+    // --------------------------------------------------------------------------------------------
+    
+    /// Calculate authentication header for online HTTP request.
+    /// - Parameters:
+    ///   - credentials: User's credentials.
+    ///   - uri_identifier: URI identifier.
+    ///   - http_method: HTTP method (e.g. GET, POST, etc...)
+    ///   - request_body: HTTP request body.
+    /// - Returns: HTTP header structure
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    HttpHeader calculateOnlineAuthenticationHeader(const Credentials& credentials,
+                                                   const std::string_view& uri_identifier,
+                                                   const std::string_view& http_method,
+                                                   const cc7::ByteRange& request_body);
+    
+    /// Calculate human readable code for offline authentication.
+    /// - Parameters:
+    ///   - credentials: User's credentials.
+    ///   - uri_identifier: URI identifier.
+    ///   - data: Data to authenticate.
+    /// - Returns: Human readable offline code.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    std::string calculateOfflineAuthenticationCode(const Credentials& credentials,
+                                                   const std::string_view& uri_identifier,
+                                                   const std::string_view& offline_nonce,
+                                                   const cc7::ByteRange& data,
+                                                   size_t code_length);
 public:
     // --------------------------------------------------------------------------------------------
     // Services

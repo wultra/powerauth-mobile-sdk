@@ -226,6 +226,36 @@ void Session::checkActivationData() const
     }
 }
 
+// MARK: - Authentication
+
+HttpHeader Session::calculateOnlineAuthenticationHeader(const Credentials& credentials,
+                                                        const std::string_view& uri_identifier,
+                                                        const std::string_view& http_method,
+                                                        const cc7::ByteRange& request_body)
+{
+    LOCK_GUARD();
+    return _context->authenticationService().calculateOnlineAuthenticationHeader(credentials, {
+        uri_identifier,
+        http_method,
+        false,
+        false
+    }, request_body);
+}
+
+
+std::string Session::calculateOfflineAuthenticationCode(const Credentials& credentials,
+                                                        const std::string_view& uri_identifier,
+                                                        const std::string_view& offline_nonce,
+                                                        const cc7::ByteRange& data,
+                                                        size_t code_length)
+{
+    LOCK_GUARD();
+    return _context->authenticationService().calculateOfflineAuthenticationCode(credentials, {
+        uri_identifier,
+        offline_nonce,
+        code_length
+    }, data);
+}
 
 // MARK: - Services
 

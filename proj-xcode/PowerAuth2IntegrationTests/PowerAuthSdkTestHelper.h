@@ -221,15 +221,9 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 
 
 /**
- Creates a new PowerAuthAuthentication object configured to persist activation with default configuration.
+ Creates a new PowerAuthAuthentication object configured to persist activation depending on provided flags.
  */
-- (PowerAuthAuthentication*) createAuthentication;
-
-/**
- Creates a new PowerAuthAuthentication object configured to persist activation with biometry.
- */
-- (PowerAuthAuthentication*) createAuthenticationWithBiometry;
-
+- (PowerAuthAuthentication*) createPersistAuthenticationWithFlags:(TestActivationFlags)flags;
 
 // Tokens
 

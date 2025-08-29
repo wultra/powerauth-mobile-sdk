@@ -82,7 +82,7 @@ public:
     /// - Parameters:
     ///   - credentials: User's credentials.
     ///   - auth_data: Data for constructing authentication code.
-    ///   - body: Data to authenticate.
+    ///   - data: Data to authenticate.
     /// - Returns: Human readable offline code.
     virtual std::string calculateOfflineAuthenticationCode(const Credentials& credentials,
                                                            const OfflineAuthenticationData& auth_data,

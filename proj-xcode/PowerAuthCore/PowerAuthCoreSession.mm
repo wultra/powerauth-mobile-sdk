@@ -440,10 +440,10 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
         return nil;
     }
     try {
-        auto header = _session->getAuthenticationService()->calculateOnlineAuthenticationHeader(*credentials.credentialsRef, {
-            objc::CopyFromNSString(uriIdentifier),
-            objc::CopyFromNSString(httpMethod),
-        }, objc::CopyFromNSData(requestBody));
+        auto header = _session->calculateOnlineAuthenticationHeader(*credentials.credentialsRef,
+                                                                    objc::CopyFromNSString(uriIdentifier),
+                                                                    objc::CopyFromNSString(httpMethod),
+                                                                    objc::CopyFromNSData(requestBody));
         return [[PowerAuthCoreHttpHeader alloc] initWithHttpHeader:header];
     } catch (...) {
         if (error) {
@@ -464,11 +464,11 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
         return nil;
     }
     try {
-        auto code = _session->getAuthenticationService()->calculateOfflineAuthenticationCode(*credentials.credentialsRef, {
-            objc::CopyFromNSString(uriIdentifier),
-            objc::CopyFromNSString(offlineNonce),
-            codeLength
-        }, objc::CopyFromNSData(data));
+        auto code = _session->calculateOfflineAuthenticationCode(*credentials.credentialsRef,
+                                                                 objc::CopyFromNSString(uriIdentifier),
+                                                                 objc::CopyFromNSString(offlineNonce),
+                                                                 objc::CopyFromNSData(data),
+                                                                 codeLength);
         return objc::CopyToNSString(code);
     } catch (...) {
         if (error) {

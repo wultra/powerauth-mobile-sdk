@@ -1273,7 +1273,7 @@
     XCTAssertTrue([_sdk hasBiometryFactor]);
     
     result = [_helper validateAuthentication:newBiometryAuth
-                                             data:[PowerAuthCoreCryptoUtils randomBytes:63]
+                                             data:randomData
                                            method:@"POST"
                                             uriId:@"/hello/biohacker"
                                            online:YES

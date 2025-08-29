@@ -248,7 +248,7 @@
         } callbackQueue:dispatch_get_main_queue()];
     }];
     
-    PowerAuthAuthentication * credentials = [self.helper createAuthentication];
+    PowerAuthAuthentication * credentials = [self.helper createPersistAuthenticationWithFlags:0];
     PowerAuthActivationResult * activationResult = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         PowerAuthActivation * activation = [PowerAuthActivation activationWithActivationCode:[activationData activationCodeWithSignature] name:nil error:nil];
         id task = [self.sdk createActivation:activation callback:^(PowerAuthActivationResult * result, NSError * error) {

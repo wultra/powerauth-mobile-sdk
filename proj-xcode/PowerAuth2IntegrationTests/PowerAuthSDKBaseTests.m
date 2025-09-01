@@ -1451,4 +1451,319 @@
     XCTAssertTrue(result);
 }
 
+#pragma mark - Tokens
+
+- (void) testBasicTokenOperations
+{
+    CHECK_TEST_CONFIG();
+    
+    // The purpose of this test is to validate whether token store produced in PowerAuthSDK
+    // works correctly. We're using the same battery of tests than
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    PATSInitActivationResponse * activationData = activation.activationData;
+    id<PowerAuthTokenStore> tokenStore = _sdk.tokenStore;
+    
+    XCTAssertTrue(tokenStore.canRequestForAccessToken);
+    
+    // Create first token...
+    PowerAuthAuthentication * possession = [PowerAuthAuthentication possession];
+    PowerAuthToken * preciousToken = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [tokenStore requestAccessTokenWithName:@"MyPreciousToken" authentication:possession completion:^(PowerAuthToken * token, NSError * error) {
+            [waiting reportCompletion:token];
+        }];
+    }];
+    XCTAssertNotNil(preciousToken);
+    XCTAssertTrue([preciousToken.tokenName isEqualToString:@"MyPreciousToken"]);
+    // Create second token with the same name... This tests whether PowerAuthToken works correctly with internal private data.
+    PowerAuthToken * anotherToken = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [tokenStore requestAccessTokenWithName:@"MyPreciousToken" authentication:possession completion:^(PowerAuthToken * token, NSError * error) {
+            [waiting reportCompletion:token];
+        }];
+    }];
+    XCTAssertNotNil(anotherToken);
+    XCTAssertTrue([preciousToken isEqualToToken:anotherToken]);
+    
+    // OK, sanity tests passed, now it's time to generate a header...
+    PowerAuthAuthorizationHttpHeader * header = [preciousToken generateHeader];
+    BOOL result = [_helper validateTokenHeader:header activationId:activationData.activationId expectedResult:YES];
+    XCTAssertTrue(result);
+    
+    header = [anotherToken generateHeader];
+    result = [_helper validateTokenHeader:header activationId:activationData.activationId expectedResult:YES];
+    XCTAssertTrue(result);
+
+    // Simulate application's restart
+    _sdk = [_helper reCreateSdkInstanceWithConfiguration:_sdk.configuration
+                                  biometricConfiguration:_sdk.biometricConfiguration
+                                   keychainConfiguration:_sdk.keychainConfiguration
+                                     clientConfiguration:_sdk.clientConfiguration];
+    tokenStore = _sdk.tokenStore;
+    
+    // Calculate header with asynchronous method
+    header = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id operation = [tokenStore generateAuthorizationHeaderWithName:@"MyPreciousToken" completion:^(PowerAuthAuthorizationHttpHeader * _Nullable header, NSError * _Nullable error) {
+            [waiting reportCompletion:header];
+        }];
+        XCTAssertNotNil(operation);
+    }];
+    result = [_helper validateTokenHeader:header activationId:activationData.activationId expectedResult:YES];
+    
+    // Now ask for the same token
+    XCTAssertTrue([tokenStore hasLocalTokenWithName:@"MyPreciousToken"]);
+    PowerAuthToken * tokenAfterRestart = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [tokenStore requestAccessTokenWithName:@"MyPreciousToken" authentication:possession completion:^(PowerAuthToken * token, NSError * error) {
+            [waiting reportCompletion:token];
+        }];
+    }];
+    // And try to generate header
+    header = [tokenAfterRestart generateHeader];
+    result = [_helper validateTokenHeader:header activationId:activationData.activationId expectedResult:YES];
+    XCTAssertTrue(result);
+    
+    // Remove token
+    BOOL tokenRemoved = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [tokenStore removeAccessTokenWithName:@"MyPreciousToken" completion:^(BOOL removed, NSError * _Nullable error) {
+            [waiting reportCompletion:@(removed)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(tokenRemoved);
+    
+    
+    // Cleanup
+    [_helper cleanup];
+    
+    XCTAssertFalse(_sdk.tokenStore.canRequestForAccessToken);
+}
+
+- (void) testGroupedCreateTokenRequests
+{
+    CHECK_TEST_CONFIG();
+    
+    // This test validates whether the multiple create token requests
+    // created at the same time leads to the same token.
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    __block PowerAuthToken * token1 = nil;
+    __block PowerAuthToken * token2 = nil;
+    __block PowerAuthToken * token3 = nil;
+    __block PowerAuthToken * token4 = nil;
+    __block PowerAuthToken * token5 = nil;
+    __block NSUInteger completionCount = 0;
+    const NSUInteger minCompletionCount = 6;
+    [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        PowerAuthAuthentication * auth = _helper.authPossessionWithKnowledge;
+        [_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+            XCTAssertNotNil(token);
+            token1 = token;
+            if (++completionCount >= minCompletionCount) {
+                [waiting reportCompletion:nil];
+            }
+        }];
+        [_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+            XCTAssertNotNil(token);
+            token2 = token;
+            if (++completionCount >= minCompletionCount) {
+                [waiting reportCompletion:nil];
+            }
+        }];
+        [_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+            XCTAssertNotNil(token);
+            token4 = token;
+            if (++completionCount >= minCompletionCount) {
+                [waiting reportCompletion:nil];
+            }
+        }];
+        id<PowerAuthOperationTask> task = [_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+            XCTFail(@"This should be never called");
+            if (++completionCount >= minCompletionCount) {
+                [waiting reportCompletion:nil];
+            }
+        }];
+        [task cancel];
+        [_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+            XCTAssertNotNil(token);
+            token3 = token;
+            if (++completionCount >= minCompletionCount) {
+                [waiting reportCompletion:nil];
+            }
+        }];
+        [_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+            XCTAssertNotNil(token);
+            token5 = token;
+            if (++completionCount >= minCompletionCount) {
+                [waiting reportCompletion:nil];
+            }
+        }];
+        [_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:_helper.authPossession completion:^(PowerAuthToken * token, NSError * error) {
+            XCTAssertNil(token);
+            XCTAssertTrue(error.powerAuthErrorCode == PowerAuthErrorCode_WrongParameter);
+            if (++completionCount >= minCompletionCount) {
+                [waiting reportCompletion:nil];
+            }
+        }];
+    }];
+    
+    XCTAssertTrue([token1 isEqualToToken:token2]);
+    XCTAssertTrue([token1 isEqualToToken:token3]);
+    XCTAssertTrue([token2 isEqualToToken:token3]);
+    XCTAssertTrue([token4 isEqualToToken:token5]);
+    XCTAssertFalse([token4 isEqualToToken:token1]);
+}
+
+- (void) testCreateTokenWithDifferentAuth
+{
+    CHECK_TEST_CONFIG();
+    
+    // This test validates whether SDK validates signature factors for already
+    // created token.
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    __block PowerAuthToken * token1 = nil;
+    __block PowerAuthToken * token2 = nil;
+    __block NSUInteger completionCount = 0;
+    const NSUInteger minCompletionCount = 2;
+    [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:_helper.authPossession completion:^(PowerAuthToken * token, NSError * error) {
+            XCTAssertNotNil(token);
+            token1 = token;
+            if (++completionCount >= minCompletionCount) {
+                [waiting reportCompletion:nil];
+            }
+        }];
+        [_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:_helper.authPossessionWithKnowledge completion:^(PowerAuthToken * token, NSError * error) {
+            XCTAssertNotNil(token);
+            token2 = token;
+            if (++completionCount >= minCompletionCount) {
+                [waiting reportCompletion:nil];
+            }
+        }];
+    }];
+    completionCount = 0;
+    [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:_helper.authPossessionWithKnowledge completion:^(PowerAuthToken * token, NSError * error) {
+            XCTAssertNil(token);
+            XCTAssertTrue(error.powerAuthErrorCode == PowerAuthErrorCode_WrongParameter);
+            if (++completionCount >= minCompletionCount) {
+                [waiting reportCompletion:nil];
+            }
+        }];
+        [_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:_helper.authPossession completion:^(PowerAuthToken * token, NSError * error) {
+            XCTAssertNil(token);
+            XCTAssertTrue(error.powerAuthErrorCode == PowerAuthErrorCode_WrongParameter);
+            if (++completionCount >= minCompletionCount) {
+                [waiting reportCompletion:nil];
+            }
+        }];
+    }];
+}
+
+- (void) testTokens_ConcurrentCreationAndRemove
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // The purpose of this test is to validate whether token store produced in PowerAuthSDK
+    // works correctly. We're using the same battery of tests than
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    id<PowerAuthTokenStore> tokenStore = _sdk.tokenStore;
+    NSMutableArray<PowerAuthToken*> * tokens = [NSMutableArray array];
+    const NSInteger number_of_tokens = 20;
+    
+    [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        PowerAuthAuthentication * possession = [PowerAuthAuthentication possession];
+        __block NSInteger attempts = 0;
+        for (NSInteger i = 0; i < number_of_tokens; i++) {
+            NSString * token_name = [NSString stringWithFormat:@"test_token_%@", @(i)];
+            [tokenStore requestAccessTokenWithName:token_name authentication:possession completion:^(PowerAuthToken * _Nullable token, NSError * _Nullable error) {
+                attempts++;
+                if (!error && token) {
+                    [tokens addObject:token];
+                }
+                if (attempts == number_of_tokens) {
+                    [waiting reportCompletion:nil];
+                }
+            }];
+        }
+    }];
+    
+    XCTAssertTrue(tokens.count == number_of_tokens, @"Tokens attempted: %@   created %@", @(number_of_tokens), @(tokens.count));
+    
+    if (tokens.count > 0) {
+        // Now remove all crated tokens
+        __block NSInteger removed_tokens = 0;
+        [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            __block NSInteger removeOperations = 0;
+            [tokens enumerateObjectsUsingBlock:^(PowerAuthToken * _Nonnull token, NSUInteger idx, BOOL * _Nonnull stop) {
+                [tokenStore removeAccessTokenWithName:token.tokenName completion:^(BOOL removed, NSError * _Nullable error) {
+                    removeOperations++;
+                    if (removed && !error) {
+                        removed_tokens++;
+                    }
+                    if (removeOperations == tokens.count) {
+                        [waiting reportCompletion: nil];
+                    }
+                }];
+            }];
+        }];
+        
+        XCTAssertTrue(removed_tokens == tokens.count);
+    } else {
+        XCTFail(@"All operations failed!!");
+    }
+    
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active, @"Activation should be still valid");
+    
+    // Cleanup
+    [_helper cleanup];
+    
+    XCTAssertFalse(_sdk.tokenStore.canRequestForAccessToken);
+}
+
+
+#pragma mark - Other tests
+
+- (void) testRestoreSessionState
+{
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    NSString * activationFingerprint = [_sdk.activationFingerprint copy];
+    NSString * activationIdentifier = [_sdk.activationIdentifier copy];
+    XCTAssertEqual(PowerAuthActivationState_Active, [_helper fetchActivationStatus].state);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
+
+
+    // Simulate application's restart
+    _sdk = [_helper reCreateSdkInstanceWithConfiguration:_sdk.configuration
+                                  biometricConfiguration:_sdk.biometricConfiguration
+                                   keychainConfiguration:_sdk.keychainConfiguration
+                                     clientConfiguration:_sdk.clientConfiguration];
+    
+    XCTAssertEqualObjects(activationFingerprint, _sdk.activationFingerprint);
+    XCTAssertEqualObjects(activationIdentifier, _sdk.activationIdentifier);
+    XCTAssertEqual(PowerAuthActivationState_Active, [_helper fetchActivationStatus].state);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
+    
+    [_helper cleanup];
+}
+
 @end

@@ -75,7 +75,10 @@ HttpHeader TokenServiceV4::calculateTokenHeader(const TokenAuthenticationData &t
         cc7::MakeRange(v4::PA_VERSION_STRING)
     });
     header_data.tokenDigest = algorithms().v4.kmac256()
-        .token(token_data.tokenSecret, data)
+        .token(token_data.tokenSecret, data, {
+            { cc7::crypto::MAC_PARAM_DIGEST_LENGTH, cc7::crypto::Parameter::take(v4::TOKEN_DIGEST_SIZE) },
+            { cc7::crypto::MAC_PARAM_CUSTOM_STRING, cc7::crypto::Parameter::ref("PA4DIGEST") }
+        })
         .base64();
     return HttpHeaderHelper::buildTokenHeader(header_data);
 }
@@ -98,13 +101,16 @@ ResponseObjectPtr TokenServiceV4::processCreateAccessTokenResponse(AuthFactors f
 {
     LOCK_GUARD();
     // Validate state one more time
-    if (_session_data->hasPersistentData()) {
+    if (!_session_data->hasPersistentData()) {
         throw Exception(EC_MissingActivation, "Activation is no longer valid");
     }
     
     // Build response object
     auto token_id     = response["tokenId"].asString();
     auto token_secret = response["tokenSecret"].asBase64();
+    if (token_secret.size() < v4::TOKEN_SECRET_SIZE || token_id.empty()) {
+        throw Exception(EC_InvalidResponse, "Invalid token data received");
+    }
     return std::make_shared<GetAccessTokenResponse>(factors, token_id, token_secret);
 }
 

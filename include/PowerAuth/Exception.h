@@ -24,7 +24,7 @@ namespace powerAuth {
 enum ErrorCode
 {
     /// Session has no activation but activation is required for the operation.
-    EC_MissingActivation,
+    EC_MissingActivation = 1,
     /// Activation is in wrong state for the requested operation.
     EC_WrongActivationState,
     /// Wrong input parameter provided.

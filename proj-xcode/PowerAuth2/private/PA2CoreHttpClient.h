@@ -47,6 +47,9 @@
 /// instances.
 @property (nonatomic, strong, nonnull, readonly) NSOperationQueue * concurrentQueue;
 
+/// Contains session interface to get low level access to the session.
+@property (nonatomic, strong, nonnull, readonly) id<PA2SessionInterface> sessionInterface;
+
 /// Add core HTTP request for execution.
 /// - Parameters:
 ///   - request: Request to execute.

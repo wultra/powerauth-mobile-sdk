@@ -21,6 +21,7 @@
 #import <PowerAuth2/PowerAuthSessionStatusProvider.h>
 #import <PowerAuth2/PowerAuthTimeSynchronizationService.h>
 
+#import "PA2SessionInterface.h"
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateRemoteTokenProvider.h"
 #import "PA2TokenDataLock.h"
@@ -65,6 +66,7 @@
  
  @param configuration PowerAuth configuration object. The store is keeping a strong reference to this object.
  @param keychain PA2Keychain for storage. The store is keeping a strong reference to this object.
+ @param sessionInterface Interface providing access to core session.
  @param statusProvider An object providing session's status. The store keeps a weak reference.
  @param remoteProvider An object for accessing remote token, when token is not cached locally. The store keeps a weak reference.
  @param timeService An object providing time synchronized with the server.
@@ -73,6 +75,7 @@
  */
 - (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
                     keychain:(PowerAuthKeychain*)keychain
+            sessionInterface:(id<PA2SessionInterface>)sessionInterface
               statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
               remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
                  timeService:(id<PowerAuthTimeSynchronizationService>)timeService

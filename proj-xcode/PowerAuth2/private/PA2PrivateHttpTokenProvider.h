@@ -15,6 +15,7 @@
  */
 
 #import "PA2PrivateRemoteTokenProvider.h"
+#import "PA2CoreCredentialsResolver.h"
 
 @class PA2CoreHttpClient;
 
@@ -32,6 +33,7 @@
  Initializes remote token provider with HTTP client, providing
  communication with the server.
  */
-- (id) initWithHttpClient:(PA2CoreHttpClient*)httpClient;
+- (id) initWithHttpClient:(PA2CoreHttpClient*)httpClient
+      credentialsResolver:(id<PA2CoreCredentialsResolver>)credentialsResolver;
 
 @end

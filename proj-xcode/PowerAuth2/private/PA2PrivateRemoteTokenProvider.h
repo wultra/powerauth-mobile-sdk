@@ -20,7 +20,6 @@
 #import <PowerAuth2/PowerAuthToken.h>
 #import <PowerAuth2/PowerAuthOperationTask.h>
 
-
 @class PowerAuthConfiguration;
 @class PA2PrivateTokenData;
 

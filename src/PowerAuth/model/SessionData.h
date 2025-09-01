@@ -28,15 +28,20 @@ class SessionData
 {
 public:
     
-    SessionData();
-    
-    /// Return protocol version currently used for this instance of session data.
-    ProtocolVersion getProtocolVersion() const noexcept;
-    
-    /// Return PowerAuth specification currently used for this instance of session data
-    /// or `nullptr` if specification is not known. This is regular state of session data
-    /// if there's no persistent data structure available.
-    ConstPowerAuthSpecPtr getSpecification() const noexcept;
+    /// Construct session data with the target specification. The target specification defines at
+    /// what maximum protocol version can this session operate.
+    /// - Parameter target_specification: Target specification.
+    SessionData(ConstPowerAuthSpecPtr target_specification);
+
+    /// Get target specification that defines the maximum protocol version supported in this session.
+    ConstPowerAuthSpecPtr getTargetSpecification() const noexcept;
+        
+    /// Return PowerAuth specification currently used for this instance of session data. Is specification
+    /// is not known (for example, if persistent data is not available), then returns the target specification.
+    ConstPowerAuthSpecPtr getCurrentSpecification() const noexcept;
+
+    /// Return the protocol version currently used for this instance of session data.
+    ProtocolVersion getCurrentProtocolVersion() const noexcept;
     
     /// Get activation identifier.
     /// - Returns: Activation identifier.
@@ -107,6 +112,7 @@ public:
     
     
 private:
+    ConstPowerAuthSpecPtr _target_specification;
     RegistrationDataPtr _rd;
     PersistentDataPtr _pd;
     bool _modified;

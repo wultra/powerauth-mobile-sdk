@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-#import <PowerAuthCore/PowerAuthCorePassword.h>
-#import <PowerAuthCore/PowerAuthCoreData.h>
+#import <PowerAuthCore/PowerAuthCoreMacros.h>
 
-@interface PowerAuthCoreCredentials : NSObject
+@interface PowerAuthCoreTokenData : NSObject
 
 /// Default construction is unavailable
 - (nonnull instancetype) init NS_UNAVAILABLE;
 
-/// Create credentials with possession factor only.
-+ (nonnull PowerAuthCoreCredentials*) possession;
+/// Contains bitwise mask for authentication code factors used for the token creation.
+@property (nonatomic, readonly) NSInteger authenticationFactorMask;
 
-/// Create credentials with possession and knowledge factor.
-+ (nullable PowerAuthCoreCredentials*) knowledge:(nonnull PowerAuthCorePassword*)password;
+/// Contains token's identifier.
+@property (nonatomic, readonly, strong, nonnull) NSString * tokenIdentifier;
 
-/// Create credentials with possession and biometry factor
-+ (nullable PowerAuthCoreCredentials*) biometry:(nonnull PowerAuthCoreData*)biometryKek;
+/// Contains token's secret.
+@property (nonatomic, readonly, strong, nonnull) NSData * tokenSecret;
 
 @end

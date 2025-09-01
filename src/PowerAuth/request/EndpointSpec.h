@@ -50,7 +50,7 @@ struct EndpointSpec
     
     bool requireSerialQueue() const noexcept
     {
-        return (flags & FL_SERIALIZED) == FL_SERIALIZED;
+        return isAuthenticated() || (flags & FL_SERIALIZED) == FL_SERIALIZED;
     }
     
     bool isAllowedInUpgrade() const noexcept

@@ -110,6 +110,12 @@ const size_t STATUS_BLOB_SIZE = 48;
 /// Length of MAC calculated from activation status blob
 const size_t STATUS_MAC_SIZE = 32;
 
+/// Size of token's secret.
+const size_t TOKEN_SECRET_SIZE = 32;
+
+/// Size of calculated token digest.
+const size_t TOKEN_DIGEST_SIZE = 32;
+
 } // namespace v4
 
 
@@ -158,6 +164,8 @@ const size_t LOOK_AHEAD_DEFAULT = 20;
 /// Maximum supported look ahead.
 const size_t LOOK_AHEAD_MAX = 64;
 
+/// Size of token's secret.
+const size_t TOKEN_SECRET_SIZE = 16;
 
 } // namespace v3
 

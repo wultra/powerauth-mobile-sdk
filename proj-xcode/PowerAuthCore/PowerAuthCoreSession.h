@@ -172,6 +172,8 @@
 - (BOOL) deserializeState:(nonnull NSData *)state
                     error:(NSError*_Nullable*_Nullable)error;
 
+/// Indicate that session has modified internal state that needs to be saved to the persistent storage.
+@property (nonatomic, readonly) BOOL isModifiedState;
 
 #pragma mark - Activation
 
@@ -327,6 +329,18 @@
 /// - Returns: Normalized data.
 - (nullable NSData*) normalizeGetRequestParameters:(nonnull NSDictionary<NSString*, NSString*>*)parameters
                                              error:(NSError *_Nullable*_Nullable)error;
+
+#pragma mark - Tokens
+
+- (nullable PowerAuthCoreHttpHeader*) calculateTokenHeader:(nonnull NSString *)tokenIdentifier
+                                               tokenSecret:(nonnull NSData*)tokenSecret
+                                                     error:(NSError *_Nullable*_Nullable)error;
+
+- (nullable PowerAuthCoreRequest*) createAccessToken:(nonnull PowerAuthCoreCredentials*)credentials
+                                               error:(NSError *_Nullable*_Nullable)error;
+
+- (nullable PowerAuthCoreRequest*) removeAccessToken:(nonnull NSString *)tokenIdentifier
+                                               error:(NSError *_Nullable*_Nullable)error;
 
 #pragma mark - Vault operations
 

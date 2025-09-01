@@ -59,6 +59,8 @@ private:
     const cc7::ByteArray _secret;
 };
 
+CC7_SHARED_PTR(GetAccessTokenResponse)
+
 /// The `ITokenService` calculates token headers for HTTP requests. The service also allows
 /// you to acquire token from the server.
 class ITokenService

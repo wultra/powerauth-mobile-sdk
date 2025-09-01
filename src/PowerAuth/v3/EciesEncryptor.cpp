@@ -231,7 +231,7 @@ ByteArray EciesClientEncryptor::decryptResponse(const EncryptedResponse &respons
     auto plaintext = _Decrypt(key, aad, ciphertext, mac, iv);
 
     // Complete time synchronization task
-    _time_service->completeTimeSynchronizationTask(_time_sync_task, timestamp);
+    _time_service->completeTimeSynchronizationTask(_time_sync_task, TimestampToTimeInterval(timestamp));
     // Flip decryptor to complete,
     _time_sync_task = 0.0;
 

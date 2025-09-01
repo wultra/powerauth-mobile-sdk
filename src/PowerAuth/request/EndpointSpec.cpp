@@ -21,7 +21,7 @@ namespace powerAuth {
 namespace v4 {
 
 const EndpointSpec Endpoint_SystemStatus {
-    Version_V4, "/pa/v4/status", "", EncryptorId::NONE, EndpointSpec::FL_ALLOWED_IN_UPGRADE
+    Version_V4, "/pa/v3/status", "", EncryptorId::NONE, EndpointSpec::FL_ALLOWED_IN_UPGRADE
 };
 
 const EndpointSpec Endpoint_TemporaryKey {

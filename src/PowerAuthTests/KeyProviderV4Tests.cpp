@@ -83,7 +83,7 @@ public:
     {        
         has_biometry = use_biometry;
         configGenerator = std::make_unique<ConfigurationGenerator>(algorithm);
-        context = Context::getInstance(algorithm, configGenerator->configuration);
+        context = Context::getInstance(configGenerator->configuration);
 
         shared_secret  = cc7::crypto::GetRandomData(v4::FACTOR_KEY_SIZE);
         device_key     = cc7::crypto::GetRandomData(v4::FACTOR_KEY_SIZE);

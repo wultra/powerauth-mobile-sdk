@@ -96,6 +96,9 @@
                   Identifier = "BaseTests_V3/testAuthentication">
                </Test>
                <Test
+                  Identifier = "BaseTests_V3/testBasicTokenOperations">
+               </Test>
+               <Test
                   Identifier = "BaseTests_V3/testBiometrySignatureWhenNotConfigured">
                </Test>
                <Test
@@ -123,6 +126,9 @@
                   Identifier = "BaseTests_V3/testCreateActivationWithExternalBiometry">
                </Test>
                <Test
+                  Identifier = "BaseTests_V3/testCreateTokenWithDifferentAuth">
+               </Test>
+               <Test
                   Identifier = "BaseTests_V3/testCustomOfflineAuthCode">
                </Test>
                <Test
@@ -130,6 +136,9 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testEncryptorCreation">
+               </Test>
+               <Test
+                  Identifier = "BaseTests_V3/testGroupedCreateTokenRequests">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testJwtSignature">
@@ -150,10 +159,16 @@
                   Identifier = "BaseTests_V3/testRemoveActivationWithBiometry">
                </Test>
                <Test
+                  Identifier = "BaseTests_V3/testRestoreSessionState">
+               </Test>
+               <Test
                   Identifier = "BaseTests_V3/testSignDataWithDevicePrivateKey">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testTemporaryKeyExpiration">
+               </Test>
+               <Test
+                  Identifier = "BaseTests_V3/testTokens_ConcurrentCreationAndRemove">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testUserInfo">
@@ -168,28 +183,16 @@
                   Identifier = "BaseTests_V3/testWithWrongLAContext">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCallToCreateActivationInWrongState">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCancelEnqueuedHttpOperation">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384/testCounterSync_ClientIsAhead">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testCounterSync_ServerIsAhead">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCreateActivationWhenApplicationIsUnsupported">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384/testEncryptorCreation">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testJwtSignature">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testPasswordCorrectWhenBlocked">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testSignDataWithDevicePrivateKey">
@@ -204,31 +207,16 @@
                   Identifier = "BaseTests_V4_EC_P384/testVerifyServerSignedData">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384/testWithWrongLAContext">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCallToCreateActivationInWrongState">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCancelEnqueuedHttpOperation">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testCounterSync_ClientIsAhead">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testCounterSync_ServerIsAhead">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCreateActivationWhenApplicationIsUnsupported">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testEncryptorCreation">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testJwtSignature">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testPasswordCorrectWhenBlocked">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testSignDataWithDevicePrivateKey">
@@ -241,9 +229,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testVerifyServerSignedData">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testWithWrongLAContext">
                </Test>
                <Test
                   Identifier = "PowerAuthConcurrencyTests">

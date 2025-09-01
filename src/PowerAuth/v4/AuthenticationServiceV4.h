@@ -31,6 +31,8 @@ class AuthenticationServiceV4 :
 public:
     AuthenticationServiceV4(const ContextPtr& context);
 
+    // IAuthenticationService
+    
     IServicePtr asService() override;
     
     HttpHeader calculateOnlineAuthenticationHeader(const Credentials& credentials,

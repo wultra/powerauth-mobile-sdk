@@ -30,10 +30,15 @@ public:
     /// - Returns: HttpHeader structure.
     static HttpHeader buildEncryptionRequestHeader(const EncryptorParameters& parameters);
     
-    /// Function builds HTTP authorization header.
-    /// - Parameter header_data: Data for authorization header construction.
+    /// Function builds HTTP authentication header.
+    /// - Parameter header_data: Data for authentication header construction.
     /// - Returns: HttpHeader structure.
-    static HttpHeader buildAuthorizationHeader(const AuthorizationHeaderData& header_data);
+    static HttpHeader buildAuthenticationHeader(const AuthenticationHeaderData& header_data);
+    
+    /// Function builds HTTP token header.
+    /// - Parameter header_data: Data for token header construction.
+    /// - Returns: HttpHeader structure.
+    static HttpHeader buildTokenHeader(const TokenHeaderData& header_data);
 };
 
 } // namespace powerAuth

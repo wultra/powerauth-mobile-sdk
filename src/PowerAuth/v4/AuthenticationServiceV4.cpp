@@ -57,7 +57,7 @@ HttpHeader AuthenticationServiceV4::calculateOnlineAuthenticationHeader(const Cr
         throw Exception(EC_WrongActivationState, "Authentication header calculation is not allowed during pending protocol upgrade");
     }
     auto nonce = GetRandomData(v4::ONLINE_AUTH_CODE_NONCE_LENGTH);
-    AuthorizationHeaderData header_data {
+    AuthenticationHeaderData header_data {
         Version_V4,
         _configuration->applicationKey(),
         _session_data->getActivationId(),
@@ -88,7 +88,7 @@ HttpHeader AuthenticationServiceV4::calculateOnlineAuthenticationHeader(const Cr
     
     // move counter forward and return result
     header_data.authenticationCode = auth_code.base64();
-    return HttpHeaderHelper::buildAuthorizationHeader(header_data);
+    return HttpHeaderHelper::buildAuthenticationHeader(header_data);
 }
 
 std::string AuthenticationServiceV4::calculateOfflineAuthenticationCode(const Credentials& credentials,

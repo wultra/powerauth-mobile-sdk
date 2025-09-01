@@ -28,7 +28,6 @@
 @implementation PA2CoreHttpClient
 {
     PowerAuthClientConfiguration* _configuration;
-    id<PA2SessionInterface> _sessionInterface;
     dispatch_queue_t _completionQueue;
     NSString * _baseUrl;
 }
@@ -164,7 +163,7 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         // Endpoint require encryption key or time is not synchronized yet. We have to create a composite task that handle multiple
         // requests before an actual request is executed.
         PA2CompositeTask * compositeTask = [[PA2CompositeTask alloc] initWithCancelBlock:^{
-            [request cancel];
+            [self internalCancel:request task:nil];
         }];
         // Prepare common completion block with the composite task.
         void (^compositeCompletion)(PowerAuthCoreRequest *, id, NSError *) = ^(PowerAuthCoreRequest * request, id response, NSError *error) {
@@ -261,8 +260,7 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
     };
     // Setup cancellation block
     op.cancelBlock = ^(PA2AsyncOperation *op, id task) {
-        [PA2ObjectAs(task, NSURLSessionDataTask) cancel];
-        [request cancel];
+        [self internalCancel:request task:PA2ObjectAs(task, NSURLSessionDataTask)];
     };
     // Finally, add operation to the right queue
     if (request.isRequireSerialQueue) {
@@ -280,8 +278,17 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
 - (NSMutableURLRequest*) buildUrlRequest:(PowerAuthCoreRequest*)coreRequest error:(NSError**)error
 {
     NSError * localError = nil;
-    if (![coreRequest prepareRequest:&localError]) {
-        PA2WrapError(localError, error);
+    __block BOOL processed = NO;
+    BOOL result = [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+        processed = YES;
+        return [coreRequest prepareRequest:error];
+    } error:&localError];
+    if (localError) {
+        if (!processed) {
+            // We never entered to the request preparation block. In this case, we have to try to cancel the core request
+            // to notify core layer about this failure.
+            [self internalCancel:coreRequest task:nil];
+        }
         return nil;
     }
     NSData* requestBody = coreRequest.requestBody;
@@ -319,11 +326,19 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
 /// - Returns: Response object (if present).
 - (id) buildResponse:(PowerAuthCoreRequest*)coreRequest responseData:(NSData*)responseData response:(NSHTTPURLResponse*)httpResponse error:(NSError**)error
 {
-    NSError * localError = nil;
     if (httpResponse.statusCode == 200) {
-        if (![coreRequest processResponse:responseData error:&localError]) {
-            // failure
-            PA2WrapError(localError, error);
+        // Acquire lock before the
+        __block BOOL processed = NO;
+        BOOL result = [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+            processed = YES;
+            return [coreRequest processResponse:responseData error:error];
+        } error:error];
+        if (*error) {
+            if (!processed) {
+                // We never entered to the response processing. In this case, we have to try to cancel the core request
+                // to notify core layer about this failure.
+                [self internalCancel:coreRequest task:nil];
+            }
             return nil;
         }
         // success, note that response object may be nil
@@ -365,5 +380,16 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
     return [NSError errorWithDomain:PowerAuthErrorDomain code:PowerAuthErrorCode_NetworkError userInfo:additionalInfo];
 }
 
+- (void) internalCancel:(PowerAuthCoreRequest*)request task:(NSURLSessionDataTask*)task
+{
+    [task cancel];
+    if (request) {
+        // acquire write task in case the cancel cause internal state change
+        [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session, NSError * _Nonnull __autoreleasing * _Nullable error) {
+            [request cancel];
+            return YES;
+        } error:nil];
+    }
+}
 
 @end

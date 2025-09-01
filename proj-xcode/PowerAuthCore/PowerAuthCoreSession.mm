@@ -227,7 +227,14 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
 }
 
-
+- (BOOL) isModifiedState
+{
+    if (![self requireReadAccess:nil]) {
+        // TODO: log failure
+        return YES;
+    }
+    return _session->isModifiedState();
+}
 
 #pragma mark - Activation
 
@@ -497,6 +504,58 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     try {
         auto normalized = _session->getAuthenticationService()->normalizeGetRequestParameters(map);
         return objc::CopyToNSData(normalized);
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
+}
+
+#pragma mark - Tokens
+
+- (nullable PowerAuthCoreHttpHeader*) calculateTokenHeader:(nonnull NSString *)tokenIdentifier
+                                               tokenSecret:(nonnull NSData*)tokenSecret
+                                                     error:(NSError *_Nullable*_Nullable)error
+{
+    try {
+        auto header = _session->calculateTokenHeader(cc7::objc::CopyFromNSString(tokenIdentifier),
+                                                     cc7::objc::CopyFromNSData(tokenSecret));
+        return [[PowerAuthCoreHttpHeader alloc] initWithHttpHeader:header];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
+}
+
+- (nullable PowerAuthCoreRequest*) createAccessToken:(nonnull PowerAuthCoreCredentials*)credentials
+                                               error:(NSError *_Nullable*_Nullable)error
+{
+    try {
+        auto request = _session->createAccessToken(credentials.credentialsRef);
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::Request &request) {
+            auto response = std::dynamic_pointer_cast<powerAuth::GetAccessTokenResponse>(request.getResponseObject());
+            if (!response) {
+                throw Exception(EC_InternalError, "No GetAccessTokenResponse object created");
+            }
+            return [[PowerAuthCoreTokenData alloc] initWithResponse:response];
+        }];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
+}
+
+- (nullable PowerAuthCoreRequest*) removeAccessToken:(nonnull NSString *)tokenIdentifier
+                                               error:(NSError *_Nullable*_Nullable)error
+{
+    try {
+        auto request = _session->removeAccessToken(cc7::objc::CopyFromNSString(tokenIdentifier));
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request];
     } catch (...) {
         if (error) {
             *error = BuildNSErrorFromException();

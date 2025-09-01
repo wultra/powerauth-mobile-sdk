@@ -82,7 +82,7 @@ public:
     {        
         has_biometry = use_biometry;
         configGenerator = std::make_unique<ConfigurationGenerator>(PowerAuthSpec::LEGACY_P256);
-        context = Context::getInstance(PowerAuthSpec::LEGACY_P256, configGenerator->configuration);
+        context = Context::getInstance(configGenerator->configuration);
         
         signer         = cc7::crypto::Signature::getInstance(spec()->getSignatureAlgorithms().first);
         

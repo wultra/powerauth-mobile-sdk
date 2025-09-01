@@ -113,6 +113,7 @@
     self = [super init];
     if (self) {
         _coreService = coreService;
+        _httpClient = httpClient;
         _lock = sharedLock;
     }
     return self;

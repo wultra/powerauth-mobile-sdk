@@ -54,6 +54,13 @@
  */
 - (void) cancelAllTasks;
 
+/// Calculate token header for given token data.
+/// - Parameters:
+///   - tokenData: Private token data.
+///   - error: Pointer where to store error.
+- (nullable PowerAuthAuthorizationHttpHeader*) calculateTokenHeader:(nonnull PA2PrivateTokenData*)tokenData
+                                                              error:(NSError*_Nullable*_Nullable)error;
+
 @end
 
 

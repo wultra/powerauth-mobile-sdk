@@ -21,6 +21,7 @@
 #include <PowerAuth/Encryptor.h>
 #include <PowerAuth/TimeService.h>
 #include <PowerAuth/AuthenticationService.h>
+#include <PowerAuth/TokenService.h>
 #include <PowerAuth/ActivationResult.h>
 #include <PowerAuth/ActivationStatus.h>
 
@@ -32,6 +33,7 @@
 #import <PowerAuthCore/PowerAuthCoreSession.h>
 #import <PowerAuthCore/PowerAuthCoreActivationResult.h>
 #import <PowerAuthCore/PowerAuthCoreActivationStatus.h>
+#import <PowerAuthCore/PowerAuthCoreTokenData.h>
 
 /*
  This header contains various private interfaces, internally used
@@ -77,6 +79,10 @@ typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::Request& request);
 
 @interface PowerAuthCoreHttpHeader (Private)
 - (instancetype) initWithHttpHeader:(const powerAuth::HttpHeader&)httpHeader;
+@end
+
+@interface PowerAuthCoreTokenData (Private)
+- (instancetype) initWithResponse:(const powerAuth::GetAccessTokenResponsePtr&)response;
 @end
 
 // Services

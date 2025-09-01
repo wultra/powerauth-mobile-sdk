@@ -18,33 +18,36 @@
 
 namespace powerAuth {
 
-SessionData::SessionData() : _modified(true)
+SessionData::SessionData(ConstPowerAuthSpecPtr target_specification) :
+    _target_specification(target_specification),
+    _modified(true)
 {
 }
 
-ProtocolVersion SessionData::getProtocolVersion() const noexcept
+ConstPowerAuthSpecPtr SessionData::getTargetSpecification() const noexcept
+{
+    return _target_specification;
+}
+
+ProtocolVersion SessionData::getCurrentProtocolVersion() const noexcept
 {
     if (_pd) {
         return _pd->getProtocolVersion();
     }
-    // No persistent data available, so we assume that we run on the latest version.
-    return Version_Latest;
+    // No persistent data available, so we return the target specification.
+    return _target_specification->protocolVersion();
 }
 
-ConstPowerAuthSpecPtr SessionData::getSpecification() const noexcept
+ConstPowerAuthSpecPtr SessionData::getCurrentSpecification() const noexcept
 {
-    switch (getProtocolVersion()) {
-        case Version_V4:
-            if (hasPersistentData()) {
-                return PowerAuthSpec::specForAlgorithmId(persistentData().v4().algorithmId);
-            }
-            break;
-        case Version_V3:
-            return PowerAuthSpec::specForAlgorithm(PowerAuthSpec::LEGACY_P256);
-        default:
-            break;
+    if (_pd) {
+        if (_pd->getProtocolVersion() == Version_V4) {
+            return PowerAuthSpec::specForAlgorithmId(persistentData().v4().algorithmId);
+        } else {
+            return PowerAuthSpec::specForAlgorithmId(PowerAuthSpec::LEGACY_P256);
+        }
     }
-    return nullptr;
+    return _target_specification;
 }
 
 std::string SessionData::getActivationId() const

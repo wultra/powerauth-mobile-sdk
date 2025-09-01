@@ -251,7 +251,7 @@ void EciesEncryptorFactory::completeTemporaryKeyRequest(EncryptorScope scope, co
             throw Exception(EC_InternalError, "ActivationID from response is no longer valid");
         }
 
-        _time_service->completeTimeSynchronizationTask(cdata.timeSynchronization, 0.001 * response.serverTime);
+        _time_service->completeTimeSynchronizationTask(cdata.timeSynchronization, TimestampToTimeInterval(response.serverTime));
 
         // Store all data
         ki.created = TimestampToTimeInterval(response.serverTime);
@@ -309,7 +309,7 @@ EciesEncryptorFactory::GetTemporaryKeyResponse EciesEncryptorFactory::GetTempora
 
 std::string EciesEncryptorFactory::activationId() const noexcept
 {
-    if (_session_data->hasPersistentData() && _session_data->getProtocolVersion() == Version_V3) {
+    if (_session_data->hasPersistentData() && _session_data->getCurrentProtocolVersion() == Version_V3) {
         return _session_data->persistentData().v3().activationId;
     }
     return std::string();

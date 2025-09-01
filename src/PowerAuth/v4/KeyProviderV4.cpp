@@ -267,8 +267,8 @@ std::unique_ptr<PersistentData> KeyProviderV4::createPDFromSecretKeys(SecretKeys
 
     // public and private keys
     updateKeyLocalData(&secret_keys);
-    pd->cDevicePublicKey = encryptPublicKey(*rd.serverPublicKey, KC_SERVER_PUBLIC_KEY, rd.activationId);
-    pd->cServerPublicKey = encryptPublicKey(rd.deviceKeyPair->getPublicKey(), KC_DEVICE_PUBLIC_KEY, rd.activationId);
+    pd->cServerPublicKey = encryptPublicKey(*rd.serverPublicKey, KC_SERVER_PUBLIC_KEY, rd.activationId);
+    pd->cDevicePublicKey = encryptPublicKey(rd.deviceKeyPair->getPublicKey(), KC_DEVICE_PUBLIC_KEY, rd.activationId);
     pd->cDevicePrivateKey = secret_keys.ckeyDevicePrivate();
     
     return PersistentData::create(pd);

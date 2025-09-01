@@ -26,12 +26,16 @@
 #import <PowerAuth2/PowerAuthAuthentication.h>
 
 @implementation PA2PrivateHttpTokenProvider
-
+{
+    __weak id<PA2CoreCredentialsResolver> _credentialsResolver;
+}
 - (id) initWithHttpClient:(PA2CoreHttpClient *)httpClient
+      credentialsResolver:(id<PA2CoreCredentialsResolver>)credentialsResolver
 {
     self = [super init];
     if (self) {
         _httpClient = httpClient;
+        _credentialsResolver = credentialsResolver;
     }
     return self;
 }
@@ -50,53 +54,56 @@
                                      authentication:(PowerAuthAuthentication *)authentication
                                          completion:(void (^)(PA2PrivateTokenData *, NSError *))completion
 {
-    /*
-    return [_httpClient postObject:nil
-                                to:[PA2RestApiEndpoint getToken]
-                              auth:authentication
-                        completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
-                            // Completion from HTTP networking
-                            PA2PrivateTokenData * tokenData = nil;
-                            if (response) {
-                                PA2GetTokenResponse * ro = response;
-                                tokenData = [[PA2PrivateTokenData alloc] init];
-                                tokenData.identifier = ro.tokenId;
-                                tokenData.name = name;
-                                tokenData.secret = ro.tokenSecret ? [[NSData alloc] initWithBase64EncodedString:ro.tokenSecret options:0] : nil;
-                                if (!tokenData.hasValidData) {
-                                    // Throw away that object...
-                                    tokenData = nil;
-                                }
-                            }
-                            if (!tokenData && !error) {
-                                // Create fallback error in case that token has not been created.
-                                error =  PA2MakeError(PowerAuthErrorCode_Encryption, nil);
-                            }
-                            // Call back to the application
-                            completion(tokenData, error);
-                        }];
-     */
-    // TODO: missing impl.
-    return nil;
+    NSError * localError = nil;
+    PowerAuthCoreCredentials * credentials = [_credentialsResolver resolveCredentialsWithAuthentication:authentication error:&localError];
+    if (localError) {
+        completion(nil, localError);
+        return nil;
+    }
+    if (!credentials) {
+        completion(nil, PA2MakeError(PowerAuthErrorCode_Other, @"PowerAuthSDK instance is no longer valid"));
+        return nil;
+    }
+    __block NSString * activationIdentifier = nil;
+    PowerAuthCoreRequest* request = [_httpClient.sessionInterface readTaskWithSession:^PowerAuthCoreRequest*(PowerAuthCoreSession* session, NSError** error) {
+        activationIdentifier = session.activationIdentifier;
+        return [session createAccessToken:credentials error:error];
+    } error:&localError];
+    if (localError) {
+        completion(nil, localError);
+        return nil;
+    }
+    return [_httpClient postCoreRequest:request completion:^(PowerAuthCoreRequest * request, PowerAuthCoreTokenData* response, NSError * error) {
+        PA2PrivateTokenData * tokenData = nil;
+        if (response) {
+            tokenData = [[PA2PrivateTokenData alloc] init];
+            tokenData.identifier = response.tokenIdentifier;
+            tokenData.name = name;
+            tokenData.secret = response.tokenSecret;
+            tokenData.activationIdentifier = activationIdentifier;
+            tokenData.authenticationFactors = response.authenticationFactorMask;
+            if (!tokenData.hasValidData) {
+                tokenData = nil;
+                error = PA2MakeError(PowerAuthErrorCode_Encryption, @"Invalid token data received from the server");
+            }
+        }
+        completion(tokenData, error);
+    }];
 }
 
 - (id<PowerAuthOperationTask>) removeTokenData:(PA2PrivateTokenData*)tokenData
                                     completion:(void(^)(BOOL removed, NSError * error))completion
 {
-    /*
-    PA2RemoveTokenRequest * removeRequest = [[PA2RemoveTokenRequest alloc] init];
-    removeRequest.tokenId = tokenData.identifier;
-    return [_httpClient postObject:removeRequest
-                                to:[PA2RestApiEndpoint removeToken]
-                              auth:[PowerAuthAuthentication possession]
-                        completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
-                            // Completion from HTTP networking
-                            BOOL removed = (status == PowerAuthRestApiResponseStatus_OK) && (error == nil);
-                            completion(removed, error);
-                        }];
-     */
-    // TODO: missing impl.
-    return nil;
+    NSError* localError = nil;
+    PowerAuthCoreRequest* request = [_httpClient.sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession* session, NSError** error) {
+        return [session removeAccessToken:tokenData.identifier error:error];
+    } error:&localError];
+    if (localError) {
+        completion(NO, localError);
+    }
+    return [_httpClient postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id  response, NSError * error) {
+        completion(error == nil, error);
+    }];
 }
 
 @end

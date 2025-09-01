@@ -129,7 +129,7 @@ ByteArray AeadClientEncryptor::decryptResponse(const EncryptedResponse &response
     auto plaintext = aead.open(*key, aad, ciphertext);
     
     // Complete time synchronization task
-    _time_service->completeTimeSynchronizationTask(_time_sync_task, timestamp);
+    _time_service->completeTimeSynchronizationTask(_time_sync_task, TimestampToTimeInterval(timestamp));
     // Flip decryptor to complete,
     _time_sync_task = 0.0;
 

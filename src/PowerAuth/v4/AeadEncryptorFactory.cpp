@@ -205,8 +205,6 @@ cc7::json::JsonValue AeadEncryptorFactory::createTemporaryKeyRequest(EncryptorSc
         auto secrets = _key_provider->unlockSecretKeys();
         // begin secrets
         auto mac_key = act_scope ? secrets->keyMacGetActTempKey() : secrets->keyMacGetAppTempKey();
-        CC7_LOG("MAC key %s", mac_key.base64().c_str());
-        
         auto jwt = jwt::JwtWriter()
             .withJsonPayload(request.toJson(), jwt::JwtHeader::JWT_TYPE)
             .sign({ jwt::JwtKey::symmetricKey("HS384", mac_key) })
@@ -328,7 +326,7 @@ AeadEncryptorFactory::GetTemporaryKeyResponse AeadEncryptorFactory::GetTemporary
 
 std::string AeadEncryptorFactory::activationId() const noexcept
 {
-    if (_session_data->hasPersistentData() && _session_data->getProtocolVersion() == Version_V4) {
+    if (_session_data->hasPersistentData() && _session_data->getCurrentProtocolVersion() == Version_V4) {
         return _session_data->persistentData().v4().activationId;
     }
     return std::string();

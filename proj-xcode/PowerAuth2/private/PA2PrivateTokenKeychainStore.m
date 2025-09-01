@@ -23,11 +23,13 @@
 #import "PA2PrivateMacros.h"
 #import "PA2CreateTokenTask.h"
 #import "PA2CompositeTask.h"
+#import "PA2SessionInterface.h"
 #import "PowerAuthAuthentication+Private.h"
 
 #import <PowerAuth2/PowerAuthErrorConstants.h>
 #import <PowerAuth2/PowerAuthKeychain.h>
 #import <PowerAuth2/PowerAuthConfiguration.h>
+#import <PowerAuth2/PowerAuthAuthorizationHttpHeader.h>
 #import <PowerAuth2/PowerAuthLog.h>
 
 @implementation PA2PrivateTokenKeychainStore
@@ -38,7 +40,8 @@
     id<PA2TokenDataLock>        _tokenDataLock;
     /// Local lock, protecting data in this process.
     id<NSLocking>               _localLock;
-    
+    /// Session interface
+    id<PA2SessionInterface>     _sessionInterface;
     // Lazy initialized data
 
     /// A prefix for all tokens stored in the keychain
@@ -53,6 +56,7 @@
 
 - (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
                     keychain:(PowerAuthKeychain*)keychain
+            sessionInterface:(id<PA2SessionInterface>)sessionInterface
               statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
               remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
                  timeService:(id<PowerAuthTimeSynchronizationService>)timeService
@@ -68,6 +72,7 @@
         _keychain = keychain;
         _tokenDataLock = dataLock;
         _localLock = localLock ? localLock : [[NSRecursiveLock alloc] init];
+        _sessionInterface = sessionInterface;
         _allowInMemoryCache = YES;
     }
     return self;
@@ -193,6 +198,15 @@
         [obj cancel];
     }];
     [_createTokenTasks removeAllObjects];
+}
+
+- (PowerAuthAuthorizationHttpHeader*) calculateTokenHeader:(PA2PrivateTokenData*)tokenData
+                                                     error:(NSError**)error
+{
+    return [_sessionInterface readTaskWithSession:^PowerAuthAuthorizationHttpHeader* (PowerAuthCoreSession * session, NSError ** error) {
+        PowerAuthCoreHttpHeader * coreHeader = [session calculateTokenHeader:tokenData.identifier tokenSecret:tokenData.secret error:error];
+        return coreHeader ? [PowerAuthAuthorizationHttpHeader createWithCoreHeader:coreHeader] : nil;
+    } error:error];
 }
 
 #pragma mark - PowerAuthTokenStore protocol
@@ -327,10 +341,6 @@
     }];
 }
 
-#if PA2_HAS_CORE_MODULE == 1 || TARGET_OS_WATCH == 1
-//
-// Implementation available for PowerAuth2 & PowerAuth2ForWatch modules
-//
 - (void) removeLocalTokenWithName:(NSString *)name
 {
     NSError * localError = nil;
@@ -363,25 +373,6 @@
         PowerAuthLog(@"ERROR: removeAllLocalTokens() failed: %@", localError);
     }
 }
-
-#else
-//
-// Implementation available only for PowerAuth2ForExtensions
-//
-- (void) removeLocalTokenWithName:(NSString *)name
-{
-    // Issue #433: PowerAuth2ForExtensions has no remote provider, so this function is unavailable.
-    PowerAuthLog(@"ERROR: removeLocalToken() is not available for PowerAuth2ForExtensions module");
-}
-
-- (void) removeAllLocalTokens
-{
-    // Issue #433: PowerAuth2ForExtensions has no remote provider, so this function is unavailable.
-    PowerAuthLog(@"ERROR: removeAllLocalTokens() is not available for PowerAuth2ForExtensions module");
-}
-
-#endif // PA2_HAS_CORE_MODULE == 1 || TARGET_OS_WATCH == 1
-
 
 - (BOOL) hasLocalTokenWithName:(nonnull NSString*)name
 {
@@ -545,10 +536,7 @@
         PowerAuthAuthorizationHttpHeader * header;
         if (token) {
             // So far, so good, generate header now.
-            header = [token generateHeader];
-            if (!header) {
-                error = PA2MakeError(PowerAuthErrorCode_InvalidToken, @"Failed to generate authorization header");
-            }
+            header = [self calculateTokenHeader:token.privateTokenData error:&error];
         } else {
             header = nil;
         }

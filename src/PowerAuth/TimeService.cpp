@@ -70,7 +70,7 @@ TimeService::TimeService(ITimeProviderPtr time_provider, SharedMutexPtr shared_l
 
 Timestamp TimeService::currentTimeMillis() const
 {
-    return (Timestamp)(1000.0 * currentTime());
+    return TimeIntervalToTimestamp(currentTime());
 }
 
 TimeInterval TimeService::currentTime() const

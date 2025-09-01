@@ -29,7 +29,7 @@ Session::Session(ContextPtr context) :
 
 SessionPtr Session::createInstance(ConfigurationPtr configuration)
 {
-    auto context = Context::getInstance(configuration->algorithm(), configuration);
+    auto context = Context::getInstance(configuration);
     return std::make_shared<Session>(context);
 }
 
@@ -66,15 +66,22 @@ const SessionData& Session::sessionData() const noexcept
 
 // MARK: - State serialization
 
+bool Session::isModifiedState() const noexcept
+{
+    LOCK_GUARD();
+    return sessionData().isModified();
+}
 
 void Session::loadState(const cc7::ByteRange &serialized_state)
 {
     LOCK_GUARD();
-    auto pv_before = sessionData().getProtocolVersion();
-    sessionData().deserialize(serialized_state);
-    if (pv_before != sessionData().getProtocolVersion()) {
+    auto& sd = sessionData();
+    auto spec_before = sd.getCurrentSpecification();
+    sd.deserialize(serialized_state);
+    if (spec_before != sd.getCurrentSpecification()) {
         _context->updateAfterProtocolVersionChange();
     }
+    _context->restoreSensitiveData();
 }
 
 cc7::ByteArray Session::saveState()
@@ -257,6 +264,27 @@ std::string Session::calculateOfflineAuthenticationCode(const Credentials& crede
     }, data);
 }
 
+// MARK: - Tokens
+
+HttpHeader Session::calculateTokenHeader(const std::string_view &token_identifier,
+                                         const cc7::ByteRange &token_secret)
+{
+    LOCK_GUARD();
+    return _context->tokenService().calculateTokenHeader({ token_identifier, token_secret });
+}
+
+RequestPtr Session::createAccessToken(const CredentialsPtr &credentials)
+{
+    LOCK_GUARD();
+    return _context->tokenService().createAccessToken(credentials);
+}
+
+RequestPtr Session::removeAccessToken(const std::string_view &token_identifier)
+{
+    LOCK_GUARD();
+    return _context->tokenService().removeAccessToken(token_identifier);
+}
+
 // MARK: - Services
 
 const TimeServicePtr& Session::getTimeService() const noexcept
@@ -274,6 +302,12 @@ const IAuthenticationServicePtr& Session::getAuthenticationService() const noexc
 {
     LOCK_GUARD();
     return _context->getAuthenticationServicePtr();
+}
+
+const ITokenServicePtr& Session::getTokenService() const noexcept
+{
+    LOCK_GUARD();
+    return _context->getTokenServicePtr();
 }
 
 // Private service functions

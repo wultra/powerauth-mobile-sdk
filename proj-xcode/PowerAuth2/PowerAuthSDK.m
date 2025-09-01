@@ -278,9 +278,10 @@ static NSData * _BuildDeviceSpecificData(void)
     _keystoreService = [[PA2KeystoreService alloc] initWithHttpClient:_client sessionInterface:_sessionInterface sharedLock:_lock];
     
     // Create token store
-    _remoteHttpTokenProvider = [[PA2PrivateHttpTokenProvider alloc] initWithHttpClient:_client];
+    _remoteHttpTokenProvider = [[PA2PrivateHttpTokenProvider alloc] initWithHttpClient:_client credentialsResolver:self];
     _tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:self.configuration
                                                                      keychain:tokenStoreKeychain
+                                                             sessionInterface:_sessionInterface
                                                                statusProvider:self
                                                                remoteProvider:_remoteHttpTokenProvider
                                                                   timeService:_timeSynchronizationService
@@ -835,7 +836,7 @@ static PowerAuthSDK * s_inst;
                 return nil;
             }
         }
-        PowerAuthCoreRequest * request = [session confirmActivationWithPassword:password withBiometryKek:biometryKek error:error];
+        PowerAuthCoreRequest * request = [session confirmActivationWithPassword:password withBiometryKek:biometryKek error:&localError];
         if (localError) {
             if (error) *error = localError;
             return nil;

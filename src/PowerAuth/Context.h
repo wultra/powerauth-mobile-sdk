@@ -37,34 +37,53 @@ public:
 
     /// Create instance of context object.
     /// - Parameters:
-    ///   - specification: PowerAuth algorithm specification.
     ///   - configuration: Instance configuration.
-    static std::shared_ptr<Context> getInstance(PowerAuthSpec::Algorithm algorithm,
-                                                ConfigurationPtr configuration);
+    static std::shared_ptr<Context> getInstance(ConfigurationPtr configuration);
 
-    /// Construct context object. Please use `getInstance()` method to properly construct context.
+    /// Construct context object. Please use `getInstance()` method to properly
+    /// construct the context.
     /// - Parameters:
     ///   - specification: PowerAuth algorithm specification.
     ///   - configuration: Instance configuration.
     Context(PowerAuthSpecPtr specification, ConfigurationPtr configuration);
     
-
-    ProtocolVersion protocolVersion() const noexcept;
+    /// Return configuration used to construct this context.
     const Configuration& configuration() const noexcept;
+    /// Return current protocol version.
+    ProtocolVersion protocolVersion() const noexcept;
+    /// Return current specification.
     PowerAuthSpecPtr specification() const noexcept;
 
+    
+    /// Return reference to `TimeService`.
     TimeService& timeService() noexcept;
+    
+    /// Return reference to `IClientEncryptorFactory` implementation.
     IClientEncryptorFactory& encryptorFactory() noexcept;
+    
+    /// Return reference to `IActivationService` implementation.
     IActivationService& activationService() noexcept;
+    
+    /// Return reference to `IAuthenticationService` implementation.
     IAuthenticationService& authenticationService() noexcept;
+    
+    /// Return reference to `ITokenService` implementation.
     ITokenService& tokenService() noexcept;
     
+    /// Return reference to `ISharedSecret` implementation.
     ISharedSecret& sharedSecret();
-    IKeyProvider& keyProvider();
-    SessionData& sessionData();
-    cc7::crypto::KeyPairFactory& signingKeyPairFactory();
     
-    const SharedMutexPtr getSharedMutexPtr() const noexcept;
+    /// Return reference to `IKeyProvider` implementation.
+    IKeyProvider& keyProvider() noexcept;
+    
+    /// Return reference to `SessionData` object.
+    SessionData& sessionData() noexcept;
+    
+    /// Return reference to `cc7::crypto::KeyPairFactory` implementation used for constructing keys
+    /// for digital signatures.
+    cc7::crypto::KeyPairFactory& signingKeyPairFactory() noexcept;
+    
+    const SharedMutexPtr& getSharedMutexPtr() const noexcept;
     const ConfigurationPtr& getConfigurationPtr() const noexcept;
     const SessionDataPtr& getSessionDataPtr() const noexcept;
     
@@ -85,7 +104,7 @@ public:
     
 private:
     
-    void createBasicServices(bool initial_setup);
+    void createServices(bool initial_setup, ConstPowerAuthSpecPtr specification);
     void destroyServices();
     
     mutable SharedMutexPtr _shared_mutex;

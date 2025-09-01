@@ -195,8 +195,8 @@ void PersistentData::serializeV4(cc7::utils::DataWriter& writer, const V4& v4) c
     writer.writeData    (v4.cKdkEncryption);
     
     // public and private keys
-    writer.writeData    (v4.cDevicePublicKey);
     writer.writeData    (v4.cServerPublicKey);
+    writer.writeData    (v4.cDevicePublicKey);
     writer.writeData    (v4.cDevicePrivateKey);
     
     writer.closeVersion();
@@ -224,8 +224,8 @@ bool PersistentData::deserializeV4(cc7::utils::DataReader &reader, V4 &v4)
     result = result && reader.readData      (v4.cKdkEncryption);
     
     // public and private keys
-    result = result && reader.readData      (v4.cDevicePublicKey);
     result = result && reader.readData      (v4.cServerPublicKey);
+    result = result && reader.readData      (v4.cDevicePublicKey);
     result = result && reader.readData      (v4.cDevicePrivateKey);
 
     return result &&

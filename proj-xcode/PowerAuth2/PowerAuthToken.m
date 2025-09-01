@@ -24,14 +24,7 @@
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateTokenData.h"
 
-#if PA2_HAS_CORE_MODULE
-    // Regular SDK
-    @import PowerAuthCore;
-#else
-    // Extensions/watchOS SDK
-    #import "PA2CoreCryptoUtils.h"
-    #define PowerAuthCoreCryptoUtils PA2CoreCryptoUtils
-#endif
+@import PowerAuthCore;
 
 @implementation PowerAuthToken
 {
@@ -70,67 +63,7 @@
 
 - (PowerAuthAuthorizationHttpHeader*) generateHeader
 {
-    NSData * tokenSecret = nil;
-    NSString * tokenIdentifier = nil;
-    
-    if (!self.canGenerateHeader) {
-#if defined(DEBUG)
-        if (!self.isValid) {
-            PowerAuthLog(@"PowerAuthToken: Token contains invalid data.");
-        } else {
-            PowerAuthLog(@"PowerAuthToken: The associated token store has no longer valid activation.");
-        }
-#endif
-        return nil;
-    }
-    
-    id<PowerAuthTimeSynchronizationService> timeService = _tokenStore.timeSynchronizationService;
-    if (!timeService) {
-        PowerAuthLog(@"PowerAuthToken: Time service is no longer valid object.");
-        return nil;
-    }
-#if defined(DEBUG)
-    if (timeService && !timeService.isTimeSynchronized) {
-        PowerAuthLog(@"PowerAuthToken: WARNING: Time is not synchronized yet.");
-    }
-#endif
-    
-    tokenSecret = _tokenData.secret;
-    tokenIdentifier = _tokenData.identifier;
-
-    // Prepare data for HMAC
-    NSString * protocolVersion = @"3.3";
-    NSNumber * currentTimeMs = @((int64_t)([timeService currentTime] * 1000.0));
-    NSString * currentTimeString = [currentTimeMs stringValue];
-    NSData * currentTimeData = [currentTimeString dataUsingEncoding:NSASCIIStringEncoding];
-    NSData * nonce = [PowerAuthCoreCryptoUtils randomBytes:16];
-    if (nonce.length != 16) {
-        PowerAuthLog(@"PowerAuthToken: Random generator did not generate enough bytes.");
-        return nil;
-    }
-    NSMutableData * data = [nonce mutableCopy];
-    [data appendBytes:"&" length:1];
-    [data appendData: currentTimeData];
-    [data appendBytes:"&" length:1];
-    [data appendData:[protocolVersion dataUsingEncoding:NSASCIIStringEncoding]];
-    
-    // Calculate digest...
-    NSData * digest = [PowerAuthCoreCryptoUtils hmacSha256:data key:tokenSecret];
-    NSString * digestBase64 = [digest base64EncodedStringWithOptions:0];
-    NSString * nonceBase64 = [nonce base64EncodedStringWithOptions:0];
-    // Final check...
-    if (digest.length == 0 || !digestBase64 || !nonceBase64 || !currentTimeString) {
-        PowerAuthLog(@"PowerAuthToken: Digest calculation did fail.");
-        return nil;
-    }
-    NSString * value = [NSString stringWithFormat:
-                        @"PowerAuth version=\"%@\""
-                        @", token_id=\"%@\""
-                        @", token_digest=\"%@\""
-                        @", nonce=\"%@\""
-                        @", timestamp=\"%@\"",
-                        protocolVersion, tokenIdentifier, digestBase64, nonceBase64, currentTimeString];
-    return [PowerAuthAuthorizationHttpHeader tokenHeaderWithValue:value];
+    return [_tokenStore calculateTokenHeader:_tokenData error:nil];
 }
 
 - (BOOL) isEqualToToken:(nonnull PowerAuthToken*)token

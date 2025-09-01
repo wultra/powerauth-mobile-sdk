@@ -102,10 +102,10 @@ public:
         /// Encrypted `KDK_ENCRYPTION`
         cc7::ByteArray  cKdkEncryption;
                 
-        /// Device's public key
-        cc7::ByteArray  cDevicePublicKey;
-        /// Server's public key
+        /// Encrypted server's public key
         cc7::ByteArray  cServerPublicKey;
+        /// Encrypted device's public key
+        cc7::ByteArray  cDevicePublicKey;
         /// Encrypted device's private key.
         cc7::ByteArray  cDevicePrivateKey;
     };

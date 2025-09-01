@@ -35,7 +35,7 @@ HttpHeader HttpHeaderHelper::buildEncryptionRequestHeader(const EncryptorParamet
     return { common::PA_ENCRYPTION_HEADER_NAME, value };
 }
 
-HttpHeader HttpHeaderHelper::buildAuthorizationHeader(const AuthorizationHeaderData& header_data)
+HttpHeader HttpHeaderHelper::buildAuthenticationHeader(const AuthenticationHeaderData& header_data)
 {
     std::string proto_version = ProtocolVersion_GetHttpHeaderVersion(header_data.version);
     std::string value;
@@ -65,6 +65,29 @@ HttpHeader HttpHeaderHelper::buildAuthorizationHeader(const AuthorizationHeaderD
     value += header_data.nonce;
     value += "\"";
     return { common::PA_AUTHORIZATION_HEADER_NAME, value };
+}
+
+HttpHeader HttpHeaderHelper::buildTokenHeader(const TokenHeaderData &header_data)
+{
+    std::string proto_version = ProtocolVersion_GetHttpHeaderVersion(header_data.version);
+    std::string value;
+    value.reserve(75 + proto_version.size() +
+                  header_data.tokenIdentifier.size() +
+                  header_data.tokenDigest.size() +
+                  header_data.timestamp.size() +
+                  header_data.nonce.size());
+    value = "PowerAuth version=\"";
+    value += proto_version;
+    value += "\", token_id=\"";
+    value += header_data.tokenIdentifier;
+    value += "\", token_digest=\"";
+    value += header_data.tokenDigest;
+    value += "\", nonce=\"";
+    value += header_data.nonce;
+    value += "\", timestamp=\"";
+    value += header_data.timestamp;
+    value += "\"";
+    return { common::PA_TOKEN_HEADER_NAME, value };
 }
 
 } // namespace powerAuth

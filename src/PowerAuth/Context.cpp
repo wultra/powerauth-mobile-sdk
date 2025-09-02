@@ -25,6 +25,7 @@
 #include "v3/KeyProviderV3.h"
 #include "v3/EciesEncryptorFactory.h"
 #include "v3/ActivationServiceV3.h"
+#include "v3/AuthenticationServiceV3.h"
 
 namespace powerAuth {
 
@@ -238,13 +239,14 @@ void Context::createServices(bool initial_setup, ConstPowerAuthSpecPtr specifica
         _key_provider = std::make_shared<v3::KeyProviderV3>(self);
         _encryptor_factory = std::make_shared<v3::EciesEncryptorFactory>(self);
         _activation_service = std::make_shared<v3::ActivationServiceV3>(self);
+        _auth_service = std::make_shared<v3::AuthenticationServiceV3>(self);
     }
     // register services
     _services.push_back(_key_provider->asService());
     _services.push_back(_encryptor_factory->asService());
     _services.push_back(_activation_service->asService());
+    _services.push_back(_auth_service->asService());
     // TODO: uncomment when V3 services are implemented
-    //_services.push_back(_auth_service->asService());
     //_services.push_back(_token_service->asService());
 }
 

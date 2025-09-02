@@ -217,7 +217,10 @@
             [waiting reportCompletion:@(error == nil)];
         }];
         // Returned task should not be cancelled
-        XCTAssertNotNil(task);
+        if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+            // In Legacy mode, password is changed locally
+            XCTAssertNotNil(task);
+        }
     }] boolValue];
     XCTAssertTrue(result);
     
@@ -235,7 +238,10 @@
             [waiting reportCompletion:@(error == nil)];
         }];
         // Returned task should not be cancelled
-        XCTAssertNotNil(task);
+        if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+            // In Legacy mode, password is changed locally
+            XCTAssertNotNil(task);
+        }
     }] boolValue];
     XCTAssertTrue(result);
     

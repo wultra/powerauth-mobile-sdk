@@ -78,37 +78,7 @@
             </BuildableReference>
             <SkippedTests>
                <Test
-                  Identifier = "BaseTests_V3/testActivationStatus">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testActivationStatusConcurrent">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testActivationStatusFailCounters">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testActivationStatusMaxFailAttempts">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testAddingBiometryFactor">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testAuthentication">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V3/testBasicTokenOperations">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testBiometrySignatureWhenNotConfigured">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testCallToCreateActivationInWrongState">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testCancelEnqueuedHttpOperation">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testChangePassword">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testCounterSync_ClientIsAhead">
@@ -117,19 +87,7 @@
                   Identifier = "BaseTests_V3/testCounterSync_ServerIsAhead">
                </Test>
                <Test
-                  Identifier = "BaseTests_V3/testCreateActivationWhenApplicationIsUnsupported">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testCreateActivationWithBiometry">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testCreateActivationWithExternalBiometry">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V3/testCreateTokenWithDifferentAuth">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testCustomOfflineAuthCode">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testCustomOfflineSignature">
@@ -147,19 +105,7 @@
                   Identifier = "BaseTests_V3/testOfflineAuthCode">
                </Test>
                <Test
-                  Identifier = "BaseTests_V3/testPasswordCorrect">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testPasswordCorrectWhenBlocked">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testRemoveActivation">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V3/testRemoveActivationWithBiometry">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testRestoreSessionState">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testSignDataWithDevicePrivateKey">
@@ -178,9 +124,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testVerifyServerSignedData">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testWithWrongLAContext">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testCounterSync_ClientIsAhead">

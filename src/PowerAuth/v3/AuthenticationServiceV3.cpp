@@ -50,7 +50,7 @@ HttpHeader AuthenticationServiceV3::calculateOnlineAuthenticationHeader(const Cr
         throw Exception(EC_WrongActivationState, "Authentication header calculation is not allowed during activation registration");
     }
     
-    if (_session_data->hasUpgradeData()) {
+    if (_session_data->hasUpgradeData() && !auth_data.allowedInUpgrade) {
         throw Exception(EC_WrongActivationState, "Authentication header calculation is not allowed during pending protocol upgrade");
     }
     

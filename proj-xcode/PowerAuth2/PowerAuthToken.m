@@ -18,7 +18,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
 #import <PowerAuth2/PowerAuthToken.h>
-#import <PowerAuth2/PowerAuthAuthorizationHttpHeader.h>
+#import <PowerAuth2/PowerAuthHttpHeader.h>
 #import <PowerAuth2/PowerAuthLog.h>
 
 #import "PA2PrivateTokenInterfaces.h"
@@ -61,7 +61,7 @@
 
 #pragma mark - Public methods
 
-- (PowerAuthAuthorizationHttpHeader*) generateHeader
+- (PowerAuthHttpHeader*) generateHeader
 {
     return [_tokenStore calculateTokenHeader:_tokenData error:nil];
 }

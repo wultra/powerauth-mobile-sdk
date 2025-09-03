@@ -16,6 +16,7 @@ Related projects
 
 If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check the following migration guides:
 
+- [Migration from version `1.9.x` to `2.0.x`](Migration-from-1.9-to-2.0.md)
 - [Migration from version `1.8.x` to `1.9.x`](Migration-from-1.8-to-1.9.md)
 - [Migration from version `1.7.x` to `1.8.x`](Migration-from-1.7-to-1.8.md)
 - [Migration from version `1.6.x` to `1.7.x`](Migration-from-1.6-to-1.7.md)

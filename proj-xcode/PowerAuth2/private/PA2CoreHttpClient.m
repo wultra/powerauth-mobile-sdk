@@ -279,7 +279,7 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
 {
     NSError * localError = nil;
     __block BOOL processed = NO;
-    BOOL result = [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+    [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
         processed = YES;
         return [coreRequest prepareRequest:error];
     } error:&localError];
@@ -329,7 +329,7 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
     if (httpResponse.statusCode == 200) {
         // Acquire lock before the
         __block BOOL processed = NO;
-        BOOL result = [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+        [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
             processed = YES;
             return [coreRequest processResponse:responseData error:error];
         } error:error];

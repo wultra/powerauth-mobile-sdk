@@ -28,14 +28,14 @@ Notable changes on Android:
     - All variants of `addBiometryFactor()` with "title" and "description" parameters are now replaced with variant using `PowerAuthBiometricPrompt`.
     - `removeBiometryFactor()` - use asynchronous variant with `IRemoveBiometryFactorListener` as a callback parameter.
     - `authenticateUsingBiometrics()` - with "title" and "description" parameters, use variant with `PowerAuthBiometricPrompt` parameter instead.
-    - `requestGetSignatureWithAuthentication()` - use `authorizationHeaderForRequestWithParams()` method instead which throws an exception in case of failure.
-    - `requestSignatureWithAuthentication()` - use `authorizationHeaderForRequestWithBody()` method instead which throws an exception in case of failure.
+    - `requestGetSignatureWithAuthentication()` - use `authenticationHeaderForRequestWithParams()` method instead which throws an exception in case of failure.
+    - `requestSignatureWithAuthentication()` - use `authenticationHeaderForRequestWithBody()` method instead which throws an exception in case of failure.
 
   - `PowerAuthConfiguration` class:
-    - `getOfflineSignatureComponentLength()` - use `getOfflineAuthorizationCodeComponentLength()` instead.
+    - `getOfflineSignatureComponentLength()` - use `getOfflineAuthenticationCodeComponentLength()` instead.
 
   - `PowerAuthConfiguration.Builder` class:
-    - `offlineSignatureComponentLength()` - use `offlineAuthorizationCodeComponentLength()` instead.
+    - `offlineSignatureComponentLength()` - use `offlineAuthenticationCodeComponentLength()` instead.
 
   - `PowerAuthKeychainConfiguration` class:
     - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
@@ -48,7 +48,7 @@ Notable changes on Android:
     - `Builder.enableFallbackToSharedBiometryKey()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
 
   - `PowerAuthToken` class:
-    - `generateHeader()` - use `generateTokenHeader()` as a replacement. Note that you should use `PowerAuthTokenStore.generateAuthorizationHeader()` to make sure the PowerAuth SDK synchronize the time with the server properly.
+    - `generateHeader()` - use `generateTokenHeader()` as a replacement. Note that you should use `PowerAuthTokenStore.generateAuthenticationHeader()` to make sure the PowerAuth SDK synchronize the time with the server properly.
 
   - `PowerAuthAuthorizationHttpHeader` class:
     - The value of `powerAuthErrorCode` property, or value returned in `getPowerAuthErrorCode()` is filled only in deprecated SDK functions, such as `requestSignatureWithAuthentication()`. To fix this, migrate to `authorizationHeaderForRequestWithBody()` that throws an exception in case of failure.
@@ -107,18 +107,22 @@ Notable changes on iOS:
 
 ### API changes
 
-- The following methods or properties are now deprecated:
+- The following methods or properties are now deprecated or changed:
   - `PowerAuthSDK` class:
+    - class constructor taking only `PowerAuthConfiguration` object in parameter now throws error.
     - `unsafeChangePassword(from:to:)` - use asynchronous `changePassword(from:to:callback:)` as a replacement.
     - `persistActivation(with:)` - use asynchronous `persistActivation(with:callback:)` as a replacement.
     - `persistActivation(withPassword:)` - use asynchronous `persistActivation(withPassword:callback:)` as a replacement.
     - `removeBiometryFactor()` - use asynchronous `removeBiometryFactor(callback:)` as a replacement.
     - Constructor `PowerAuthSDK(configuration:keychainConfiguration:clientConfiguration:)` - use methods with `PowerAuthBiometricConfiguration` parameter instead.
-    - `requestSignature(with:method:uriId:body:)` - use `authorizationHeaderForRequestWithBody(with:method:uriId:body:)` method instead.
-    - `requestGetSignature(with:uriId:params:)` - use `authorizationHeaderForRequestWithParams(with:method:uriId:params:)` method with `"GET"` as method parameter.
-    - `offlineSignature(with:uriId:body:nonce:)` - use asynchronous `offlineAuthorizationCode(with:uriId:body:nonce:callback:)` method that handle the biometric authentication properly.
+    - `requestSignature(with:method:uriId:body:)` - use `authenticationHeaderForRequestWithBody(with:method:uriId:body:)` method instead.
+    - `requestGetSignature(with:uriId:params:)` - use `authenticationHeaderForRequestWithParams(with:method:uriId:params:)` method with `"GET"` as method parameter.
+    - `offlineSignature(with:uriId:body:nonce:)` - use asynchronous `offlineAuthenticationCode(with:uriId:body:nonce:callback:)` method that handle the biometric authentication properly.
   - `PowerAuthConfiguration` class:
-    - `offlineSignatureComponentLength` property is now replaced with `offlineAuthorizationCodeComponentLength`
+    - `offlineSignatureComponentLength` property is now replaced with `offlineAuthenticationCodeComponentLength`
+  - `PowerAuthTokenStore` protocol:
+    - `generateAuthorizationHeader(withName:completion:)` is replaced with `generateAuthenticationHeader(withName:completion:)`
+  - `PowerAuthAuthorizationHttpHeader` is deprecated and replaced with `PowerAuthHttpHeader`
 
 - All static methods for accessing a various shared instances are now deprecated:
   - `PowerAuthSDK.initSharedInstance(...)` and `PowerAuthSDK.sharedInstance()` - To ensure better control and flexibility, manage the global instances within your application code.

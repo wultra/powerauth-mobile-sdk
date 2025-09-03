@@ -58,7 +58,7 @@
 /// - Parameters:
 ///   - tokenData: Private token data.
 ///   - error: Pointer where to store error.
-- (nullable PowerAuthAuthorizationHttpHeader*) calculateTokenHeader:(nonnull PA2PrivateTokenData*)tokenData
+- (nullable PowerAuthHttpHeader*) calculateTokenHeader:(nonnull PA2PrivateTokenData*)tokenData
                                                               error:(NSError*_Nullable*_Nullable)error;
 
 @end

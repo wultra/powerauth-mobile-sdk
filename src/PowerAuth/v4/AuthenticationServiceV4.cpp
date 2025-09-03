@@ -81,7 +81,7 @@ HttpHeader AuthenticationServiceV4::calculateOnlineAuthenticationHeader(const Cr
                         ? _key_provider->unlockSecretKeysForFactors(factors)    // If registration is pending, then we don't care about actual credentials
                         : _key_provider->unlockSecretKeys(credentials);         // unlock with credentials
     auto factor_keys = prepareFactorKeys(*secrets, factors);
-    auto auth_code = CalculateOnlineAuthorizationCode(factor_keys, hash_counter, normalized_data);
+    auto auth_code = CalculateOnlineAuthenticationCode(factor_keys, hash_counter, normalized_data);
     // lock secret keys
     _key_provider->lockSecretKeys(secrets);
     moveCounterForward(hash_counter, byte_counter);
@@ -118,7 +118,7 @@ std::string AuthenticationServiceV4::calculateOfflineAuthenticationCode(const Cr
     auto secrets = _key_provider->unlockSecretKeys(credentials);
     //
     auto factor_keys = prepareFactorKeys(*secrets, credentials.factors());
-    auto result = CalculateOfflineAuthorizationCode(factor_keys, pd.authCodeCounterData, normalized_data, auth_data.authenticationCodeLength);
+    auto result = CalculateOfflineAuthenticationCode(factor_keys, pd.authCodeCounterData, normalized_data, auth_data.authenticationCodeLength);
     // lock secret keys
     _key_provider->lockSecretKeys(secrets);
     // move counter forward and return result

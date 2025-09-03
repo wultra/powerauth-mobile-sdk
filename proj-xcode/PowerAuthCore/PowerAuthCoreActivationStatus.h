@@ -29,7 +29,7 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
     /// The activation doesn't exist anymore.
     PowerAuthCoreActivationState_Removed  = 3,
     /// The activation is technically blocked. You cannot use it anymore
-    /// for the authorization code calculations.
+    /// for the authentication code calculations.
     PowerAuthCoreActivationState_Deadlock   = 4,
 };
 
@@ -50,7 +50,7 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
 
 /// Contains YES if upgrade to a newer protocol version is available.
 @property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
-/// Returns YES if dummy authorization code calculation is recommended to prevent
+/// Returns YES if dummy authentication code calculation is recommended to prevent
 /// the counter's de-synchronization.
 @property (nonatomic, assign, readonly) BOOL isCounterSynchronizationRecommended;
 /// Returns true if session's state should be serialized after the successful

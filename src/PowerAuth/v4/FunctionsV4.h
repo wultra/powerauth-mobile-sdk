@@ -21,11 +21,22 @@
 namespace powerAuth {
 namespace v4 {
 
-cc7::ByteArray CalculateOnlineAuthorizationCode(const std::vector<cc7::ByteRange>& factor_keys,
+/// Calculate authentication code used for authentication HTTP header.
+/// - Parameters:
+///   - factor_keys: Vector with factor keys to use for the calculation.
+///   - counter: Hash based counter value.
+///   - data: HTTP request body
+cc7::ByteArray CalculateOnlineAuthenticationCode(const std::vector<cc7::ByteRange>& factor_keys,
                                                 const cc7::ByteRange& counter,
                                                 const cc7::ByteRange& data);
 
-std::string CalculateOfflineAuthorizationCode(const std::vector<cc7::ByteRange>& factor_keys,
+/// Calculate authentication code for offline authentication purpose.
+/// - Parameters:
+///   - factor_keys: Vector with factor keys to use for the calculation.
+///   - counter: Hash based counter value.
+///   - data: Data to authenticate.
+///   - component_size: Size of per-factor component in characters.
+std::string CalculateOfflineAuthenticationCode(const std::vector<cc7::ByteRange>& factor_keys,
                                               const cc7::ByteRange& counter,
                                               const cc7::ByteRange& data,
                                               size_t component_size);

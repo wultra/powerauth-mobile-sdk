@@ -64,7 +64,7 @@ HttpHeader HttpHeaderHelper::buildAuthenticationHeader(const AuthenticationHeade
     value += "\", pa_nonce=\"";
     value += header_data.nonce;
     value += "\"";
-    return { common::PA_AUTHORIZATION_HEADER_NAME, value };
+    return { common::PA_AUTHENTICATION_HEADER_NAME, value };
 }
 
 HttpHeader HttpHeaderHelper::buildTokenHeader(const TokenHeaderData &header_data)

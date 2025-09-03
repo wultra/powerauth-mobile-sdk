@@ -93,20 +93,20 @@ typedef NS_ENUM(NSInteger, PowerAuthAlgorithm) {
 @property (nonatomic, assign) BOOL disableAutomaticProtocolUpgrade;
 
 /**
- Length of offline authorization code component. The value between 4 and 8 is allowed.
+ Length of offline authentication code component. The value between 4 and 8 is allowed.
  
  Default value is `8`.
  
- Property is deprecated, use `offlineAuthorizationCodeComponentLength` with the same functionality.
+ Property is deprecated, use `offlineAuthenticationCodeComponentLength` with the same functionality.
  */
-@property (nonatomic, assign) NSUInteger offlineSignatureComponentLength PA2_DEPRECATED(1.10.0);
+@property (nonatomic, assign) NSUInteger offlineSignatureComponentLength PA2_DEPRECATED(2.0.0);
 
 /**
- Length of offline authorization code component. The value between 4 and 8 is allowed.
+ Length of offline authentication code component. The value between 4 and 8 is allowed.
  
  Default value is `8`.
  */
-@property (nonatomic, assign) NSUInteger offlineAuthorizationCodeComponentLength;
+@property (nonatomic, assign) NSUInteger offlineAuthenticationCodeComponentLength;
 
 /**
  If set, then this instance of PowerAuthSDK can be shared between multiple vendor applications.

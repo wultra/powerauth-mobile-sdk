@@ -15,7 +15,6 @@
  */
 
 #import <PowerAuth2/PowerAuthServerStatus.h>
-#import "PA2GetServerStatusResponse.h"
 
 @interface PowerAuthServerStatus (Private)
 

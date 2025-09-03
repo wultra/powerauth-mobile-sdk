@@ -14,22 +14,27 @@
  * limitations under the License.
  */
 
-#import "PA2Codable.h"
+// PA2_SHARED_SOURCE PowerAuth2ForWatch .
+// PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
-typedef NS_ENUM(int, PA2VaultUnlockReason) {
-    // If occured, then it's internal SDK error. Don't use as parameter to fetch function
-    PA2VaultUnlockReason_Unknown = 0,
-    
-    PA2VaultUnlockReason_ADD_BIOMETRY,
-    PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY,
-    PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY,
-    PA2VaultUnlockReason_RECOVERY_CODE
-};
+#import <PowerAuth2/PowerAuthHttpHeader.h>
+@import PowerAuthCore;
 
-@interface PA2VaultUnlockRequest : NSObject <PA2Encodable>
+@implementation PowerAuthHttpHeader
 
-- (id) initWithReason:(PA2VaultUnlockReason)reason;
+- (instancetype)initWithKey:(NSString*)key value:(NSString*)value
+{
+    self = [super init];
+    if (self) {
+        _key = key;
+        _value = value;
+    }
+    return self;
+}
 
-@property (nonatomic, assign) PA2VaultUnlockReason reason;
++ (PowerAuthHttpHeader*) createWithCoreHeader:(PowerAuthCoreHttpHeader*)coreHeader
+{
+    return [[self alloc] initWithKey:coreHeader.headerName value:coreHeader.headerValue];
+}
 
 @end

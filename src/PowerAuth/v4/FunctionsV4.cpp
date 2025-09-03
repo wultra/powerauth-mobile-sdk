@@ -25,7 +25,7 @@ using namespace cc7::crypto;
 namespace powerAuth {
 namespace v4 {
 
-static std::vector<cc7::ByteArray> CalculateAuthorizationCodeComponents(const std::vector<cc7::ByteRange>& factor_keys,
+static std::vector<cc7::ByteArray> CalculateAuthenticationCodeComponents(const std::vector<cc7::ByteRange>& factor_keys,
                                                                         const cc7::ByteRange& counter,
                                                                         const cc7::ByteRange& data)
 {
@@ -52,11 +52,11 @@ static std::vector<cc7::ByteArray> CalculateAuthorizationCodeComponents(const st
     }
     return components;
 }
-cc7::ByteArray CalculateOnlineAuthorizationCode(const std::vector<cc7::ByteRange>& factor_keys,
-                                                const cc7::ByteRange& counter,
-                                                const cc7::ByteRange& data)
+cc7::ByteArray CalculateOnlineAuthenticationCode(const std::vector<cc7::ByteRange>& factor_keys,
+                                                 const cc7::ByteRange& counter,
+                                                 const cc7::ByteRange& data)
 {
-    auto components = CalculateAuthorizationCodeComponents(factor_keys, counter, data);
+    auto components = CalculateAuthenticationCodeComponents(factor_keys, counter, data);
     ByteArray auth_code;
     auth_code.reserve(components.size() * v4::AUTH_CODE_COMPONENT_LENGTH);
     for (const auto& c : components) {
@@ -65,12 +65,12 @@ cc7::ByteArray CalculateOnlineAuthorizationCode(const std::vector<cc7::ByteRange
     return auth_code;
 }
 
-std::string CalculateOfflineAuthorizationCode(const std::vector<cc7::ByteRange>& factor_keys,
-                                              const cc7::ByteRange& counter,
-                                              const cc7::ByteRange& data,
-                                              size_t component_size)
+std::string CalculateOfflineAuthenticationCode(const std::vector<cc7::ByteRange>& factor_keys,
+                                               const cc7::ByteRange& counter,
+                                               const cc7::ByteRange& data,
+                                               size_t component_size)
 {
-    auto components = CalculateAuthorizationCodeComponents(factor_keys, counter, data);
+    auto components = CalculateAuthenticationCodeComponents(factor_keys, counter, data);
     std::string result;
     result.reserve((component_size + 1) * components.size() - 1);
     for (const auto& c : components) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "PowerAuthServerStatus+Private.h"
+#import "PowerAuthServerStatus.h"
 #import "PA2PrivateMacros.h"
 
 @implementation PowerAuthServerStatus

@@ -29,7 +29,6 @@
 #import <PowerAuth2/PowerAuthErrorConstants.h>
 #import <PowerAuth2/PowerAuthKeychain.h>
 #import <PowerAuth2/PowerAuthConfiguration.h>
-#import <PowerAuth2/PowerAuthAuthorizationHttpHeader.h>
 #import <PowerAuth2/PowerAuthLog.h>
 
 @implementation PA2PrivateTokenKeychainStore
@@ -200,12 +199,12 @@
     [_createTokenTasks removeAllObjects];
 }
 
-- (PowerAuthAuthorizationHttpHeader*) calculateTokenHeader:(PA2PrivateTokenData*)tokenData
+- (PowerAuthHttpHeader*) calculateTokenHeader:(PA2PrivateTokenData*)tokenData
                                                      error:(NSError**)error
 {
-    return [_sessionInterface readTaskWithSession:^PowerAuthAuthorizationHttpHeader* (PowerAuthCoreSession * session, NSError ** error) {
+    return [_sessionInterface readTaskWithSession:^PowerAuthHttpHeader* (PowerAuthCoreSession * session, NSError ** error) {
         PowerAuthCoreHttpHeader * coreHeader = [session calculateTokenHeader:tokenData.identifier tokenSecret:tokenData.secret error:error];
-        return coreHeader ? [PowerAuthAuthorizationHttpHeader createWithCoreHeader:coreHeader] : nil;
+        return coreHeader ? [PowerAuthHttpHeader createWithCoreHeader:coreHeader] : nil;
     } error:error];
 }
 
@@ -527,13 +526,24 @@
     [_database removeObjectForKey:identifier];
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+// PA2_DEPRECATED(2.0.0)
 - (id<PowerAuthOperationTask>) generateAuthorizationHeaderWithName:(NSString *)name
                                                         completion:(void(^)(PowerAuthAuthorizationHttpHeader * header, NSError * error))completion
+{
+    return [self generateAuthenticationHeaderWithName:name completion:completion];
+}
+#pragma clang diagnostic pop
+
+- (id<PowerAuthOperationTask>) generateAuthenticationHeaderWithName:(NSString *)name
+                                                         completion:(void(^)(PowerAuthHttpHeader * header, NSError * error))completion
 {
     // Prepare composite task and completion closure.
     PA2CompositeTask * compositeTask = [[PA2CompositeTask alloc] initWithCancelBlock:nil];
     void (^completionCallback)(PowerAuthToken *, NSError *) = ^(PowerAuthToken * token, NSError * error) {
-        PowerAuthAuthorizationHttpHeader * header;
+        PowerAuthHttpHeader * header;
         if (token) {
             // So far, so good, generate header now.
             header = [self calculateTokenHeader:token.privateTokenData error:&error];

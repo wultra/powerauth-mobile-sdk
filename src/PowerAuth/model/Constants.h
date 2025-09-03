@@ -27,8 +27,8 @@ namespace common {
 /// Encryption header name
 extern const std::string PA_ENCRYPTION_HEADER_NAME;
 
-/// Authorization header name
-extern const std::string PA_AUTHORIZATION_HEADER_NAME;
+/// Authentication header name
+extern const std::string PA_AUTHENTICATION_HEADER_NAME;
 
 /// Token header name
 extern const std::string PA_TOKEN_HEADER_NAME;

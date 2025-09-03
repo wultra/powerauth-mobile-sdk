@@ -54,7 +54,7 @@
 }
 
 
-// Compatibility due to PA2_DEPRECATED(1.10.0), remove constructor in 2.0.0
+// Compatibility due to PA2_DEPRECATED(2.0.0)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"

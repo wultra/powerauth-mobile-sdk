@@ -47,8 +47,8 @@ public:
             auto input = item["inputData"].asBase64();
             auto authCodeOnline = item["authCodeOnline"].asBase64();
             auto authCodeOffline = item["authCodeOffline"].asString();
-            auto online = CalculateOnlineAuthorizationCode({key1, key2, key3}, ctrData, input);
-            auto offline = CalculateOfflineAuthorizationCode({key1, key2, key3}, ctrData, input, 8);
+            auto online = CalculateOnlineAuthenticationCode({key1, key2, key3}, ctrData, input);
+            auto offline = CalculateOfflineAuthenticationCode({key1, key2, key3}, ctrData, input, 8);
             ccstAssertEqual(authCodeOnline, online);
             ccstAssertEqual(authCodeOffline, offline);
         }

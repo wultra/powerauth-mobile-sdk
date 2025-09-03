@@ -367,10 +367,10 @@
     
     [AsyncHelper waitForNextSecond];
     
-    PowerAuthAuthorizationHttpHeader * header1A = [token1A generateHeader];
-    PowerAuthAuthorizationHttpHeader * header1B = [token1B generateHeader];
-    PowerAuthAuthorizationHttpHeader * header2A = [token2A generateHeader];
-    PowerAuthAuthorizationHttpHeader * header2B = [token2B generateHeader];
+    PowerAuthHttpHeader * header1A = [token1A generateHeader];
+    PowerAuthHttpHeader * header1B = [token1B generateHeader];
+    PowerAuthHttpHeader * header2A = [token2A generateHeader];
+    PowerAuthHttpHeader * header2B = [token2B generateHeader];
     NSLog(@"Header1A = %@", header1A.value);
     NSLog(@"Header1B = %@", header1B.value);
     NSLog(@"Header2A = %@", header2A.value);

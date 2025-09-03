@@ -15,20 +15,7 @@
  */
 
 // Requests objects
-#import "PA2GetActivationStatusRequest.h"
-#import "PA2ValidateSignatureRequest.h"
-#import "PA2VaultUnlockRequest.h"
-#import "PA2RemoveTokenRequest.h"
-#import "PA2ConfirmRecoveryCodeRequest.h"
-#import "PA2GetTemporaryKeyRequest.h"
 #import "PA2JwtObject.h"
 
 // Response objects
-#import "PA2GetServerStatusResponse.h"
-#import "PA2GetActivationStatusResponse.h"
-#import "PA2VaultUnlockResponse.h"
-#import "PA2GetTokenResponse.h"
-#import "PA2UpgradeStartV3Response.h"
-#import "PA2ConfirmRecoveryCodeResponse.h"
-#import "PA2GetTemporaryKeyResponse.h"
 #import <PowerAuth2/PowerAuthUserInfo.h>

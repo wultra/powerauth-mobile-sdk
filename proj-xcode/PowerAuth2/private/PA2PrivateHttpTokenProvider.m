@@ -20,9 +20,6 @@
 
 #import "PA2CoreHttpClient.h"
 
-#import "PA2GetTokenResponse.h"
-#import "PA2RemoveTokenRequest.h"
-
 #import <PowerAuth2/PowerAuthAuthentication.h>
 
 @implementation PA2PrivateHttpTokenProvider

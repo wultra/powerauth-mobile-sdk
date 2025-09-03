@@ -235,7 +235,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 /**
  Validate token header on test server.
  */
-- (BOOL) validateTokenHeader:(PowerAuthAuthorizationHttpHeader*)header
+- (BOOL) validateTokenHeader:(PowerAuthHttpHeader*)header
                 activationId:(NSString*)activationId
               expectedResult:(BOOL)expectedResult;
 

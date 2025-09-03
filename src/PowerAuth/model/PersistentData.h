@@ -34,7 +34,7 @@ public:
     /// V3 persistent data.
     struct V3
     {
-        /// V3: Data for hash-based counter for authorization code calculations
+        /// V3: Data for hash-based counter for authentication code calculations
         cc7::ByteArray  authCodeCounterData;
         /// V3.1: Least significant byte from the signature counter
         cc7::byte       authCodeCounterByte;
@@ -85,7 +85,7 @@ public:
 
         /// V4: Least significant byte from the signature counter
         cc7::byte       authCodeCounterByte;
-        /// V4: Data for hash-based counter for authorization code calculations
+        /// V4: Data for hash-based counter for authentication code calculations
         cc7::ByteArray  authCodeCounterData;
         /// Salt value for PowerAuthPassKDF
         cc7::ByteArray  passwordSalt;

@@ -21,6 +21,6 @@
 @interface PowerAuthServerStatus : NSObject
 
 /// Time on the server.
-@property (nonatomic, readonly, nonnull) NSDate * serverTime;
+@property (nonatomic, readonly, strong, nonnull) NSDate * serverTime;
 
 @end

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,22 @@
 
 #pragma once
 
-/*
- The CryptoUtils.h private header contains all cryptographic related
- operations, required in the PA2 implementation.
- 
- Note that all functionality provided by this header will
- be replaced with a similar cc7 implementation.
- */
+#include <cc7/ByteArray.h>
+#include "../crypto/ECC.h"
 
-#include "BNContext.h"
-#include "AES.h"
-#include "PRNG.h"
-#include "ECC.h"
-#include "Hash.h"
-#include "KDF.h"
-#include "MAC.h"
-#include "CSR.h"
+namespace io
+{
+namespace getlime
+{
+namespace powerAuth
+{
+namespace crypto
+{
+    // CSR in PEM
+    std::string CSR_CREATE(EC_KEY* ec_key);
+    
+} // io::getlime::powerAuth::crypto
+} // io::getlime::powerAuth
+} // io::getlime
+} // io
+

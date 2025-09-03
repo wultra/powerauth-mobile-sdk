@@ -800,6 +800,21 @@ namespace powerAuthTests
                     // Must match
                     ccstAssertEqual(signature, our_signature);
                 }
+                // Vault test #1-D, creating CSR
+                {
+                    SignatureUnlockKeys keys;
+                    // No keys filled, should fail on missing params
+                    std::string csr;
+                    ec = s1.createCSR(cVaultKey, keys, csr);
+                    ccstAssertEqual(ec, EC_WrongParam);
+                    // valid keys
+                    keys.possessionUnlockKey = possessionUnlock;
+                    keys.userPassword        = cc7::MakeRange(new_password);
+                    ec = s1.createCSR(cVaultKey, keys, csr);
+                    ccstAssertEqual(ec, EC_Ok);
+                    ccstAssertTrue(!csr.empty());
+                    ccstAssertTrue(csr.find("BEGIN CERTIFICATE REQUEST") != std::string::npos);
+                }
                 // Vault test #2-A, get vault key
                 {
                     // get vault key

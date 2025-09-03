@@ -171,6 +171,8 @@
 		BFFE1D57264D688F00D5B985 /* pa2CryptoECDSATests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFFE1D51264D688F00D5B985 /* pa2CryptoECDSATests.cpp */; };
 		BFFE1D58264D688F00D5B985 /* pa2CryptoECCTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFFE1D55264D688F00D5B985 /* pa2CryptoECCTests.cpp */; };
 		BFFE1D59264D688F00D5B985 /* pa2CryptoECCTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFFE1D55264D688F00D5B985 /* pa2CryptoECCTests.cpp */; };
+		DCE5FEC92E687C8A00ED8C32 /* CSR.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCE5FEC82E687C8A00ED8C32 /* CSR.cpp */; };
+		DCE5FECA2E687C8A00ED8C32 /* CSR.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DCE5FEC82E687C8A00ED8C32 /* CSR.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -492,6 +494,8 @@
 		BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ByteUtilsTests.cpp; sourceTree = "<group>"; };
 		BFFE1D51264D688F00D5B985 /* pa2CryptoECDSATests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoECDSATests.cpp; sourceTree = "<group>"; };
 		BFFE1D55264D688F00D5B985 /* pa2CryptoECCTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoECCTests.cpp; sourceTree = "<group>"; };
+		DCE5FEB82E68626900ED8C32 /* CSR.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSR.h; sourceTree = "<group>"; };
+		DCE5FEC82E687C8A00ED8C32 /* CSR.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CSR.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -762,6 +766,8 @@
 				BF99D8D52073E00D00735ED2 /* KDF.cpp */,
 				BF99D8DE2073E00D00735ED2 /* MAC.h */,
 				BF99D8DB2073E00D00735ED2 /* MAC.cpp */,
+				DCE5FEB82E68626900ED8C32 /* CSR.h */,
+				DCE5FEC82E687C8A00ED8C32 /* CSR.cpp */,
 			);
 			path = crypto;
 			sourceTree = "<group>";
@@ -1286,6 +1292,7 @@
 				BF99D90F2073E15100735ED2 /* KDF.cpp in Sources */,
 				BF99D9022073E14100735ED2 /* Debug.cpp in Sources */,
 				BFEEEBE12A3ADEA8007C6737 /* ByteUtils.cpp in Sources */,
+				DCE5FEC92E687C8A00ED8C32 /* CSR.cpp in Sources */,
 				BFB47D1620753324008A6A52 /* DataReader.cpp in Sources */,
 				BF99D9092073E14700735ED2 /* ProtocolUtils.cpp in Sources */,
 			);
@@ -1349,6 +1356,7 @@
 				BF6ADD7C24C84C0C001B3E5E /* KDF.cpp in Sources */,
 				BF6ADD7D24C84C0C001B3E5E /* Debug.cpp in Sources */,
 				BFEEEBE22A3ADEA8007C6737 /* ByteUtils.cpp in Sources */,
+				DCE5FECA2E687C8A00ED8C32 /* CSR.cpp in Sources */,
 				BF6ADD7E24C84C0C001B3E5E /* DataReader.cpp in Sources */,
 				BF6ADD7F24C84C0C001B3E5E /* ProtocolUtils.cpp in Sources */,
 			);

@@ -369,6 +369,9 @@ namespace powerAuth
          */
         ErrorCode addBiometryFactor(const std::string & c_vault_key, const SignatureUnlockKeys & keys);
         
+        // TODO: add docs
+        ErrorCode createCSR(const std::string & c_vault_key, const SignatureUnlockKeys & keys, std::string &csr_pem);
+        
         /**
          Checks if the key for the biometry related factor exists for the session, returns the value as a reference.
          

@@ -861,6 +861,58 @@ namespace powerAuth
 
         return code;
     }
+
+    ErrorCode Session::createCSR(const std::string & c_vault_key, const SignatureUnlockKeys & keys, std::string &csr_pem)
+    {
+        LOCK_GUARD();
+        if (keys.userPassword.empty()) {
+            CC7_LOG("Session %p: createCSR: User password missing.", this);
+            return EC_WrongParam;
+        }
+        
+        cc7::ByteArray vault_key;
+        ErrorCode code = decryptVaultKey(c_vault_key, keys, vault_key);
+        if (code != EC_Ok) {
+            return code;
+        }
+
+        // Ok, we have vault key and now we can decrypt stored device's private key.
+        crypto::BNContext ctx;
+        EC_KEY * ec_key = nullptr;
+        code = EC_Encryption;
+        
+        do {
+            // Decrypt device's private key
+            cc7::ByteArray device_private_key_data = crypto::AES_CBC_Decrypt_Padding(vault_key, protocol::ZERO_IV, _pd->cDevicePrivateKey);
+            if (device_private_key_data.empty()) {
+                // Well, if the key decryption fails here then it seems that we have a problem in vault_key computation.
+                // Error at this point means that we're not able to deduce KEY_ENCRYPTION_VAULT_TRANSPORT correctly.
+                break;
+            }
+            // Import device's private & server's public key
+            ec_key = crypto::ECC_ImportPrivateKey(nullptr, device_private_key_data, ctx);
+            ec_key = crypto::ECC_ImportPublicKey(ec_key, _pd->devicePublicKey, ctx);
+            
+            if (!ec_key) {
+                break;
+            }
+            
+            std::string result = crypto::CSR_CREATE(ec_key);
+            
+            if (result.empty()) {
+                break;
+            }
+            
+            // Everything looks fine
+            code = EC_Ok;
+            csr_pem = result;
+
+        } while (false);
+
+        EC_KEY_free(ec_key);
+
+        return code;
+    }
     
     ErrorCode Session::hasBiometryFactor(bool &hasBiometryFactor) const
     {

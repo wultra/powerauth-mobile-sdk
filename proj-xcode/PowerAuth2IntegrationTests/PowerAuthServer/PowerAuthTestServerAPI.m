@@ -368,13 +368,14 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 - (PATSTokenValidationResponse*) validateTokenRequest:(PATSTokenValidationRequest*)request
 {
     [self checkForValidConnection];
+    NSString * apiCall = _clientProtocolVersion < PATS_P40 ? @"TokenValidate_P3" : @"TokenValidate_P4";
     NSArray * params;
     if (_testServerConfig.serverMaxProtocolVersion >= PATS_P32) {
         params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp, request.protocolVersion];
     } else {
         params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp];
     }
-    return [_rest request:@"TokenValidate" params:params];
+    return [_rest request:apiCall params:params];
 }
 
 @end

@@ -78,25 +78,16 @@
             </BuildableReference>
             <SkippedTests>
                <Test
-                  Identifier = "BaseTests_V3/testBasicTokenOperations">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V3/testCounterSync_ClientIsAhead">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testCounterSync_ServerIsAhead">
                </Test>
                <Test
-                  Identifier = "BaseTests_V3/testCreateTokenWithDifferentAuth">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V3/testCustomOfflineSignature">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testEncryptorCreation">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testGroupedCreateTokenRequests">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testJwtSignature">
@@ -112,9 +103,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testTemporaryKeyExpiration">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testTokens_ConcurrentCreationAndRemove">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testUserInfo">

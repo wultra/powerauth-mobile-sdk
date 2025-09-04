@@ -802,15 +802,31 @@ namespace powerAuthTests
                 }
                 // Vault test #1-D, creating CSR
                 {
+                    // DN TEST items
+                    std::map<std::string, std::string> dn = {
+                        {"CN", "wultra.com"},
+                        {"O", "Wultra Corp"},
+                        {"OU", "IT Department"},
+                        {"L", "Prague"},
+                        {"ST", "Prague"},
+                        {"C", "CZ"}
+                    };
+
+                    // SAN TEST items
+                    std::vector<std::string> san = {
+                        "IP: 192.168.1.10",
+                        "email: admin@example.com"
+                    };
+                    
                     SignatureUnlockKeys keys;
                     // No keys filled, should fail on missing params
                     std::string csr;
-                    ec = s1.createCSR(cVaultKey, keys, csr);
+                    ec = s1.createCSR(cVaultKey, keys, dn, san, csr);
                     ccstAssertEqual(ec, EC_WrongParam);
                     // valid keys
                     keys.possessionUnlockKey = possessionUnlock;
                     keys.userPassword        = cc7::MakeRange(new_password);
-                    ec = s1.createCSR(cVaultKey, keys, csr);
+                    ec = s1.createCSR(cVaultKey, keys, dn, san, csr);
                     ccstAssertEqual(ec, EC_Ok);
                     ccstAssertTrue(!csr.empty());
                     ccstAssertTrue(csr.find("BEGIN CERTIFICATE REQUEST") != std::string::npos);

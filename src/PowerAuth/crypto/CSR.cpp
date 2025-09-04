@@ -23,10 +23,16 @@
 #include <openssl/err.h>
 
 // helpers for OpenSSL pointers
+// Custom deleter for STACK_OF(X509_EXTENSION)
+struct X509ExtStackDeleter {
+    void operator()(STACK_OF(X509_EXTENSION)* p) const noexcept {
+        if (p) sk_X509_EXTENSION_pop_free(p, X509_EXTENSION_free);
+    }
+};
 using x509_req_ptr  = std::unique_ptr<X509_REQ,  decltype(&X509_REQ_free)>;
 using x509_name_ptr = std::unique_ptr<X509_NAME, decltype(&X509_NAME_free)>;
 using x509_ext_ptr  = std::unique_ptr<X509_EXTENSION, decltype(&X509_EXTENSION_free)>;
-using sk_ext_ptr    = std::unique_ptr<STACK_OF(X509_EXTENSION), decltype(&X509_EXTENSION_free)>;
+using sk_ext_ptr    = std::unique_ptr<STACK_OF(X509_EXTENSION), X509ExtStackDeleter>;
 using evp_pkey_ptr  = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;
 using bio_ptr       = std::unique_ptr<BIO, decltype(&BIO_free)>;
 
@@ -45,18 +51,70 @@ namespace crypto
 
     #define CSR_FAIL(msg) CC7_LOG("CSR_CREATE failed: %s", msg); return "";
 
-    void add_name_entry(X509_NAME* name, const char* field, const std::string& value) {
-        if (value.empty()) return;
-        // MBSTRING_ASC is fine for ASCII; use MBSTRING_UTF8 for general UTF-8 strings
-        if (X509_NAME_add_entry_by_txt(name, field, MBSTRING_UTF8,
-                                       reinterpret_cast<const unsigned char*>(value.c_str()),
-                                       -1, -1, 0) != 1) {
-            // TODO: handle error?
-            return;
+    bool add_name_entry(X509_NAME* name, const char* field, const std::string& value) {
+        if (value.empty()) {
+            CC7_LOG("Skipping empty field %s", field);
+            return true;
         }
+        
+        int addResult = X509_NAME_add_entry_by_txt(name, field, MBSTRING_UTF8,
+                                                   reinterpret_cast<const unsigned char*>(value.c_str()),
+                                                   -1, -1, 0);
+        if (addResult != 1) {
+            CC7_LOG("add_name_entry failed for field %s", field);
+            return false;
+        }
+        
+        return true;
+    }
+
+    bool add_san(X509_REQ* req, const std::vector<std::string>& sanItems) {
+        if (sanItems.empty()) {
+            CC7_LOG("No SAN items to add");
+            return true;
+        }
+
+        std::string sanList;
+        for (size_t i = 0; i < sanItems.size(); ++i) {
+            sanList += sanItems[i];
+            if (i + 1 < sanItems.size()) {
+                sanList += ",";
+            }
+        }
+
+        X509V3_CTX ctx;
+        X509V3_set_ctx_nodb(&ctx);
+        X509V3_set_ctx(&ctx, nullptr, nullptr, req, nullptr, 0);
+
+        x509_ext_ptr sanExt(
+            X509V3_EXT_conf_nid(nullptr, &ctx, NID_subject_alt_name, sanList.c_str()),
+            X509_EXTENSION_free
+        );
+        if (!sanExt) {
+            CC7_LOG("Failed to create SAN extension");
+            return false;
+        }
+
+        sk_ext_ptr exts(sk_X509_EXTENSION_new_null());
+        if (!exts) {
+            CC7_LOG("Failed to create extensions stack");
+            return false;
+        }
+
+        if (!sk_X509_EXTENSION_push(exts.get(), sanExt.release())) {
+            CC7_LOG("Failed to push SAN extension to stack");
+            return false;
+        }
+
+        if (X509_REQ_add_extensions(req, exts.get()) != 1) {
+            CC7_LOG("Failed to add extensions to CSR");
+            return false;
+        }
+        
+        return true;
     }
     
-    std::string CSR_CREATE(EC_KEY* ec_key)
+    std::string CSR_CREATE(EC_KEY* ec_key, const std::map<std::string, std::string>& dn_items, const std::vector<std::string>& san_items)
     {
         EVP_PKEY* pkey = EVP_PKEY_new();
         if (!pkey) {
@@ -78,14 +136,15 @@ namespace crypto
             CSR_FAIL("Creating X509_NAME failed");
         }
         
-        // TODO: test data
-        add_name_entry(name.get(), "CN", "TESTCN");
-        add_name_entry(name.get(), "C",  "TESTC");
-        add_name_entry(name.get(), "ST", "TESTST");
-        add_name_entry(name.get(), "L",  "TESTL");
-        add_name_entry(name.get(), "O",  "TESTO");
-        add_name_entry(name.get(), "OU", "TESTOU");
-        add_name_entry(name.get(), "emailAddress", "test@wultra.com");
+        for (const auto& [key, value] : dn_items) {
+            if (!add_name_entry(name.get(), key.c_str(), value)) {
+                CSR_FAIL("Adding name entry failed");
+            }
+        }
+        
+        if (!add_san(req.get(), san_items)) {
+            CSR_FAIL("Adding SAN extension failed");
+        }
         
         X509_REQ_set_subject_name(req.get(), name.get()); // TODO: verify return value?
         

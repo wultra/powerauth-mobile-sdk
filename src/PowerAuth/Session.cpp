@@ -862,7 +862,7 @@ namespace powerAuth
         return code;
     }
 
-    ErrorCode Session::createCSR(const std::string & c_vault_key, const SignatureUnlockKeys & keys, std::string &csr_pem)
+    ErrorCode Session::createCSR(const std::string & c_vault_key, const SignatureUnlockKeys & keys, const std::map<std::string, std::string>& dn_items, const std::vector<std::string>& san_items, std::string &csr_pem)
     {
         LOCK_GUARD();
         if (keys.userPassword.empty()) {
@@ -889,15 +889,18 @@ namespace powerAuth
                 // Error at this point means that we're not able to deduce KEY_ENCRYPTION_VAULT_TRANSPORT correctly.
                 break;
             }
-            // Import device's private & server's public key
-            ec_key = crypto::ECC_ImportPrivateKey(nullptr, device_private_key_data, ctx);
-            ec_key = crypto::ECC_ImportPublicKey(ec_key, _pd->devicePublicKey, ctx);
             
+            // Import device's private & public key into a one EC_KEY structure
+            ec_key = crypto::ECC_ImportPrivateKey(nullptr, device_private_key_data, ctx);
+            if (!ec_key) {
+                break;
+            }
+            ec_key = crypto::ECC_ImportPublicKey(ec_key, _pd->devicePublicKey, ctx);
             if (!ec_key) {
                 break;
             }
             
-            std::string result = crypto::CSR_CREATE(ec_key);
+            std::string result = crypto::CSR_CREATE(ec_key, dn_items, san_items);
             
             if (result.empty()) {
                 break;

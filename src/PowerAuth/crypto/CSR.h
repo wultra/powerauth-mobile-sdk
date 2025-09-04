@@ -16,8 +16,9 @@
 
 #pragma once
 
+#include <map>
 #include <cc7/ByteArray.h>
-#include "../crypto/ECC.h"
+#include "ECC.h"
 
 namespace io
 {
@@ -28,7 +29,7 @@ namespace powerAuth
 namespace crypto
 {
     // CSR in PEM
-    std::string CSR_CREATE(EC_KEY* ec_key);
+    std::string CSR_CREATE(EC_KEY* ec_key, const std::map<std::string, std::string>& dn_items, const std::vector<std::string>& san_items);
     
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth

@@ -460,6 +460,12 @@
                                              data:(nonnull NSData*)data
                                            format:(PowerAuthCoreSignatureFormat)format;
 
+// TODO: docs
+- (nullable NSString*) createPrivateKeySignedCSR:(nonnull NSString*)cVaultKey
+                                            keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+                              distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                 subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames;
+
 #pragma mark - External Encryption Key
 
 /**

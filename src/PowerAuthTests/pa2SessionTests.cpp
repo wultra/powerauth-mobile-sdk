@@ -821,12 +821,12 @@ namespace powerAuthTests
                     SignatureUnlockKeys keys;
                     // No keys filled, should fail on missing params
                     std::string csr;
-                    ec = s1.createCSR(cVaultKey, keys, dn, san, csr);
+                    ec = s1.createPrivateKeySignedCSR(cVaultKey, keys, dn, san, csr);
                     ccstAssertEqual(ec, EC_WrongParam);
                     // valid keys
                     keys.possessionUnlockKey = possessionUnlock;
                     keys.userPassword        = cc7::MakeRange(new_password);
-                    ec = s1.createCSR(cVaultKey, keys, dn, san, csr);
+                    ec = s1.createPrivateKeySignedCSR(cVaultKey, keys, dn, san, csr);
                     ccstAssertEqual(ec, EC_Ok);
                     ccstAssertTrue(!csr.empty());
                     ccstAssertTrue(csr.find("BEGIN CERTIFICATE REQUEST") != std::string::npos);

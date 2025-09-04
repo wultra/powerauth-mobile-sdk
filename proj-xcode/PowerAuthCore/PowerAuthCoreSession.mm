@@ -398,6 +398,56 @@ using namespace io::getlime::powerAuth;
     return nil;
 }
 
+#pragma mark - Certificate Signing Request (CSR)
+
+- (nullable NSString*) createPrivateKeySignedCSR:(nonnull NSString*)cVaultKey
+                                            keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+                              distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                 subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+{
+    REQUIRE_READ_ACCESS();
+    std::string cpp_c_vault_key = cc7::objc::CopyFromNSString(cVaultKey);
+    __block std::map<std::string, std::string> cpp_dn;
+    std::vector<std::string> cpp_san;
+    SignatureUnlockKeys cpp_keys;
+    PowerAuthCoreSignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+    
+    // Prepare distinguished names
+    __block BOOL dnError = NO;
+    [distinguishedNames enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * value, BOOL * stop) {
+        if (![key isKindOfClass:[NSString class]] || ![value isKindOfClass:[NSString class]]) {
+            CC7_ASSERT(false, "Wrong type of object or key in provided NSDictionary.");
+            *stop = dnError = YES;
+            return;
+        }
+        cpp_dn[std::string(key.UTF8String)] = std::string(value.UTF8String);
+    }];
+    
+    if (dnError) {
+        return nil;
+    }
+    
+    // Prepare subject alternative names
+    if (subjectAltNames) {
+        for (NSString * san in subjectAltNames) {
+            if (![san isKindOfClass:[NSString class]]) {
+                CC7_ASSERT(false, "Wrong type of object in provided NSArray.");
+                return nil;
+            }
+            cpp_san.push_back(std::string(san.UTF8String));
+        }
+    }
+    
+    std::string cpp_signature;
+    auto error = _session->createPrivateKeySignedCSR(cpp_c_vault_key, cpp_keys, cpp_dn, cpp_san, cpp_signature);
+    if (error == EC_Ok) {
+        return cc7::objc::CopyToNSString(cpp_signature);
+    }
+    
+    REPORT_ERROR_CODE(@"createPrivateKeySignedCSR", error);
+    return nil;
+}
+                                        
 
 #pragma mark - External encryption key
 

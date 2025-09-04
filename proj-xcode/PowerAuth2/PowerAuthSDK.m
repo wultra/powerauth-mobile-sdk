@@ -1523,6 +1523,30 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
+- (id<PowerAuthOperationTask>) createCSRSignedWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
+                                                         distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                            subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                                                   callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback
+{
+    return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
+        NSString *csr = nil;
+        if (!error) {
+            // Let's sign the data
+            PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
+            keys.userPassword = authentication.password;
+            csr = [_sessionInterface readTaskWithSession:^id (PowerAuthCoreSession * session) {
+                return [session createPrivateKeySignedCSR:encryptedEncryptionKey keys:keys distinguishedNames:distinguishedNames subjectAltNames:subjectAltNames];
+            }];
+            // Propagate error
+            if (!csr) {
+                error = PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to create CSR");
+            }
+        }
+        // Call back to application
+        callback(csr, error);
+    }];
+}
+
 @end
 
 #pragma mark - End-2-End Encryption

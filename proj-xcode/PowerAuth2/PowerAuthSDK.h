@@ -550,6 +550,12 @@
                                                              claims:(nonnull NSDictionary<NSString*, NSObject*>*)claims
                                                            callback:(nonnull void(^)(NSString * _Nullable jwt, NSError * _Nullable error))callback;
 
+// TODO: docs
+- (nullable id<PowerAuthOperationTask>) createCSRSignedWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
+                                                         distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                            subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                                                   callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback;
+
 @end
 
 

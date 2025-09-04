@@ -369,9 +369,6 @@ namespace powerAuth
          */
         ErrorCode addBiometryFactor(const std::string & c_vault_key, const SignatureUnlockKeys & keys);
         
-        // TODO: add docs
-        ErrorCode createCSR(const std::string & c_vault_key, const SignatureUnlockKeys & keys, const std::map<std::string, std::string>& dn_items, const std::vector<std::string>& san_items, std::string &csr_pem);
-        
         /**
          Checks if the key for the biometry related factor exists for the session, returns the value as a reference.
          
@@ -443,6 +440,13 @@ namespace powerAuth
          */
         ErrorCode decryptVaultKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys,
                                   cc7::ByteArray & out_key);
+        
+    public:
+        
+        // MARK: - Certificate Signing Request -
+        
+        // TODO: add docs
+        ErrorCode createPrivateKeySignedCSR(const std::string & c_vault_key, const SignatureUnlockKeys & keys, const std::map<std::string, std::string>& dn_items, const std::vector<std::string>& san_items, std::string &csr_pem);
         
     public:
         

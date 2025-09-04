@@ -100,6 +100,14 @@ const EndpointSpec Endpoint_VaultUnlock {
     Version_V3, "/pa/v3/vault/unlock", "/pa/vault/unlock", EncryptorId::VAULT_UNLOCK
 };
 
+const EndpointSpec Endpoint_TokenCreate {
+    Version_V4, "/pa/v3/token/create", "/pa/token/create", EncryptorId::CREATE_TOKEN
+};
+
+const EndpointSpec Endpoint_TokenRemove {
+    Version_V4, "/pa/v3/token/remove", "/pa/token/remove", EncryptorId::NONE
+};
+
 } // namespace v3
 
 } // namespace powerAuth

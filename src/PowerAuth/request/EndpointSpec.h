@@ -100,6 +100,8 @@ extern const EndpointSpec Endpoint_ActivationStatus;
 extern const EndpointSpec Endpoint_ActivationRemove;
 extern const EndpointSpec Endpoint_SignatureValidate;
 extern const EndpointSpec Endpoint_VaultUnlock;
+extern const EndpointSpec Endpoint_TokenCreate;
+extern const EndpointSpec Endpoint_TokenRemove;
 
 } // namespace v3
 

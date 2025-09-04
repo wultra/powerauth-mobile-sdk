@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8F00060C2E65794700C57A29 /* TokenServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F0006052E65794000C57A29 /* TokenServiceV3.cpp */; };
+		8F00060D2E65794700C57A29 /* TokenServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F0006052E65794000C57A29 /* TokenServiceV3.cpp */; };
 		8F97E43F2E4B3C3F00063075 /* ActivationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */; };
 		8F97E4402E4B3C3F00063075 /* ActivationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */; };
 		BF062B9B2E61B4DC001436AD /* TokenServiceV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF062B9A2E61B4DC001436AD /* TokenServiceV4.cpp */; };
@@ -460,6 +462,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		8F0006022E6578C900C57A29 /* TokenServiceV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TokenServiceV3.h; sourceTree = "<group>"; };
+		8F0006052E65794000C57A29 /* TokenServiceV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TokenServiceV3.cpp; sourceTree = "<group>"; };
 		8F97E43D2E4B3C3F00063075 /* ActivationServiceV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActivationServiceV3.h; sourceTree = "<group>"; };
 		8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ActivationServiceV3.cpp; sourceTree = "<group>"; };
 		BF062B992E61B4DC001436AD /* TokenServiceV4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TokenServiceV4.h; sourceTree = "<group>"; };
@@ -870,6 +874,8 @@
 			children = (
 				8F97E47A2E58AC9E00063075 /* AuthenticationServiceV3.h */,
 				8F97E47B2E58AC9E00063075 /* AuthenticationServiceV3.cpp */,
+				8F0006022E6578C900C57A29 /* TokenServiceV3.h */,
+				8F0006052E65794000C57A29 /* TokenServiceV3.cpp */,
 				8F97E43D2E4B3C3F00063075 /* ActivationServiceV3.h */,
 				8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */,
 				BFCA38392E255987002F595F /* SecretKeysV3.h */,
@@ -1612,6 +1618,7 @@
 				BF99D9032073E14100735ED2 /* Password.cpp in Sources */,
 				BF4D855C2DE48AA900D32F55 /* TokenService.cpp in Sources */,
 				BF0825D22E01629500B89A68 /* AeadEncryptorFactory.cpp in Sources */,
+				8F00060D2E65794700C57A29 /* TokenServiceV3.cpp in Sources */,
 				BF4D869C2E00397900D32F55 /* Request.cpp in Sources */,
 				BF4D86702DF8307800D32F55 /* AeadUtils.cpp in Sources */,
 				BFCA383C2E255987002F595F /* SecretKeysV3.cpp in Sources */,
@@ -1727,6 +1734,7 @@
 				BF6ADD6E24C84C0C001B3E5E /* Password.cpp in Sources */,
 				BF4D855A2DE48AA900D32F55 /* TokenService.cpp in Sources */,
 				BF0825D32E01629500B89A68 /* AeadEncryptorFactory.cpp in Sources */,
+				8F00060C2E65794700C57A29 /* TokenServiceV3.cpp in Sources */,
 				BF4D869B2E00397900D32F55 /* Request.cpp in Sources */,
 				BF4D86712DF8307800D32F55 /* AeadUtils.cpp in Sources */,
 				BFCA383B2E255987002F595F /* SecretKeysV3.cpp in Sources */,

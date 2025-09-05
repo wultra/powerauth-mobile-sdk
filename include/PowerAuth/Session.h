@@ -445,8 +445,18 @@ namespace powerAuth
         
         // MARK: - Certificate Signing Request -
         
-        // TODO: add docs
-        ErrorCode createPrivateKeySignedCSR(const std::string & c_vault_key, const SignatureUnlockKeys & keys, const std::map<std::string, std::string>& dn_items, const std::vector<std::string>& san_items, std::string &csr_pem);
+        /**
+         Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and optional Subject Alternative Names, embedded device public key and signed with the device private key.
+         
+         You have to provide at keys.userPassword and keys.possessionUnlockKey.
+
+        
+         Returns EC_Ok,                       if operation succeeded
+                 EC_Encryption,      if general encryption error occurs
+                 EC_WrongState,    if the session has no valid activation
+                 EC_WrongParam,  if some required parameter is missing
+         */
+        ErrorCode createPrivateKeySignedCSR(const std::string & c_vault_key, const SignatureUnlockKeys & keys, const std::map<std::string, std::string>& dn_items, const std::vector<std::string>& san_items, std::string &out_csr);
         
     public:
         

@@ -991,11 +991,16 @@ namespace powerAuth
     
     // MARK: - Certificate Signing Request -
 
-    ErrorCode Session::createPrivateKeySignedCSR(const std::string & c_vault_key, const SignatureUnlockKeys & keys, const std::map<std::string, std::string>& dn_items, const std::vector<std::string>& san_items, std::string &csr_pem)
+    ErrorCode Session::createPrivateKeySignedCSR(const std::string & c_vault_key, const SignatureUnlockKeys & keys, const std::map<std::string, std::string>& dn_items, const std::vector<std::string>& san_items, std::string &out_csr)
     {
         LOCK_GUARD();
         if (keys.userPassword.empty()) {
             CC7_LOG("Session %p: createCSR: User password missing.", this);
+            return EC_WrongParam;
+        }
+        
+        if (dn_items.empty()) {
+            CC7_LOG("Session %p: createCSR: Distinguished Name items missing.", this);
             return EC_WrongParam;
         }
         
@@ -1037,7 +1042,7 @@ namespace powerAuth
             
             // Everything looks fine
             code = EC_Ok;
-            csr_pem = result;
+            out_csr = result;
 
         } while (false);
 

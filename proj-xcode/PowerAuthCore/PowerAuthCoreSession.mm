@@ -438,10 +438,10 @@ using namespace io::getlime::powerAuth;
         }
     }
     
-    std::string cpp_signature;
-    auto error = _session->createPrivateKeySignedCSR(cpp_c_vault_key, cpp_keys, cpp_dn, cpp_san, cpp_signature);
+    std::string cpp_csr;
+    auto error = _session->createPrivateKeySignedCSR(cpp_c_vault_key, cpp_keys, cpp_dn, cpp_san, cpp_csr);
     if (error == EC_Ok) {
-        return cc7::objc::CopyToNSString(cpp_signature);
+        return cc7::objc::CopyToNSString(cpp_csr);
     }
     
     REPORT_ERROR_CODE(@"createPrivateKeySignedCSR", error);

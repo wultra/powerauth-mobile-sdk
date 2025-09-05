@@ -1523,23 +1523,30 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
-- (id<PowerAuthOperationTask>) createCSRSignedWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
-                                                         distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
-                                                            subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
-                                                                   callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback
+- (nullable id<PowerAuthOperationTask>) createSignedCSR:(PowerAuthAuthentication*)authentication
+                                     distinguishedNames:(NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                        subjectAltNames:(NSArray<NSString*>*)subjectAltNames
+                                               callback:(void(^)(NSString * csr, NSError * error))callback
 {
+    if (!distinguishedNames) {
+        callback(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Distinguished names are missing"));
+        return nil;
+    }
+    
     return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
         NSString *csr = nil;
         if (!error) {
-            // Let's sign the data
+            // Let's create the CSR
             PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
+            keys.possessionUnlockKey = [self deviceRelatedKey];
             keys.userPassword = authentication.password;
             csr = [_sessionInterface readTaskWithSession:^id (PowerAuthCoreSession * session) {
                 return [session createPrivateKeySignedCSR:encryptedEncryptionKey keys:keys distinguishedNames:distinguishedNames subjectAltNames:subjectAltNames];
             }];
             // Propagate error
             if (!csr) {
-                error = PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to create CSR");
+                // TODO: signature error OK?
+                error = PA2MakeError(PowerAuthErrorCode_SignatureError, @"Failed to create CSR");
             }
         }
         // Call back to application

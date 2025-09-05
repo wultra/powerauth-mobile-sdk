@@ -550,11 +550,20 @@
                                                              claims:(nonnull NSDictionary<NSString*, NSObject*>*)claims
                                                            callback:(nonnull void(^)(NSString * _Nullable jwt, NSError * _Nullable error))callback;
 
-// TODO: docs
-- (nullable id<PowerAuthOperationTask>) createCSRSignedWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
-                                                         distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
-                                                            subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
-                                                                   callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback;
+/** Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and optional Subject Alternative Names, embedded device public key and signed with the device private key.
+ 
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for private recovery data decryption.
+ 
+ @param authentication Authentication used for vault unlocking call.
+ @param distinguishedNames Distinguished Names (DN) to be embedded in the CSR. The dictionary keys are DN types (like "CN", "O", "OU", "C", etc.) and values are corresponding DN values.
+ @param subjectAltNames Optional array of Subject Alternative Names (SAN)
+ @param callback The callback method with the CSR in PEM format (including -----BEGIN CERTIFICATE REQUEST----- and -----END CERTIFICATE REQUEST----- lines).
+ 
+ */
+- (nullable id<PowerAuthOperationTask>) createSignedCSR:(nonnull PowerAuthAuthentication*)authentication
+                                     distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                        subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                               callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback;
 
 @end
 

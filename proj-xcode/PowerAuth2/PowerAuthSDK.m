@@ -1523,10 +1523,10 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
-- (nullable id<PowerAuthOperationTask>) createSignedCSR:(PowerAuthAuthentication*)authentication
-                                     distinguishedNames:(NSDictionary<NSString*, NSString*>*)distinguishedNames
-                                        subjectAltNames:(NSArray<NSString*>*)subjectAltNames
-                                               callback:(void(^)(NSString * csr, NSError * error))callback
+- (nullable id<PowerAuthOperationTask>) createSignedCSRWithAuthentication:(PowerAuthAuthentication*)authentication
+                                                       distinguishedNames:(NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                          subjectAltNames:(NSArray<NSString*>*)subjectAltNames
+                                                                 callback:(void(^)(NSString * csr, NSError * error))callback
 {
     if (!distinguishedNames) {
         callback(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Distinguished names are missing"));

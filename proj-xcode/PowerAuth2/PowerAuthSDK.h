@@ -560,10 +560,10 @@
  @param callback The callback method with the CSR in PEM format (including -----BEGIN CERTIFICATE REQUEST----- and -----END CERTIFICATE REQUEST----- lines).
  
  */
-- (nullable id<PowerAuthOperationTask>) createSignedCSR:(nonnull PowerAuthAuthentication*)authentication
-                                     distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
-                                        subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
-                                               callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback;
+- (nullable id<PowerAuthOperationTask>) createSignedCSRWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                       distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                          subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                                                 callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback;
 
 @end
 

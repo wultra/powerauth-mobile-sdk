@@ -261,12 +261,12 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
         auto L1 = objc::JsonValueFromObjC(L1Data);
         auto L2 = objc::JsonValueFromObjC(L2Data);
         auto request = _session->createActivation(L1, L2);
-        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::Request &request) {
-            auto response = std::dynamic_pointer_cast<powerAuth::ActivationResult>(request.getResponseObject());
-            if (!response) {
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto result = std::dynamic_pointer_cast<powerAuth::ActivationResult>(response);
+            if (!result) {
                 throw Exception(EC_InternalError, "No ActivationResult object created");
             }
-            return [[PowerAuthCoreActivationResult alloc] initWithActivationResult:*response];
+            return [[PowerAuthCoreActivationResult alloc] initWithActivationResult:*result];
         }];
     } catch (...) {
         if (error) {
@@ -306,19 +306,19 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     return nil;
 }
 
-- (nullable PowerAuthCoreRequest*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error
+- (nullable PowerAuthCoreTask*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error
 {
     if (![self requireReadAccess:error]) {
         return nil;
     }
     try {
-        auto request = _session->fetchActivationStatus();
-        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::Request &request) {
-            auto response = std::dynamic_pointer_cast<powerAuth::ActivationStatus>(request.getResponseObject());
-            if (!response) {
+        auto task = _session->fetchActivationStatus();
+        return [[PowerAuthCoreTask alloc] initWithTask:task withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto status = std::dynamic_pointer_cast<powerAuth::ActivationStatus>(response);
+            if (!status) {
                 throw Exception(EC_InternalError, "No ActivationStatus object created");
             }
-            return [[PowerAuthCoreActivationStatus alloc] initWithActivationStatus:response];
+            return [[PowerAuthCoreActivationStatus alloc] initWithActivationStatus:status];
         }];
     } catch (...) {
         if (error) {
@@ -535,12 +535,12 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 {
     try {
         auto request = _session->createAccessToken(credentials.credentialsRef);
-        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::Request &request) {
-            auto response = std::dynamic_pointer_cast<powerAuth::GetAccessTokenResponse>(request.getResponseObject());
-            if (!response) {
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto tokenData = std::dynamic_pointer_cast<powerAuth::GetAccessTokenResponse>(response);
+            if (!tokenData) {
                 throw Exception(EC_InternalError, "No GetAccessTokenResponse object created");
             }
-            return [[PowerAuthCoreTokenData alloc] initWithResponse:response];
+            return [[PowerAuthCoreTokenData alloc] initWithResponse:tokenData];
         }];
     } catch (...) {
         if (error) {

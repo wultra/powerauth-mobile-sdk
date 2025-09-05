@@ -158,7 +158,7 @@
 - (BOOL) replaceCancelableOperation:(id<PowerAuthOperationTask>)cancelable
 {
     if (!cancelable) {
-        return nil;
+        return NO;
     }
     [_lock lock];
     //

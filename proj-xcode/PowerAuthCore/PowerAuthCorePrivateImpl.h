@@ -17,7 +17,7 @@
 #include <PowerAuth/Password.h>
 #include <PowerAuth/Configuration.h>
 #include <PowerAuth/Credentials.h>
-#include <PowerAuth/Request.h>
+#include <PowerAuth/Task.h>
 #include <PowerAuth/Encryptor.h>
 #include <PowerAuth/TimeService.h>
 #include <PowerAuth/AuthenticationService.h>
@@ -55,13 +55,18 @@
 @end
 
 /// Lambda for create custom objects when successful response is received.
-typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::Request& request);
+typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::ResponseObjectPtr& response);
 
 @interface PowerAuthCoreRequest (Private)
 - (id) initWithRequest:(powerAuth::RequestPtr&)request;
 - (id) initWithRequest:(powerAuth::RequestPtr&)request
            withBuilder:(PowerAuthCoreResponseBuilder)builder;
+@end
 
+@interface PowerAuthCoreTask (Private)
+- (id) initWithTask:(powerAuth::TaskPtr&)task;
+- (id) initWithTask:(powerAuth::TaskPtr&)task
+        withBuilder:(PowerAuthCoreResponseBuilder)builder;
 @end
 
 @interface PowerAuthCoreCredentials (Private)

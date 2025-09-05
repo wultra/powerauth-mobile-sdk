@@ -94,7 +94,7 @@ public:
     /// If the current exception is already our `Exception` type, then re-throws this exception with
     /// no additional processing.
     ///
-    /// This variant of the method determine `ErrorCode` and exception's message from the current
+    /// This variant of the method determine `ErrorCode` and exception's message from the provided
     /// exception.
     ///
     /// This is the typical usage of the method:
@@ -105,7 +105,7 @@ public:
     ///     Exception::reThrowWrapped();
     /// }
     /// ```
-    /// - Parameter failure:
+    /// - Parameter failure: Original failure.
     /// - Throws: Function always throws `Exception` type.
     static void reThrowWrapped [[noreturn]] (std::exception_ptr failure = std::current_exception());
     
@@ -126,7 +126,7 @@ public:
     /// If the current exception is already our `Exception` type, then re-throws this exception with
     /// no additional processing.
     ///
-    /// This variant of the allows you to specify `ErrorCode` and the message for the wrapping exception.
+    /// This variant of the method allows you to specify `ErrorCode` and the message for the wrapping exception.
     /// If no wrapping is used, then the code and message is ignored.
     ///
     /// - Parameters:
@@ -135,6 +135,41 @@ public:
     ///   - failure: Original failure.
     /// - Throws: Function always throws `Exception` type.
     static void reThrowWrapped [[noreturn]] (ErrorCode error, const std::string & message, std::exception_ptr failure = std::current_exception());
+    
+    /// Wrap the current exception into library's Exception object and return this new created failure.
+    /// If the current exception is already our `Exception` type, return this exception with
+    /// no additional processing.
+    ///
+    /// This variant of the method determine `ErrorCode` and exception's message from the current
+    /// exception.
+
+    /// This is the typical usage of the method:
+    /// ```
+    /// try {
+    ///     // code that should crash
+    /// } catch (...) {
+    ///     // Keep exception for later processing.
+    ///     _captured_exception = Exception::wrapException();
+    /// }
+    /// ```
+    ///
+    /// - Parameter failure: Original failure.
+    /// - Returns: Exception pointer with library's Exception object.
+    static std::exception_ptr wrapException(std::exception_ptr failure = std::current_exception()) noexcept;
+
+    /// Wrap the current exception into library's Exception object and return this new created failure.
+    /// If the current exception is already our `Exception` type, return this exception with
+    /// no additional processing.
+    ///
+    /// This variant of the method allows you to specify `ErrorCode` and the message for the wrapping exception.
+    /// If no wrapping is used, then the code and message is ignored.
+    ///
+    /// - Parameters:
+    ///   - error: Error code to use in wrapped exception.
+    ///   - message: Message to use in wrapped exception.
+    ///   - failure: Original failure.
+    /// - Returns: Exception pointer with library's Exception object.
+    static std::exception_ptr wrapException(ErrorCode error, const std::string & message, std::exception_ptr failure = std::current_exception()) noexcept;
     
     // cc7::BaseException
     

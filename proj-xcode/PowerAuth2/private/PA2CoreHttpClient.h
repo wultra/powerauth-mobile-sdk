@@ -58,4 +58,12 @@
 - (nonnull id<PowerAuthOperationTask>) postCoreRequest:(nonnull PowerAuthCoreRequest*)request
                                             completion:(void(^_Nonnull)(PowerAuthCoreRequest * _Nonnull request, id _Nullable response, NSError * _Nullable error))completion;
 
+/// Add core task for execution.
+/// - Parameters:
+///   - task: Task to execute.
+///   - completion: Completion callback.
+/// - Returns: Operation task representing asynchronous operation.
+- (nonnull id<PowerAuthOperationTask>) postCoreTask:(nonnull PowerAuthCoreTask*)task
+                                         completion:(void(^_Nonnull)(PowerAuthCoreTask * _Nonnull task, id _Nullable response, NSError * _Nullable error))completion;
+
 @end

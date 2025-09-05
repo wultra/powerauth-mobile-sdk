@@ -37,13 +37,13 @@ CC7_SHARED_PTR(ResponseObject)
 using PrepareRequestCallback = std::function<cc7::json::JsonValue(const Request&)>;
 using ResponseCallback       = std::function<ResponseObjectPtr(const Request&, const cc7::json::JsonValue&)>;
 using CancelCallback         = std::function<void()>;
-using ResponseInterceptor    = std::function<void(const ResponseObjectPtr&)>;
 
 struct EndpointSpec;
 class IClientEncryptorFactory;
 class IClientEncryptor;
 class IAuthenticationService;
 class Credentials;
+class Task;
 
 /// The `Request` class contains information about HTTP request created in the core module.
 /// The core module doesn't perform any networking, so the higher level SDK is responsible
@@ -60,10 +60,15 @@ public:
     
     /// Cancel the request. The networking code should call this method also when the
     /// non-200 response code is received.
-    void cancel();
+    void cancel() noexcept;
+        
+    /// Set external reason of failure.
+    /// - Parameter exception: Reason of failure.
+    void setFailed(std::exception_ptr exception = nullptr) noexcept;
     
-    /// Set request as failed.
-    void setFailed() noexcept;
+    /// Re-throw reason of failure. The method is useful in case the external code wants
+    /// to investigate the reason of failure. If no failure 
+    void reThrowFailure() const;
 
     /// Prepare the request body and the headers. You have to call this method before you
     /// call `getRequestBody()` or `getRequestHeaders()`.
@@ -178,10 +183,14 @@ public:
         return operation();
     }
     
-    /// Set additional callback that's called when request succeeds and the response object is created.
-    /// - Parameter interceptor: Response interceptor.
-    /// - Throws: `Exception` in case the interceptor is already set, or request is already processed.
-    void setResponseInterceptor(ResponseInterceptor interceptor);
+    /// Set tag that allows you identify different requests in
+    /// - Parameters:
+    ///   - task: Parent task associated with this request.
+    ///   - tag: Tag identifying this request.
+    void setParentTask(const std::shared_ptr<Task>& task, int tag);
+    
+    /// Get pointer to parent task. If no task is assigned, then pointer is null.
+    const std::shared_ptr<Task>& getParentTask() const noexcept;
     
 private:
     
@@ -215,7 +224,7 @@ private:
     void doProcessResponse(const cc7::ByteRange& response_data);
 
     /// Cleanup request. The method clears all pointers to callbacks and breaks possible retain loops.
-    void cleanup();
+    void cleanup() noexcept;
     
     /// Prepares request body.
     void prepareRequestBody();
@@ -223,9 +232,8 @@ private:
     /// Process failure and re-throw the provided exception.
     void processFailure [[noreturn]] (ErrorCode ec, const std::string& msg, std::exception_ptr failure);
     
-    /// Cancel implementation.
-    /// - Parameter destruct: Indicate that cancel is called from object's destructor.
-    void cancelImpl(bool destruct);
+    /// Notify all listeners about the request completion.
+    void notifyResult() noexcept;
     
     /// Endpoint specification.
     const EndpointSpec & _endpoint;
@@ -236,8 +244,10 @@ private:
     ResponseCallback _on_response;
     /// Cancel callback.
     CancelCallback _on_cancel;
-    /// Response interceptor
-    ResponseInterceptor _response_interceptor;
+    /// Parent task
+    std::shared_ptr<Task> _task;
+    /// Custom tag associated with the task
+    int _task_tag;
     
     /// If request is encrypted then contains encryptor factory.
     std::shared_ptr<IClientEncryptorFactory> _encryptor_factory;
@@ -267,8 +277,10 @@ private:
     ResponseObjectPtr _response_object;
     /// Custom parameter
     cc7::crypto::Parameter _custom_parameter;
+    /// Cause of failure
+    std::exception_ptr _failure;
 };
 
-typedef std::unique_ptr<Request> RequestPtr;
+CC7_SHARED_PTR(Request)
 
 } // namespace powerAuth

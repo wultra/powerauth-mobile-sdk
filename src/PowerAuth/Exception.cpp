@@ -111,5 +111,22 @@ void Exception::reThrowWrapped(ErrorCode error, const std::string & message, std
     throw Exception(ec, message, e);
 }
 
+std::exception_ptr Exception::wrapException(std::exception_ptr failure) noexcept
+{
+    try {
+        reThrowWrapped(failure);
+    } catch (...) {
+        return std::current_exception();
+    }
+}
+
+std::exception_ptr Exception::wrapException(ErrorCode error, const std::string &message, std::exception_ptr failure) noexcept
+{
+    try {
+        reThrowWrapped(error, message, failure);
+    } catch (...) {
+        return std::current_exception();
+    }
+}
 
 } // namespace powerAuth

@@ -17,7 +17,7 @@
 #import <PowerAuthCore/PowerAuthCoreTypes.h>
 #import <PowerAuthCore/PowerAuthCoreConfig.h>
 #import <PowerAuthCore/PowerAuthCoreError.h>
-#import <PowerAuthCore/PowerAuthCoreRequest.h>
+#import <PowerAuthCore/PowerAuthCoreTask.h>
 #import <PowerAuthCore/PowerAuthCoreTimeService.h>
 #import <PowerAuthCore/PowerAuthCoreEncryptorFactory.h>
 #import <PowerAuthCore/PowerAuthCoreCredentials.h>
@@ -208,8 +208,8 @@
 /// This function doesn't change the session's state, so read access must be guaranteed.
 ///
 /// - Parameter error: Pointer where error is stored in case of failure.
-/// - Returns: Core request object containing all required information for fetch status.
-- (nullable PowerAuthCoreRequest*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error;
+/// - Returns: Core task for getting activation status.
+- (nullable PowerAuthCoreTask*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error;
 
 /// Confirm activation and complete the activation process with user's password.
 ///

@@ -15,6 +15,7 @@
  */
 
 #import <PowerAuthCore/PowerAuthCoreRequest.h>
+#import <PowerAuthCore/PowerAuthCoreTask.h>
 #import "PowerAuthCorePrivateImpl.h"
 
 #include <PowerAuth/Request.h>
@@ -158,7 +159,7 @@
         _failure = nil;
         _request->processResponse(cc7::objc::CopyFromNSData(response));
         if (_responseBuilder) {
-            _responseObject = _responseBuilder(*_request);
+            _responseObject = _responseBuilder(_request->getResponseObject());
             _responseBuilder = nil;
         }
         _responseJson = cc7::objc::JsonValueToObjC(_request->getResponseJson());

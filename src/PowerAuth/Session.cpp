@@ -15,7 +15,7 @@
  */
 
 #include <PowerAuth/Session.h>
-#include "Context.h"
+#include "task/GetActivationStatusTask.h"
 
 namespace powerAuth {
 
@@ -168,11 +168,11 @@ std::string Session::activationFingerprint() const noexcept
     return std::string();
 }
 
-RequestPtr Session::fetchActivationStatus()
+TaskPtr Session::fetchActivationStatus()
 {
     LOCK_GUARD();
     checkActivationData();
-    return _context->activationService().fetchActivationStatus();
+    return std::make_shared<GetActivationStatusTask>(_context);
 }
 
 RequestPtr Session::removeActivation(const CredentialsPtr& credentials)

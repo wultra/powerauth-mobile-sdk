@@ -52,6 +52,7 @@ LOCAL_SRC_FILES := \
 	PowerAuth/crypto/ECC.cpp \
 	PowerAuth/crypto/PKCS7Padding.cpp \
 	PowerAuth/crypto/PRNG.cpp \
+	PowerAuth/crypto/CSR.cpp \
 	PowerAuth/protocol/Constants.cpp \
 	PowerAuth/protocol/PrivateTypes.cpp \
 	PowerAuth/protocol/ProtocolUtils.cpp \

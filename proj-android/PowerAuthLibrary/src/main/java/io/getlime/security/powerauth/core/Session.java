@@ -483,6 +483,29 @@ public class Session {
      */
     public native byte[] signDataWithDevicePrivateKey(String cVaultKey, SignatureUnlockKeys unlockKeys, byte[] data, @SignatureFormat int signatureFormat);
 
+    // TODO: docs
+    public String createSignedCSR(
+            @NonNull String cVaultKey,
+            @NonNull SignatureUnlockKeys unlockKeys,
+            @NonNull Map<String, String> distinguishedNames,
+            @Nullable String[] subjectAltNames) {
+
+        ArrayList<String> dnKeys = new ArrayList<>();
+        ArrayList<String> dnValues = new ArrayList<>();
+        for (Map.Entry<String, String> entry : distinguishedNames.entrySet()) {
+            dnKeys.add(entry.getKey());
+            dnValues.add(entry.getValue());
+        }
+        return createSignedCSR(cVaultKey, unlockKeys, dnKeys.toArray(new String[0]), dnValues.toArray(new String[0]), subjectAltNames);
+    }
+
+    private native String createSignedCSR(
+            @NonNull String cVaultKey,
+            @NonNull SignatureUnlockKeys unlockKeys,
+            @Nullable String[] dnKeys,
+            @Nullable String[] dnValues,
+            @Nullable String[] subjectAltNames);
+
     //
     // External encryption key
     //

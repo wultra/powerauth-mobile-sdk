@@ -1532,7 +1532,7 @@ static PowerAuthSDK * s_inst;
         callback(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Distinguished names are missing"));
         return nil;
     }
-    
+    // TODO: PA2VaultUnlockReason?
     return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
         NSString *csr = nil;
         if (!error) {

@@ -2348,6 +2348,54 @@ public class PowerAuthSDK {
         });
     }
 
+    // TODO: docs
+    @Nullable
+    public ICancelable createSignedCSR(
+            @NonNull Context context,
+            @NonNull PowerAuthAuthentication authentication,
+            @NonNull Map<String, String> distinguishedNames,
+            @Nullable String[] subjectAltNames,
+            @NonNull ICreateCSRListener listener) {
+        // Fetch vault unlock key
+        final CompositeCancelableTask compositeCancelableTask = new CompositeCancelableTask(true);
+        // TODO: VaultUnlockReason?
+        final ICancelable httpRequest = fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.SIGN_WITH_DEVICE_PRIVATE_KEY, new IFetchEncryptedVaultUnlockKeyListener() {
+
+            @Override
+            public void onFetchEncryptedVaultUnlockKeySucceed(final String encryptedEncryptionKey) {
+                if (encryptedEncryptionKey != null) {
+                    SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), null, authentication.getPassword());
+                    String csr = mSession.createSignedCSR(encryptedEncryptionKey, keys, distinguishedNames, subjectAltNames);
+                    if (compositeCancelableTask.setCompleted()) {
+                        if (csr != null) {
+                            listener.onCSRCreateSucceed(csr);
+                        } else {
+                            // TODO: better error?
+                            listener.onCSRCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.SIGNATURE_ERROR));
+                        }
+                    }
+                } else {
+                    if (compositeCancelableTask.setCompleted()) {
+                        // TODO: better error?
+                        listener.onCSRCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.SIGNATURE_ERROR));
+                    }
+                }
+            }
+
+            @Override
+            public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
+                if (compositeCancelableTask.setCompleted()) {
+                    listener.onCSRCreateFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, t));
+                }
+            }
+        });
+        if (httpRequest != null) {
+            compositeCancelableTask.addCancelable(httpRequest);
+            return compositeCancelableTask;
+        }
+        return null;
+    }
+
     // E2EE
 
     /**

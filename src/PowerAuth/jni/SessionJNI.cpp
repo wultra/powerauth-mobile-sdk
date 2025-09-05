@@ -637,6 +637,59 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, signDataWithDevicePrivateKey, jstring cVaultKe
     return cc7::jni::CopyToJavaByteArray(env, signature);
 }
 
+//
+// public native String createSignedCSR(String cVaultKey, SignatureUnlockKeys unlockKeys, String[] dnKeys, String[] dnValues, String[] subjectAltNames);
+//
+CC7_JNI_METHOD_PARAMS(jstring, createSignedCSR, jstring cVaultKey, jobject unlockKeys, jobjectArray dnKeys ,jobjectArray dnValues, jobjectArray subjectAltNames)
+{
+    auto session = CC7_THIS_OBJ();
+    if (!session || !cVaultKey || !unlockKeys || !dnKeys || !dnValues) {
+        CC7_ASSERT(false, "Missing param or internal handle.");
+        return NULL;
+    }
+
+    // Make sure that we have same number of keys and values for DN
+    jsize dnCount = env->GetArrayLength(dnKeys);
+    if (dnCount != env->GetArrayLength(dnValues)) {
+        CC7_ASSERT(false, "Different number of keys and values for DN.");
+        return NULL;
+    }
+
+    // Load parameters into C++ objects
+    std::string cppCVaultKey = cc7::jni::CopyFromJavaString(env, cVaultKey);
+    std::map<std::string, std::string> cppDn;
+    std::vector<std::string> cppSan;
+    SignatureUnlockKeys cppUnlockKeys;
+
+    // Fill the DN map
+    for (jsize index = 0; index < dnCount; index++) {
+        jstring dnKey      = (jstring) env->GetObjectArrayElement(dnKeys, index);
+        jstring dnValue    = (jstring) env->GetObjectArrayElement(dnValues, index);
+        std::string cppKey   = cc7::jni::CopyFromJavaString(env, dnKey);
+        std::string cppValue = cc7::jni::CopyFromJavaString(env, dnValue);
+        cppDn[cppKey] = cppValue;
+    }
+
+    if (subjectAltNames) {
+        for (jsize index = 0; index < env->GetArrayLength(subjectAltNames); index++) {
+            jstring san = (jstring) env->GetObjectArrayElement(subjectAltNames, index);
+            cppSan.push_back(cc7::jni::CopyFromJavaString(env, san));
+        }
+    }
+
+    // Load unlock keys
+    if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
+        return NULL;
+    }
+
+    std::string cppCsr;
+    ErrorCode code = session->createPrivateKeySignedCSR(cppCVaultKey, cppUnlockKeys, cppDn, cppSan, cppCsr);
+    if (code == EC_Ok) {
+        return cc7::jni::CopyToJavaString(env, cppCsr);
+    }
+    return NULL;
+}
+
 
 // ----------------------------------------------------------------------------
 // External Encryption Key

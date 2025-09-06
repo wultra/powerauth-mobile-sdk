@@ -16,6 +16,8 @@
 
 #import <PowerAuthCore/PowerAuthCoreRequest.h>
 
+/// The `PowerAuthCoreTask` object represents a task that covers execution
+/// of complex operations composed from multiple HTTP requests.
 @interface PowerAuthCoreTask : NSObject
 
 /// Default construction is unavailable
@@ -49,8 +51,9 @@
 /// Cancel the task.
 - (void) cancel;
 
-/// Return next request if task has more requests to execute. If
-/// - Parameter error:
+/// Get the next request to execute as a part of this task.
+/// 
+/// - Parameter error: Pointer where the error is set in case of failure.
 /// - Returns: Next request or `nil` if there's no request scheduled or operation failed. Check
 ///            error pointer to distinguish between this states.
 - (nullable PowerAuthCoreRequest*) nextRequest:(NSError*_Nullable*_Nullable)error;

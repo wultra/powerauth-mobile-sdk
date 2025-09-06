@@ -187,11 +187,11 @@ void Task::setNextRequest(const RequestPtr &request, int tag, int flags)
     _current_request_flags = flags;
 }
 
-void Task::setRequestCompleted(const Request &request, int request_tag) noexcept
+void Task::setRequestCompleted(const Request &request) noexcept
 {
     LOCK_GUARD();
     try {
-        if (request_tag != _current_request_tag) {
+        if (request.getParentTaskTag() != _current_request_tag) {
             throw Exception(EC_InternalError, "Unknown tag in request");
         }
         const auto is_primary = (_current_request_flags & RF_PRIMARY) == RF_PRIMARY;
@@ -203,7 +203,7 @@ void Task::setRequestCompleted(const Request &request, int request_tag) noexcept
                     _response_object = request.getResponseObject();
                     _response_json = request.getResponseJson();
                 }
-                onRequestSuccess(request, request_tag);
+                onRequestSuccess(request);
             }
         } else if (request.isFailed()) {
             log(request.getRelativePath() + ": Request failed");
@@ -218,12 +218,12 @@ void Task::setRequestCompleted(const Request &request, int request_tag) noexcept
                     }
                 }
                 // Always notify about failure
-                onRequestFailure(request, request_tag);
+                onRequestFailure(request);
             }
         } else if (request.isCanceled()) {
             log(request.getRelativePath() + ": Request canceled");
             if (_state == State::PENDING) {
-                onRequestCancel(request, request_tag);
+                onRequestCancel(request);
             }
         } else {
             throw Exception(EC_InternalError, "Completion is set in unknown request's state");
@@ -280,18 +280,18 @@ void Task::onTaskEnd()
     }
 }
 
-void Task::onRequestSuccess(const Request& request, int request_tag)
+void Task::onRequestSuccess(const Request& request)
 {
     // empty
 }
 
-void Task::onRequestFailure(const Request& request, int request_tag)
+void Task::onRequestFailure(const Request& request)
 {
     // By default, set task as completed
     setCompleted();
 }
 
-void Task::onRequestCancel(const Request& request, int request_tag)
+void Task::onRequestCancel(const Request& request)
 {
     // empty
 }

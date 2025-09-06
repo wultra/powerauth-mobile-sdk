@@ -28,8 +28,8 @@ public:
     
 protected:
     void onTaskStart() override;
-    void onRequestSuccess(const Request &request, int request_tag) override;
-    void onRequestFailure(const Request &request, int request_tag) override;
+    void onRequestSuccess(const Request &request) override;
+    void onRequestFailure(const Request &request) override;
     
     enum RequestId
     {

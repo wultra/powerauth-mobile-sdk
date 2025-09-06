@@ -183,14 +183,19 @@ public:
         return operation();
     }
     
-    /// Set tag that allows you identify different requests in
+    /// Set parent task that manages execution of this request.
     /// - Parameters:
-    ///   - task: Parent task associated with this request.
-    ///   - tag: Tag identifying this request.
+    ///   - task: Parent task.
+    ///   - tag: Tag identifying this request in the task.
+    /// - Throws: `Exception` in case parent task is already set or it's too late to
+    ///           set the task.
     void setParentTask(const std::shared_ptr<Task>& task, int tag);
     
     /// Get pointer to parent task. If no task is assigned, then pointer is null.
     const std::shared_ptr<Task>& getParentTask() const noexcept;
+    
+    /// Get tag associated with the parent task.
+    int getParentTaskTag() const noexcept;
     
 private:
     

@@ -43,11 +43,10 @@ public:
     ///
     /// To avoid cyclic reference between `Task` and `Request` this function removes strong reference to the returned
     /// request. The caller must capture immediately the request's reference to keep it alive during its execution.
-    /// The task no longer keeps
-    ///
+    /// The task then keeps only a weak reference for the cancelation purpose.
     ///
     /// - Returns: Next request to execute or `nullptr` in case the task is completed.
-    /// - Throws: `Exception` if task starting failed. If task is already failed, then method re-throws previously
+    /// - Throws: `Exception` if task start did fail. If task is already failed, then the method re-throws previously
     ///           captured exception.
     RequestPtr getNextRequest();
     
@@ -123,20 +122,17 @@ protected:
     /// Overridable method, called when partial request ends with success.
     /// - Parameters:
     ///   - request: Request that just finished.
-    ///   - request_tag: Request's tag.
-    virtual void onRequestSuccess(const Request& request, int request_tag);
+    virtual void onRequestSuccess(const Request& request);
     
     /// Overridable method, called when partial request ends with failure.
     /// - Parameters:
     ///   - request: Request that just failed.
-    ///   - request_tag: Request's tag.
-    virtual void onRequestFailure(const Request& request, int request_tag);
+    virtual void onRequestFailure(const Request& request);
     
     /// Overridable method, called when partial request is canceled.
     /// - Parameters:
     ///   - request: Request that just finished.
-    ///   - request_tag: Request's tag.
-    virtual void onRequestCancel(const Request& request, int request_tag);
+    virtual void onRequestCancel(const Request& request);
         
     /// Helper method that allows you acquire context from internal weak reference.
     /// Method throws exception if context cannot be acquired.
@@ -151,6 +147,8 @@ protected:
     const SharedMutexPtr& _mutex;
     
 private:
+    friend class Request;
+    
     enum class State
     {
         CREATED,
@@ -159,14 +157,12 @@ private:
         FAILED,
         CANCELED
     };
-
-    friend class Request;
     
-    /// Internal method, called from `Request` if such request complete its execution.
+    /// Set request as completed. The method is called from `Request` when the request ends
+    /// its execution.
     /// - Parameters:
     ///   - request: Reference to just finished request.
-    ///   - request_tag: Request's tag.
-    void setRequestCompleted(const Request& request, int request_tag) noexcept;
+    void setRequestCompleted(const Request& request) noexcept;
     
     /// Helper method that captures the failure.
     void captureException(std::exception_ptr failure = std::current_exception()) noexcept;
@@ -174,20 +170,31 @@ private:
     /// Helper method that captures the failure and sets task as completed.
     void captureExceptionAndComplete(std::exception_ptr failure = std::current_exception()) noexcept;
     
-    std::weak_ptr<Context> _context;
+    /// State of the task.
     State _state;
+    /// Indicate that completion callbacks were processed.
     bool _completion_processed;
+    /// Contains number of processed requests.
     int _processed_requests;
     
+    /// Pointer to weak context
+    std::weak_ptr<Context> _context;
+    /// Strong reference to the next request.
     RequestPtr _next_request;
+    /// Weak reference to the pending request.
     RequestWeakPtr _current_request;
+    /// Next / current request's tag.
     int _current_request_tag;
+    /// Next / current request's processing flags.
     int _current_request_flags;
     
     // Result
     
+    /// Captured response object from the primary request.
     ResponseObjectPtr _response_object;
+    /// Captured response JSON from the primary request.
     cc7::json::JsonValue _response_json;
+    /// Captured reason of failure.
     std::exception_ptr _failure;
 };
 

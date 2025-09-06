@@ -33,9 +33,9 @@ void GetActivationStatusTask::onTaskStart()
     setNextRequest(_activation_service->fetchActivationStatus(), FETCH_STATUS, RF_PRIMARY);
 }
 
-void GetActivationStatusTask::onRequestSuccess(const Request &request, int request_tag)
+void GetActivationStatusTask::onRequestSuccess(const Request &request)
 {
-    switch (request_tag) {
+    switch (request.getParentTaskTag()) {
         case FETCH_STATUS:
             processActivationStatus(*request.getTypedResponseObject<ActivationStatus>());
             break;
@@ -47,9 +47,9 @@ void GetActivationStatusTask::onRequestSuccess(const Request &request, int reque
     }
 }
 
-void GetActivationStatusTask::onRequestFailure(const Request &request, int request_tag)
+void GetActivationStatusTask::onRequestFailure(const Request &request)
 {
-    if (request_tag == SYNC_COUNTER) {
+    if (request.getParentTaskTag() == SYNC_COUNTER) {
         // Failure in this request is ignored. We can set the request as completed.
         // The previously captured status is preserved and reported as the final result of the task.
         setCompleted();

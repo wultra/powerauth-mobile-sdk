@@ -19,7 +19,6 @@
 typedef void(^PowerAuthCoreRequestCallback)(id _Nullable response, NSError * _Nullable error);
 
 /// The `PowerAuthCoreRequest` object represents a HTTP request created in core module.
-/// The object provide all
 @interface PowerAuthCoreRequest : NSObject
 
 /// Default construction is unavailable

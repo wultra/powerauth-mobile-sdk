@@ -181,6 +181,11 @@ const TaskPtr& Request::getParentTask() const noexcept
     return _task;
 }
 
+int Request::getParentTaskTag() const noexcept
+{
+    return _task_tag;
+}
+
 // MARK: - Failure and cleanup
 
 void Request::setFailed(std::exception_ptr exception) noexcept
@@ -240,7 +245,7 @@ void Request::notifyResult() noexcept
     if (_task) {
         try {
             auto task = std::move(_task);
-            task->setRequestCompleted(*this, _task_tag);
+            task->setRequestCompleted(*this);
         } catch (...) {
             // TODO: log exception
             CC7_LOG("Task completion callback in request failed");

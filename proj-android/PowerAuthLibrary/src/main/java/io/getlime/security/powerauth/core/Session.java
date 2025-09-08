@@ -483,8 +483,25 @@ public class Session {
      */
     public native byte[] signDataWithDevicePrivateKey(String cVaultKey, SignatureUnlockKeys unlockKeys, byte[] data, @SignatureFormat int signatureFormat);
 
-    // TODO: docs
-    public String createSignedCSR(
+    /**
+     * Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and optional Subject Alternative Names, embedded device public key and signed with the device private key.
+     * <p>
+     *  You have to provide encrypted vault key |cVaultKey| in Base64 format and |unlockKeys| object where the valid userPassword is set.
+     *
+     * <h2>Discussion</h2>
+     *
+     * The session's state contains device private key but it is encrypted with a vault key, which is normally not
+     * available on the device. Just like other vault related operations, you have to properly sign HTTP request
+     * with using PA2SignatureFactor_PrepareForVaultUnlock flag, otherwise the operation will fail.
+     *
+     * @param cVaultKey encrypted vault key
+     * @param unlockKeys unlock keys object with required possession factor
+     * @param distinguishedNames Distinguished Names (DN) to be embedded in the CSR.
+     * @param subjectAltNames Subject Alternative Names (SAN)
+     *
+     * @return Returns CSR in PEM format or null in case of failure.
+     */
+    public String createPrivateKeySignedCSR(
             @NonNull String cVaultKey,
             @NonNull SignatureUnlockKeys unlockKeys,
             @NonNull Map<String, String> distinguishedNames,
@@ -496,10 +513,10 @@ public class Session {
             dnKeys.add(entry.getKey());
             dnValues.add(entry.getValue());
         }
-        return createSignedCSR(cVaultKey, unlockKeys, dnKeys.toArray(new String[0]), dnValues.toArray(new String[0]), subjectAltNames);
+        return createPrivateKeySignedCSR(cVaultKey, unlockKeys, dnKeys.toArray(new String[0]), dnValues.toArray(new String[0]), subjectAltNames);
     }
 
-    private native String createSignedCSR(
+    private native String createPrivateKeySignedCSR(
             @NonNull String cVaultKey,
             @NonNull SignatureUnlockKeys unlockKeys,
             @Nullable String[] dnKeys,

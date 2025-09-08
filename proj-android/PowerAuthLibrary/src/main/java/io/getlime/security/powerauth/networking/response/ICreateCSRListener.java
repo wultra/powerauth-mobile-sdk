@@ -22,7 +22,7 @@ import androidx.annotation.NonNull;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
- * Listener for Creating CSR.
+ * Listener for Creating PowerAuth signed CSR.
  */
 public interface ICreateCSRListener {
 

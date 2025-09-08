@@ -555,10 +555,10 @@
  This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for private recovery data decryption.
  
  @param authentication Authentication used for vault unlocking call.
- @param distinguishedNames Distinguished Names (DN) to be embedded in the CSR. The dictionary keys are DN types (like "CN", "O", "OU", "C", etc.) and values are corresponding DN values.
+ @param distinguishedNames Distinguished Names (DN) to be embedded in the CSR. The dictionary keys are DN types (like "CN", "O", etc.) and values are corresponding DN values.
  @param subjectAltNames Optional array of Subject Alternative Names (SAN)
- @param callback The callback method with the CSR in PEM format (including -----BEGIN CERTIFICATE REQUEST----- and -----END CERTIFICATE REQUEST----- lines).
- 
+ @param callback The callback method with the CSR in PEM format with lines separated by `\n` (including `-----BEGIN CERTIFICATE REQUEST`----- and `-----END CERTIFICATE REQUEST-----` lines).
+ @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) createSignedCSRWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                        distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames

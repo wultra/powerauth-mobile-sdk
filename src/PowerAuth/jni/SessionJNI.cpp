@@ -638,9 +638,9 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, signDataWithDevicePrivateKey, jstring cVaultKe
 }
 
 //
-// public native String createSignedCSR(String cVaultKey, SignatureUnlockKeys unlockKeys, String[] dnKeys, String[] dnValues, String[] subjectAltNames);
+// public native String createPrivateKeySignedCSR(String cVaultKey, SignatureUnlockKeys unlockKeys, String[] dnKeys, String[] dnValues, String[] subjectAltNames);
 //
-CC7_JNI_METHOD_PARAMS(jstring, createSignedCSR, jstring cVaultKey, jobject unlockKeys, jobjectArray dnKeys ,jobjectArray dnValues, jobjectArray subjectAltNames)
+CC7_JNI_METHOD_PARAMS(jstring, createPrivateKeySignedCSR, jstring cVaultKey, jobject unlockKeys, jobjectArray dnKeys ,jobjectArray dnValues, jobjectArray subjectAltNames)
 {
     auto session = CC7_THIS_OBJ();
     if (!session || !cVaultKey || !unlockKeys || !dnKeys || !dnValues) {
@@ -678,7 +678,7 @@ CC7_JNI_METHOD_PARAMS(jstring, createSignedCSR, jstring cVaultKey, jobject unloc
     }
 
     // Load unlock keys
-    if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
+    if (!LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
         return NULL;
     }
 

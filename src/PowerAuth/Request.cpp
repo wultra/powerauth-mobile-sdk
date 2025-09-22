@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <PowerAuth/Request.h>
+#include <PowerAuth/Task.h>
 #include <PowerAuth/Encryptor.h>
 #include <PowerAuth/AuthenticationService.h>
 
@@ -27,13 +27,14 @@ namespace powerAuth {
 Request::Request(const SharedMutexPtr& mutex, const EndpointSpec& endpoint) :
     _mutex(mutex),
     _endpoint(endpoint),
+    _task_tag(0),
     _state(WAITING)
 {
 }
 
 Request::~Request()
 {
-    cancelImpl(true);
+    cancel();
 }
 
 const std::string& Request::getRelativePath() const noexcept
@@ -101,32 +102,15 @@ bool Request::isDone() const noexcept
     return _state >= PROCESSED;
 }
 
-void Request::cancel()
+void Request::cancel() noexcept
 {
     LOCK_GUARD();
-    cancelImpl(false);
-}
-
-void Request::cancelImpl(bool destruct)
-{
     if (_state < PROCESSED) {
         return;
     }
     _state = CANCELED;
-    // Execute cancel handler in safe way.
-    try {
-        if (_on_cancel) {
-            _on_cancel();
-        }
-        cleanup();
-    } catch (...) {
-        cleanup();
-        if (destruct) {
-            CC7_LOG("Internal cancel processing in request failed");
-        } else {
-            Exception::reThrowWrapped(EC_Canceled, "Internal cancel processing in request failed");
-        }
-    }
+    notifyResult();
+    cleanup();
 }
 
 const cc7::ByteArray& Request::getRequestBody() const
@@ -179,31 +163,64 @@ const cc7::crypto::Parameter& Request::getCustomParameter() const noexcept
     return _custom_parameter;
 }
 
-void Request::setResponseInterceptor(ResponseInterceptor interceptor)
+void Request::setParentTask(const std::shared_ptr<Task> &task, int tag)
 {
     LOCK_GUARD();
     if (_state != WAITING) {
-        throw Exception(EC_NotAllowed, "Too late to set response interceptor");
+        throw Exception(EC_NotAllowed, "Too late to set parent task");
     }
-    if (_response_interceptor != nullptr) {
-        throw Exception(EC_NotAllowed, "Response interceptor is already set");
+    if (_task) {
+        throw Exception(EC_NotAllowed, "Parent task is already set");
     }
-    _response_interceptor = interceptor;
+    _task = task;
+    _task_tag = tag;
+}
+
+const TaskPtr& Request::getParentTask() const noexcept
+{
+    return _task;
+}
+
+int Request::getParentTaskTag() const noexcept
+{
+    return _task_tag;
+}
+
+// MARK: - Failure and cleanup
+
+void Request::setFailed(std::exception_ptr exception) noexcept
+{
+    LOCK_GUARD();
+    if (!isDone()) {
+        CC7_LOG("Request set as failed");
+        _state = FAILED;
+        _failure = Exception::wrapException(exception);
+    }
+}
+
+void Request::reThrowFailure() const
+{
+    LOCK_GUARD();
+    if (isFailed()) {
+        if (_failure) {
+            std::rethrow_exception(_failure);
+        }
+        throw Exception(EC_Other, "Request failed with no exact reason");
+    }
+    throw Exception(EC_NotAllowed, "Request did not fail");
 }
 
 void Request::processFailure(ErrorCode ec, const std::string& msg, std::exception_ptr failure)
 {
     _state = FAILED;
     CC7_LOG("Request failure (%d): %s", ec, msg.c_str());
-    if (_on_cancel) {
-        _on_cancel();
-        _on_cancel = nullptr;
-    }
+    _failure = Exception::wrapException(ec, msg, failure);
+    notifyResult();
     cleanup();
-    Exception::reThrowWrapped(ec, msg, failure);
+    std::rethrow_exception(_failure);
 }
 
-void Request::cleanup()
+void Request::cleanup() noexcept
 {
     _encryptor_factory = nullptr;
     _encryptor = nullptr;
@@ -211,7 +228,29 @@ void Request::cleanup()
     _on_prepare = nullptr;
     _on_cancel = nullptr;
     _on_response = nullptr;
-    _response_interceptor = nullptr;
+    _task = nullptr;
+}
+
+void Request::notifyResult() noexcept
+{
+    if ((_state == FAILED || _state == CANCELED) && _on_cancel) {
+        try {
+            auto callback = std::move(_on_cancel);
+            callback();
+        } catch (...) {
+            // TODO: log exception
+            CC7_LOG("Cancel callback in request failed");
+        }
+    }
+    if (_task) {
+        try {
+            auto task = std::move(_task);
+            task->setRequestCompleted(*this);
+        } catch (...) {
+            // TODO: log exception
+            CC7_LOG("Task completion callback in request failed");
+        }
+    }
 }
 
 // MARK: - Request prepare
@@ -294,15 +333,6 @@ void Request::prepareRequestBody()
 
 // MARK: - Response process
 
-void Request::setFailed() noexcept
-{
-    LOCK_GUARD();
-    if (!isDone()) {
-        CC7_LOG("Request set as failed");
-        _state = FAILED;
-    }
-}
-
 void Request::processResponse(const cc7::ByteRange& response_data)
 {
     LOCK_GUARD();
@@ -311,14 +341,12 @@ void Request::processResponse(const cc7::ByteRange& response_data)
     }
     try {
         doProcessResponse(response_data);
-        _state = PROCESSED;
         if (_on_response) {
             _response_object = _on_response(*this, _response_json);
             _on_response = nullptr;
         }
-        if (_response_interceptor) {
-            _response_interceptor(_response_object);
-        }
+        _state = PROCESSED;
+        notifyResult();
         cleanup();
     } catch (...) {
         processFailure(EC_InvalidData, "Failed to process response", std::current_exception());

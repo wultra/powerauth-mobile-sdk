@@ -25,6 +25,7 @@
 #include <PowerAuth/ByteUtils.h>
 #include <PowerAuth/Debug.h>
 
+#include <PowerAuth/Task.h>
 #include <PowerAuth/Credentials.h>
 #include <PowerAuth/Encryptor.h>
 #include <PowerAuth/ActivationResult.h>
@@ -147,10 +148,10 @@ public:
     
     /// Fetch activation status.
     ///
-    /// - Returns: Request data for getting activation status endpoint.
+    /// - Returns: Task for fetching activation status.
     /// - Throws:
     ///   - `Exception` in case of failure.
-    RequestPtr fetchActivationStatus();
+    TaskPtr fetchActivationStatus();
     
     /// Remove activation status.
     ///

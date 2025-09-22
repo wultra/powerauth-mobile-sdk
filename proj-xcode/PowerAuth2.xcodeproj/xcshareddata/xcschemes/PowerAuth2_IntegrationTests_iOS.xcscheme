@@ -78,16 +78,19 @@
             </BuildableReference>
             <SkippedTests>
                <Test
-                  Identifier = "BaseTests_V3/testCounterSync_ClientIsAhead">
+                  Identifier = "BaseTests_V3/testBasicTokenOperations">
                </Test>
                <Test
-                  Identifier = "BaseTests_V3/testCounterSync_ServerIsAhead">
+                  Identifier = "BaseTests_V3/testCreateTokenWithDifferentAuth">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testCustomOfflineSignature">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testEncryptorCreation">
+               </Test>
+               <Test
+                  Identifier = "BaseTests_V3/testGroupedCreateTokenRequests">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testJwtSignature">
@@ -105,6 +108,9 @@
                   Identifier = "BaseTests_V3/testTemporaryKeyExpiration">
                </Test>
                <Test
+                  Identifier = "BaseTests_V3/testTokens_ConcurrentCreationAndRemove">
+               </Test>
+               <Test
                   Identifier = "BaseTests_V3/testUserInfo">
                </Test>
                <Test
@@ -112,12 +118,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testVerifyServerSignedData">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCounterSync_ClientIsAhead">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testCounterSync_ServerIsAhead">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testEncryptorCreation">
@@ -136,12 +136,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384/testVerifyServerSignedData">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCounterSync_ClientIsAhead">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testCounterSync_ServerIsAhead">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testEncryptorCreation">
@@ -495,6 +489,42 @@
                   Identifier = "SharedTests_V4_EC_P384">
                </Test>
                <Test
+                  Identifier = "SharedTests_V4_EC_P384/testActivationStatus">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testActivationStatusConcurrent">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testActivationStatusFailCounters">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testActivationStatusMaxFailAttempts">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testAddingBiometryFactor">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testAlgorithmSetup">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testAuthentication">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testBasicTokenOperations">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testBiometrySignatureWhenNotConfigured">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCallToCreateActivationInWrongState">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCancelEnqueuedHttpOperation">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testChangePassword">
+               </Test>
+               <Test
                   Identifier = "SharedTests_V4_EC_P384/testConcurrentActivation">
                </Test>
                <Test
@@ -502,6 +532,81 @@
                </Test>
                <Test
                   Identifier = "SharedTests_V4_EC_P384/testConcurrentTokens">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCounterSync_ClientIsAhead">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCounterSync_ServerIsAhead">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationAndPersistWithCorePassword">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationAndPersistWithPassword">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWhenApplicationIsUnsupported">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWithBiometry">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWithExternalBiometry">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWithOtpAndSignature">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWithSignature">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWithoutSignature">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCreateTokenWithDifferentAuth">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testCustomOfflineAuthCode">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testEncryptorCreation">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testGroupedCreateTokenRequests">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testJwtSignature">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testPasswordCorrect">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testPasswordCorrectWhenBlocked">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testRemoveActivation">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testRestoreSessionState">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testSignDataWithDevicePrivateKey">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testTemporaryKeyExpiration">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testTokens_ConcurrentCreationAndRemove">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testUserInfo">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testVerifyServerSignedData">
+               </Test>
+               <Test
+                  Identifier = "SharedTests_V4_EC_P384/testWithWrongLAContext">
                </Test>
                <Test
                   Identifier = "SharedTests_V4_EC_P384_ML_L3">

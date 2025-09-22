@@ -19,7 +19,6 @@
 typedef void(^PowerAuthCoreRequestCallback)(id _Nullable response, NSError * _Nullable error);
 
 /// The `PowerAuthCoreRequest` object represents a HTTP request created in core module.
-/// The object provide all
 @interface PowerAuthCoreRequest : NSObject
 
 /// Default construction is unavailable
@@ -57,12 +56,11 @@ typedef void(^PowerAuthCoreRequestCallback)(id _Nullable response, NSError * _Nu
 /// property is updated with the error.
 @property (nonatomic, readonly, strong, nonnull) NSArray<PowerAuthCoreHttpHeader*>* requestHeaders;
 
-/// Contains YES if the request is completed and successfully processed.
-@property (nonatomic, readonly) BOOL isCompleted;
-
 /// Contains YES if the request is finished no matter of the result. Use `isCompleted`,
 /// `isCanceled` or `isFailed` to determine the exact result.
 @property (nonatomic, readonly) BOOL isDone;
+/// Contains YES if the request is completed and successfully processed.
+@property (nonatomic, readonly) BOOL isCompleted;
 /// Contains YES if the request has been canceled.
 @property (nonatomic, readonly) BOOL isCanceled;
 /// Contains YES if the request processing failed.

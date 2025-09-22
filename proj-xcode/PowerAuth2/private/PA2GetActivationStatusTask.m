@@ -107,14 +107,14 @@
 - (void) fetchActivationStatus:(void(^)(PowerAuthActivationStatus *status, NSError *error))callback
 {
     NSError* localError = nil;
-    PowerAuthCoreRequest * request = [_sessionProvider readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError** error) {
+    PowerAuthCoreTask * task = [_sessionProvider readTaskWithSession:^PowerAuthCoreTask* (PowerAuthCoreSession * session, NSError** error) {
         return [session fetchActivationStatus:error];
     } error:&localError];
     if (localError) {
         callback(nil, localError);
         return;
     }
-    id<PowerAuthOperationTask> fetchStatusTask = [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, PowerAuthCoreActivationStatus * response, NSError * error) {
+    id<PowerAuthOperationTask> fetchStatusTask = [_client postCoreTask:task completion:^(PowerAuthCoreTask * task, PowerAuthCoreActivationStatus * response, NSError * error) {
         PowerAuthActivationStatus * status;
         if (response) {
             status = [[PowerAuthActivationStatus alloc] initWithCoreStatus:response];

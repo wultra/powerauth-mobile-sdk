@@ -16,6 +16,7 @@
 
 #import "PA2CoreHttpClient.h"
 #import "PA2CompositeTask.h"
+#import "PA2CoreTaskWrapper.h"
 #import "PA2AsyncOperation.h"
 #import "PA2PrivateMacros.h"
 #import "PA2ErrorResponse+Decodable.h"
@@ -273,6 +274,14 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         [_GetSharedConcurrentQueue() addOperation:op];
     }
     return op;
+}
+
+- (id<PowerAuthOperationTask>) postCoreTask:(PowerAuthCoreTask *)task
+                                 completion:(void (^)(PowerAuthCoreTask *, id, NSError *))completion
+{
+    return [[[PA2CoreTaskWrapper alloc] initWithCoreTask:task
+                                              httpClient:self
+                                              completion:completion] processNext];
 }
 
 - (NSMutableURLRequest*) buildUrlRequest:(PowerAuthCoreRequest*)coreRequest error:(NSError**)error

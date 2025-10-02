@@ -72,6 +72,17 @@ const EndpointSpec Endpoint_ValidateCredentials {
     Version_V4, "/pa/v4/auth/validate", "/pa/auth/validate", EncryptorId::NONE
 };
 
+/// Authenticated with V3.3 authentication code
+const EndpointSpec Endpoint_ProtocolUpgradeStart {
+    Version_V4, "/pa/v4/upgrade/start", "/pa/upgrade/start", EncryptorId::UPGRADE_START,
+    EndpointSpec::FL_ALLOWED_IN_UPGRADE | EndpointSpec::FL_SERIALIZED | EndpointSpec::FL_FORCE_ENCRYPTION_HEADER
+};
+
+const EndpointSpec Endpoint_ProtocolUpgradeConfirm {
+    Version_V4, "/pa/v4/upgrade/confirm", "/pa/upgrade/confirm", EncryptorId::NONE,
+    EndpointSpec::FL_ALLOWED_IN_UPGRADE | EndpointSpec::FL_SERIALIZED
+};
+
 } // namespace v4
 
 namespace v3 {
@@ -101,11 +112,11 @@ const EndpointSpec Endpoint_VaultUnlock {
 };
 
 const EndpointSpec Endpoint_TokenCreate {
-    Version_V4, "/pa/v3/token/create", "/pa/token/create", EncryptorId::CREATE_TOKEN
+    Version_V3, "/pa/v3/token/create", "/pa/token/create", EncryptorId::CREATE_TOKEN
 };
 
 const EndpointSpec Endpoint_TokenRemove {
-    Version_V4, "/pa/v3/token/remove", "/pa/token/remove", EncryptorId::NONE
+    Version_V3, "/pa/v3/token/remove", "/pa/token/remove", EncryptorId::NONE
 };
 
 } // namespace v3

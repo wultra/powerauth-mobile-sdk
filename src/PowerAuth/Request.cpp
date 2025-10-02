@@ -291,8 +291,9 @@ void Request::doPrepareRequest()
         // Encode cryptogram to body
         _request_body = cc7::json::JsonWriter::toJsonData(cryptogram.requestPayload);
         // Insert headers into request headers
-        if (!is_authenticated) {
+        if (!is_authenticated || _endpoint.forceEncryptionHeader()) {
             // Insert encryption header only if this is not signed request.
+            // Or the encryption header is enforced by the endpoint's spec flag.
             _request_headers.insert(_request_headers.end(),
                                     cryptogram.requestHeaders.begin(),
                                     cryptogram.requestHeaders.end());

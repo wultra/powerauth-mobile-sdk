@@ -154,6 +154,16 @@ public:
     ///   - `Exception` in case of failure.
     TaskPtr fetchActivationStatus();
     
+    /// Start upgrade from protocol V3 to V4.
+    ///
+    /// - Parameters:
+    ///   - password: Current password for authenticated request.
+    ///   - new_biometry_kek: New KEK protecting biometric factor in V4.
+    /// - Returns: Task that starts the protocol upgrade procedure.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    TaskPtr startProtocolUpgrade(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek = cc7::ByteRange());
+    
     /// Remove activation status.
     ///
     /// - Parameter credentials: Credentials for authentication on the server.

@@ -174,6 +174,12 @@ const TimeServicePtr& Context::getTimeServicePtr() const noexcept
 
 const IClientEncryptorFactoryPtr& Context::getEncryptorFactoryPtr() const noexcept
 {
+    /// During protocol upgrade we use the V4 E2EE approach
+    if (_session_data->hasUpgradeData()) {
+        CHECK_AS_SERVICE_PTR(_session_data->upgradeData().v4().context->_encryptor_factory)
+        return _session_data->upgradeData().v4().context->_encryptor_factory;
+    }
+    
     CHECK_AS_SERVICE_PTR(_encryptor_factory)
     return _encryptor_factory;
 }
@@ -247,6 +253,24 @@ ContextPtr Context::getInstance(ConfigurationPtr configuration)
     return context;
 }
 
+Context::Context(const Context& primary_context) :
+    _shared_mutex(primary_context.getSharedMutexPtr()),
+    _configuration(primary_context.getConfigurationPtr()),
+    _time_service(primary_context.getTimeServicePtr()),
+    _session_data(primary_context.getSessionDataPtr())
+{
+}
+
+ContextPtr Context::getTargetAlgorithmInstance(const ContextPtr& primary_context)
+{
+    auto config = primary_context->configuration();
+    auto spec = PowerAuthSpec::specForAlgorithm(config.algorithm());
+    
+    auto target_context = std::make_shared<Context>(*primary_context);
+    target_context->createServices(false, spec);
+    return target_context;
+}
+
 void Context::createServices(bool initial_setup, ConstPowerAuthSpecPtr specification)
 {
     auto self = shared_from_this();
@@ -262,6 +286,7 @@ void Context::createServices(bool initial_setup, ConstPowerAuthSpecPtr specifica
         // V4
         _shared_secret = SharedSecret::getInstance(_specification->sharedSecret());
         _key_provider = std::make_shared<v4::KeyProviderV4>(self);
+        _key_provider->asService()->restoreSensitiveData();
         _vault_service = std::make_shared<VaultService>(self, version);
         _encryptor_factory = std::make_shared<v4::AeadEncryptorFactory>(self);
         _activation_service = std::make_shared<v4::ActivationServiceV4>(self);

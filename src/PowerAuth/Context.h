@@ -49,6 +49,20 @@ public:
     ///   - configuration: Instance configuration.
     Context(PowerAuthSpecPtr specification, ConfigurationPtr configuration);
     
+    /// Create instance of context for the target algorithm based on an existing primary context.
+    /// It is used when multiple algorithmic contexts are needed (e.g. protocol upgrade) that share
+    /// common settings, while allowing specialization for the target algorithm.
+    /// - Parameters:
+    ///   - primary_context: Primary context instance for constructing the new target algorithm context.
+    static std::shared_ptr<Context> getTargetAlgorithmInstance(const std::shared_ptr<Context>& primary_context);
+    
+    /// Construct context object as a copy of an existing (primary) context object.
+    /// Please use `getTargetAlgorithmInstance()` method to properly
+    /// construct the context.
+    /// - Parameters:
+    ///   - primary_context: Primary context.
+    Context(const Context& primary_context);
+    
     /// Return configuration used to construct this context.
     const Configuration& configuration() const noexcept;
     /// Return current protocol version.
@@ -112,10 +126,11 @@ public:
     void clearSensitiveData();
     void restoreSensitiveData();
     
+    void destroyServices();
+
 private:
     
     void createServices(bool initial_setup, ConstPowerAuthSpecPtr specification);
-    void destroyServices();
     
     mutable SharedMutexPtr _shared_mutex;
     const ConfigurationPtr _configuration;

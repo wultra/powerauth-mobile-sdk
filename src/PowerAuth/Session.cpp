@@ -16,6 +16,7 @@
 
 #include <PowerAuth/Session.h>
 #include "task/GetActivationStatusTask.h"
+#include "task/ProtocolUpgradeTask.h"
 
 namespace powerAuth {
 
@@ -173,6 +174,19 @@ TaskPtr Session::fetchActivationStatus()
     LOCK_GUARD();
     checkActivationData();
     return std::make_shared<GetActivationStatusTask>(_context);
+}
+
+TaskPtr Session::startProtocolUpgrade(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek)
+{
+    LOCK_GUARD();
+    checkActivationData();
+    
+    if (sessionData().persistentData().hasBiometricFactorKey()) {
+        Credentials::validateFactorKek(new_biometry_kek, Version_V4);
+    }
+    Credentials::validatePassword(*password);
+    
+    return std::make_shared<ProtocolUpgradeTask>(_context, password, new_biometry_kek);
 }
 
 RequestPtr Session::removeActivation(const CredentialsPtr& credentials)

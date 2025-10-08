@@ -75,6 +75,11 @@ bool ActivationStatus::isProtocolUpgradeAvailable() const noexcept
     return _is_protocol_upgrade_available;
 }
 
+bool ActivationStatus::isPendingUpgradeConfirm() const noexcept
+{
+    return _is_pending_upgrade_confirm;
+}
+
 bool ActivationStatus::isCounterSynchronizationRecommended() const noexcept
 {
     if (_activation_state == ActivationState::Active) {

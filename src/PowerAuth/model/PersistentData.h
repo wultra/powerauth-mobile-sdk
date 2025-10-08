@@ -122,6 +122,9 @@ public:
     /// Return information whether the structure has been modified.
     bool isModified() const noexcept;
     
+    /// Return information whether Persistent Data for a specific version are available.
+    bool hasDataForVersion(ProtocolVersion version) const noexcept;
+    
     V3& v3();
     const V3& v3() const;
     

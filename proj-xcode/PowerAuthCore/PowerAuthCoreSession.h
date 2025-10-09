@@ -146,6 +146,8 @@
  */
 @property (nonatomic, assign, readonly) PowerAuthCoreProtocolVersion protocolVersion;
 
+@property (nonatomic, assign, readonly, nonnull) NSDictionary<NSString*, NSObject*>* lastUserInfo;
+
 
 #pragma mark - Serialization
 
@@ -234,6 +236,10 @@
 /// - Returns: Core request object containing all required information for activation remove.
 - (nullable PowerAuthCoreRequest*) removeActivationWithCredentials:(nonnull PowerAuthCoreCredentials*)credentials
                                                              error:(NSError*_Nullable*_Nullable)error;
+
+#pragma mark - User info
+
+- (nullable PowerAuthCoreRequest*) fetchUserInfo:(NSError*_Nullable*_Nullable)error;
 
 #pragma mark - Signature keys management
 

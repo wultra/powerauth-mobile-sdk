@@ -70,6 +70,7 @@ void SessionData::setRegistrationData(RegistrationDataPtr &ptr)
     _modified = _pd != nullptr;
     _rd = std::move(ptr);
     _pd = nullptr;
+    _user_info = cc7::json::JsonValue::object();
 }
 
 bool SessionData::hasRegistrationData() const noexcept
@@ -100,6 +101,7 @@ void SessionData::resetSessionData()
     _modified = _pd != nullptr;
     _rd = nullptr;
     _pd = nullptr;
+    _user_info = cc7::json::JsonValue::object();
 }
 
 const RegistrationData& SessionData::registrationData() const
@@ -177,5 +179,14 @@ void SessionData::deserialize(const cc7::ByteRange& serialized_data)
     }
 }
 
+const cc7::json::JsonValue& SessionData::getUserInfo() const
+{
+    return _user_info;
+}
+
+void SessionData::setUserInfo(const cc7::json::JsonValue& userInfo)
+{
+    _user_info = userInfo;
+}
 
 } // namespace powerAuth

@@ -44,6 +44,8 @@ public:
     RequestPtr addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek) override;
     RequestPtr removeBiometricFactor() override;
     
+    RequestPtr fetchUserInfo() override;
+    
 private:
     
     // Activation create

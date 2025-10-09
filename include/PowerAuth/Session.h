@@ -207,6 +207,23 @@ public:
     /// - Throws:
     ///   - `Exception` in case of failure.
     RequestPtr removeBiometricFactor();
+    
+    /// Fetch User Info.
+    /// If operation succeeds, then the claims are also stored to the Session Data.
+    ///
+    /// - Returns: Request data for fetch user info endpoint.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    RequestPtr fetchUserInfo();
+    
+    /// Retrieve the most recently fetched User Info stored in the Session Data.
+    /// Note that this does not fetch user info from the server, it returns the last user info that was
+    /// obtained either during activation creation or from a previous explicit user info fetch.
+    ///
+    /// - Returns: Most recently fetched User Info.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    const cc7::json::JsonValue& lastUserInfo() const;
 
 private:
     

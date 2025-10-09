@@ -226,6 +226,20 @@ RequestPtr Session::removeBiometricFactor()
     return _context->activationService().removeBiometricFactor();
 }
 
+RequestPtr Session::fetchUserInfo()
+{
+    LOCK_GUARD();
+    checkActivationData();
+    return _context->activationService().fetchUserInfo();
+}
+
+const cc7::json::JsonValue& Session::lastUserInfo() const
+{
+    LOCK_GUARD();
+    checkActivationData();
+    return _context->sessionData().getUserInfo();
+}
+
 void Session::checkActivationData() const
 {
     if (!sessionData().hasPersistentData()) {

@@ -97,6 +97,7 @@ extern const EndpointSpec Endpoint_TokenRemove;
 extern const EndpointSpec Endpoint_ValidateCredentials;
 extern const EndpointSpec Endpoint_ProtocolUpgradeStart;
 extern const EndpointSpec Endpoint_ProtocolUpgradeConfirm;
+extern const EndpointSpec Endpoint_UserInfo;
 
 } // namespace v4
 
@@ -110,6 +111,7 @@ extern const EndpointSpec Endpoint_SignatureValidate;
 extern const EndpointSpec Endpoint_VaultUnlock;
 extern const EndpointSpec Endpoint_TokenCreate;
 extern const EndpointSpec Endpoint_TokenRemove;
+extern const EndpointSpec Endpoint_UserInfo;
 
 } // namespace v3
 

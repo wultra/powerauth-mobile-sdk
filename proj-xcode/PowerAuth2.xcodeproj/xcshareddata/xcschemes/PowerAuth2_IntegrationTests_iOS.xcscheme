@@ -111,9 +111,6 @@
                   Identifier = "BaseTests_V3/testTokens_ConcurrentCreationAndRemove">
                </Test>
                <Test
-                  Identifier = "BaseTests_V3/testUserInfo">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V3/testValidateSignature">
                </Test>
                <Test
@@ -132,9 +129,6 @@
                   Identifier = "BaseTests_V4_EC_P384/testTemporaryKeyExpiration">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384/testUserInfo">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384/testVerifyServerSignedData">
                </Test>
                <Test
@@ -148,9 +142,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testTemporaryKeyExpiration">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testUserInfo">
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testVerifyServerSignedData">

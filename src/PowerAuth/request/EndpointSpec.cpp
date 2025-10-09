@@ -83,6 +83,10 @@ const EndpointSpec Endpoint_ProtocolUpgradeConfirm {
     EndpointSpec::FL_ALLOWED_IN_UPGRADE | EndpointSpec::FL_SERIALIZED
 };
 
+const EndpointSpec Endpoint_UserInfo {
+    Version_V4, "/pa/v4/user/info", "", EncryptorId::ACTIVATION_SCOPE_GENERIC
+};
+
 } // namespace v4
 
 namespace v3 {
@@ -117,6 +121,10 @@ const EndpointSpec Endpoint_TokenCreate {
 
 const EndpointSpec Endpoint_TokenRemove {
     Version_V3, "/pa/v3/token/remove", "/pa/token/remove", EncryptorId::NONE
+};
+
+const EndpointSpec Endpoint_UserInfo {
+    Version_V3, "/pa/v3/user/info", "", EncryptorId::ACTIVATION_SCOPE_GENERIC
 };
 
 } // namespace v3

@@ -2369,7 +2369,7 @@ public class PowerAuthSDK {
             @NonNull ICreateCSRListener listener) {
         // Fetch vault unlock key
         final CompositeCancelableTask compositeCancelableTask = new CompositeCancelableTask(true);
-        
+
         final ICancelable httpRequest = fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.SIGN_WITH_DEVICE_PRIVATE_KEY, new IFetchEncryptedVaultUnlockKeyListener() {
 
             @Override
@@ -2381,13 +2381,11 @@ public class PowerAuthSDK {
                         if (csr != null) {
                             listener.onCSRCreateSucceed(csr);
                         } else {
-                            // TODO: better error?
                             listener.onCSRCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.SIGNATURE_ERROR));
                         }
                     }
                 } else {
                     if (compositeCancelableTask.setCompleted()) {
-                        // TODO: better error?
                         listener.onCSRCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.SIGNATURE_ERROR));
                     }
                 }

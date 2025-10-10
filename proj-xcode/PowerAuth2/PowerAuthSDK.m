@@ -1545,7 +1545,6 @@ static PowerAuthSDK * s_inst;
             }];
             // Propagate error
             if (!csr) {
-                // TODO: signature error OK?
                 error = PA2MakeError(PowerAuthErrorCode_SignatureError, @"Failed to create CSR");
             }
         }

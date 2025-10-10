@@ -2369,7 +2369,7 @@ public class PowerAuthSDK {
             @NonNull ICreateCSRListener listener) {
         // Fetch vault unlock key
         final CompositeCancelableTask compositeCancelableTask = new CompositeCancelableTask(true);
-        // TODO: VaultUnlockReason?
+        
         final ICancelable httpRequest = fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.SIGN_WITH_DEVICE_PRIVATE_KEY, new IFetchEncryptedVaultUnlockKeyListener() {
 
             @Override

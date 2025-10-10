@@ -71,7 +71,7 @@ namespace crypto
         }
         
         // Set subject name
-        X509_REQ_set_subject_name(req.get(), name.get()); // TODO: verify return value?
+        X509_REQ_set_subject_name(req.get(), name.get());
         
         // Set public key
         if (X509_REQ_set_pubkey(req.get(), pkey.get()) != 1) {

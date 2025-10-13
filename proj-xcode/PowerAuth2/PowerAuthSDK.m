@@ -1523,6 +1523,35 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
+- (nullable id<PowerAuthOperationTask>) createSignedCSRWithAuthentication:(PowerAuthAuthentication*)authentication
+                                                       distinguishedNames:(NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                          subjectAltNames:(NSArray<NSString*>*)subjectAltNames
+                                                                 callback:(void(^)(NSString * csr, NSError * error))callback
+{
+    if (!distinguishedNames) {
+        callback(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Distinguished names are missing"));
+        return nil;
+    }
+    return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
+        NSString *csr = nil;
+        if (!error) {
+            // Let's create the CSR
+            PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
+            keys.possessionUnlockKey = [self deviceRelatedKey];
+            keys.userPassword = authentication.password;
+            csr = [_sessionInterface readTaskWithSession:^id (PowerAuthCoreSession * session) {
+                return [session createPrivateKeySignedCSR:encryptedEncryptionKey keys:keys distinguishedNames:distinguishedNames subjectAltNames:subjectAltNames];
+            }];
+            // Propagate error
+            if (!csr) {
+                error = PA2MakeError(PowerAuthErrorCode_SignatureError, @"Failed to create CSR");
+            }
+        }
+        // Call back to application
+        callback(csr, error);
+    }];
+}
+
 @end
 
 #pragma mark - End-2-End Encryption

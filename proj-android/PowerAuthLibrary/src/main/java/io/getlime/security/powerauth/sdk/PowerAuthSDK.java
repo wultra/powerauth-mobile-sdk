@@ -2348,6 +2348,63 @@ public class PowerAuthSDK {
         });
     }
 
+    /**
+     * Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and optional Subject Alternative Names, embedded device public key and signed with the device private key.
+     * <p>
+     * This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for private recovery data decryption.
+     *
+     * @param context Android context.
+     * @param authentication Authentication object that must contain the possession and password factor.
+     * @param distinguishedNames Distinguished Names (DN) to be embedded in the CSR. The dictionary keys are DN types (like "CN", "O", etc.) and values are corresponding DN values.
+     * @param subjectAltNames Optional array of Subject Alternative Names (SAN)
+     * @param listener Listener with the callback methods. CSR in PEM format with lines separated by `\n` (including `-----BEGIN CERTIFICATE REQUEST`----- and `-----END CERTIFICATE REQUEST-----` lines) is returned in case of success.
+     * @return {@link ICancelable} object associated with the underlying HTTP request.
+     */
+    @Nullable
+    public ICancelable createSignedCSR(
+            @NonNull Context context,
+            @NonNull PowerAuthAuthentication authentication,
+            @NonNull Map<String, String> distinguishedNames,
+            @Nullable String[] subjectAltNames,
+            @NonNull ICreateCSRListener listener) {
+        // Fetch vault unlock key
+        final CompositeCancelableTask compositeCancelableTask = new CompositeCancelableTask(true);
+
+        final ICancelable httpRequest = fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.SIGN_WITH_DEVICE_PRIVATE_KEY, new IFetchEncryptedVaultUnlockKeyListener() {
+
+            @Override
+            public void onFetchEncryptedVaultUnlockKeySucceed(final String encryptedEncryptionKey) {
+                if (encryptedEncryptionKey != null) {
+                    SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), null, authentication.getPassword());
+                    String csr = mSession.createPrivateKeySignedCSR(encryptedEncryptionKey, keys, distinguishedNames, subjectAltNames);
+                    if (compositeCancelableTask.setCompleted()) {
+                        if (csr != null) {
+                            listener.onCSRCreateSucceed(csr);
+                        } else {
+                            listener.onCSRCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.SIGNATURE_ERROR));
+                        }
+                    }
+                } else {
+                    if (compositeCancelableTask.setCompleted()) {
+                        listener.onCSRCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.SIGNATURE_ERROR));
+                    }
+                }
+            }
+
+            @Override
+            public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
+                if (compositeCancelableTask.setCompleted()) {
+                    listener.onCSRCreateFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, t));
+                }
+            }
+        });
+        if (httpRequest != null) {
+            compositeCancelableTask.addCancelable(httpRequest);
+            return compositeCancelableTask;
+        }
+        return null;
+    }
+
     // E2EE
 
     /**

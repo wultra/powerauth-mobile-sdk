@@ -460,6 +460,22 @@
                                              data:(nonnull NSData*)data
                                            format:(PowerAuthCoreSignatureFormat)format;
 
+/**
+ Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and optional Subject Alternative Names, embedded device public key and signed with the device private key.
+ 
+ You have to provide encrypted vault key |cVaultKey| in Base64 format and |unlockKeys| object where the valid userPassword is set.
+
+Returns CSR in PEM format if operation succeeds or nil in case of failure. You can determine the failure reason from
+DEBUG log:
+   PowerAuthCoreErrorCode_Encryption, if general encryption error occurs
+   PowerAuthCoreErrorCode_WrongState, if the session has no valid activation
+   PowerAuthCoreErrorCode_WrongParam, if some required parameter is missing
+ */
+- (nullable NSString*) createPrivateKeySignedCSR:(nonnull NSString*)cVaultKey
+                                            keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+                              distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                 subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames;
+
 #pragma mark - External Encryption Key
 
 /**

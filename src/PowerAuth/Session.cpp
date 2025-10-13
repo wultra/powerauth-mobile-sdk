@@ -989,7 +989,67 @@ namespace powerAuth
         return EC_Ok;
     }
     
+    // MARK: - Certificate Signing Request -
 
+    ErrorCode Session::createPrivateKeySignedCSR(const std::string & c_vault_key, const SignatureUnlockKeys & keys, const std::map<std::string, std::string>& dn_items, const std::vector<std::string>& san_items, std::string &out_csr)
+    {
+        LOCK_GUARD();
+        if (keys.userPassword.empty()) {
+            CC7_LOG("Session %p: createCSR: User password missing.", this);
+            return EC_WrongParam;
+        }
+        
+        if (dn_items.empty()) {
+            CC7_LOG("Session %p: createCSR: Distinguished Name items missing.", this);
+            return EC_WrongParam;
+        }
+        
+        cc7::ByteArray vault_key;
+        ErrorCode code = decryptVaultKey(c_vault_key, keys, vault_key);
+        if (code != EC_Ok) {
+            return code;
+        }
+
+        // Ok, we have vault key and now we can decrypt stored device's private key.
+        crypto::BNContext ctx;
+        EC_KEY * ec_key = nullptr;
+        code = EC_Encryption;
+        
+        do {
+            // Decrypt device's private key
+            cc7::ByteArray device_private_key_data = crypto::AES_CBC_Decrypt_Padding(vault_key, protocol::ZERO_IV, _pd->cDevicePrivateKey);
+            if (device_private_key_data.empty()) {
+                // Well, if the key decryption fails here then it seems that we have a problem in vault_key computation.
+                // Error at this point means that we're not able to deduce KEY_ENCRYPTION_VAULT_TRANSPORT correctly.
+                break;
+            }
+            
+            // Import device's private & public key into a one EC_KEY structure
+            ec_key = crypto::ECC_ImportPrivateKey(nullptr, device_private_key_data, ctx);
+            if (!ec_key) {
+                break;
+            }
+            ec_key = crypto::ECC_ImportPublicKey(ec_key, _pd->devicePublicKey, ctx);
+            if (!ec_key) {
+                break;
+            }
+            
+            std::string result = crypto::CSR_CREATE(ec_key, dn_items, san_items);
+            
+            if (result.empty()) {
+                break;
+            }
+            
+            // Everything looks fine
+            code = EC_Ok;
+            out_csr = result;
+
+        } while (false);
+
+        EC_KEY_free(ec_key);
+
+        return code;
+    }
     
     // MARK: - Utilities for generic keys -
     

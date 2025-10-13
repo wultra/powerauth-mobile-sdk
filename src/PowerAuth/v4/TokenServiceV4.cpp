@@ -25,20 +25,11 @@ namespace v4 {
 #define LOCK_GUARD() std::lock_guard<std::recursive_mutex> _lock_guard(*_lock)
 
 TokenServiceV4::TokenServiceV4(const ContextPtr& context) :
-    Service("TokenServiceV4", context->getSharedMutexPtr()),
+    ServiceWithContext("TokenServiceV4", context),
     _session_data(context->getSessionDataPtr()),
     _time_service(context->getTimeServicePtr()),
-    _nonce_generator(cc7::crypto::DefaultNonceGenerator::getInstance(16)),
-    _weak_context(context)
+    _nonce_generator(cc7::crypto::DefaultNonceGenerator::getInstance(16))
 {
-}
-
-ContextPtr TokenServiceV4::lockContext()
-{
-    if (auto context = _weak_context.lock()) {
-        return context;
-    }
-    throw Exception(EC_InternalError, "Parent Session object is destroyed");
 }
 
 IServicePtr TokenServiceV4::asService()

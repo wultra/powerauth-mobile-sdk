@@ -195,7 +195,7 @@ cc7::json::JsonValue EciesEncryptorFactory::createTemporaryKeyRequest(EncryptorS
 
         auto jwt = jwt::JwtWriter()
             .withJsonPayload(request.toJson())
-            .sign({ jwt::JwtKey::symmetricKey("HS256", mac_key) })
+            .sign({ jwt::JwsKey::symmetricKey("HS256", mac_key) })
             .toCompact();
         
         // end secrets
@@ -210,10 +210,10 @@ cc7::json::JsonValue EciesEncryptorFactory::createTemporaryKeyRequest(EncryptorS
     }
 }
 
-static jwt::JwtKeyList _BuildKeyList(const cc7::crypto::PublicKey& pub_key)
+static jwt::JwsKeyList _BuildKeyList(const cc7::crypto::PublicKey& pub_key)
 {
     auto key_obj = std::dynamic_pointer_cast<crypto::PublicKey>(pub_key.duplicate());
-    return { jwt::JwtKey::publicKey(key_obj) };
+    return { jwt::JwsKey::publicKey(key_obj) };
 }
 
 void EciesEncryptorFactory::completeTemporaryKeyRequest(EncryptorScope scope, const cc7::json::JsonValue & json)

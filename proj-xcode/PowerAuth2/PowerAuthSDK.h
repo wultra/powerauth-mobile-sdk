@@ -30,6 +30,8 @@
 #import <PowerAuth2/PowerAuthExternalPendingOperation.h>
 #import <PowerAuth2/PowerAuthUserInfo.h>
 #import <PowerAuth2/PowerAuthServerStatus.h>
+#import <PowerAuth2/PowerAuthVaultEncryptionKey.h>
+#import <PowerAuth2/PowerAuthSignatureTypes.h>
 
 // Deprecated
 #import <PowerAuth2/PowerAuthDeprecated.h>
@@ -492,15 +494,6 @@
                                                     nonce:(nonnull NSString*)nonce
                                                     error:(NSError * _Nullable * _Nullable)error
                                                         PA2_DEPRECATED(2.0.0);
-/**
- Validates whether the data has been signed with master server private key or personalized server's private key.
- @param data An arbitrary data
- @param signature A signature calculated for data, in Base64 format
- @param masterKey If YES, then master server public key is used for validation, otherwise personalized server's public key.
- */
-- (BOOL) verifyServerSignedData:(nonnull NSData*)data
-                      signature:(nonnull NSString*)signature
-                      masterKey:(BOOL)masterKey;
 
 /** Change the password using local re-encryption, do not validate old password by calling any endpoint.
  
@@ -714,10 +707,14 @@
                              withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, BOOL userCanceled))block
                           NS_SWIFT_NAME(unlockBiometryKeys(withContext:callback:))
                           API_UNAVAILABLE(tvos);
+@end
 
-/** Generate an derived encryption key with given index.
- 
- This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for subsequent key derivation using given index.
+
+@interface PowerAuthSDK (VaultEncryption)
+
+/**
+ Generate an derived encryption key with given index. The method is effective only if PowerAuthSDK is running at protocol version 3.
+ The method is subject to remove once PowerAuth Mobile SDK drops support of old protocol version.
  
  @param authentication Authentication used for vault unlocking call.
  @param index Index of the derived key using KDF.
@@ -728,9 +725,100 @@
                                                      index:(UInt64)index
                                                   callback:(nonnull void(^)(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error))callback;
 
-/** Sign given data with the original device private key (asymetric signature).
- 
- This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for private key decryption. Data is then signed using ECDSA algorithm with this key and can be validated on the server side.
+/// Get a vault encryption key from the server.
+///
+/// @param authentication Authentication used for vault unlocking call.
+/// @param keyIdentifier Vault encryption key identifier.
+/// @param callback The callback method with the provided encryption key.
+/// @return `PowerAuthOperationTask` associated with the running request. If `nil` is returned, then function failed at input validations.
+- (nullable id<PowerAuthOperationTask>) fetchVaultEncryptionKey:(nonnull PowerAuthAuthentication*)authentication
+                                                  keyIdentifier:(PowerAuthVaultEncryptionKeyId)keyIdentifier
+                                                       callback:(nonnull void(^)(PowerAuthVaultEncryptionKey * _Nullable encryptionKey, NSError *_Nullable error))callback
+            NS_SWIFT_NAME(fetchVaultEncryptionKey(authentication:keyIdentifier:callback:));
+@end
+
+@interface PowerAuthSDK (DigitalSignatures)
+
+/// Verifies a digital signature for the given data using the key specified by its identifier.
+///
+/// If the selected key identifier represents multiple key types, an error is reported.
+/// Hybrid signatures are not supported in this version of the library.
+///
+/// - Parameters:
+///   - signature: The digital signature calculated for the data.
+///   - signedData: The data that was signed.
+///   - keyIdentifier: The identifier of the key used for verification.
+///   - error: A pointer to an error object that is set in case of failure.
+/// - Returns: `YES` if the signature is valid; otherwise, `NO`.
+- (BOOL) verifyDigitalSignature:(nonnull NSData*)signature
+                     signedData:(nullable NSData*)signedData
+                  keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                          error:(NSError*_Nullable*_Nullable)error
+            NS_SWIFT_NAME(verifyDigitalSignature(signature:forData:withKey:));
+
+/// Verifies JWS or JWT signed data using the key specified by its identifier.
+///
+/// If the selected key identifier represents multiple key types, compact format cannot be used.
+///
+/// - Parameters:
+///   - signature: A string containing JWS or JWT signed data.
+///   - compact: If `YES`, the input string is a compact JWT; otherwise, a full JWS object is expected.
+///   - keyIdentifier: The identifier of the key used for verification.
+///   - error: A pointer to an error object that is set in case of failure.
+/// - Returns: `YES` if the signature is valid; otherwise, `NO`.
+- (BOOL) verifyJwsSignature:(nonnull NSString*)signature
+                    compact:(BOOL)compact
+              keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                      error:(NSError*_Nullable*_Nullable)error
+            NS_SWIFT_NAME(verifyJwsSignature(signature:compact:withKey:));
+
+/// Calculates a digital signature for the given data using the key specified by its identifier.
+///
+/// The selected key must support signature calculation; otherwise, an error is reported.
+/// If the key identifier represents multiple key types, an error is also reported.
+/// Hybrid signatures are not supported in this version of the library.
+///
+/// - Parameters:
+///   - authentication: The authentication object used for vault unlocking.
+///   - dataToSign: The data to sign.
+///   - keyIdentifier: The identifier of the key used for signature calculation.
+///   - callback: The callback invoked with the resulting signature or an error.
+/// - Returns: A `PowerAuthOperationTask` associated with the running request,
+///   or `nil` if input validation fails.
+- (nullable id<PowerAuthOperationTask>) calculateDigitalSignature:(nonnull PowerAuthAuthentication*)authentication
+                                                       dataToSign:(nullable NSData*)dataToSign
+                                                    keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                                                         callback:(nonnull void(^)(NSData * _Nullable signature, NSError * _Nullable error))callback
+            NS_SWIFT_NAME(calculateDigitalSignature(authentication:forData:withKey:callback:));
+
+/// Calculates a JWS signature for the given data using the key specified by its identifier.
+///
+/// The selected key must support signature calculation; otherwise, an error is reported.
+/// If the key identifier represents multiple key types, compact format cannot be used for output.
+///
+/// - Parameters:
+///   - authentication: The authentication object used for vault unlocking.
+///   - dataToSign: The data to sign.
+///   - dataType: Data type set to JOSE header. Use `"JWT"` or `nil` if no type is set.
+///   - compact: If `YES`, the output string is a compact JWT; otherwise, a full JWS object is returned.
+///   - keyIdentifier: The identifier of the key used for signature calculation.
+///   - callback: The callback invoked with the resulting signature or an error.
+/// - Returns: A `PowerAuthOperationTask` associated with the running request,
+///   or `nil` if input validation fails.
+- (nullable id<PowerAuthOperationTask>) calculateJwsSignature:(nonnull PowerAuthAuthentication*)authentication
+                                                   dataToSign:(nullable NSData*)dataToSign
+                                                     dataType:(nullable NSString*)dataType
+                                                      compact:(BOOL)compact
+                                                keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                                                     callback:(nonnull void(^)(NSString * _Nullable jws, NSError * _Nullable error))callback
+            NS_SWIFT_NAME(calculateJwsSignature(authentication:forData:dataType:compact:withKey:callback:));
+
+// Deprecated methods
+
+/**
+ Sign given data with the original device private key (asymmetric signature).
+
+ The method is deprecated, use `calculateDigitalSignature(authentication:forData:withKey:callback:)` as a replacement.
  
  @param authentication Authentication used for vault unlocking call.
  @param data Data to be signed with the private key.
@@ -739,11 +827,13 @@
  */
 - (nullable id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
                                                                 data:(nullable NSData*)data
-                                                            callback:(nonnull void(^)(NSData * _Nullable signature, NSError * _Nullable error))callback;
+                                                            callback:(nonnull void(^)(NSData * _Nullable signature, NSError * _Nullable error))callback
+                                                                PA2_DEPRECATED(2.0.0);
 
-/** Sign provided claims with the original device private key (asymmetric signature).
+/**
+ Sign provided claims with the original device private key (asymmetric signature).
  
- This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for private key decryption. Claims provided as a dictionary is then converted to Base64 encoded format and signed using ECDSA algorithm (ES256) with the private key and converted to JWT representation that can be validated on the server side.
+ The method is deprecated, use `calculateJwsSignature(authentication:forData:compact:withKey:callback:)` as a replacement.
  
  @param authentication Authentication used for vault unlocking call.
  @param claims Claims to be signed with the private key.
@@ -752,7 +842,18 @@
  */
 - (nullable id<PowerAuthOperationTask>) signJwtWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
                                                              claims:(nonnull NSDictionary<NSString*, NSObject*>*)claims
-                                                           callback:(nonnull void(^)(NSString * _Nullable jwt, NSError * _Nullable error))callback;
+                                                           callback:(nonnull void(^)(NSString * _Nullable jwt, NSError * _Nullable error))callback
+                                                                PA2_DEPRECATED(2.0.0);
+/**
+ Validates whether the data has been signed with master server private key or personalized server's private key.
+ @param data An arbitrary data
+ @param signature A signature calculated for data, in Base64 format
+ @param masterKey If YES, then master server public key is used for validation, otherwise personalized server's public key.
+ */
+- (BOOL) verifyServerSignedData:(nonnull NSData*)data
+                      signature:(nonnull NSString*)signature
+                      masterKey:(BOOL)masterKey
+                        PA2_DEPRECATED(2.0.0);
 
 @end
 

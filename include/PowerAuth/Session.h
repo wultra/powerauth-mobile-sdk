@@ -22,6 +22,7 @@
 #include <PowerAuth/TimeService.h>
 #include <PowerAuth/AuthenticationService.h>
 #include <PowerAuth/TokenService.h>
+#include <PowerAuth/SignatureService.h>
 #include <PowerAuth/ByteUtils.h>
 #include <PowerAuth/Debug.h>
 
@@ -274,6 +275,90 @@ public:
     /// - Throws:
     ///   - `Exception` in case of failure.
     RequestPtr removeAccessToken(const std::string_view& token_identifier);
+
+    // --------------------------------------------------------------------------------------------
+    // Vault key
+    // --------------------------------------------------------------------------------------------
+
+    
+    /// Fetch vault encryption key from the server and set `DataResponse` in request's response.
+    /// - Parameters:
+    ///   - credentials: Credentials used for authentication on the server.
+    ///   - key_id: Vault encryption key identifier.
+    ///   - index: Derivation index for legacy key.
+    /// - Returns: HTTP request object.
+    RequestPtr fetchVaultEncryptionKey(const CredentialsPtr& credentials, VaultEncryptionKeyId key_id, cc7::U64 index) const;
+    
+    /// Derive existing vault encryption key into another key.
+    /// - Parameters:
+    ///   - key: Key material to derive.
+    ///   - index: Derivation index.
+    ///   - key_id: Identifier of the current vault encryption key.
+    /// - Returns: Derived key.
+    static cc7::ByteArray deriveVaultEncryptionKey(const cc7::ByteRange& key, cc7::U64 index, VaultEncryptionKeyId key_id);
+        
+    // --------------------------------------------------------------------------------------------
+    // Digital signatures
+    // --------------------------------------------------------------------------------------------
+
+    /// Export device public key(s) into specified format.
+    /// - Parameter key_format: Key format to use for export.
+    /// - Returns: Array with data containing exported device public key(s).
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    std::vector<DevicePublicKeyData> exportDevicePublicKeys(cc7::crypto::KeyFormat key_format) const;
+    
+    /// Verify a digital signature over the given data.
+    ///
+    /// - Parameters:
+    ///   - signed_data: Signed data.
+    ///   - signature: Signature calculated from signed data.
+    ///   - key_to_use: Key used for signature verification. The key
+    ///                 must support signature verification.
+    bool verifySignature(const cc7::ByteRange& signed_data,
+                         const cc7::ByteRange& signature,
+                         SignatureKeyId key_to_use) const;
+    
+    /// Create a digital signature over the given data. If the request succeeds, the
+    /// response contains a `DataResponse` with the calculated signature.
+    /// - Parameters:
+    ///   - credentials: Credentials to use to unlock the device private key.
+    ///   - data_to_sign: Data to sign.
+    ///   - key_to_use: Key used for signature calculation. The key
+    ///                 must support signature calculation.
+    RequestPtr signData(const CredentialsPtr& credentials,
+                        const cc7::ByteRange& data_to_sign,
+                        SignatureKeyId key_to_use) const;
+    
+    /// Verify server-signed data in JWS or JWT form.
+    ///
+    /// - Parameters:
+    ///   - signed_data: JWS or JWT signed data.
+    ///   - key_to_use: Key used for the signature verification. The key
+    ///                 must support the signature verification.
+    ///   - is_compact_form: If `true`, the provided string is a JWT instead of a full JWS object.
+    /// - Returns: `true` if signature is valid.
+    bool jwsVerifySignature(const std::string &signed_data,
+                            SignatureKeyId key_to_use,
+                            bool is_compact_form) const;
+    
+    /// Create a JWS (or compact JWT) over the given data. If the request succeeds, the
+    /// response contains a `StringResponse` with the calculated JWS or JWT.
+    ///
+    /// - Parameters:
+    ///   - credentials: Credentials to use to unlock the device private key.
+    ///   - data_to_sign: Data to sign and embed into JWS.
+    ///   - data_type: Data type set to JOSE header. Use "JWT" or empty string if no type is set.
+    ///   - key_to_use: Key used for the signature calculation. The key
+    ///                 must support the signature calculation.
+    ///   - use_compact_form: If `true`, the result contains a compact JWT string instead of a JWS.
+    ///                 If used with hybrid keys, an exception is raised.
+    /// - Returns: HTTP request object with the vault unlock operation.
+    RequestPtr jwsSignData(const CredentialsPtr& credentials,
+                           const cc7::ByteRange& data_to_sign,
+                           const std::string& data_type,
+                           SignatureKeyId key_to_use,
+                           bool use_compact_form) const;
     
 public:
     // --------------------------------------------------------------------------------------------

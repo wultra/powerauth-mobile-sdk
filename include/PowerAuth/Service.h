@@ -95,4 +95,30 @@ private:
     bool _in_destroy;
 };
 
+
+/// The `ServiceWithContext` extends base `Service` with ability to keep weak pointer
+/// to `Context` object.
+class ServiceWithContext : public Service
+{
+public:
+    /// Construct service with its name and capture weak pointer to `Context`.
+    /// purposes.
+    /// - Parameters:
+    ///   - service_name: Service's name.
+    ///   - context: Pointer to `Context` object.
+    ///   - shared_mutex: Pointer to shared mutex. If `nullptr` is provided, then the
+    ///                   service use shared mutex from the `Context` object.
+    ServiceWithContext(const std::string& service_name,
+                       const std::shared_ptr<Context>& context,
+                       const SharedMutexPtr& shared_mutex = nullptr) noexcept;
+protected:
+    
+    /// Acquire context from weak pointer. If context is no longer available,
+    /// then function throws internal error.
+    std::shared_ptr<Context> lockContext() const;
+    
+private:
+    std::weak_ptr<Context> _weak_context;
+};
+
 } // namespace powerAuth

@@ -345,13 +345,6 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
 }
 
-- (BOOL) verifyServerSignedData:(nonnull PowerAuthCoreSignedData*)signedData
-{
-    // TODO: missing impl
-    return NO;;
-}
-
-
 #pragma mark - Signature keys management
 
 - (nullable PowerAuthCoreRequest*) verifyPassword:(nonnull PowerAuthCorePassword*)password
@@ -518,6 +511,9 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
                                                tokenSecret:(nonnull NSData*)tokenSecret
                                                      error:(NSError *_Nullable*_Nullable)error
 {
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
     try {
         auto header = _session->calculateTokenHeader(cc7::objc::CopyFromNSString(tokenIdentifier),
                                                      cc7::objc::CopyFromNSData(tokenSecret));
@@ -533,6 +529,9 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 - (nullable PowerAuthCoreRequest*) createAccessToken:(nonnull PowerAuthCoreCredentials*)credentials
                                                error:(NSError *_Nullable*_Nullable)error
 {
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
     try {
         auto request = _session->createAccessToken(credentials.credentialsRef);
         return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
@@ -553,6 +552,9 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 - (nullable PowerAuthCoreRequest*) removeAccessToken:(nonnull NSString *)tokenIdentifier
                                                error:(NSError *_Nullable*_Nullable)error
 {
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
     try {
         auto request = _session->removeAccessToken(cc7::objc::CopyFromNSString(tokenIdentifier));
         return [[PowerAuthCoreRequest alloc] initWithRequest:request];
@@ -564,6 +566,149 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     return nil;
 }
 
+#pragma mark - Vault operations
+
+- (nullable PowerAuthCoreRequest*) fetchVaultEncryptionKey:(nonnull PowerAuthCoreCredentials*)credentials
+                                                     keyId:(PowerAuthCoreVaultEncryptionKeyId)keyId
+                                                     index:(UInt64)index
+                                                     error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
+    try {
+        auto request = _session->fetchVaultEncryptionKey(credentials.credentialsRef, static_cast<VaultEncryptionKeyId>(keyId), index);
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto dataResponse = std::dynamic_pointer_cast<powerAuth::DataResponse>(response);
+            if (!dataResponse) {
+                throw Exception(EC_InternalError, "No DataResponse object created");
+            }
+            return [[PowerAuthCoreData alloc] initWithByteRange:dataResponse->data()];
+        }];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
+}
+
++ (nullable PowerAuthCoreData*) deriveVaultEncryptionKey:(nonnull PowerAuthCoreData*)vaultKey
+                                                   keyId:(PowerAuthCoreVaultEncryptionKeyId)keyId
+                                                   index:(UInt64)index
+                                                   error:(NSError *_Nullable*_Nullable)error
+{
+    try {
+        auto derived = Session::deriveVaultEncryptionKey(vaultKey.byteArrayRef, index, static_cast<VaultEncryptionKeyId>(keyId));
+        return [[PowerAuthCoreData alloc] initWithByteRange:derived];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
+}
+
+
+#pragma mark - Digital signatures
+
+- (BOOL) verifySignature:(nonnull NSData*)signature
+                    data:(nonnull NSData*)data
+                   keyId:(PowerAuthCoreSignatureKeyId)keyId
+                   error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireReadAccess:error]) {
+        return NO;
+    }
+    try {
+        return _session->verifySignature(cc7::objc::CopyFromNSData(data),
+                                         cc7::objc::CopyFromNSData(signature),
+                                         static_cast<SignatureKeyId>(keyId));
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return NO;
+    }
+}
+
+- (BOOL) jwsVerifySignature:(nonnull NSString*)signedData
+                compactForm:(BOOL)compactForm
+                      keyId:(PowerAuthCoreSignatureKeyId)keyId
+                      error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireReadAccess:error]) {
+        return NO;
+    }
+    try {
+        return _session->jwsVerifySignature(cc7::objc::CopyFromNSString(signedData),
+                                            static_cast<SignatureKeyId>(keyId),
+                                            compactForm);
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return NO;
+    }
+}
+
+- (nullable PowerAuthCoreRequest*) signData:(nullable NSData*)data
+                                credentials:(nonnull PowerAuthCoreCredentials*)credentials
+                                      keyId:(PowerAuthCoreSignatureKeyId)keyId
+                                      error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
+    try {
+        auto request = _session->signData(credentials.credentialsRef,
+                                          cc7::objc::CopyFromNSData(data),
+                                          static_cast<SignatureKeyId>(keyId));
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto dataResponse = std::dynamic_pointer_cast<powerAuth::DataResponse>(response);
+            if (!dataResponse) {
+                throw Exception(EC_InternalError, "No DataResponse object created");
+            }
+            return cc7::objc::CopyToNSData(dataResponse->data());
+        }];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
+
+- (nullable PowerAuthCoreRequest*) jwsSignData:(nullable NSData*)data
+                                      dataType:(nullable NSString*)dataType
+                                   compactForm:(BOOL)compactForm
+                                   credentials:(nonnull PowerAuthCoreCredentials*)credentials
+                                         keyId:(PowerAuthCoreSignatureKeyId)keyId
+                                         error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
+    try {
+        auto request = _session->jwsSignData(credentials.credentialsRef,
+                                             cc7::objc::CopyFromNSData(data),
+                                             cc7::objc::CopyFromNSString(dataType),
+                                             static_cast<SignatureKeyId>(keyId),
+                                             compactForm);
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto stringResponse = std::dynamic_pointer_cast<powerAuth::StringResponse>(response);
+            if (!stringResponse) {
+                throw Exception(EC_InternalError, "No DataResponse object created");
+            }
+            return cc7::objc::CopyToNSString(stringResponse->string());
+        }];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
 
 #pragma mark - External encryption key
 

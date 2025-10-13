@@ -26,6 +26,8 @@
 #include <PowerAuth/ActivationService.h>
 #include <PowerAuth/AuthenticationService.h>
 #include <PowerAuth/TokenService.h>
+#include <PowerAuth/VaultService.h>
+#include <PowerAuth/SignatureService.h>
 
 #include "model/SessionData.h"
 
@@ -76,6 +78,12 @@ public:
     /// Return reference to `IKeyProvider` implementation.
     IKeyProvider& keyProvider() noexcept;
     
+    /// Return reference to `VaultService` implementation.
+    VaultService& vaultService() noexcept;
+    
+    /// Return reference to `SignatureService` implementation.
+    SignatureService& signatureService() noexcept;
+    
     /// Return reference to `SessionData` object.
     SessionData& sessionData() noexcept;
     
@@ -91,6 +99,8 @@ public:
     const IClientEncryptorFactoryPtr& getEncryptorFactoryPtr() const noexcept;
     const ISharedSecretPtr& getSharedSecretPtr() const noexcept;
     const IKeyProviderPtr& getKeyProviderPtr() const noexcept;
+    const VaultServicePtr& getVaultServicePtr() const noexcept;
+    const SignatureServicePtr& getSignatureServicePtr() const noexcept;
     
     const IActivationServicePtr& getActivationServicePtr() const noexcept;
     const IAuthenticationServicePtr& getAuthenticationServicePtr() const noexcept;
@@ -120,6 +130,8 @@ private:
     IKeyProviderPtr _key_provider;
     IAuthenticationServicePtr _auth_service;
     ITokenServicePtr _token_service;
+    VaultServicePtr _vault_service;
+    SignatureServicePtr _signature_service;
     
     std::vector<IServicePtr> _services;
 };

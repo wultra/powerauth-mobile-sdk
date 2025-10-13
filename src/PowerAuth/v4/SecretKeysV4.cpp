@@ -634,7 +634,7 @@ cc7::ByteRange SecretKeysV4::keyActivationSecret()
     return _pool.getKey(KEY_SHARED_SECRET, default_input);
 }
 
-const cc7::crypto::PrivateKey& SecretKeysV4::devicePrivateKey()
+const cc7::crypto::PrivateKeyPtr& SecretKeysV4::getDevicePrivateKeyPtr()
 {
     checkAccessLevel(KEK_DEVICE_PRIVATE, AL_VAULT);
     if (!_device_private) {
@@ -644,8 +644,9 @@ const cc7::crypto::PrivateKey& SecretKeysV4::devicePrivateKey()
                                                     _pool.getKey(IN_ACTIVATION_ID, any_input),
                                                     _pool.getKey(CKEY_DEVICE_PRIVATE, any_input));
         _device_private = _owner->signingKeyFactory().newPrivateKey(key_data);
+        _device_private->setSealed();
     }
-    return *_device_private;
+    return _device_private;
 }
 
 cc7::ByteRange SecretKeysV4::ckeyDevicePrivate()

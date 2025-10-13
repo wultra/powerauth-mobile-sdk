@@ -285,6 +285,85 @@ RequestPtr Session::removeAccessToken(const std::string_view &token_identifier)
     return _context->tokenService().removeAccessToken(token_identifier);
 }
 
+// MARK: - Vault key
+
+RequestPtr Session::fetchVaultEncryptionKey(const CredentialsPtr& credentials, VaultEncryptionKeyId key_id, cc7::U64 index) const
+{
+    LOCK_GUARD();
+    return _context->vaultService().fetchVaultEncryptionKey(credentials, key_id, index);
+}
+
+cc7::ByteArray Session::deriveVaultEncryptionKey(const cc7::ByteRange& key, cc7::U64 index, VaultEncryptionKeyId key_id)
+{
+    return VaultService::deriveVaultEncryptionKey(key, index, key_id);
+}
+
+
+// MARK: - Digital signatures
+
+static DevicePublicKeyData _BuildDevicePublicKeyData(const cc7::crypto::PublicKey& public_key, cc7::crypto::KeyFormat key_format)
+{
+    auto key_type = public_key.getKeyType();
+    return {
+        SignatureKeySpec::keyTypeForKeyAlgorithm(key_type),
+        key_type,
+        public_key.exportKey(key_format)
+    };
+}
+
+std::vector<DevicePublicKeyData> Session::exportDevicePublicKeys(cc7::crypto::KeyFormat key_format) const
+{
+    LOCK_GUARD();
+    const auto& public_key = _context->keyProvider().devicePublicKey();
+    auto spec = _context->specification();
+    std::vector<DevicePublicKeyData> result;
+    if (!spec->isLegacy()) {
+        const auto& key1 = v4::HybridKey_GetKey1(public_key);
+        result.push_back(_BuildDevicePublicKeyData(key1, key_format));
+        if (spec->isHybrid()) {
+            const auto& key2 = v4::HybridKey_GetKey2(public_key);
+            result.push_back(_BuildDevicePublicKeyData(key2, key_format));
+        }
+    } else {
+        result.push_back(_BuildDevicePublicKeyData(public_key, key_format));
+    }
+    return result;
+}
+
+bool Session::verifySignature(const cc7::ByteRange& signed_data,
+                              const cc7::ByteRange& signature,
+                              SignatureKeyId key_to_use) const
+{
+    LOCK_GUARD();
+    return _context->signatureService().verifySignature(signed_data, signature, key_to_use);
+}
+
+RequestPtr Session::signData(const CredentialsPtr& credentials,
+                             const cc7::ByteRange& data_to_sign,
+                             SignatureKeyId key_to_use) const
+{
+    LOCK_GUARD();
+    return _context->signatureService().signData(credentials, data_to_sign, key_to_use);
+}
+
+bool Session::jwsVerifySignature(const std::string &signed_data,
+                                 SignatureKeyId key_to_use,
+                                 bool is_compact_form) const
+{
+    LOCK_GUARD();
+    return _context->signatureService().jwsVerifySignature(signed_data, key_to_use, is_compact_form);
+}
+
+RequestPtr Session::jwsSignData(const CredentialsPtr& credentials,
+                                const cc7::ByteRange& data_to_sign,
+                                const std::string& data_type,
+                                SignatureKeyId key_to_use,
+                                bool use_compact_form) const
+{
+    LOCK_GUARD();
+    return _context->signatureService().jwsSignData(credentials, data_to_sign, data_type, key_to_use, use_compact_form);
+}
+
 // MARK: - Services
 
 const TimeServicePtr& Session::getTimeService() const noexcept

@@ -90,6 +90,10 @@ typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::ResponseObjectPtr& re
 - (instancetype) initWithResponse:(const powerAuth::GetAccessTokenResponsePtr&)response;
 @end
 
+@interface PowerAuthCoreDevicePublicKeyData (Private)
+- (instancetype) initWithKeyData:(const powerAuth::DevicePublicKeyData&)keyData;
+@end
+
 // Services
 
 @interface PowerAuthCoreTimeService (Private)

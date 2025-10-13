@@ -23,7 +23,7 @@ namespace powerAuth {
 namespace v4 {
 
 class ActivationServiceV4 :
-    public Service,
+    public ServiceWithContext,
     public IActivationService,
     public std::enable_shared_from_this<ActivationServiceV4>
 {
@@ -111,10 +111,6 @@ private:
     /// - Parameter context: Context reference.
     void doRemoveBiometricFactor(Context& context);
     
-    /// Acquire context from weak context pointer. If context no longer exists, then throws exception.
-    ContextPtr lockContext();
-    
-    const ContextWeakPtr _weak_context;
     const SessionDataPtr _session_data;
     
     std::string _activation_fingerprint;

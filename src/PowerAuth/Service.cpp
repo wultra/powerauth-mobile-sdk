@@ -16,6 +16,7 @@
 
 #include <PowerAuth/Service.h>
 #include <PowerAuth/Debug.h>
+#include "Context.h"
 
 namespace powerAuth {
 
@@ -77,6 +78,24 @@ void Service::restoreSensitiveData()
 {
     checkNotDestroyed();
     CC7_LOG("%s: sensitive data restore", _service_name.c_str());
+}
+
+// MARK: - Service with context
+
+ServiceWithContext::ServiceWithContext(const std::string& service_name,
+                                       const std::shared_ptr<Context>& context,
+                                       const SharedMutexPtr& shared_mutex) noexcept :
+    Service(service_name, shared_mutex != nullptr ? shared_mutex : context->getSharedMutexPtr()),
+    _weak_context(context)
+{
+}
+
+std::shared_ptr<Context> ServiceWithContext::lockContext() const
+{
+    if (auto context = _weak_context.lock()) {
+        return context;
+    }
+    throw Exception(EC_InternalError, "Context is no longer available in service " + _service_name);
 }
 
 } // namespace powerAuth

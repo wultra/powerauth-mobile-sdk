@@ -315,14 +315,16 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
                                                                          data:(NSString*)data
 {
     [self checkForValidConnection];
-    return [_rest request:@"CreateNonPersonalizedOfflineSignaturePayload" params:@[applicationId, data]];
+    NSString * apiCall = _clientProtocolVersion < PATS_P40 ? @"CreateNonPersonalizedOfflineSignaturePayload_P3" : @"CreateNonPersonalizedOfflineSignaturePayload_P4";
+    return [_rest request:apiCall params:@[applicationId, data]];
 }
 
 - (PATSOfflineSignaturePayload*) createPersonalizedOfflineSignaturePayload:(NSString*)activationId
                                                                       data:(NSString*)data
 {
     [self checkForValidConnection];
-    return [_rest request:@"CreatePersonalizedOfflineSignaturePayload" params:@[activationId, data]];
+    NSString * apiCall = _clientProtocolVersion < PATS_P40 ? @"CreatePersonalizedOfflineSignaturePayload_P3" : @"CreatePersonalizedOfflineSignaturePayload_P4";
+    return [_rest request:apiCall params:@[activationId, data]];
 }
 
 - (PATSVerifySignatureResponse*) verifyOfflineAuthCode:(NSString*)activationId
@@ -341,11 +343,33 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
     return response;
 }
 
-- (BOOL) verifyECDSASignature:(NSString*)activationId data:(NSData*)data signature:(NSData*)signature
+- (BOOL) verifyDsaSignature:(NSString*)activationId
+                       data:(NSData*)data
+                  signature:(NSData*)signature
+            signatureFormat:(NSString*)signatureFormat
+              signatureType:(NSString*)signatureType
 {
-    return [self verifyECDSASignature:activationId data:data signature:signature signatureFormat:nil];
+    NSString * dataB64 = [data base64EncodedStringWithOptions:0];
+    NSString * signatureB64 = [signature base64EncodedStringWithOptions:0];
+    NSString * apiCall;
+    NSArray * params;
+    if (_clientProtocolVersion < PATS_P40) {
+        // V3
+        if (signatureFormat) {
+            params = @[activationId, dataB64, signatureB64, signatureFormat];
+            apiCall = @"VerifyECDSASignature_v19";
+        } else {
+            params = @[activationId, dataB64, signatureB64];
+            apiCall = @"VerifyECDSASignature_v10";
+        }
+    } else {
+        // V4
+        params = @[activationId, dataB64, signatureB64, signatureFormat, signatureType];
+        apiCall = @"VerifyDsaSignature";
+    }
+    NSDictionary * response = [_rest request:apiCall params:params];
+    return [response[@"signatureValid"] boolValue];
 }
-
 - (BOOL) verifyECDSASignature:(NSString*)activationId
                          data:(NSData*)data
                     signature:(NSData*)signature

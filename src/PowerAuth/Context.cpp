@@ -40,15 +40,22 @@ static void _DumpErr(const char * msg)
     if (ptr == nullptr) {                                           \
         _DumpErr("ERROR: Context " #ptr ": Object is null");        \
     }
-#define CHECK_SERVICE_PTR(ptr)                                      \
+#define CHECK_AS_SERVICE_PTR(ptr)                                   \
     if (ptr == nullptr) {                                           \
         _DumpErr("ERROR: Context " #ptr ": Service is null");       \
     } else if (ptr->asService()->isServiceDestroyed()) {            \
         _DumpErr("ERROR: Context " #ptr ": Service is destroyed");  \
     }
+#define CHECK_SERVICE_PTR(ptr)                                      \
+    if (ptr == nullptr) {                                           \
+        _DumpErr("ERROR: Context " #ptr ": Service is null");       \
+    } else if (ptr->isServiceDestroyed()) {            \
+        _DumpErr("ERROR: Context " #ptr ": Service is destroyed");  \
+    }
 #else
 // release build
 #define CHECK_OBJ_PTR(ptr)
+#define CHECK_AS_SERVICE_PTR(ptr)
 #define CHECK_SERVICE_PTR(ptr)
 #endif
 
@@ -81,25 +88,25 @@ TimeService& Context::timeService() noexcept
 
 IClientEncryptorFactory& Context::encryptorFactory() noexcept
 {
-    CHECK_SERVICE_PTR(_encryptor_factory)
+    CHECK_AS_SERVICE_PTR(_encryptor_factory)
     return *_encryptor_factory;
 }
 
 IActivationService& Context::activationService() noexcept
 {
-    CHECK_SERVICE_PTR(_activation_service)
+    CHECK_AS_SERVICE_PTR(_activation_service)
     return *_activation_service;
 }
 
 IAuthenticationService& Context::authenticationService() noexcept
 {
-    CHECK_SERVICE_PTR(_auth_service)
+    CHECK_AS_SERVICE_PTR(_auth_service)
     return *_auth_service;
 }
 
 ITokenService& Context::tokenService() noexcept
 {
-    CHECK_SERVICE_PTR(_token_service)
+    CHECK_AS_SERVICE_PTR(_token_service)
     return *_token_service;
 }
 
@@ -119,8 +126,20 @@ cc7::crypto::KeyPairFactory& Context::signingKeyPairFactory() noexcept
 
 IKeyProvider& Context::keyProvider() noexcept
 {
-    CHECK_SERVICE_PTR(_key_provider)
+    CHECK_AS_SERVICE_PTR(_key_provider)
     return *_key_provider;
+}
+
+VaultService& Context::vaultService() noexcept
+{
+    CHECK_SERVICE_PTR(_vault_service);
+    return *_vault_service;
+}
+
+SignatureService& Context::signatureService() noexcept
+{
+    CHECK_SERVICE_PTR(_signature_service);
+    return *_signature_service;
 }
 
 SessionData& Context::sessionData() noexcept
@@ -155,7 +174,7 @@ const TimeServicePtr& Context::getTimeServicePtr() const noexcept
 
 const IClientEncryptorFactoryPtr& Context::getEncryptorFactoryPtr() const noexcept
 {
-    CHECK_SERVICE_PTR(_encryptor_factory)
+    CHECK_AS_SERVICE_PTR(_encryptor_factory)
     return _encryptor_factory;
 }
 
@@ -167,25 +186,37 @@ const ISharedSecretPtr& Context::getSharedSecretPtr() const noexcept
 
 const IKeyProviderPtr& Context::getKeyProviderPtr() const noexcept
 {
-    CHECK_SERVICE_PTR(_key_provider)
+    CHECK_AS_SERVICE_PTR(_key_provider)
     return _key_provider;
+}
+
+const VaultServicePtr& Context::getVaultServicePtr() const noexcept
+{
+    CHECK_SERVICE_PTR(_vault_service);
+    return _vault_service;
+}
+
+const SignatureServicePtr& Context::getSignatureServicePtr() const noexcept
+{
+    CHECK_SERVICE_PTR(_signature_service);
+    return _signature_service;
 }
 
 const IActivationServicePtr& Context::getActivationServicePtr() const noexcept
 {
-    CHECK_SERVICE_PTR(_activation_service)
+    CHECK_AS_SERVICE_PTR(_activation_service)
     return _activation_service;
 }
 
 const IAuthenticationServicePtr& Context::getAuthenticationServicePtr() const noexcept
 {
-    CHECK_SERVICE_PTR(_auth_service)
+    CHECK_AS_SERVICE_PTR(_auth_service)
     return _auth_service;
 }
 
 const ITokenServicePtr& Context::getTokenServicePtr() const noexcept
 {
-    CHECK_SERVICE_PTR(_token_service)
+    CHECK_AS_SERVICE_PTR(_token_service)
     return _token_service;
 }
 
@@ -219,6 +250,7 @@ ContextPtr Context::getInstance(ConfigurationPtr configuration)
 void Context::createServices(bool initial_setup, ConstPowerAuthSpecPtr specification)
 {
     auto self = shared_from_this();
+    auto version = protocolVersion();
     if (initial_setup) {
         // Initial objects construction
         _time_service = std::make_shared<TimeService>(self);
@@ -226,10 +258,11 @@ void Context::createServices(bool initial_setup, ConstPowerAuthSpecPtr specifica
     }
     _specification = specification;
     _signing_keys_factory = _specification->getSigningKeyPairFactory();
-    if (protocolVersion() == Version_V4) {
+    if (version == Version_V4) {
         // V4
         _shared_secret = SharedSecret::getInstance(_specification->sharedSecret());
         _key_provider = std::make_shared<v4::KeyProviderV4>(self);
+        _vault_service = std::make_shared<VaultService>(self, version);
         _encryptor_factory = std::make_shared<v4::AeadEncryptorFactory>(self);
         _activation_service = std::make_shared<v4::ActivationServiceV4>(self);
         _auth_service = std::make_shared<v4::AuthenticationServiceV4>(self);
@@ -238,17 +271,23 @@ void Context::createServices(bool initial_setup, ConstPowerAuthSpecPtr specifica
         // V3
         _shared_secret = nullptr;
         _key_provider = std::make_shared<v3::KeyProviderV3>(self);
+        _vault_service = std::make_shared<VaultService>(self, version);
         _encryptor_factory = std::make_shared<v3::EciesEncryptorFactory>(self);
         _activation_service = std::make_shared<v3::ActivationServiceV3>(self);
         _auth_service = std::make_shared<v3::AuthenticationServiceV3>(self);
         _token_service = std::make_shared<v3::TokenServiceV3>(self);
     }
+    // Common
+    _signature_service = std::make_shared<SignatureService>(self);
+    
     // register services
     _services.push_back(_key_provider->asService());
     _services.push_back(_encryptor_factory->asService());
     _services.push_back(_activation_service->asService());
     _services.push_back(_auth_service->asService());
     _services.push_back(_token_service->asService());
+    _services.push_back(_vault_service);
+    _services.push_back(_signature_service);
 }
 
 void Context::destroyServices()

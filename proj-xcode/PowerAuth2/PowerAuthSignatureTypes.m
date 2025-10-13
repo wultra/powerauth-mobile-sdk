@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-#include "HybridSignature.h"
+#import <PowerAuth2/PowerAuthSignatureTypes.h>
 
-namespace powerAuth {
-namespace v4 {
+@import PowerAuthCore;
 
-// TODO: ...
+@implementation PowerAuthDevicePublicKeyData
 
-} // namespace v4
-} // namespace powerAuth
+- (instancetype) initWithCoreDevicePublicKeyData:(PowerAuthCoreDevicePublicKeyData*)keyData
+{
+    self = [super init];
+    if (self) {
+        _keyType = (PowerAuthSignatureKeyType) keyData.keyType;
+        _keyAlgorithm = keyData.keyAlgorithm;
+        _keyData = keyData.keyData;
+    }
+    return self;
+}
 
+@end

@@ -107,6 +107,92 @@ struct TokenHeaderData
     std::string tokenDigest;
 };
 
+/// Defines types of keys used for sign or verify operations.
+enum class SignatureKeyType
+{
+    /// Elliptic Curve based key.
+    EC,
+    /// ML-DSA based key.
+    ML_DSA,
+};
+
+/// Defines keys available for signature calculation or verification.
+/// Note that some keys are available only for signing or only for verification.
+/// The operation may end with exception if you use a wrong key identifier.
+enum class SignatureKeyId
+{
+    /// Use all available "master" keys for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_MASTER_P256_PUBLIC` for protocol V3
+    /// - `KEY_MASTER_ECDSA_P384_PUBLIC`, `KEY_MASTER_MLDSA65_PUBLIC` for protocol V4
+    KEY_MASTER = 0x00,
+
+    /// Use only the "EC"-based "master" key for signature verification.
+    /// Depending on availability, the following will be used:
+    /// - `KEY_MASTER_P256_PUBLIC` for protocol V3
+    /// - `KEY_MASTER_ECDSA_P384_PUBLIC` for protocol V4
+    KEY_MASTER_EC,
+
+    /// Use only the "ML-DSA"-based "master" key for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_MASTER_MLDSA65_PUBLIC` for protocol V4
+    KEY_MASTER_ML_DSA,
+
+    /// Use all available "server" keys for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_SERVER_P256_PUBLIC` for protocol V3
+    /// - `KEY_SERVER_ECDSA_P384_PUBLIC`, `KEY_SERVER_MLDSA65_PUBLIC` for protocol V4
+    KEY_SERVER = 0x10,
+    /// Use only the "EC"-based "server" key for signature verification.
+    /// Depending on availability, the following will be used:
+    /// - `KEY_SERVER_P256_PUBLIC` for protocol V3
+    /// - `KEY_SERVER_ECDSA_P384_PUBLIC` for protocol V4
+    KEY_SERVER_EC,
+    /// Use only the "ML-DSA"-based "server" key for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_MASTER_MLDSA65_PUBLIC` for protocol V4
+    KEY_SERVER_ML_DSA,
+    
+    /// Use all available "device" keys for signature computation or verification.
+    /// Depending on key availability, the following will be used for signing:
+    /// - `KEY_DEVICE_P256_PRIVATE` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PRIVATE`, `KEY_DEVICE_MLDSA65_PRIVATE` for protocol V4
+    /// For the signature verification, the following will be used:
+    /// - `KEY_DEVICE_P256_PUBLIC` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PUBLIC`, `KEY_DEVICE_MLDSA65_PUBLIC` for protocol V4
+    KEY_DEVICE = 0x20,
+    /// Use only the "EC"-based "server" key for signature computation or verification.
+    /// Depending on key availability, the following will be used for signing:
+    /// - `KEY_DEVICE_P256_PRIVATE` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PRIVATE` for protocol V4
+    /// For the signature verification, the following will be used:
+    /// - `KEY_DEVICE_P256_PUBLIC` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PUBLIC` for protocol V4
+    KEY_DEVICE_EC,
+    /// Use only the "ML-DSA"-based "server" key for signature computation or verification.
+    /// Depending on key availability, the following will be used for signing:
+    /// - `KEY_DEVICE_MLDSA65_PRIVATE` for protocol V4
+    /// For the signature verification, the following will be used:
+    /// - `KEY_DEVICE_MLDSA65_PUBLIC` for protocol V4
+    KEY_DEVICE_ML_DSA,
+    
+    /// Use "KMAC"-based symmetric key for signature verification. The following key will be used:
+    /// - `KEY_MAC_PERSONALIZED_DATA` for protocol V4
+    KEY_MAC_PERSONALIZED = 0x30
+};
+
+
+/// Structure containing exported device public key.
+struct DevicePublicKeyData
+{
+    /// Type of public key.
+    const SignatureKeyType keyType;
+    /// Contains information about key algorithm ("P-256", "P-384", "ML-DSA-65", etc.)
+    const std::string keyAlgorithm;
+    /// Public key data.
+    const cc7::ByteArray keyData;
+};
+
 // Encryption
 
 /// The `EncryptorScope` enumeration defines scope of the encryptor.
@@ -148,6 +234,21 @@ enum class EncryptorId
     UPGRADE_START
 };
 
+// Vault key
+
+/// The `VaultKeyId` enumeration defines vault key identifiers.
+enum class VaultEncryptionKeyId
+{
+    /// This type of vault key can be provided after successful 2FA authentication
+    /// on the server.
+    ANY_2FA,
+    /// This type of vault key can be provided after authentication with the user's password.
+    KNOWLEDGE,
+    /// This is a legacy key available only when PowerAuthSDK is running on a legacy
+    /// protocol. The key can be provided after authentication with the user's password.
+    LEGACY
+};
+
 // Authentication
 
 /// Authentication factor for authentication code calculation.
@@ -164,5 +265,6 @@ enum class AuthFactors
 // Forward declarations for internal objects
 
 class Context;
+class SessionData;
 
 } // namespace powerAuth

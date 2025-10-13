@@ -27,8 +27,7 @@ namespace v4 {
 #define LOCK_GUARD() std::lock_guard<std::recursive_mutex> _lock_guard(*_lock)
 
 ActivationServiceV4::ActivationServiceV4(const ContextPtr& context) :
-    Service("ActivationServiceV4", context->getSharedMutexPtr()),
-    _weak_context(context),
+    ServiceWithContext("ActivationServiceV4", context),
     _session_data(context->getSessionDataPtr())
 {
 }
@@ -41,14 +40,6 @@ ProtocolVersion ActivationServiceV4::protocolVersion() const noexcept
 IServicePtr ActivationServiceV4::asService()
 {
     return shared_from_this();
-}
-
-ContextPtr ActivationServiceV4::lockContext()
-{
-    if (auto context = _weak_context.lock()) {
-        return context;
-    }
-    throw Exception(EC_InternalError, "Parent Session object is destroyed");
 }
 
 // MARK: - Activation creation

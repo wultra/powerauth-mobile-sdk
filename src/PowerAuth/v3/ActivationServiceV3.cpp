@@ -28,9 +28,9 @@ namespace v3 {
 #define LOCK_GUARD() std::lock_guard<std::recursive_mutex> _lock_guard(*_lock)
 
 ActivationServiceV3::ActivationServiceV3(const ContextPtr& context) :
-    Service("ActivationServiceV3", context->getSharedMutexPtr()),
-    _weak_context(context),
-    _session_data(context->getSessionDataPtr())
+    ServiceWithContext("ActivationServiceV3", context),
+    _session_data(context->getSessionDataPtr()),
+    _vault_service(context->getVaultServicePtr())
 {
 }
 
@@ -42,14 +42,6 @@ ProtocolVersion ActivationServiceV3::protocolVersion() const noexcept
 IServicePtr ActivationServiceV3::asService()
 {
     return shared_from_this();
-}
-
-ContextPtr ActivationServiceV3::lockContext()
-{
-    if (auto context = _weak_context.lock()) {
-        return context;
-    }
-    throw Exception(EC_InternalError, "Parent Session object is destroyed");
 }
 
 // MARK: - Activation creation
@@ -374,31 +366,14 @@ RequestPtr ActivationServiceV3::changePassword(PasswordPtr old_password, Passwor
 RequestPtr ActivationServiceV3::addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek)
 {
     LOCK_GUARD();
-    auto context = lockContext();
-    
-    auto credentials = Credentials::knowledge(password->passwordData());
-    
-    auto self = shared_from_this();
     cc7::ByteArray new_kek = new_biometry_kek;
-    return RequestBuilder(*context, v3::Endpoint_VaultUnlock)
-        .withJson(cc7::json::JsonValue::object({
-            {"reason", cc7::json::JsonValue("ADD_BIOMETRY")}
-        }))
-        .withAuthentication(credentials)
-        .withResponseCallback([self, context, new_kek](const Request& request, const cc7::json::JsonValue& response) -> ResponseObjectPtr {
-            self->doAddBiometricFactor(*context, response, new_kek);
-            return nullptr;
-        })
-        .build();
-}
-
-void ActivationServiceV3::doAddBiometricFactor(Context& context, const cc7::json::JsonValue& response, const cc7::ByteRange& new_biometry_kek)
-{
-    auto& key_provider = context.keyProvider();
-    
-    auto secrets = key_provider.unlockVaultKey(VaultKeyType::KEK_DEVICE_PRIVATE, response["encryptedVaultEncryptionKey"].asBase64());
-    secrets->updateKeyAuthenticationCodeBiometry(cc7::ByteRange(), new_biometry_kek);
-    key_provider.lockSecretKeys(secrets);
+    return _vault_service->unlockVaultKey(Credentials::knowledge(password->passwordData()),
+                                          VaultKeyType::KEK_DEVICE_PRIVATE,
+                                          UnlockVaultKeyReason::LEGACY_ADD_BIOMETRY,
+                                          [new_kek](IKeyProvider& key_provider, ISecretKeys& secrets) -> ResponseObjectPtr {
+        secrets.updateKeyAuthenticationCodeBiometry(cc7::ByteRange(), new_kek);
+        return nullptr;
+    });
 }
 
 RequestPtr ActivationServiceV3::removeBiometricFactor()

@@ -161,7 +161,7 @@ public:
     
     // Other
     cc7::ByteRange keyActivationSecret();
-    const cc7::crypto::PrivateKey& devicePrivateKey() override;
+    const cc7::crypto::PrivateKeyPtr& getDevicePrivateKeyPtr() override;
     
     // Legacy
     cc7::ByteRange ckeyTransport();

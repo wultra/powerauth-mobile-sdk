@@ -207,7 +207,7 @@ cc7::json::JsonValue AeadEncryptorFactory::createTemporaryKeyRequest(EncryptorSc
         auto mac_key = act_scope ? secrets->keyMacGetActTempKey() : secrets->keyMacGetAppTempKey();
         auto jwt = jwt::JwtWriter()
             .withJsonPayload(request.toJson(), jwt::JwtHeader::JWT_TYPE)
-            .sign({ jwt::JwtKey::symmetricKey("HS384", mac_key) })
+            .sign({ jwt::JwsKey::symmetricKey("HS384", mac_key) })
             .toCompact();
         // end secrets
         _key_provider->lockSecretKeys(secrets);
@@ -223,14 +223,14 @@ cc7::json::JsonValue AeadEncryptorFactory::createTemporaryKeyRequest(EncryptorSc
 
 /// Convert hybrid public key into list of JwtKey objects.
 /// - Parameter pub_key: Hybrid public key.
-static jwt::JwtKeyList _BuildKeyList(const cc7::crypto::PublicKey& pub_key)
+static jwt::JwsKeyList _BuildKeyList(const cc7::crypto::PublicKey& pub_key)
 {
-    jwt::JwtKeyList list;
+    jwt::JwsKeyList list;
     auto key_obj = std::dynamic_pointer_cast<cc7::crypto::PublicKey>(pub_key.getKeyParameter(v4::KEY_PARAM_HYBRID_KEY_1).asObject());
-    list.push_back(jwt::JwtKey::publicKey(key_obj));
+    list.push_back(jwt::JwsKey::publicKey(key_obj));
     key_obj = std::dynamic_pointer_cast<cc7::crypto::PublicKey>(pub_key.getKeyParameter(v4::KEY_PARAM_HYBRID_KEY_2).asObject());
     if (key_obj) {
-        list.push_back(jwt::JwtKey::publicKey(key_obj));
+        list.push_back(jwt::JwsKey::publicKey(key_obj));
     }
     return list;
 }

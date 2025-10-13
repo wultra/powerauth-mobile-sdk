@@ -201,19 +201,14 @@
                                        componentLength:(NSInteger)componentLength;
 
 /**
- Request for the asymmetric signature (ECDSA) validation procedure. The signature format is DER.
+ Request for the asymmetric signature validation procedure. Use "DER" or "JOSE" as
+ signature format. Signature type is "ECDSA" or "MLDSA".
  */
-- (BOOL) verifyECDSASignature:(NSString*)activationId
-                         data:(NSData*)data
-                    signature:(NSData*)signature;
-/**
- Request for the asymmetric signature (ECDSA) validation procedure. Use nil (fallback to "DER") or "JOSE" as
- signature format.
- */
-- (BOOL) verifyECDSASignature:(NSString*)activationId
-                         data:(NSData*)data
-                    signature:(NSData*)signature
-              signatureFormat:(NSString*)signatureFormat;
+- (BOOL) verifyDsaSignature:(NSString*)activationId
+                       data:(NSData*)data
+                  signature:(NSData*)signature
+            signatureFormat:(NSString*)signatureFormat
+              signatureType:(NSString*)signatureType;
 
 #pragma mark - Tokens
 

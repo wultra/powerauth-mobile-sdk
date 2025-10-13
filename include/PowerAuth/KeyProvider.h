@@ -247,15 +247,23 @@ public:
     
     // Other
     
-    /// Get the device private key.
+    /// Get the pointer to device private key.
     ///
-    /// - Warning: It's forbidden to make copy from the returned key.
+    /// - Warning: The returned key is sealed.
     ///
     /// Protocol version V3, V4
     ///
     /// Key name: `KEY_DEVICE_PRIVATE`
-    virtual const cc7::crypto::PrivateKey& devicePrivateKey() = 0;
+    virtual const cc7::crypto::PrivateKeyPtr& getDevicePrivateKeyPtr() = 0;
     
+    /// Get the device private key.
+    ///
+    /// - Warning: The returned key is sealed.
+    ///
+    /// Protocol version V3, V4
+    ///
+    /// Key name: `KEY_DEVICE_PRIVATE`
+    const cc7::crypto::PrivateKey& devicePrivateKey();
     
     // Legacy
     

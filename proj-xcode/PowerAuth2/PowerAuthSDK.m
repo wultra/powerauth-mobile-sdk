@@ -161,11 +161,11 @@ static NSData * _BuildDeviceSpecificData(void)
         keychainAccessGroup = sharingConfiguration.keychainAccessGroup;
     } else if (_keychainConfiguration) {
         // Using deprecated interfaces internally.
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         userDefaultsSuiteName = _keychainConfiguration.keychainAttribute_UserDefaultsSuiteName;
         keychainAccessGroup = _keychainConfiguration.keychainAttribute_AccessGroup;
-        #pragma clang diagnostic pop
+#pragma clang diagnostic pop
     }
     
     // Create a new keychain instances
@@ -198,7 +198,7 @@ static NSData * _BuildDeviceSpecificData(void)
         PA2WrapError(localError, error);
         return NO;
     }
-
+    
     // Make sure to reset keychain data after app re-install.
     // Important: This deletes all Keychain data in all PowerAuthSDK instances!
     // By default, the code uses standard user defaults, use `PowerAuthKeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` to use `NSUserDefaults` with a custom suite name.
@@ -247,11 +247,11 @@ static NSData * _BuildDeviceSpecificData(void)
         }
         // Finally, construct the shared session provider.
         _sessionInterface = [[PA2SharedSessionInterface alloc] initWithSession:coreSession
-                                                                 dataProvider:sessionDataProvider
-                                                                   instanceId:instanceId
-                                                                applicationId:_configuration.sharingConfiguration.appIdentifier
-                                                               sharedMemoryId:sharedMemoryId
-                                                               statusLockPath:statusLockPath
+                                                                  dataProvider:sessionDataProvider
+                                                                    instanceId:instanceId
+                                                                 applicationId:_configuration.sharingConfiguration.appIdentifier
+                                                                sharedMemoryId:sharedMemoryId
+                                                                statusLockPath:statusLockPath
                                                              operationLockPath:operationLockPath
                                                                  queueLockPath:queueLockPath
                                                                          error:&localError];
@@ -290,7 +290,7 @@ static NSData * _BuildDeviceSpecificData(void)
     
     // Connect session interface with essential services. This step solves chicken-egg problem, when services depends on client and vice versa.
     [_sessionInterface connectWithKeystoreService:_keystoreService timeService:_timeSynchronizationService];
-
+    
 #if defined(PA2_WATCH_SUPPORT)
     // Register this instance to handle messages
     [[PowerAuthWCSessionManager sharedInstance] registerDataHandler:self];
@@ -432,7 +432,7 @@ static NSData * _BuildDeviceSpecificData(void)
         // Success, so we should reset object at error pointer.
         *error = nil;
     }
-
+    
     if (key && _biometricConfiguration.invalidateLocalAuthenticationContextAfterUse) {
         [authentication.context invalidate];
     }
@@ -961,11 +961,11 @@ static PowerAuthSDK * s_inst;
 #pragma mark - Authentication codes
 
 - (PowerAuthHttpHeader*) calculateAuthHeaderWithSession:(PowerAuthCoreSession*)session
-                                                      authentication:(PowerAuthAuthentication*)authentication
-                                                              method:(NSString*)method
-                                                               uriId:(NSString*)uriId
-                                                                body:(NSData*)body
-                                                                error:(NSError **)error
+                                         authentication:(PowerAuthAuthentication*)authentication
+                                                 method:(NSString*)method
+                                                  uriId:(NSString*)uriId
+                                                   body:(NSData*)body
+                                                  error:(NSError **)error
 {
     PowerAuthCoreCredentials * credentials = [self resolveCredentialsWithAuthentication:authentication error:error];
     if (!credentials) {
@@ -1109,9 +1109,9 @@ static PowerAuthSDK * s_inst;
 
 // PA2_DEPRECATED(2.0.0)
 - (PowerAuthHttpHeader*) requestGetSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
-                                                                      uriId:(NSString*)uriId
-                                                                     params:(NSDictionary<NSString*, NSString*>*)params
-                                                                      error:(NSError**)error
+                                                         uriId:(NSString*)uriId
+                                                        params:(NSDictionary<NSString*, NSString*>*)params
+                                                         error:(NSError**)error
 {
     return [self authenticationHeaderForRequestWithParamsWithAuthentication:authentication
                                                                      method:@"GET"
@@ -1122,10 +1122,10 @@ static PowerAuthSDK * s_inst;
 
 // PA2_DEPRECATED(2.0.0)
 - (PowerAuthHttpHeader*) requestSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
-                                                                  method:(NSString*)method
-                                                                   uriId:(NSString*)uriId
-                                                                    body:(NSData*)body
-                                                                   error:(NSError**)error
+                                                     method:(NSString*)method
+                                                      uriId:(NSString*)uriId
+                                                       body:(NSData*)body
+                                                      error:(NSError**)error
 {
     return [self authenticationHeaderForRequestWithBodyWithAuthentication:authentication
                                                                    method:method
@@ -1147,23 +1147,6 @@ static PowerAuthSDK * s_inst;
                                          nonce:nonce
                                          error:error];
 }
-
-- (BOOL) verifyServerSignedData:(nonnull NSData*)data
-                      signature:(nonnull NSString*)signature
-                      masterKey:(BOOL)masterKey
-{
-//    return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session) {
-//        PowerAuthCoreSignedData * signedData = [[PowerAuthCoreSignedData alloc] init];
-//        signedData.signingDataKey = masterKey ? PowerAuthCoreSigningDataKey_ECDSA_MasterServerKey : PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey;
-//        signedData.data = data;
-//        signedData.signatureBase64 = signature;
-//        signedData.signatureFormat = PowerAuthCoreSignatureFormat_ECDSA_DER;
-//        return [session verifyServerSignedData: signedData];
-//    }];
-    // TODO: missing impl.
-    return NO;
-}
-
 
 #pragma mark - Password
 
@@ -1292,7 +1275,7 @@ static PowerAuthSDK * s_inst;
 {
     return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
         return [_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier] &&
-               [session hasBiometryFactor];
+        [session hasBiometryFactor];
     } error:nil];
 }
 
@@ -1414,7 +1397,7 @@ static PowerAuthSDK * s_inst;
         completionFunction(nil, PA2MakeError(PowerAuthErrorCode_BiometryNotAvailable, nil));
         return task;
     }
-
+    
     
     // Prepare policy based on keychain configuration.
     LAPolicy policy;
@@ -1470,7 +1453,7 @@ static PowerAuthSDK * s_inst;
                     case LAErrorBiometryNotEnrolled:
                         error = PA2MakeErrorInfo(PowerAuthErrorCode_BiometryNotAvailable, @"Biometry not enrolled", errorInfo);
                         break;
-                    
+                        
                     case LAErrorSystemCancel:           // System cancel (e.g. user pressed power or home button)
                     case LAErrorAppCancel:              // App cancel, (e.g. application called invalidate on its context)
                     case LAErrorUserCancel:             // User tapped on cancel button
@@ -1528,70 +1511,191 @@ static PowerAuthSDK * s_inst;
 
 #endif // PA2_HAS_LACONTEXT
 
+@end
+
+
+@implementation PowerAuthSDK (VaultEncryption)
+
 #pragma mark - Secure vault support
 
+- (id<PowerAuthOperationTask>) fetchVaultEncryptionKey:(PowerAuthAuthentication*)authentication
+                                         keyIdentifier:(PowerAuthVaultEncryptionKeyId)keyIdentifier
+                                                 index:(UInt64)index
+                                              callback:(void(^)(PowerAuthVaultEncryptionKey *encryptionKey, NSError *error))callback
+{
+    NSError* localError = nil;
+    PowerAuthCoreCredentials * credentials = [self resolveCredentialsWithAuthentication:authentication error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError** error) {
+        return [session fetchVaultEncryptionKey:credentials
+                                          keyId:(PowerAuthCoreVaultEncryptionKeyId)keyIdentifier
+                                          index:index
+                                          error:error];
+    } error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, PowerAuthCoreData* response, NSError * error) {
+        PowerAuthVaultEncryptionKey * encryptionKey = nil;
+        if (response) {
+            encryptionKey = [[PowerAuthVaultEncryptionKey alloc] initWithCoreData:response
+                                                                            keyId:keyIdentifier
+                                                                            index:index
+                                                                             base:keyIdentifier != PowerAuthVaultEncryptionKeyId_Legacy];
+        }
+        callback(encryptionKey, error);
+    }];
+}
 
 - (id<PowerAuthOperationTask>) fetchEncryptionKey:(PowerAuthAuthentication*)authentication
                                             index:(UInt64)index
                                          callback:(void(^)(PowerAuthCoreData *encryptionKey, NSError *error))callback
 {
-    // TODO: missing impl.
-    callback(nil, PA2MakeError(PowerAuthErrorCode_NetworkError, @"Not implemented"));
-    return nil;
-
+    return [self fetchVaultEncryptionKey:authentication
+                           keyIdentifier:PowerAuthVaultEncryptionKeyId_Legacy
+                                   index:index
+                                callback:^(PowerAuthVaultEncryptionKey *encryptionKey, NSError *error) {
+        callback(encryptionKey.key, error);
+    }];
 }
 
-#pragma mark - Asymmetric signatures
+- (id<PowerAuthOperationTask>) fetchVaultEncryptionKey:(PowerAuthAuthentication*)authentication
+                                         keyIdentifier:(PowerAuthVaultEncryptionKeyId)keyIdentifier
+                                              callback:(void(^)(PowerAuthVaultEncryptionKey *encryptionKey, NSError *error))callback
+{
+    return [self fetchVaultEncryptionKey:authentication
+                           keyIdentifier:keyIdentifier
+                                   index:0
+                                callback:callback];
+}
+@end
+
+
+#pragma mark - Digital signatures
+
+@implementation PowerAuthSDK (DigitalSignatures)
+
+- (BOOL) verifyDigitalSignature:(nonnull NSData*)signature
+                     signedData:(nullable NSData*)signedData
+                  keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                          error:(NSError*_Nullable*_Nullable)error
+{
+    return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+        return [session verifySignature:signature
+                                   data:signedData
+                                  keyId:(PowerAuthCoreSignatureKeyId)keyIdentifier
+                                  error:error];
+    } error:error];
+}
+
+- (BOOL) verifyJwsSignature:(nonnull NSString*)signature
+                    compact:(BOOL)compact
+              keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                      error:(NSError*_Nullable*_Nullable)error
+{
+    return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+        return [session jwsVerifySignature:signature
+                               compactForm:compact
+                                     keyId:(PowerAuthCoreSignatureKeyId)keyIdentifier
+                                     error:error];
+    } error:error];
+}
+
+- (nullable id<PowerAuthOperationTask>) calculateDigitalSignature:(nonnull PowerAuthAuthentication*)authentication
+                                                       dataToSign:(nullable NSData*)dataToSign
+                                                    keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                                                         callback:(nonnull void(^)(NSData * _Nullable signature, NSError * _Nullable error))callback
+{
+    NSError* localError = nil;
+    PowerAuthCoreCredentials * credentials = [self resolveCredentialsWithAuthentication:authentication error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError** error) {
+        return [session signData:dataToSign
+                     credentials:credentials
+                           keyId:(PowerAuthCoreSignatureKeyId)keyIdentifier
+                           error:error];
+    } error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, NSData * response, NSError * error) {
+        callback(response, error);
+    }];
+}
+
+- (nullable id<PowerAuthOperationTask>) calculateJwsSignature:(nonnull PowerAuthAuthentication*)authentication
+                                                   dataToSign:(nullable NSData*)dataToSign
+                                                     dataType:(nullable NSString*)dataType
+                                                      compact:(BOOL)compact
+                                                keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                                                     callback:(nonnull void(^)(NSString * jws, NSError * error))callback
+{
+    NSError* localError = nil;
+    PowerAuthCoreCredentials * credentials = [self resolveCredentialsWithAuthentication:authentication error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError** error) {
+        return [session jwsSignData:dataToSign
+                           dataType:dataType
+                        compactForm:compact
+                        credentials:credentials
+                              keyId:(PowerAuthCoreSignatureKeyId)keyIdentifier
+                              error:error];
+    } error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, NSString* response, NSError * error) {
+        callback(response, error);
+    }];
+}
+
+#pragma clang diagnostic push   // PA2_DEPRECATED(2.0.0)
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
 
 - (id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
                                                        data:(NSData*)data
-                                                     format:(PowerAuthCoreSignatureFormat)format
                                                    callback:(void(^)(NSData *signature, NSError *error))callback
 {
-    // TODO: missing impl.
-    callback(nil, PA2MakeError(PowerAuthErrorCode_NetworkError, @"Not implemented"));
-    return nil;
-}
-
-- (id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
-                                                       data:(NSData*)data
-                                                   callback:(void(^)(NSData *signature, NSError *error))callback
-{
-    return [self signDataWithDevicePrivateKey:authentication
-                                         data:data
-                                       format:PowerAuthCoreSignatureFormat_ECDSA_DER
-                                     callback:callback];
+    return [self calculateDigitalSignature:authentication
+                                dataToSign:data
+                             keyIdentifier:PowerAuthSignatureKeyId_DEVICE_EC
+                                  callback:callback];
 }
 
 - (id<PowerAuthOperationTask>) signJwtWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
                                                     claims:(NSDictionary<NSString*, NSObject*>*)claims
                                                   callback:(void(^)(NSString *jwt, NSError *error))callback
 {
-    // Prepare JWT Header
-    NSString * jwtHeader = @"eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9."; // {"alg":"ES256","typ":"JWT"}
-    // Prepare claims data
-    NSData * claimsData = [NSJSONSerialization dataWithJSONObject:claims options:0 error:nil];
-    // Prepare data for signing
-    NSString * signedData = [jwtHeader stringByAppendingString:[claimsData jwtEncodedString]];
-    // Calculate signature
-    return [self signDataWithDevicePrivateKey:authentication
-                                         data:[signedData dataUsingEncoding:NSASCIIStringEncoding]
-                                       format:PowerAuthCoreSignatureFormat_ECDSA_JOSE
-                                     callback:^(NSData * signature, NSError * error) {
-        // Handle error
-        if (error) {
-            callback(nil, error);
-            return;
-        }
-        // Base64 Encode Signature
-        NSString *jwtSignature = [signature jwtEncodedString];
-        // Construct JWT
-        NSString *jwt = [[signedData stringByAppendingString:@"."] stringByAppendingString:jwtSignature];
-        // Call back to application
-        callback(jwt, nil);
-    }];
+    return [self calculateJwsSignature:authentication
+                            dataToSign:[NSJSONSerialization dataWithJSONObject:claims options:0 error:nil]
+                              dataType:@"JWT"
+                               compact:YES
+                         keyIdentifier:PowerAuthSignatureKeyId_DEVICE_EC
+                              callback:callback];
 }
 
+- (BOOL) verifyServerSignedData:(nonnull NSData*)data
+                      signature:(nonnull NSString*)signature
+                      masterKey:(BOOL)masterKey
+{
+    return [self verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:signature options:0]
+                             signedData:data
+                          keyIdentifier:masterKey ? PowerAuthSignatureKeyId_MASTER_EC : PowerAuthSignatureKeyId_SERVER_EC
+                                  error:nil];
+}
+#pragma clang diagnostic pop // PA2_DEPRECATED(2.0.0)
 @end
 
 #pragma mark - End-2-End Encryption

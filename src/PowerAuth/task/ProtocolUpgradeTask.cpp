@@ -90,9 +90,6 @@ void ProtocolUpgradeTask::startProtocolUpgrade()
     LOCK_GUARD();
     auto current_context = lockContext();
     
-    auto &pd = _session_data->persistentData().v3();
-    pd.flags.pendingUpgradeVersion = Version_V4;
-    
     auto new_ud = UpgradeData::create();
     _session_data->setUpgradeData(new_ud);
     
@@ -193,9 +190,6 @@ void ProtocolUpgradeTask::resetState()
 {
     LOCK_GUARD();
     auto context = lockContext();
-    
-    auto &pd = _session_data->persistentData().v3();
-    pd.flags.pendingUpgradeVersion = Version_V4;
     
     auto &ud = _session_data->upgradeData().v4();
     ud.context->destroyServices();

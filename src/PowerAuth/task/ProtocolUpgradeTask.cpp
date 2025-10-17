@@ -39,7 +39,7 @@ void ProtocolUpgradeTask::onTaskStart()
             break;
             
         case Version_V4:
-            /// Local activation is alredy on V4, check the server state and send the confirm request if expected.
+            /// Local activation is already on V4, check the server state and send the confirm request if expected.
             fetchActivationStatus();
             break;
             

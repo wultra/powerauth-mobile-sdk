@@ -276,6 +276,7 @@ void Context::destroyTargetAlgorithmContext()
     }
     
     _target_context->destroyServices();
+    _target_context = nullptr;
 }
 
 std::shared_ptr<Context> Context::getTargetAlgorithmContextPtr() const noexcept

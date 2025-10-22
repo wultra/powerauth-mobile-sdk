@@ -634,6 +634,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 
 - (BOOL) jwsVerifySignature:(nonnull NSString*)signedData
                 compactForm:(BOOL)compactForm
+                     strict:(BOOL)strict
                       keyId:(PowerAuthCoreSignatureKeyId)keyId
                       error:(NSError *_Nullable*_Nullable)error
 {
@@ -643,7 +644,8 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     try {
         return _session->jwsVerifySignature(cc7::objc::CopyFromNSString(signedData),
                                             static_cast<SignatureKeyId>(keyId),
-                                            compactForm);
+                                            compactForm,
+                                            strict);
     } catch (...) {
         if (error) {
             *error = BuildNSErrorFromException();

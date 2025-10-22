@@ -366,146 +366,6 @@
     XCTAssertTrue(response.signatureValid);
 }
 
-- (void) testVerifyServerSignedData
-{
-    CHECK_TEST_CONFIG();
-    
-    //
-    // This test checks whether SDK can verify data signed by server's master key
-    //
-    BOOL result;
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-    if (!activation) {
-        return;
-    }
-    PowerAuthAuthentication * auth = activation.credentials;
-    
-    PATSOfflineSignaturePayload * payload;
-    {
-        // Verify data signed with master key (non-personalized)
-        NSString * dataForSigning = @"All your money are belong to us!";
-        payload = [_helper.testServerApi createNonPersonalizedOfflineSignaturePayload:activation.activationData.applicationId data:dataForSigning];
-        XCTAssertNotNil(payload);
-        XCTAssertTrue([payload.parsedData isEqualToString:dataForSigning]);
-        XCTAssertTrue([payload.parsedSigningKey isEqualToString:@"0"]);
-        
-        NSData * signedData = [payload.parsedSignedData dataUsingEncoding:NSUTF8StringEncoding];
-        result = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:payload.parsedSignature options:0]
-                                   signedData:signedData
-                                keyIdentifier:PowerAuthSignatureKeyId_MASTER_EC
-                                        error:nil];
-        XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
-    }
-    {
-        // Verify data signed with server key (personalized)
-        NSString * dataForSigning = @"All your money are belong to us!";
-        payload = [_helper.testServerApi createPersonalizedOfflineSignaturePayload:activation.activationId data:dataForSigning];
-        XCTAssertNotNil(payload);
-        XCTAssertTrue([payload.parsedData isEqualToString:dataForSigning]);
-        XCTAssertTrue([payload.parsedSigningKey isEqualToString:@"1"]);
-        
-        NSData * signedData = [payload.parsedSignedData dataUsingEncoding:NSUTF8StringEncoding];
-        result = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:payload.parsedSignature options:0]
-                                   signedData:signedData
-                                keyIdentifier:PowerAuthSignatureKeyId_SERVER_EC
-                                        error:nil];
-        XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
-    }
-    
-    // Well, we have a data for offline signature, so let's try to verify it.
-    NSString * uriId = @"/operation/authorize/offline";
-    NSData * body = [payload.parsedData dataUsingEncoding:NSUTF8StringEncoding];
-    NSString * nonce = payload.nonce;
-
-    PowerAuthAuthentication * sign_auth = [auth copy];
-    NSString * local_signature = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk offlineAuthenticationCodeWithAuthentication:sign_auth uriId:uriId body:body nonce:nonce callback:^(NSString * _Nullable authenticationCode, NSError * _Nullable error) {
-            [waiting reportCompletion:authenticationCode];
-        }];
-    }];
-    XCTAssertNotNil(local_signature);
-
-    NSString * normalized_data = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:uriId nonce:nonce data:body];
-    XCTAssertNotNil(normalized_data);
-    PATSVerifySignatureResponse * response = [_helper.testServerApi verifyOfflineAuthCode:activation.activationData.activationId
-                                                                                     data:normalized_data
-                                                                                 authCode:local_signature
-                                                                            allowBiometry:NO
-                                                                          componentLength:0];
-    XCTAssertTrue(response.signatureValid);
-}
-
-- (void) verifyDataSignedWithSignatureKeyId:(PowerAuthSignatureKeyId)signatureKeyId
-                              signatureType:(NSString*)signatureType
-                             authentication:(PowerAuthAuthentication*)authentication
-                                 shouldPass:(BOOL)shouldPass
-{
-    NSData * dataForSigning = [@"This is a very sensitive information and must be signed." dataUsingEncoding:NSUTF8StringEncoding];
-
-    // 1) At first, calculate signature
-    __block NSData * resultSignature = nil;
-    __block NSError * resultError = nil;
-    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk calculateDigitalSignature:authentication
-                                                               dataToSign:dataForSigning
-                                                            keyIdentifier:signatureKeyId
-                                                                 callback:^(NSData * _Nullable signature, NSError * _Nullable error) {
-            resultSignature = signature;
-            resultError = error;
-            [waiting reportCompletion:@(error == nil)];
-        }];
-        // Returned task should not be cancelled
-        if (shouldPass) {
-            XCTAssertNotNil(task);
-        }
-    }] boolValue];
-    XCTAssertEqual(shouldPass, result);
-    if (shouldPass) {
-        // 2) Verify signature on the server
-        if (result) {
-            result = [_helper.testServerApi verifyDsaSignature:_sdk.activationIdentifier
-                                                          data:dataForSigning
-                                                     signature:resultSignature
-                                               signatureFormat:@"DER"
-                                                 signatureType:signatureType];
-            XCTAssertTrue(result);
-        }
-    }
-}
-
-- (void) testSignDataWithDevicePrivateKey
-{
-    CHECK_TEST_CONFIG();
-    
-    //
-    // This test checks data signing with device's private key.
-    //
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-    if (!activation) {
-        return;
-    }
-    PowerAuthAuthentication * auth = activation.credentials;
-    switch (_sdk.currentAlgorithm) {
-        case PowerAuthAlgorithm_EC_P384_ML_L3:
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE signatureType:@"ECDSA" authentication:auth shouldPass:NO];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:YES];
-            break;
-        case PowerAuthAlgorithm_EC_P384:
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE signatureType:@"ECDSA" authentication:auth shouldPass:YES];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:NO];
-            break;
-        case PowerAuthAlgorithm_LEGACY_P256:
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE signatureType:@"ECDSA" authentication:auth shouldPass:YES];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:NO];
-            break;
-    }
-}
-
-
 - (void) testActivationStatus
 {
     CHECK_TEST_CONFIG();
@@ -1354,8 +1214,6 @@
 
 #endif // PA2_BIOMETRY_SUPPORT
 
-#pragma mark - JWT
-
 - (void) testUserInfo
 {
     CHECK_TEST_CONFIG();
@@ -1382,6 +1240,423 @@
     XCTAssertEqual(info, _sdk.lastFetchedUserInfo);
 }
 
+#pragma mark - Digital signatures
+
+- (void) testActivationCodeSignature
+{
+    CHECK_TEST_CONFIG();
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    NSData * activationCodeData = [activation.activationData.activationCode dataUsingEncoding:NSUTF8StringEncoding];
+        
+    NSError * error = nil;
+    BOOL success = NO;
+    switch (_sdk.currentAlgorithm) {
+        case PowerAuthAlgorithm_LEGACY_P256:
+            XCTAssertNotNil(activation.activationData.activationSignature);
+            error = nil;
+            success = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:activation.activationData.activationSignature options:0]
+                                        signedData:activationCodeData
+                                     keyIdentifier:PowerAuthSignatureKeyId_MASTER_EC
+                                             error:&error];
+            XCTAssertTrue(success);
+            XCTAssertNil(error);
+            break;
+
+        case PowerAuthAlgorithm_EC_P384_ML_L3:
+            XCTAssertNotNil(activation.activationData.activationSignatureMldsa);
+            error = nil;
+            success = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:activation.activationData.activationSignatureMldsa options:0]
+                                        signedData:activationCodeData
+                                     keyIdentifier:PowerAuthSignatureKeyId_MASTER_ML_DSA
+                                             error:&error];
+            XCTAssertTrue(success);
+            XCTAssertNil(error);
+            // fall-through
+            
+        case PowerAuthAlgorithm_EC_P384:
+            XCTAssertNotNil(activation.activationData.activationSignatureEcdsa);
+            error = nil;
+            success = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:activation.activationData.activationSignatureEcdsa options:0]
+                                        signedData:activationCodeData
+                                     keyIdentifier:PowerAuthSignatureKeyId_MASTER_EC
+                                             error:&error];
+            XCTAssertTrue(success);
+            XCTAssertNil(error);
+            break;
+            
+        default:
+            XCTFail(@"Unsupported algorithm");
+            break;
+    }
+}
+
+- (void) testVerifyOfflineServerSignedData
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test checks whether SDK can verify data signed by server's master key
+    //
+    BOOL result;
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    PowerAuthAuthentication * auth = activation.credentials;
+    
+    PATSOfflineSignaturePayload * payload;
+    {
+        // Verify data signed with master key (non-personalized)
+        NSString * dataForSigning = @"All your money are belong to us!";
+        payload = [_helper.testServerApi createNonPersonalizedOfflineSignaturePayload:activation.activationData.applicationId data:dataForSigning];
+        XCTAssertNotNil(payload);
+        XCTAssertTrue([payload.parsedData isEqualToString:dataForSigning]);
+        XCTAssertTrue([payload.parsedSigningKey isEqualToString:@"0"]);
+        
+        NSData * signedData = [payload.parsedSignedData dataUsingEncoding:NSUTF8StringEncoding];
+        result = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:payload.parsedSignature options:0]
+                                   signedData:signedData
+                                keyIdentifier:PowerAuthSignatureKeyId_MASTER_EC
+                                        error:nil];
+        XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
+    }
+    {
+        // Verify data signed with server key (personalized)
+        NSString * expectedSigningKey;
+        PowerAuthSignatureKeyId signingKeyId;
+        if (_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+            // V3 uses SERVER_EC key for signature
+            expectedSigningKey = @"1";
+            signingKeyId = PowerAuthSignatureKeyId_SERVER_EC;
+        } else {
+            // V4 uses MAC key
+            expectedSigningKey = @"2";
+            signingKeyId = PowerAuthSignatureKeyId_MAC_PERSONALIZED;
+        }
+        NSString * dataForSigning = @"All your money are belong to us!";
+        payload = [_helper.testServerApi createPersonalizedOfflineSignaturePayload:activation.activationId data:dataForSigning];
+        XCTAssertNotNil(payload);
+        XCTAssertTrue([payload.parsedData isEqualToString:dataForSigning]);
+        XCTAssertTrue([payload.parsedSigningKey isEqualToString:expectedSigningKey]);
+        
+        NSData * signedData = [payload.parsedSignedData dataUsingEncoding:NSUTF8StringEncoding];
+        result = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:payload.parsedSignature options:0]
+                                   signedData:signedData
+                                keyIdentifier:signingKeyId
+                                        error:nil];
+        XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
+    }
+    
+    // Well, we have a data for offline signature, so let's try to verify it.
+    NSString * uriId = @"/operation/authorize/offline";
+    NSData * body = [payload.parsedData dataUsingEncoding:NSUTF8StringEncoding];
+    NSString * nonce = payload.nonce;
+
+    PowerAuthAuthentication * sign_auth = [auth copy];
+    NSString * local_signature = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk offlineAuthenticationCodeWithAuthentication:sign_auth uriId:uriId body:body nonce:nonce callback:^(NSString * _Nullable authenticationCode, NSError * _Nullable error) {
+            [waiting reportCompletion:authenticationCode];
+        }];
+    }];
+    XCTAssertNotNil(local_signature);
+
+    NSString * normalized_data = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:uriId nonce:nonce data:body];
+    XCTAssertNotNil(normalized_data);
+    PATSVerifySignatureResponse * response = [_helper.testServerApi verifyOfflineAuthCode:activation.activationData.activationId
+                                                                                     data:normalized_data
+                                                                                 authCode:local_signature
+                                                                            allowBiometry:NO
+                                                                          componentLength:0];
+    XCTAssertTrue(response.signatureValid);
+}
+
+- (void) verifyDataSignedWithSignatureKeyId:(PowerAuthSignatureKeyId)signatureKeyId
+                              signatureType:(NSString*)signatureType
+                             authentication:(PowerAuthAuthentication*)authentication
+                                 shouldPass:(BOOL)shouldPass
+{
+    NSData * dataForSigning = [@"This is a very sensitive information and must be signed." dataUsingEncoding:NSUTF8StringEncoding];
+
+    // 1) At first, calculate signature
+    __block NSData * resultSignature = nil;
+    __block NSError * resultError = nil;
+    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk calculateDigitalSignature:authentication
+                                                               dataToSign:dataForSigning
+                                                            keyIdentifier:signatureKeyId
+                                                                 callback:^(NSData * _Nullable signature, NSError * _Nullable error) {
+            resultSignature = signature;
+            resultError = error;
+            [waiting reportCompletion:@(error == nil)];
+        }];
+        // Returned task should not be cancelled
+        if (shouldPass) {
+            XCTAssertNotNil(task);
+        }
+    }] boolValue];
+    XCTAssertEqual(shouldPass, result);
+    if (shouldPass) {
+        // 2) Verify signature on the server
+        result = [_helper.testServerApi verifyDsaSignature:_sdk.activationIdentifier
+                                                      data:dataForSigning
+                                                 signature:resultSignature
+                                           signatureFormat:@"DER"
+                                             signatureType:signatureType];
+        XCTAssertTrue(result);
+        // 3) Verify locally
+        resultError = nil;
+        result = [_sdk verifyDigitalSignature:resultSignature
+                                   signedData:dataForSigning
+                                keyIdentifier:signatureKeyId
+                                        error:&resultError];
+        XCTAssertTrue(result);
+        XCTAssertNil(resultError);
+    }
+}
+
+- (void) testSignDataWithDevicePrivateKey
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test checks data signing with device's private key.
+    //
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    PowerAuthAuthentication * auth = activation.credentials;
+    switch (_sdk.currentAlgorithm) {
+        case PowerAuthAlgorithm_EC_P384_ML_L3:
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE signatureType:@"ECDSA" authentication:auth shouldPass:NO];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:YES];
+            break;
+        case PowerAuthAlgorithm_EC_P384:
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE signatureType:@"ECDSA" authentication:auth shouldPass:YES];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:NO];
+            break;
+        case PowerAuthAlgorithm_LEGACY_P256:
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE signatureType:@"ECDSA" authentication:auth shouldPass:YES];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:NO];
+            break;
+    }
+}
+
+- (void) testVerifyServerSignedData
+{
+    CHECK_TEST_CONFIG();
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    NSData * dataForSigning = [@"This is a very sensitive information and must be signed." dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary * signatures = [_helper.testServerApi createDsaSignature:_sdk.activationIdentifier data:dataForSigning];
+    NSData * ecdsa = [[NSData alloc] initWithBase64EncodedString:signatures[@"ecdsa"] options:0];
+    NSData * mldsa = signatures[@"mldsa"] ? [[NSData alloc] initWithBase64EncodedString:signatures[@"mldsa"] options:0] : nil;
+    BOOL result;
+    NSError * error;
+    switch (_sdk.currentAlgorithm) {
+        case PowerAuthAlgorithm_LEGACY_P256:
+        case PowerAuthAlgorithm_EC_P384:
+            XCTAssertNotNil(ecdsa);
+            XCTAssertNil(mldsa);
+            result = [_sdk verifyDigitalSignature:ecdsa signedData:dataForSigning keyIdentifier:PowerAuthSignatureKeyId_SERVER_EC error:&error];
+            XCTAssertTrue(result);
+            XCTAssertNil(error);
+            break;
+        case PowerAuthCoreAlgorithm_EC_P384_ML_L3:
+            XCTAssertNotNil(ecdsa);
+            XCTAssertNotNil(mldsa);
+            result = [_sdk verifyDigitalSignature:ecdsa signedData:dataForSigning keyIdentifier:PowerAuthSignatureKeyId_SERVER_EC error:&error];
+            XCTAssertTrue(result);
+            XCTAssertNil(error);
+            error = nil;
+            result = [_sdk verifyDigitalSignature:mldsa signedData:dataForSigning keyIdentifier:PowerAuthSignatureKeyId_SERVER_ML_DSA error:&error];
+            XCTAssertTrue(result);
+            XCTAssertNil(error);
+            break;
+        default:
+            XCTFail(@"Unsupported algorithm");
+            break;
+    }
+}
+
+- (void) verifyJwsServerSignedData:(PowerAuthSignatureKeyId)signatureKeyId
+                     signatureType:(NSString*)signatureType
+                       compactForm:(BOOL)compactForm
+                            strict:(BOOL)strict
+                        shouldPass:(BOOL)shouldPass
+{
+    NSData * dataForSigning = [@"This is a very sensitive information and must be signed." dataUsingEncoding:NSUTF8StringEncoding];
+    NSString * jws = [_helper.testServerApi createJwtSignature:_sdk.activationIdentifier
+                                                          data:dataForSigning
+                                                       compact:compactForm
+                                                 signatureType:signatureType];
+    NSError * error = nil;
+    BOOL result = [_sdk verifyJwsSignature:jws
+                                   compact:compactForm
+                                    strict:strict
+                             keyIdentifier:signatureKeyId
+                                     error:&error];
+    if (shouldPass) {
+        XCTAssertTrue(result);
+        XCTAssertNil(error);
+    } else {
+        XCTAssertFalse(result);
+        XCTAssertNotNil(error);
+    }
+}
+
+- (void) testVerifyJwsServerSignedData
+{
+    CHECK_TEST_CONFIG();
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    BOOL result;
+    NSError * error;
+    switch (_sdk.currentAlgorithm) {
+        case PowerAuthAlgorithm_LEGACY_P256:
+            // Not available
+            break;
+        case PowerAuthAlgorithm_EC_P384:
+            // JWT
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
+            // JWS
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            break;
+        case PowerAuthCoreAlgorithm_EC_P384_ML_L3:
+            // JWT - ecdsa
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
+            // JWT - mldsa
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"MLDSA" compactForm:YES strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_ML_DSA signatureType:@"MLDSA" compactForm:YES strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"MLDSA" compactForm:YES strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_ML_DSA signatureType:@"MLDSA" compactForm:YES strict:NO  shouldPass:YES];
+            // JWS - ecdsa
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            // JWS - mldsa
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"MLDSA" compactForm:NO  strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_ML_DSA signatureType:@"MLDSA" compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"MLDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_ML_DSA signatureType:@"MLDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            // JWS - hybrid
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:NO  strict:NO  shouldPass:YES];
+            break;
+        default:
+            XCTFail(@"Unsupported algorithm");
+            break;
+    }
+
+}
+
+- (void) verifyJwtSignedWithSignatureKeyId:(PowerAuthSignatureKeyId)signatureKeyId
+                               compactForm:(BOOL)compactForm
+                                    strict:(BOOL)strict
+                            authentication:(PowerAuthAuthentication*)authentication
+                                shouldPass:(BOOL)shouldPass
+{
+    NSData * dataForSigning = [@"This is a very sensitive information and must be signed." dataUsingEncoding:NSUTF8StringEncoding];
+
+    // 1) At first, calculate signature
+    __block NSString * resultSignature = nil;
+    __block NSError * resultError = nil;
+    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        
+        id<PowerAuthOperationTask> task = [_sdk calculateJwsSignature:authentication
+                                                           dataToSign:dataForSigning
+                                                             dataType:nil
+                                                              compact:compactForm
+                                                        keyIdentifier:signatureKeyId
+                                                             callback:^(NSString * _Nullable jws, NSError * _Nullable error) {
+            resultSignature = jws;
+            resultError = error;
+            [waiting reportCompletion:@(error == nil)];
+        }];
+        // Returned task should not be cancelled
+        if (shouldPass) {
+            XCTAssertNotNil(task);
+        }
+    }] boolValue];
+    XCTAssertEqual(shouldPass, result);
+    if (result) {
+        // 2) Verify signature on the server
+        result = [_helper.testServerApi verifyJwtSignature:_sdk.activationIdentifier
+                                                signedData:resultSignature
+                                                   compact:compactForm];
+        XCTAssertTrue(result);
+        // 3) Verify locally
+        resultError = nil;
+        result = [_sdk verifyJwsSignature:resultSignature
+                                  compact:compactForm
+                                   strict:strict
+                            keyIdentifier:signatureKeyId
+                                    error:&resultError];
+        if (shouldPass) {
+            XCTAssertTrue(result);
+            XCTAssertNil(resultError);
+        } else {
+            XCTAssertFalse(result);
+            XCTAssertNotNil(resultError);
+        }
+    }
+}
+
+- (void) testJwsSignDataWithDevicePrivateKey
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test checks JWS data signing with device's private key.
+    //
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    PowerAuthAuthentication * auth = activation.credentials;
+    switch (_sdk.currentAlgorithm) {
+        case PowerAuthAlgorithm_EC_P384_ML_L3:
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA compactForm:NO strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA compactForm:YES strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE compactForm:NO strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC compactForm:NO strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC compactForm:YES strict:YES authentication:auth shouldPass:YES];
+            break;
+        case PowerAuthAlgorithm_EC_P384:
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE compactForm:YES strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE compactForm:NO strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC compactForm:NO strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC compactForm:YES strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA compactForm:NO strict:YES authentication:auth shouldPass:NO];
+            break;
+        case PowerAuthAlgorithm_LEGACY_P256:
+            // API not supported on the server
+            break;
+    }
+}
+
 - (void) testJwtSignature
 {
     CHECK_TEST_CONFIG();
@@ -1401,6 +1676,14 @@
             [waiting reportCompletion:jws];
         }];
     }];
+    NSError * error = nil;
+    BOOL result = [_sdk verifyJwsSignature:jwt
+                                   compact:YES
+                                    strict:YES
+                             keyIdentifier:PowerAuthSignatureKeyId_DEVICE_EC
+                                     error:&error];
+    XCTAssertTrue(result);
+    XCTAssertNil(error);
     
     // Parse JWT and validate result
     XCTAssertNotNil(jwt);
@@ -1434,7 +1717,7 @@
     NSData * jwtSignatureData = [[NSData alloc] initWithJwtEncodedString:jwtSignature];
     XCTAssertNotNil(jwtSignatureData);
     
-    BOOL result = [_helper.testServerApi verifyDsaSignature:activation.activationId data:jwtSignedData signature:jwtSignatureData signatureFormat:@"JOSE" signatureType:@"ECDSA"];
+    result = [_helper.testServerApi verifyDsaSignature:activation.activationId data:jwtSignedData signature:jwtSignatureData signatureFormat:@"JOSE" signatureType:@"ECDSA"];
     XCTAssertTrue(result);
 }
 

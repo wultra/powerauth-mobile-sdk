@@ -763,14 +763,18 @@
 /// - Parameters:
 ///   - signature: A string containing JWS or JWT signed data.
 ///   - compact: If `YES`, the input string is a compact JWT; otherwise, a full JWS object is expected.
+///   - strict: If `YES`, all provided keys must be used to successfully verify their corresponding signatures.
+///             If `NO`, verification succeeds when at least one provided key matches a valid signature; however,
+///             invalid or mismatched signatures still result in an error.
 ///   - keyIdentifier: The identifier of the key used for verification.
 ///   - error: A pointer to an error object that is set in case of failure.
 /// - Returns: `YES` if the signature is valid; otherwise, `NO`.
 - (BOOL) verifyJwsSignature:(nonnull NSString*)signature
                     compact:(BOOL)compact
+                     strict:(BOOL)strict
               keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
                       error:(NSError*_Nullable*_Nullable)error
-            NS_SWIFT_NAME(verifyJwsSignature(signature:compact:withKey:));
+            NS_SWIFT_NAME(verifyJwsSignature(signature:compact:strict:withKey:));
 
 /// Calculates a digital signature for the given data using the key specified by its identifier.
 ///

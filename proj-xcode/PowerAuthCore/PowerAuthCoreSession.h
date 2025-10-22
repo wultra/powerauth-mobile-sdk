@@ -425,12 +425,16 @@
 /// - Parameters:
 ///   - signedData: JWS or JWT signed data.
 ///   - compactForm: If `true`, the provided string is a JWT instead of a full JWS object.
+///   - strict: If `true`, all provided keys must be used to successfully verify
+///             their corresponding signatures. If `false`, verification succeeds when at least one provided key
+///             matches a valid signature; however, invalid or mismatched signatures still result in an error.
 ///   - keyId: Key used for signature verification. The key must support such operation.
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: `YES` if signature is valid, otherwise `NO`. If failure is caused by invalid signature,
 ///            then no error is set in the provided error pointer.
 - (BOOL) jwsVerifySignature:(nonnull NSString*)signedData
                 compactForm:(BOOL)compactForm
+                     strict:(BOOL)strict
                       keyId:(PowerAuthCoreSignatureKeyId)keyId
                       error:(NSError *_Nullable*_Nullable)error;
 

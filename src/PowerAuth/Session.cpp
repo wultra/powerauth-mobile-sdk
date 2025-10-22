@@ -348,10 +348,12 @@ RequestPtr Session::signData(const CredentialsPtr& credentials,
 
 bool Session::jwsVerifySignature(const std::string &signed_data,
                                  SignatureKeyId key_to_use,
-                                 bool is_compact_form) const
+                                 bool is_compact_form,
+                                 bool strict_verify) const
 {
     LOCK_GUARD();
-    return _context->signatureService().jwsVerifySignature(signed_data, key_to_use, is_compact_form);
+    cc7::jwt::JwsVerifyMode verify_mode = strict_verify ? cc7::jwt::JwsVerifyMode::VERIFY_ALL_KEYS : cc7::jwt::JwsVerifyMode::VERIFY_AT_LEAST_ONE;
+    return _context->signatureService().jwsVerifySignature(signed_data, key_to_use, is_compact_form, verify_mode);
 }
 
 RequestPtr Session::jwsSignData(const CredentialsPtr& credentials,

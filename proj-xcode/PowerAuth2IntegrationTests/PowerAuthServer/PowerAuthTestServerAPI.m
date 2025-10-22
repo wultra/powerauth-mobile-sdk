@@ -343,6 +343,8 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
     return response;
 }
 
+#pragma mark - Digital Signatures
+
 - (BOOL) verifyDsaSignature:(NSString*)activationId
                        data:(NSData*)data
                   signature:(NSData*)signature
@@ -356,34 +358,71 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
     if (_clientProtocolVersion < PATS_P40) {
         // V3
         if (signatureFormat) {
-            params = @[activationId, dataB64, signatureB64, signatureFormat];
+            params = @[ activationId, dataB64, signatureB64, signatureFormat];
             apiCall = @"VerifyECDSASignature_v19";
         } else {
-            params = @[activationId, dataB64, signatureB64];
+            params = @[ activationId, dataB64, signatureB64];
             apiCall = @"VerifyECDSASignature_v10";
         }
     } else {
         // V4
-        params = @[activationId, dataB64, signatureB64, signatureFormat, signatureType];
+        params = @[ activationId, dataB64, signatureB64, signatureFormat, signatureType];
         apiCall = @"VerifyDsaSignature";
     }
     NSDictionary * response = [_rest request:apiCall params:params];
     return [response[@"signatureValid"] boolValue];
 }
-- (BOOL) verifyECDSASignature:(NSString*)activationId
-                         data:(NSData*)data
-                    signature:(NSData*)signature
-              signatureFormat:(NSString*)signatureFormat
+
+- (NSDictionary<NSString*, NSString*>*) createDsaSignature:(NSString*)activationId
+                                                      data:(NSData*)data
 {
     NSString * dataB64 = [data base64EncodedStringWithOptions:0];
-    NSString * signatureB64 = [signature base64EncodedStringWithOptions:0];
     NSArray * params;
-    if (signatureFormat) {
-        params = @[activationId, dataB64, signatureB64, signatureFormat];
+    NSString * apiCall;
+    if (_clientProtocolVersion < PATS_P40) {
+        // V3
+        params = @[ activationId, dataB64 ];
+        apiCall = @"CreateEcdsaSignature";
     } else {
-        params = @[activationId, dataB64, signatureB64];
+        // V4
+        params = @[ activationId, dataB64 ];
+        apiCall = @"CreateDsaSignature";
     }
-    NSDictionary * response = [_rest request:@"VerifyECDSASignature" params:params];
+    NSDictionary * response = [_rest request:apiCall params:params];
+    // Process result
+    NSMutableDictionary * result = [NSMutableDictionary dictionaryWithCapacity:2];
+    if (_clientProtocolVersion < PATS_P40) {
+        // V3
+        result[@"ecdsa"] = response[@"signature"];
+    } else {
+        // V4
+        result[@"ecdsa"] = response[@"signatureEcdsa"];
+        if ([response[@"signatureMldsa"] isKindOfClass:[NSString class]]) {
+            result[@"mldsa"] = response[@"signatureMldsa"];
+        }
+    }
+    return result;
+}
+
+- (NSString*) createJwtSignature:(NSString*)activationId
+                            data:(NSData*)data
+                         compact:(BOOL)compact
+                   signatureType:(NSString*)signatureType
+{
+    NSString * dataB64 = [data base64EncodedStringWithOptions:0];
+    NSString * signatureFormat = compact ? @"JWS_COMPACT" : @"JWS_JSON";
+    NSArray * params = @[ activationId, dataB64, signatureFormat, signatureType ? signatureType : [NSNull null] ];
+    NSDictionary * response = [_rest request:@"CreateJwtSignature" params:params];
+    return [response[@"signedData"] stringValue];
+}
+
+- (BOOL) verifyJwtSignature:(NSString*)activationId
+                 signedData:(NSString*)signedData
+                    compact:(BOOL)compact
+{
+    NSString * signatureFormat = compact ? @"JWS_COMPACT" : @"JWS_JSON";
+    NSArray * params = @[ activationId, signedData, signatureFormat ];
+    NSDictionary * response = [_rest request:@"VerifyJwtSignature" params:params];
     return [response[@"signatureValid"] boolValue];
 }
 

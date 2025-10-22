@@ -118,12 +118,16 @@ ResponseObjectPtr SignatureService::doSignData(Context &context, const cc7::Byte
 
 // MARK: JWS
 
-bool SignatureService::jwsVerifySignature(const std::string &signed_data, SignatureKeyId key_to_use, bool is_compact_form) const
+bool SignatureService::jwsVerifySignature(const std::string &signed_data,
+                                          SignatureKeyId key_to_use,
+                                          bool is_compact_form,
+                                          cc7::jwt::JwsVerifyMode verify_mode) const
 {
     LOCK_GUARD();
     auto context = lockContext();
     auto spec = SignatureKeySpec::specForKeyId(key_to_use);
-    checkSignatureKeySpec(*context, spec, !is_compact_form, false);
+    auto allow_hybrid_keys = !is_compact_form || verify_mode == cc7::jwt::JwsVerifyMode::VERIFY_AT_LEAST_ONE;
+    checkSignatureKeySpec(*context, spec, allow_hybrid_keys, false);
     
     cc7::jwt::JwsKeyList keys;
     if (spec->keyToUse == SignatureKeySpec::MAC) {
@@ -139,7 +143,7 @@ bool SignatureService::jwsVerifySignature(const std::string &signed_data, Signat
         auto reader = is_compact_form
                             ? cc7::jwt::JwtReader::fromCompact(signed_data)
                             : cc7::jwt::JwtReader::fromJsonString(signed_data);
-        reader.verify(keys, *_jws_provider);
+        reader.verify(keys, verify_mode, *_jws_provider);
         return true;
     } catch (...) {
         // TODO: log exception

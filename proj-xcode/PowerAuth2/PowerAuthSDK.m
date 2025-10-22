@@ -24,7 +24,6 @@
 #import "PA2CoreHttpClient.h"
 #import "PA2RestApiObjects.h"
 #import "PA2AsyncOperation.h"
-#import "PA2ObjectSerialization.h"
 
 #import "PA2KeystoreService.h"
 #import "PA2TimeSynchronizationService.h"
@@ -1594,12 +1593,14 @@ static PowerAuthSDK * s_inst;
 
 - (BOOL) verifyJwsSignature:(nonnull NSString*)signature
                     compact:(BOOL)compact
+                     strict:(BOOL)strict
               keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
                       error:(NSError*_Nullable*_Nullable)error
 {
     return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
         return [session jwsVerifySignature:signature
                                compactForm:compact
+                                    strict:strict
                                      keyId:(PowerAuthCoreSignatureKeyId)keyIdentifier
                                      error:error];
     } error:error];

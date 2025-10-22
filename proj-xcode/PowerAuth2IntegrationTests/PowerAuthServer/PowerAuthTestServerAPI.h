@@ -201,6 +201,12 @@
                                        componentLength:(NSInteger)componentLength;
 
 /**
+ Request for asymmetric signature calculation. The response dictionary contains
+ Base64 encoded DER signatures with the following keys: "ecdsa", "mldsa".
+ */
+- (NSDictionary<NSString*, NSString*>*) createDsaSignature:(NSString*)activationId
+                                                      data:(NSData*)data;
+/**
  Request for the asymmetric signature validation procedure. Use "DER" or "JOSE" as
  signature format. Signature type is "ECDSA" or "MLDSA".
  */
@@ -209,6 +215,23 @@
                   signature:(NSData*)signature
             signatureFormat:(NSString*)signatureFormat
               signatureType:(NSString*)signatureType;
+
+/**
+ Request for asymmetric JWS signature calculation. If compact is YES, then JWT is created.
+ Use "ECDSA" or "MLDSA" or nil, for signatureType.
+ */
+- (NSString*) createJwtSignature:(NSString*)activationId
+                            data:(NSData*)data
+                         compact:(BOOL)compact
+                   signatureType:(NSString*)signatureType;
+
+/**
+ Request for asymmetric JWS signature verification. If compact is YES, then JWT
+ is expected at input.
+ */
+- (BOOL) verifyJwtSignature:(NSString*)activationId
+                 signedData:(NSString*)signedData
+                    compact:(BOOL)compact;
 
 #pragma mark - Tokens
 

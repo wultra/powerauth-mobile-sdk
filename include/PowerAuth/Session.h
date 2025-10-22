@@ -337,10 +337,16 @@ public:
     ///   - key_to_use: Key used for the signature verification. The key
     ///                 must support the signature verification.
     ///   - is_compact_form: If `true`, the provided string is a JWT instead of a full JWS object.
-    /// - Returns: `true` if signature is valid.
+    ///   - strict_verify: If `true`, all provided keys must be used to successfully verify
+    ///                    their corresponding signatures.
+    ///                    If `false`, verification succeeds when at least one provided key
+    ///                    matches a valid signature; however, invalid or mismatched signatures
+    ///                    still result in an error.
+    /// - Returns: `true` if the signature is valid; otherwise, `false`.
     bool jwsVerifySignature(const std::string &signed_data,
                             SignatureKeyId key_to_use,
-                            bool is_compact_form) const;
+                            bool is_compact_form,
+                            bool strict_verify) const;
     
     /// Create a JWS (or compact JWT) over the given data. If the request succeeds, the
     /// response contains a `StringResponse` with the calculated JWS or JWT.

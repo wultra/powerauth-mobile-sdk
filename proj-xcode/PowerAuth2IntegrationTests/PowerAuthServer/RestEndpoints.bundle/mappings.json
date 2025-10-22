@@ -63,7 +63,6 @@
             "SupportApplicationVersion":    "SupportApplicationVersion_v20",
             "UnsupportApplicationVersion":  "UnsupportApplicationVersion_v20",
             "TokenValidate":                "TokenValidate_P4",
-            "VerifyECDSASignature":         "VerifyECDSASignature_v20",
             "CreateNonPersonalizedOfflineSignaturePayload":     "CreateNonPersonalizedOfflineSignaturePayload_P4",
             "CreatePersonalizedOfflineSignaturePayload":        "CreatePersonalizedOfflineSignaturePayload_P4",
         }

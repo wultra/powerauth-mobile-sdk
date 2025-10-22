@@ -36,8 +36,6 @@ public:
         cc7::ByteArray calculatedSharedSecret;
         
         cc7::ByteArray authCodeCounterData;
-        
-        std::shared_ptr<Context> context;
     };
     
     V4& v4();

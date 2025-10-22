@@ -93,11 +93,10 @@ void ProtocolUpgradeTask::startProtocolUpgrade()
     auto new_ud = UpgradeData::create();
     _session_data->setUpgradeData(new_ud);
     
-    auto upgrade_context = Context::getTargetAlgorithmInstance(current_context);
-    _session_data->upgradeData().v4().context = upgrade_context;
+    auto upgrade_context = current_context->createTargetAlgorithmContext();
     
     auto request = RequestBuilder(*upgrade_context, v4::Endpoint_ProtocolUpgradeStart)
-        .withJson(prepareRequestStartProtocolUpgrade())
+        .withJson(prepareRequestStartProtocolUpgrade(upgrade_context))
         .withAuthenticator(current_context->getAuthenticationServicePtr())
         .withAuthentication(Credentials::knowledge(_password->passwordData()))
         .build();
@@ -105,21 +104,21 @@ void ProtocolUpgradeTask::startProtocolUpgrade()
     setNextRequest(request, START_UPGRADE, RF_PRIMARY);
 }
 
-cc7::json::JsonValue ProtocolUpgradeTask::prepareRequestStartProtocolUpgrade()
+cc7::json::JsonValue ProtocolUpgradeTask::prepareRequestStartProtocolUpgrade(const ContextPtr& upgrade_context)
 {
     auto& ud = _session_data->upgradeData().v4();
     
     // Generate device public key-pairs
-    ud.deviceKeyPair = ud.context->getSigningKeyPairFactoryPtr()->generateKeyPair();
+    ud.deviceKeyPair = upgrade_context->getSigningKeyPairFactoryPtr()->generateKeyPair();
     
     // Prepare shared secret
     SharedSecretRequest ss_request;
-    std::tie(ss_request, ud.sharedSecretContext) = ud.context->sharedSecret().generateRequestCryptogram();
-    ud.sharedSecretAlgorithm = ud.context->getSharedSecretPtr();
+    std::tie(ss_request, ud.sharedSecretContext) = upgrade_context->sharedSecret().generateRequestCryptogram();
+    ud.sharedSecretAlgorithm = upgrade_context->getSharedSecretPtr();
     
     return cc7::json::JsonValue::object({
         { "sharedSecretRequest", ss_request.toJson() },
-        { "devicePublicKeys", v4::HybridKey_ToJson(ud.deviceKeyPair->getPublicKey(), ud.context->specification()) },
+        { "devicePublicKeys", v4::HybridKey_ToJson(ud.deviceKeyPair->getPublicKey(), upgrade_context->specification()) },
         { "enableBiometry", cc7::json::JsonValue(_session_data->persistentData().hasBiometricFactorKey()) }
     });
 }
@@ -127,8 +126,10 @@ cc7::json::JsonValue ProtocolUpgradeTask::prepareRequestStartProtocolUpgrade()
 void ProtocolUpgradeTask::processResponseStartProtocolUpgrade(const cc7::json::JsonValue& response)
 {
     LOCK_GUARD();
+    auto current_context = lockContext();
+    
     auto& ud = _session_data->upgradeData().v4();
-    auto upgrade_context = ud.context;
+    auto upgrade_context = current_context->getTargetAlgorithmContextPtr();
     
     // Extract public keys and calculate shared secret
     auto server_public_key = v4::HybridKey_FromJson(response["serverPublicKeys"], *upgrade_context->getSigningKeyPairFactoryPtr());
@@ -157,7 +158,7 @@ void ProtocolUpgradeTask::processResponseStartProtocolUpgrade(const cc7::json::J
     
     // Switch primary context to V4
     upgrade_context->destroyServices();
-    lockContext()->updateAfterProtocolVersionChange();
+    current_context->updateAfterProtocolVersionChange();
 }
 
 void ProtocolUpgradeTask::confirmProtocolUpgrade()
@@ -191,8 +192,7 @@ void ProtocolUpgradeTask::resetState()
     LOCK_GUARD();
     auto context = lockContext();
     
-    auto &ud = _session_data->upgradeData().v4();
-    ud.context->destroyServices();
+    context->getTargetAlgorithmContextPtr()->destroyServices();
     _session_data->resetUpgradeData();
 }
 

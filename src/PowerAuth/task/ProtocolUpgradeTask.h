@@ -43,7 +43,7 @@ private:
     /// Prepare upgrade context and send the start protocol upgrade request to the server.
     void startProtocolUpgrade();
     /// Build the request body for the start protocol upgrade request.
-    cc7::json::JsonValue prepareRequestStartProtocolUpgrade();
+    cc7::json::JsonValue prepareRequestStartProtocolUpgrade(const ContextPtr& upgrade_context);
     /// Process the start protocol upgrade response.
     /// On success, switch the protocol version to V4.
     void processResponseStartProtocolUpgrade(const cc7::json::JsonValue& response);

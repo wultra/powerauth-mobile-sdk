@@ -61,6 +61,8 @@ public:
     /// Returns the new context for the target algorithm.
     std::shared_ptr<Context> createTargetAlgorithmContext();
     
+    void destroyTargetAlgorithmContext();
+    
     /// Returns the target algorithm context if exists.
     std::shared_ptr<Context> getTargetAlgorithmContextPtr() const noexcept;
     
@@ -127,12 +129,12 @@ public:
     void clearSensitiveData();
     void restoreSensitiveData();
     
-    void destroyServices();
 
 private:
-    
+
     void createServices(bool initial_setup, ConstPowerAuthSpecPtr specification);
-    
+    void destroyServices();
+
     mutable SharedMutexPtr _shared_mutex;
     const ConfigurationPtr _configuration;
     PowerAuthSpecPtr _specification;

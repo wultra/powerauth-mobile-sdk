@@ -85,6 +85,12 @@ void ProtocolUpgradeTask::onRequestFailure(const Request &request)
     }
 }
 
+void ProtocolUpgradeTask::onTaskEnd()
+{
+    Task::onTaskEnd();
+    resetState();
+}
+
 void ProtocolUpgradeTask::startProtocolUpgrade()
 {
     LOCK_GUARD();
@@ -157,7 +163,7 @@ void ProtocolUpgradeTask::processResponseStartProtocolUpgrade(const cc7::json::J
     }
     
     // Switch primary context to V4
-    upgrade_context->destroyServices();
+    current_context->destroyTargetAlgorithmContext();
     current_context->updateAfterProtocolVersionChange();
 }
 
@@ -192,8 +198,8 @@ void ProtocolUpgradeTask::resetState()
     LOCK_GUARD();
     auto context = lockContext();
     
-    context->getTargetAlgorithmContextPtr()->destroyServices();
     _session_data->resetUpgradeData();
+    context->destroyTargetAlgorithmContext();
 }
 
 } // namespace powerAuth

@@ -269,6 +269,15 @@ std::shared_ptr<Context> Context::createTargetAlgorithmContext()
     return _target_context;
 }
 
+void Context::destroyTargetAlgorithmContext()
+{
+    if (!_target_context) {
+        return;
+    }
+    
+    _target_context->destroyServices();
+}
+
 std::shared_ptr<Context> Context::getTargetAlgorithmContextPtr() const noexcept
 {
     CHECK_OBJ_PTR(_target_context);

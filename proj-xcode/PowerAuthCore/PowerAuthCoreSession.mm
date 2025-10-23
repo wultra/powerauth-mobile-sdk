@@ -192,7 +192,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     return (PowerAuthCoreProtocolVersion) _session->getProtocolVersion();
 }
 
-- (NSDictionary<NSString*, NSObject*>*) lastUserInfo
+- (nullable NSDictionary<NSString*, NSObject*>*) lastUserInfo
 {
     [self requireReadAccess:nil];
     return cc7::objc::JsonValueToObjC(_session->lastUserInfo());

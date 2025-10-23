@@ -1327,6 +1327,10 @@
     // and properly updated after fetching new User Info from the server.
     //
     
+    // Test the `lastFetchedUserInfo` is nil before the data are fetched.
+    XCTAssertFalse(_sdk.hasValidActivation);
+    XCTAssertNil(_sdk.lastFetchedUserInfo);
+    
     PowerAuthSdkActivation * activation = [_helper createActivation:YES];
     if (!activation) {
         return;

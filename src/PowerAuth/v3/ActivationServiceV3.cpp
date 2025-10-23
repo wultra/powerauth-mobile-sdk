@@ -120,7 +120,7 @@ ResponseObjectPtr ActivationServiceV3::processResponseActivationData(Context& co
     
     // Store received User Info into Session Data
     auto user_info = L1_data.findValueAtPath("userInfo");
-    _session_data->setUserInfo(user_info ? *user_info : cc7::json::JsonValue::object());
+    _session_data->setUserInfo(user_info ? *user_info : cc7::json::JsonValue());
     
     return std::make_shared<ActivationResult>(calculateActivationFingerprint(), L1_data);
 }

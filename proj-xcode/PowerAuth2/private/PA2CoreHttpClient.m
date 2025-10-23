@@ -45,6 +45,10 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
     return s_queue;
 }
 
+#if defined(DEBUG)
+static NSArray * _GetSimulatedFailure(NSString * basePath, NSString * relativePath);
+#endif // DEBUG
+
 - (nonnull instancetype) initWithConfiguration:(nonnull PowerAuthClientConfiguration*)configuration
                               sessionInterface:(nonnull id<PA2SessionInterface>)sessionInterface
                                completionQueue:(nonnull dispatch_queue_t)queue
@@ -238,6 +242,13 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         _LogHttpRequest(request, urlRequest);
         // Construct & return data task.
         NSURLSessionDataTask * task = [_urlSession dataTaskWithRequest:urlRequest completionHandler:^(NSData * data, NSURLResponse * urlResponse, NSError * error) {
+#if defined(DEBUG)
+            NSArray * simulatedFailure = _GetSimulatedFailure(_baseUrl, request.relativePath);
+            if (simulatedFailure) {
+                urlResponse = simulatedFailure[0];
+                data        = simulatedFailure[1];
+            }
+#endif // DEBUG
             // DataTask completion
             id object;
             if (!error) {
@@ -402,3 +413,62 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
 }
 
 @end
+
+#if defined(DEBUG)
+@implementation PA2CoreHttpClient (FailureSimulator)
+
+static NSMutableDictionary * _GetFailureData(void)
+{
+    static dispatch_once_t onceToken;
+    static NSMutableDictionary * s_Failures;
+    dispatch_once(&onceToken, ^{
+        s_Failures = [NSMutableDictionary dictionary];
+    });
+    return s_Failures;
+}
+
++ (void) setNextResponseFailure:(NSInteger)statusCode
+                forRelativePath:(nullable NSString*)relativePath
+{
+    NSMutableDictionary * failures = _GetFailureData();
+    if (!relativePath) {
+        relativePath = @"*";
+    }
+    failures[relativePath] = @(statusCode);
+    PowerAuthLog(@"!!! Next HTTP request will fail: %@ -> %@", relativePath, @(statusCode));
+}
+
++ (void) clearAllFailureHooks
+{
+    NSMutableDictionary * failures = _GetFailureData();
+    if (failures.count) {
+        PowerAuthLog(@"!!! Removing all simulated HTTP failure hooks");
+        [failures removeAllObjects];
+    }
+}
+
+static NSArray * _GetSimulatedFailure(NSString * basePath, NSString * relativePath)
+{
+    NSMutableDictionary * failures = _GetFailureData();
+    if ([failures count] == 0) {
+        return nil;
+    }
+    NSNumber * status = failures[relativePath];
+    if (!status) {
+        relativePath = @"*";
+        status = failures[relativePath];
+    }
+    if (!status) {
+        return nil;
+    }
+    [failures removeObjectForKey:relativePath];
+    NSURL* url = [NSURL URLWithString:[basePath stringByAppendingString:relativePath]];
+    return @[
+        [[NSHTTPURLResponse alloc] initWithURL:url statusCode:status.integerValue HTTPVersion:nil headerFields:nil],
+        [@"{\"status\": \"ERROR\",\"responseObject\":{\"code\": \"ERR_SIMULATED_FAILURE\",\"message\": \"This is fine 🐶\"}}" dataUsingEncoding:NSUTF8StringEncoding]
+    ];
+}
+
+@end
+
+#endif // DEBUG

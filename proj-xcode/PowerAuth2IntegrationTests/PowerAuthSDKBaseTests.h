@@ -40,4 +40,17 @@
 
 - (void) reconfigureForTest:(NSString*)testName;
 
+/// Simulate the next HTTP request failure for given path.
+/// - Parameters:
+///   - relativePath: Use `nil` or `"*"` to simulate failure for any next request.
+///                   If path starts with `"/pa"` then use the path as is. If not,
+///                   then function prepends the protocol version depending on the current
+///                   test setup.
+///   - statusCode: Status code to set for the response.
+- (void) simulateNextResponseFailure:(NSString*)relativePath
+                          statusCode:(NSInteger)statusCode;
+
+/// Clear all simulated failure hooks.
+- (void) clearAllSimulateFailures;
+
 @end

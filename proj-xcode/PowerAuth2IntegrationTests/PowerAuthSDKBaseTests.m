@@ -17,6 +17,9 @@
 #import "PowerAuthSDKBaseTests.h"
 #import "PA2ObjectSerialization.h"
 
+// Access private SDK header
+#import "../PowerAuth2/private/PA2CoreHttpClient.h"
+
 @implementation PowerAuthSDKBaseTests
 
 #pragma mark - Test setup
@@ -24,11 +27,13 @@
 - (void)setUp
 {
     [super setUp];
+    [self clearAllSimulateFailures];
     [self reconfigureForTest:[PowerAuthSdkTestHelper currentTestNameFromTestCase:self]];
 }
 
 - (void) tearDown
 {
+    [self clearAllSimulateFailures];
     [_helper cleanup];
     [super tearDown];
 }
@@ -64,6 +69,28 @@
     [_helper printConfig];
     _sdk = _helper.sdk;
     _helper.testServerApi.clientProtocolVersion = _sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? PATS_P33 : PATS_P40;
+}
+
+- (void) simulateNextResponseFailure:(NSString*)relativePath
+                          statusCode:(NSInteger)statusCode;
+{
+    if (relativePath && ![relativePath isEqualToString:@"*"]) {
+        if (![relativePath hasPrefix:@"/pa/"]) {
+            // Adjust path depending on actual algorithm.
+            XCTAssertTrue([relativePath hasPrefix:@"/"]);
+            if ([self powerAuthAlgorithm] == PowerAuthAlgorithm_LEGACY_P256)  {
+                relativePath = [@"/pa/v3" stringByAppendingString:relativePath];
+            } else {
+                relativePath = [@"/pa/v4" stringByAppendingString:relativePath];
+            }
+        }
+    }
+    [PA2CoreHttpClient setNextResponseFailure:statusCode forRelativePath:relativePath];
+}
+
+- (void) clearAllSimulateFailures
+{
+    [PA2CoreHttpClient clearAllFailureHooks];
 }
 
 #pragma mark - Helper utilities
@@ -1770,6 +1797,44 @@
     XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
     
     [_helper cleanup];
+}
+
+- (void) testSimulatedHttpResponseFailure
+{
+    // This test validates whether HTTP response failure simulation works properly.
+
+    // Set the next server status failed
+    [self simulateNextResponseFailure:@"/status" statusCode:500];
+    // Should fail
+    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchServerStatus:^(PowerAuthServerStatus * _Nullable status, NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertFalse(result);
+    // Should work
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchServerStatus:^(PowerAuthServerStatus * _Nullable status, NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(result);
+    // Should fail
+    // Set result from any HTTP request as failure
+    [self simulateNextResponseFailure:nil statusCode:500];
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchServerStatus:^(PowerAuthServerStatus * _Nullable status, NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertFalse(result);
+    // Should work
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchServerStatus:^(PowerAuthServerStatus * _Nullable status, NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(result);
 }
 
 @end

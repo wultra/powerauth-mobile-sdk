@@ -223,7 +223,7 @@ public:
     /// - Returns: Most recently fetched User Info.
     /// - Throws:
     ///   - `Exception` in case of failure.
-    const cc7::json::JsonValue& lastUserInfo() const;
+    cc7::json::JsonValue lastUserInfo() const noexcept;
 
 private:
     

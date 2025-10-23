@@ -233,10 +233,9 @@ RequestPtr Session::fetchUserInfo()
     return _context->activationService().fetchUserInfo();
 }
 
-const cc7::json::JsonValue& Session::lastUserInfo() const
+cc7::json::JsonValue Session::lastUserInfo() const noexcept
 {
     LOCK_GUARD();
-    checkActivationData();
     return _context->sessionData().getUserInfo();
 }
 

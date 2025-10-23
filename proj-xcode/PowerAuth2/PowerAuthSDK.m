@@ -1761,11 +1761,9 @@ static PowerAuthSDK * s_inst;
 
 - (PowerAuthUserInfo*) lastFetchedUserInfo
 {
-    [_lock lock];
     NSDictionary * claims = [_sessionInterface readTaskWithSession:^NSDictionary*(PowerAuthCoreSession *session, NSError **error) {
         return [session lastUserInfo];
     } error:nil];
-    [_lock unlock];
     return [[PowerAuthUserInfo alloc] initWithDictionary:claims];
 }
 

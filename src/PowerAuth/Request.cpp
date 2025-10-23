@@ -104,13 +104,30 @@ bool Request::isDone() const noexcept
 
 void Request::cancel() noexcept
 {
+    cancelImpl(false);
+}
+
+void Request::cancelFromTask() noexcept
+{
+    cancelImpl(true);
+}
+
+void Request::cancelImpl(bool clear_task) noexcept
+{
     LOCK_GUARD();
-    if (_state < PROCESSED) {
+    if (_state >= PROCESSED) {
+        // already done
         return;
     }
     _state = CANCELED;
+    if (clear_task) {
+        if (_task) {
+            _task = nullptr;
+        } else {
+            CC7_LOG("No parent task is set");
+        }
+    }
     notifyResult();
-    cleanup();
 }
 
 const cc7::ByteArray& Request::getRequestBody() const
@@ -194,7 +211,14 @@ void Request::setFailed(std::exception_ptr exception) noexcept
     if (!isDone()) {
         CC7_LOG("Request set as failed");
         _state = FAILED;
-        _failure = Exception::wrapException(exception);
+        if (exception) {
+            _failure = Exception::wrapException(exception);
+        } else {
+            _failure = nullptr;
+        }
+        notifyResult();
+    } else {
+        CC7_LOG("WARNING: Request is already completed");
     }
 }
 
@@ -216,7 +240,6 @@ void Request::processFailure(ErrorCode ec, const std::string& msg, std::exceptio
     CC7_LOG("Request failure (%d): %s", ec, msg.c_str());
     _failure = Exception::wrapException(ec, msg, failure);
     notifyResult();
-    cleanup();
     std::rethrow_exception(_failure);
 }
 
@@ -249,8 +272,10 @@ void Request::notifyResult() noexcept
         } catch (...) {
             // TODO: log exception
             CC7_LOG("Task completion callback in request failed");
+            
         }
     }
+    cleanup();
 }
 
 // MARK: - Request prepare
@@ -348,7 +373,6 @@ void Request::processResponse(const cc7::ByteRange& response_data)
         }
         _state = PROCESSED;
         notifyResult();
-        cleanup();
     } catch (...) {
         processFailure(EC_InvalidData, "Failed to process response", std::current_exception());
     }
@@ -375,7 +399,7 @@ void Request::doProcessResponse(const cc7::ByteRange& response_data)
         _response_json = cc7::json::JsonReader::fromJsonData(_response_body);
         _encryptor = nullptr;
     } else {
-        _request_body = response_data;
+        _response_body = response_data;
     }
 }
 

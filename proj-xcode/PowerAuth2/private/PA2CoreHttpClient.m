@@ -168,12 +168,16 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         // Endpoint require encryption key or time is not synchronized yet. We have to create a composite task that handle multiple
         // requests before an actual request is executed.
         PA2CompositeTask * compositeTask = [[PA2CompositeTask alloc] initWithCancelBlock:^{
-            [self internalCancel:request task:nil];
+            [self setCoreRequestFinished:request isFailed:NO urlTask:nil];
         }];
         // Prepare common completion block with the composite task.
         void (^compositeCompletion)(PowerAuthCoreRequest *, id, NSError *) = ^(PowerAuthCoreRequest * request, id response, NSError *error) {
             // At first, dispatch the result to the dedicated queue.
             dispatch_async(_completionQueue, ^{
+                // Make sure the core request is set as failed
+                if (error) {
+                    [self setCoreRequestFinished:request isFailed:YES urlTask:nil];
+                }
                 // Set composite operation as completed. The message returns YES if composite task was not completed or canceled before.
                 // If so, then simply call the completion block.
                 if ([compositeTask setCompleted]) {
@@ -254,6 +258,8 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
             if (!error) {
                 object = [self buildResponse:request responseData:data response:(NSHTTPURLResponse*)urlResponse error:&error];
             } else {
+                // Network, or other error. Report this immediately to C++ layer.
+                [self setCoreRequestFinished:request isFailed:YES urlTask:nil];
                 object = nil;
             }
             // Log response
@@ -268,11 +274,15 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
     op.reportBlock = ^(PA2AsyncOperation *op) {
         id<PA2Decodable> object = op.operationResult;
         NSError * error = op.operationError;
+        // Make sure the core request is set as failed before we call the completion.
+        if (error) {
+            [self setCoreRequestFinished:request isFailed:NO urlTask:nil];
+        }
         completion(request, object, error);
     };
     // Setup cancellation block
     op.cancelBlock = ^(PA2AsyncOperation *op, id task) {
-        [self internalCancel:request task:PA2ObjectAs(task, NSURLSessionDataTask)];
+        [self setCoreRequestFinished:request isFailed:NO urlTask:PA2ObjectAs(task, NSURLSessionDataTask)];
     };
     // Finally, add operation to the right queue
     if (request.isRequireSerialQueue) {
@@ -307,7 +317,7 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         if (!processed) {
             // We never entered to the request preparation block. In this case, we have to try to cancel the core request
             // to notify core layer about this failure.
-            [self internalCancel:coreRequest task:nil];
+            [self setCoreRequestFinished:coreRequest isFailed:YES urlTask:nil];
         }
         return nil;
     }
@@ -355,15 +365,17 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         } error:error];
         if (*error) {
             if (!processed) {
-                // We never entered to the response processing. In this case, we have to try to cancel the core request
-                // to notify core layer about this failure.
-                [self internalCancel:coreRequest task:nil];
+                // We never entered to the response processing. In this case, we have to try to
+                // set the core request as failed to notify core layer about this.
+                [self setCoreRequestFinished:coreRequest isFailed:YES urlTask:nil];
             }
             return nil;
         }
         // success, note that response object may be nil
         return coreRequest.responseObject;
     }
+    // Notify C++ layer about this failure.
+    [self setCoreRequestFinished:coreRequest isFailed:YES urlTask:nil];
     // build error
     *error = [self buildErrorForData:responseData httpResponse:httpResponse];
     return nil;
@@ -400,13 +412,19 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
     return [NSError errorWithDomain:PowerAuthErrorDomain code:PowerAuthErrorCode_NetworkError userInfo:additionalInfo];
 }
 
-- (void) internalCancel:(PowerAuthCoreRequest*)request task:(NSURLSessionDataTask*)task
+- (void) setCoreRequestFinished:(PowerAuthCoreRequest*)request
+                       isFailed:(BOOL)isFailed
+                        urlTask:(NSURLSessionDataTask*)task
 {
     [task cancel];
-    if (request) {
+    if (request && !request.isDone) {
         // acquire write task in case the cancel cause internal state change
         [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session, NSError * _Nonnull __autoreleasing * _Nullable error) {
-            [request cancel];
+            if (isFailed) {
+                [request setFailed];
+            } else {
+                [request cancel];
+            }
             return YES;
         } error:nil];
     }

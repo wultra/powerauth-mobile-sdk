@@ -170,6 +170,9 @@ private:
     /// Helper method that captures the failure and sets task as completed.
     void captureExceptionAndComplete(std::exception_ptr failure = std::current_exception()) noexcept;
     
+    /// Cancels current Request captured in weak pointer.
+    void cancelCurrentRequest() noexcept;
+    
     /// State of the task.
     State _state;
     /// Indicate that completion callbacks were processed.

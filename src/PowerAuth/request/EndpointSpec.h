@@ -102,6 +102,7 @@ extern const EndpointSpec Endpoint_ProtocolUpgradeConfirm;
 
 namespace v3 {
 
+extern const EndpointSpec Endpoint_SystemStatus;
 extern const EndpointSpec Endpoint_TemporaryKey;
 extern const EndpointSpec Endpoint_ActivationCreate;
 extern const EndpointSpec Endpoint_ActivationStatus;

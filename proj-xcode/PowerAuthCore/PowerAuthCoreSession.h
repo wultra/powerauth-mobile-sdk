@@ -150,9 +150,9 @@
  This property provides the most recent user info and does not trigger any server communication.
  If no such information has been received yet, nil is returned.
  
- This property access the session's state, so read access must be guaranteed.
+ This property accesses user info cached in the session, so read access must be guaranteed.
  */
-@property (nonatomic, assign, readonly, nullable) NSDictionary<NSString*, NSObject*>* lastUserInfo;
+@property (nonatomic, strong, readonly, nullable) NSDictionary<NSString*, NSObject*>* lastUserInfo;
 
 
 #pragma mark - Serialization

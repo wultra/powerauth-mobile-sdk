@@ -221,8 +221,6 @@ public:
     /// obtained either during activation creation or from a previous explicit user info fetch.
     ///
     /// - Returns: Most recently fetched User Info.
-    /// - Throws:
-    ///   - `Exception` in case of failure.
     cc7::json::JsonValue lastUserInfo() const noexcept;
 
 private:

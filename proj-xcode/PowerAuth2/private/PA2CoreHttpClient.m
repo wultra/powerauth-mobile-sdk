@@ -23,15 +23,25 @@
 
 #import <PowerAuth2/PowerAuthLog.h>
 
-
 @import PowerAuthCore;
 
-@implementation PA2CoreHttpClient
-{
-    PowerAuthClientConfiguration* _configuration;
-    dispatch_queue_t _completionQueue;
-    NSString * _baseUrl;
-}
+#pragma mark - Forward declarations
+
+#if defined(DEBUG)
+    // Failure simulator
+    static NSError * _GetSimulatedRequestFailure(NSString * basePath, NSString * relativePath);
+    static NSArray * _GetSimulatedResponseFailure(NSString * basePath, NSString * relativePath);
+    static id _GetNullableObjectFromArray(NSArray * array, NSUInteger index);
+    // LOG
+    static void _LogHttpRequest(PowerAuthCoreRequest * coreRequest, NSURLRequest * request);
+    static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLResponse * response, NSData * data, NSError * error);
+#else
+    // Turn-Off request-response logging
+    #define _LogHttpRequest(coreRequest, request)
+    #define _LogHttpResponse(coreRequest, response, data, error)
+#endif // DEBUG
+
+#pragma mark - Client implementation
 
 /// Returns a shared, concurrent queue.
 static NSOperationQueue * _GetSharedConcurrentQueue(void)
@@ -43,6 +53,13 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
         s_queue.name = @"PA2CoreHttpClient_Concurrent";
     });
     return s_queue;
+}
+
+@implementation PA2CoreHttpClient
+{
+    PowerAuthClientConfiguration* _configuration;
+    dispatch_queue_t _completionQueue;
+    NSString * _baseUrl;
 }
 
 - (nonnull instancetype) initWithConfiguration:(nonnull PowerAuthClientConfiguration*)configuration
@@ -94,63 +111,6 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
     return _GetSharedConcurrentQueue();
 }
 
-#pragma mark - Debug Log
-
-#ifdef DEBUG
-// Functions implementing request-response logging.
-static void _LogHttpRequest(PowerAuthCoreRequest * coreRequest, NSURLRequest * request)
-{
-    if (PowerAuthLogIsEnabled()) {
-        // Warn if communication is not encrypted.
-        if ([request.URL.scheme isEqualToString:@"http"]) {
-            static BOOL s_warning = YES;
-            if (s_warning) {
-                PowerAuthLog(@"Warning: Using HTTP for communication may create a serious security issue! Use HTTPS in production.");
-                s_warning = NO;
-            }
-        }
-        
-        BOOL authCode = coreRequest.isAuthenticated;
-        BOOL encrypted = coreRequest.encryptorScope != PowerAuthCoreEncryptorScope_None;
-        
-        NSString * signedEncrypted = (authCode ? (encrypted ? @" (auth+enc)" : @" (auth)") : (encrypted ? @" (enc)" : @""));
-        NSString * msg = [NSString stringWithFormat:@"HTTP %@ request%@: → %@", request.HTTPMethod, signedEncrypted, request.URL.absoluteString];
-        if (PowerAuthLogIsVerbose()) {
-            msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", request.allHTTPHeaderFields];
-            if (!encrypted) {
-                NSString * jsonBody = request.HTTPBody.length > 0 ? [[NSString alloc] initWithData:request.HTTPBody encoding:NSUTF8StringEncoding] : @"<empty>";
-                msg = [msg stringByAppendingFormat:@"\n+ Body: %@", jsonBody];
-            }
-        }
-        PowerAuthLog(@"%@", msg);
-    }
-}
-
-static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLResponse * response, NSData * data, NSError * error)
-{
-    if (PowerAuthLogIsEnabled()) {
-        BOOL encrypted = coreRequest.encryptorScope != PowerAuthCoreEncryptorScope_None;
-        NSNumber * statusCode = @(response.statusCode);
-        NSString * msg = [NSString stringWithFormat:@"HTTP %@ response %@: ← %@", coreRequest.httpMethod, statusCode, response.URL.absoluteString];
-        if (PowerAuthLogIsVerbose()) {
-            msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", response.allHeaderFields];
-            if (!encrypted) {
-                NSString * jsonData = data.length > 0 ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : @"<empty>";
-                msg = [msg stringByAppendingFormat:@"\n+ Body: %@", jsonData];
-            }
-        }
-        if (error) {
-            msg = [msg stringByAppendingFormat:@"\n+ Error: %@", error];
-        }
-        PowerAuthLog(@"%@", msg);
-    }
-}
-#else
-// Turn-Off request-response logging
-#define _LogHttpRequest(coreRequest, request)
-#define _LogHttpResponse(coreRequest, response, data, error)
-#endif // DEBUG
-
 - (id<PowerAuthOperationTask>) postCoreRequest:(PowerAuthCoreRequest*)request
                                     completion:(void(^)(PowerAuthCoreRequest * request, id response, NSError * error))completion
 {
@@ -164,12 +124,16 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         // Endpoint require encryption key or time is not synchronized yet. We have to create a composite task that handle multiple
         // requests before an actual request is executed.
         PA2CompositeTask * compositeTask = [[PA2CompositeTask alloc] initWithCancelBlock:^{
-            [self internalCancel:request task:nil];
+            [self setCoreRequestFinished:request isFailed:NO urlTask:nil];
         }];
         // Prepare common completion block with the composite task.
         void (^compositeCompletion)(PowerAuthCoreRequest *, id, NSError *) = ^(PowerAuthCoreRequest * request, id response, NSError *error) {
             // At first, dispatch the result to the dedicated queue.
             dispatch_async(_completionQueue, ^{
+                // Make sure the core request is set as failed
+                if (error) {
+                    [self setCoreRequestFinished:request isFailed:YES urlTask:nil];
+                }
                 // Set composite operation as completed. The message returns YES if composite task was not completed or canceled before.
                 // If so, then simply call the completion block.
                 if ([compositeTask setCompleted]) {
@@ -236,13 +200,34 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         }];
         // Log request
         _LogHttpRequest(request, urlRequest);
+        
+#if defined(DEBUG)
+        // Failure simulator
+        error = _GetSimulatedRequestFailure(_baseUrl, request.relativePath);
+        if (error) {
+            _LogHttpResponse(request, nil, nil, error);
+            [op completeWithResult:nil error:error];
+            return nil;
+        }
+#endif
         // Construct & return data task.
         NSURLSessionDataTask * task = [_urlSession dataTaskWithRequest:urlRequest completionHandler:^(NSData * data, NSURLResponse * urlResponse, NSError * error) {
+#if defined(DEBUG)
+            // Failure simulator
+            NSArray * simulatedResponseFailure = _GetSimulatedResponseFailure(_baseUrl, request.relativePath);
+            if (simulatedResponseFailure) {
+                urlResponse = _GetNullableObjectFromArray(simulatedResponseFailure, 0);
+                data        = _GetNullableObjectFromArray(simulatedResponseFailure, 1);
+                error       = _GetNullableObjectFromArray(simulatedResponseFailure, 2);
+            }
+#endif // DEBUG
             // DataTask completion
             id object;
             if (!error) {
                 object = [self buildResponse:request responseData:data response:(NSHTTPURLResponse*)urlResponse error:&error];
             } else {
+                // Network, or other error. Report this immediately to C++ layer.
+                [self setCoreRequestFinished:request isFailed:YES urlTask:nil];
                 object = nil;
             }
             // Log response
@@ -257,11 +242,15 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
     op.reportBlock = ^(PA2AsyncOperation *op) {
         id<PA2Decodable> object = op.operationResult;
         NSError * error = op.operationError;
+        // Make sure the core request is set as failed before we call the completion.
+        if (error) {
+            [self setCoreRequestFinished:request isFailed:NO urlTask:nil];
+        }
         completion(request, object, error);
     };
     // Setup cancellation block
     op.cancelBlock = ^(PA2AsyncOperation *op, id task) {
-        [self internalCancel:request task:PA2ObjectAs(task, NSURLSessionDataTask)];
+        [self setCoreRequestFinished:request isFailed:NO urlTask:PA2ObjectAs(task, NSURLSessionDataTask)];
     };
     // Finally, add operation to the right queue
     if (request.isRequireSerialQueue) {
@@ -296,7 +285,7 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         if (!processed) {
             // We never entered to the request preparation block. In this case, we have to try to cancel the core request
             // to notify core layer about this failure.
-            [self internalCancel:coreRequest task:nil];
+            [self setCoreRequestFinished:coreRequest isFailed:YES urlTask:nil];
         }
         return nil;
     }
@@ -344,15 +333,17 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         } error:error];
         if (*error) {
             if (!processed) {
-                // We never entered to the response processing. In this case, we have to try to cancel the core request
-                // to notify core layer about this failure.
-                [self internalCancel:coreRequest task:nil];
+                // We never entered to the response processing. In this case, we have to try to
+                // set the core request as failed to notify core layer about this.
+                [self setCoreRequestFinished:coreRequest isFailed:YES urlTask:nil];
             }
             return nil;
         }
         // success, note that response object may be nil
         return coreRequest.responseObject;
     }
+    // Notify C++ layer about this failure.
+    [self setCoreRequestFinished:coreRequest isFailed:YES urlTask:nil];
     // build error
     *error = [self buildErrorForData:responseData httpResponse:httpResponse];
     return nil;
@@ -389,16 +380,241 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
     return [NSError errorWithDomain:PowerAuthErrorDomain code:PowerAuthErrorCode_NetworkError userInfo:additionalInfo];
 }
 
-- (void) internalCancel:(PowerAuthCoreRequest*)request task:(NSURLSessionDataTask*)task
+- (void) setCoreRequestFinished:(PowerAuthCoreRequest*)request
+                       isFailed:(BOOL)isFailed
+                        urlTask:(NSURLSessionDataTask*)task
 {
     [task cancel];
-    if (request) {
+    if (request && !request.isDone) {
         // acquire write task in case the cancel cause internal state change
         [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session, NSError * _Nonnull __autoreleasing * _Nullable error) {
-            [request cancel];
+            if (isFailed) {
+                [request setFailed];
+            } else {
+                [request cancel];
+            }
             return YES;
         } error:nil];
     }
 }
 
-@end
+@end // @implementation PA2CoreHttpClient
+
+
+#pragma mark - Debug Log
+
+#if defined(DEBUG)
+// Functions implementing request-response logging.
+static void _LogHttpRequest(PowerAuthCoreRequest * coreRequest, NSURLRequest * request)
+{
+    if (PowerAuthLogIsEnabled()) {
+        // Warn if communication is not encrypted.
+        if ([request.URL.scheme isEqualToString:@"http"]) {
+            static BOOL s_warning = YES;
+            if (s_warning) {
+                PowerAuthLog(@"Warning: Using HTTP for communication may create a serious security issue! Use HTTPS in production.");
+                s_warning = NO;
+            }
+        }
+        
+        BOOL authCode = coreRequest.isAuthenticated;
+        BOOL encrypted = coreRequest.encryptorScope != PowerAuthCoreEncryptorScope_None;
+        
+        NSString * signedEncrypted = (authCode ? (encrypted ? @" (auth+enc)" : @" (auth)") : (encrypted ? @" (enc)" : @""));
+        NSString * msg = [NSString stringWithFormat:@"HTTP %@ request%@: → %@", request.HTTPMethod, signedEncrypted, request.URL.absoluteString];
+        if (PowerAuthLogIsVerbose()) {
+            msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", request.allHTTPHeaderFields];
+            if (!encrypted) {
+                NSString * jsonBody = request.HTTPBody.length > 0 ? [[NSString alloc] initWithData:request.HTTPBody encoding:NSUTF8StringEncoding] : @"<empty>";
+                msg = [msg stringByAppendingFormat:@"\n+ Body: %@", jsonBody];
+            }
+        }
+        PowerAuthLog(@"%@", msg);
+    }
+}
+
+static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLResponse * response, NSData * data, NSError * error)
+{
+    if (PowerAuthLogIsEnabled()) {
+        BOOL encrypted = coreRequest.encryptorScope != PowerAuthCoreEncryptorScope_None;
+        NSNumber * statusCode = @(response.statusCode);
+        NSString * msg = [NSString stringWithFormat:@"HTTP %@ response %@: ← %@", coreRequest.httpMethod, statusCode, response.URL.absoluteString];
+        if (PowerAuthLogIsVerbose()) {
+            msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", response.allHeaderFields];
+            if (!encrypted) {
+                NSString * jsonData = data.length > 0 ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : @"<empty>";
+                msg = [msg stringByAppendingFormat:@"\n+ Body: %@", jsonData];
+            }
+        }
+        if (error) {
+            msg = [msg stringByAppendingFormat:@"\n+ Error: %@", error];
+        }
+        PowerAuthLog(@"%@", msg);
+    }
+}
+#endif // DEBUG
+
+#pragma mark - Debug Failure Simulator
+
+#if defined(DEBUG)
+@implementation PA2CoreHttpClient (FailureSimulator)
+
+#define KEY_RESP @"response"
+#define KEY_SEND @"ioSend"
+#define KEY_RECV @"ioRecv"
+
+static NSMutableDictionary * _GetFailureData(void)
+{
+    static dispatch_once_t onceToken;
+    static NSMutableDictionary * s_Failures;
+    dispatch_once(&onceToken, ^{
+        s_Failures = [NSMutableDictionary dictionary];
+        s_Failures[KEY_RESP] = [NSMutableDictionary dictionary];
+        s_Failures[KEY_SEND] = [NSMutableSet set];
+        s_Failures[KEY_RECV] = [NSMutableSet set];
+    });
+    return s_Failures;
+}
+
+static NSString * _ProcessRelativePath(NSString * relativePath)
+{
+    return relativePath ? relativePath : @"*";
+}
+
++ (void) setNextResponseFailure:(nullable NSString*)relativePath
+                     statusCode:(NSInteger)statusCode
+{
+    NSMutableDictionary * failures = _GetFailureData();
+    @synchronized (failures) {
+        relativePath = _ProcessRelativePath(relativePath);
+        NSMutableDictionary * response = failures[KEY_RESP];
+        response[relativePath] = @(statusCode);
+        PowerAuthLog(@"!!! Next HTTP response will fail on %@: %@", @(statusCode), relativePath);
+    }
+}
+
++ (void) setNextRequestNetworkFailureOnSend:(nullable NSString*)relativePath
+{
+    NSMutableDictionary * failures = _GetFailureData();
+    @synchronized (failures) {
+        relativePath = _ProcessRelativePath(relativePath);
+        NSMutableSet * onSend = failures[KEY_SEND];
+        [onSend addObject:relativePath];
+        PowerAuthLog(@"!!! Next HTTP request will fail on send: %@", relativePath);
+    }
+}
+
++ (void) setNextRequestNetworkFailureOnReceive:(nullable NSString*)relativePath
+{
+    NSMutableDictionary * failures = _GetFailureData();
+    @synchronized (failures) {
+        relativePath = _ProcessRelativePath(relativePath);
+        NSMutableSet * onRecv = failures[KEY_RECV];
+        [onRecv addObject:relativePath];
+        PowerAuthLog(@"!!! Next HTTP request will fail on receive: %@", relativePath);
+    }
+}
+
++ (void) clearAllFailureHooks
+{
+    NSMutableDictionary * failures = _GetFailureData();
+    @synchronized (failures) {
+        NSMutableDictionary * response = failures[KEY_RESP];
+        NSMutableSet *        onSend   = failures[KEY_SEND];
+        NSMutableSet *        onRecv   = failures[KEY_RECV];
+        if (onSend.count || onRecv.count || response.count) {
+            // Do not spoil log in case there's no hook
+            PowerAuthLog(@"!!! Removing all simulated HTTP failure hooks");
+            [response removeAllObjects];
+            [onRecv removeAllObjects];
+            [onSend removeAllObjects];
+        }
+    }
+}
+
+static NSError * _GetSimulatedRequestFailure(NSString * basePath, NSString * relativePath)
+{
+    NSMutableDictionary * failures = _GetFailureData();
+    @synchronized (failures) {
+        NSMutableSet * onSend = failures[KEY_SEND];
+        if ([onSend count]) {
+            NSString * pathToMatch = relativePath;
+            BOOL matched = [onSend containsObject:pathToMatch];
+            if (!matched) {
+                pathToMatch = @"*";
+                matched = [onSend containsObject:pathToMatch];
+            }
+            if (matched) {
+                [onSend removeObject:pathToMatch];
+                NSString * urlString = [basePath stringByAppendingString:relativePath];
+                return [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorCannotFindHost userInfo:@{
+                    NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Simulated error on data send: %@", urlString]
+                }];
+            }
+        }
+        return nil;
+    }
+}
+
+static NSArray * _GetSimulatedResponseFailure(NSString * basePath, NSString * relativePath)
+{
+    NSMutableDictionary * failures = _GetFailureData();
+    @synchronized (failures) {
+        NSMutableDictionary * response = failures[KEY_RESP];
+        NSMutableSet        * onRecv   = failures[KEY_RECV];
+        
+        NSString * pathToMatch;
+        // Receive error
+        if ([onRecv count]) {
+            pathToMatch = relativePath;
+            BOOL matched = [onRecv containsObject:pathToMatch];
+            if (!matched) {
+                pathToMatch = @"*";
+                matched = [onRecv containsObject:pathToMatch];
+            }
+            if (matched) {
+                [onRecv removeObject:pathToMatch];
+                NSString * urlString = [basePath stringByAppendingString:relativePath];
+                return @[
+                    [NSNull null],
+                    [NSNull null],
+                    [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorNetworkConnectionLost userInfo:@{
+                        NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Simulated error on data receive: %@", urlString]
+                    }]
+                ];
+            }
+        }
+        // Response error
+        if ([response count]) {
+            pathToMatch = relativePath;
+            NSNumber * status = response[pathToMatch];
+            if (!status) {
+                pathToMatch = @"*";
+                status = response[pathToMatch];
+            }
+            if (status) {
+                [response removeObjectForKey:pathToMatch];
+                NSURL* url = [NSURL URLWithString:[basePath stringByAppendingString:relativePath]];
+                return @[
+                    [[NSHTTPURLResponse alloc] initWithURL:url statusCode:status.integerValue HTTPVersion:nil headerFields:nil],
+                    [@"{\"status\": \"ERROR\",\"responseObject\":{\"code\": \"ERR_SIMULATED_FAILURE\",\"message\": \"This is fine 🐶\"}}" dataUsingEncoding:NSUTF8StringEncoding],
+                    [NSNull null]
+                ];
+            }
+        }
+        return nil;
+    }
+}
+
+static id _GetNullableObjectFromArray(NSArray * array, NSUInteger index)
+{
+    id obj = [array objectAtIndex:index];
+    if ([obj isKindOfClass:[NSNull class]]) {
+        return nil;
+    }
+    return obj;
+}
+
+@end // @implementation PA2CoreHttpClient (FailureSimulator)
+
+#endif // DEBUG

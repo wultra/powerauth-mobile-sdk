@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		BF0210432164D403009745A2 /* PA2AsyncOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = BF0210412164D403009745A2 /* PA2AsyncOperation.h */; };
 		BF0210442164D403009745A2 /* PA2AsyncOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = BF0210422164D403009745A2 /* PA2AsyncOperation.m */; };
+		BF058B842EAB8D15006E1B9B /* BaseTestWithActivation.m in Sources */ = {isa = PBXBuildFile; fileRef = BF058B832EAB8D15006E1B9B /* BaseTestWithActivation.m */; };
+		BF058B852EAB8D15006E1B9B /* BaseTestWithActivation.m in Sources */ = {isa = PBXBuildFile; fileRef = BF058B832EAB8D15006E1B9B /* BaseTestWithActivation.m */; };
 		BF062BAA2E61E7F3001436AD /* PA2CoreCredentialsResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = BF062BA92E61E7F3001436AD /* PA2CoreCredentialsResolver.h */; };
 		BF062BAB2E61E7F3001436AD /* PA2CoreCredentialsResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = BF062BA92E61E7F3001436AD /* PA2CoreCredentialsResolver.h */; };
 		BF062BBD2E6861B0001436AD /* PowerAuthServerStatus+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF062BBC2E6861B0001436AD /* PowerAuthServerStatus+Private.h */; };
@@ -520,6 +522,8 @@
 		1BFD687B1D742C1C00B08338 /* PowerAuthSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSystem.m; sourceTree = "<group>"; };
 		BF0210412164D403009745A2 /* PA2AsyncOperation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2AsyncOperation.h; sourceTree = "<group>"; };
 		BF0210422164D403009745A2 /* PA2AsyncOperation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2AsyncOperation.m; sourceTree = "<group>"; };
+		BF058B822EAB8D15006E1B9B /* BaseTestWithActivation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BaseTestWithActivation.h; sourceTree = "<group>"; };
+		BF058B832EAB8D15006E1B9B /* BaseTestWithActivation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BaseTestWithActivation.m; sourceTree = "<group>"; };
 		BF062BA92E61E7F3001436AD /* PA2CoreCredentialsResolver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2CoreCredentialsResolver.h; sourceTree = "<group>"; };
 		BF062BBC2E6861B0001436AD /* PowerAuthServerStatus+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PowerAuthServerStatus+Private.h"; sourceTree = "<group>"; };
 		BF062BE82E6B2692001436AD /* PA2CoreTaskWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2CoreTaskWrapper.h; sourceTree = "<group>"; };
@@ -809,6 +813,8 @@
 				BF97A72828A3E594002F3ACE /* PowerAuthCorePasswordHelper.m */,
 				BFE341C027F6F035005337B1 /* PowerAuthSdkTestHelper.h */,
 				BFE341C127F6F035005337B1 /* PowerAuthSdkTestHelper.m */,
+				BF058B822EAB8D15006E1B9B /* BaseTestWithActivation.h */,
+				BF058B832EAB8D15006E1B9B /* BaseTestWithActivation.m */,
 				BFE341C427F71AC0005337B1 /* PowerAuthSDKBaseTests.h */,
 				BFAF73071EAA83AD005E7572 /* PowerAuthSDKBaseTests.m */,
 				BFC892492E55DAB8009169A9 /* PowerAuthSDKSharedBaseTests.h */,
@@ -1845,6 +1851,7 @@
 				BF97A72C28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */,
 				BF667E7028359C7C006E97F8 /* PowerAuthTestServerAPI.m in Sources */,
 				BF667E7128359C7C006E97F8 /* PowerAuthSdkTestHelper.m in Sources */,
+				BF058B852EAB8D15006E1B9B /* BaseTestWithActivation.m in Sources */,
 				BF721CC12A14EB3400ACB2C9 /* RestEndpoint.m in Sources */,
 				BF667E7828359C7C006E97F8 /* PowerAuthSDKBaseTests.m in Sources */,
 				BF721C7C2A14E54800ACB2C9 /* RestHelper.m in Sources */,
@@ -1864,6 +1871,7 @@
 				BF97A72D28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */,
 				BF667E9E28359C93006E97F8 /* PowerAuthTestServerModel.m in Sources */,
 				BF667E9F28359C93006E97F8 /* PowerAuthTestServerAPI.m in Sources */,
+				BF058B842EAB8D15006E1B9B /* BaseTestWithActivation.m in Sources */,
 				BF721CC22A14EB3400ACB2C9 /* RestEndpoint.m in Sources */,
 				BF667EA028359C93006E97F8 /* PowerAuthSdkTestHelper.m in Sources */,
 				BF721C7D2A14E54800ACB2C9 /* RestHelper.m in Sources */,

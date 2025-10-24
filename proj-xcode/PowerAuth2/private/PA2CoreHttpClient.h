@@ -67,3 +67,35 @@
                                          completion:(void(^_Nonnull)(PowerAuthCoreTask * _Nonnull task, id _Nullable response, NSError * _Nullable error))completion;
 
 @end
+
+
+#if defined(DEBUG)
+/// The `FailureSimulator` category allows you to simulate HTTP request failure for any upcoming request.
+/// Note that the feature is global, independent on actual PowerAuthSDK instance. The feature should be used only
+/// for the testing purposes.
+@interface PA2CoreHttpClient (FailureSimulator)
+
+/// Set the next HTTP response with given relative path as failed with provided status code.
+/// - Parameters:
+///   - statusCode: Status code to report.
+///   - relativePath: Relative path. If you use `nil` or `"*"`, then any request will fail.
++ (void) setNextResponseFailure:(nullable NSString*)relativePath
+                     statusCode:(NSInteger)statusCode;
+
+/// Set the next HTTP request with given relative path as failed on network error. The failure
+/// happens while sending the request, so no data is received on the server.
+/// - Parameters:
+///   - relativePath: Relative path. If you use `nil` or `"*"`, then any request will fail.
++ (void) setNextRequestNetworkFailureOnSend:(nullable NSString*)relativePath;
+
+/// Set the next HTTP request with given relative path as failed on network error. The failure
+/// happens while receiving the response, so server successfully received the request.
+/// - Parameters:
+///   - relativePath: Relative path. If you use `nil` or `"*"`, then any request will fail.
++ (void) setNextRequestNetworkFailureOnReceive:(nullable NSString*)relativePath;
+
+
+/// Remove all failure hooks
++ (void) clearAllFailureHooks;
+@end
+#endif // DEBUG

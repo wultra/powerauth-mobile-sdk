@@ -169,7 +169,8 @@ RequestPtr TimeService::createTimeSynchronizationRequest()
         CC7_LOG("TimeService: Time synchronization request created");
         _current_sync_task = startTimeSynchronizationTask();
         auto self = shared_from_this();
-        return RequestBuilder(*context, v4::Endpoint_SystemStatus)
+        auto& endpoint = context->specification()->isLegacy() ? v3::Endpoint_SystemStatus : v4::Endpoint_SystemStatus;
+        return RequestBuilder(*context, endpoint)
             .withResponseCallback([self](const Request& request, const cc7::json::JsonValue& response) -> ResponseObjectPtr {
                 return self->processTimeSynchronization(response);
             })
@@ -202,7 +203,7 @@ ResponseObjectPtr TimeService::processTimeSynchronization(const cc7::json::JsonV
 void TimeService::cancelTimeSynchronization()
 {
     LOCK_GUARD();
-    if (_current_sync_task < 0) {
+    if (_current_sync_task > 0.0) {
         CC7_LOG("TimeService: Time synchronization request canceled");
         _current_sync_task = -1;
     }

@@ -127,15 +127,14 @@
     return _request->isDone();
 }
 
-- (BOOL) cancel
+- (void) cancel
 {
-    try {
-        _request->cancel();
-        return YES;
-    } catch (...) {
-        _failure = powerAuth::BuildNSErrorFromException();
-        return NO;
-    }
+    _request->cancel();
+}
+
+- (void) setFailed
+{
+    _request->setFailed(nullptr);
 }
 
 - (BOOL) prepareRequest:(NSError *__autoreleasing *)error

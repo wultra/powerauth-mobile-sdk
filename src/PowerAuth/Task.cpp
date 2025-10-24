@@ -86,10 +86,7 @@ void Task::cancel() noexcept
         _next_request->cancel();
         _next_request = nullptr;
     }
-    if (auto request = _current_request.lock()) {
-        request->cancel();
-        _current_request.reset();
-    }
+    cancelCurrentRequest();
 }
 
 bool Task::isDone() const noexcept
@@ -126,6 +123,7 @@ void Task::setCompleted() noexcept
 {
     LOCK_GUARD();
     try {
+        cancelCurrentRequest();
         if (_state < State::COMPLETED) {
             if (_processed_requests) {
                 _state = State::COMPLETED;
@@ -185,6 +183,14 @@ void Task::setNextRequest(const RequestPtr &request, int tag, int flags)
     _next_request = request;
     _current_request_tag = tag;
     _current_request_flags = flags;
+}
+
+void Task::cancelCurrentRequest() noexcept
+{
+    if (auto request = _current_request.lock()) {
+        _current_request.reset();
+        request->cancelFromTask();
+    }
 }
 
 void Task::setRequestCompleted(const Request &request) noexcept

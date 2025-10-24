@@ -192,6 +192,12 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     return (PowerAuthCoreProtocolVersion) _session->getProtocolVersion();
 }
 
+- (nullable NSDictionary<NSString*, NSObject*>*) lastUserInfo
+{
+    [self requireReadAccess:nil];
+    return cc7::objc::JsonValueToObjC(_session->lastUserInfo());
+}
+
 #pragma mark - Serialization
 
 - (nullable NSData*) serializedState:(NSError*_Nullable*_Nullable)error
@@ -349,6 +355,25 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 {
     // TODO: missing impl
     return NO;;
+}
+
+#pragma mark - User info
+
+- (nullable PowerAuthCoreRequest*) fetchUserInfo:(NSError*_Nullable*_Nullable)error
+{
+    if (![self requireWriteAccess:error]) {
+        return nil;
+    }
+    
+    try {
+        auto request = _session->fetchUserInfo();
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+    }
+    return nil;
 }
 
 

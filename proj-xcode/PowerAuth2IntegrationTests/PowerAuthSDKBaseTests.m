@@ -1245,17 +1245,30 @@
 {
     CHECK_TEST_CONFIG();
     
+    //
+    // This test validates that the User Info claims are stored correctly after activation
+    // and properly updated after fetching new User Info from the server.
+    //
+    
+    // Test the `lastFetchedUserInfo` is nil before the data are fetched.
+    XCTAssertFalse(_sdk.hasValidActivation);
+    XCTAssertNil(_sdk.lastFetchedUserInfo);
+    
     PowerAuthSdkActivation * activation = [_helper createActivation:YES];
     if (!activation) {
         return;
     }
+    
+    // Test that the User Info from the Activation response is stored as last fetched.
     PowerAuthUserInfo * infoFromActivation = activation.activationResult.userInfo;
     NSString * userId = _helper.testServerConfig.userIdentifier;
     XCTAssertNotNil(_sdk.lastFetchedUserInfo);
     XCTAssertNotNil(infoFromActivation);
     XCTAssertEqualObjects(userId, _sdk.lastFetchedUserInfo.subject);
     XCTAssertEqualObjects(userId, infoFromActivation.subject);
+    XCTAssertEqualObjects(infoFromActivation.allClaims[@"jti"], _sdk.lastFetchedUserInfo.allClaims[@"jti"]);
     
+    // Fetch fresh User Info.
     PowerAuthUserInfo * info = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         [_sdk fetchUserInfo:^(PowerAuthUserInfo * userInfo, NSError * error) {
             XCTAssertNil(error);
@@ -1264,7 +1277,10 @@
     }];
     XCTAssertNotNil(info);
     XCTAssertEqualObjects(info.subject, _helper.testServerConfig.userIdentifier);
-    XCTAssertEqual(info, _sdk.lastFetchedUserInfo);
+    
+    // Check the last fetched User Info was updated (i.e. JWT ID was changed).
+    XCTAssertNotEqualObjects(info.allClaims[@"jti"], infoFromActivation.allClaims[@"jti"]);
+    XCTAssertEqualObjects(info.allClaims[@"jti"], _sdk.lastFetchedUserInfo.allClaims[@"jti"]);
 }
 
 - (void) testJwtSignature

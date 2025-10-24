@@ -127,6 +127,10 @@ ResponseObjectPtr ActivationServiceV4::processResponseActivationData(Context& co
     rd.sharedSecretContext = nullptr;
     rd.sharedSecretAlgorithm = nullptr;
     
+    // Store received User Info into Session Data
+    auto user_info = L1_data.findValueAtPath("userInfo");
+    _session_data->setUserInfo(user_info ? *user_info : cc7::json::JsonValue());
+    
     return std::make_shared<ActivationResult>(calculateActivationFingerprint(), L1_data);
 }
 
@@ -477,6 +481,21 @@ void ActivationServiceV4::doRemoveBiometricFactor(Context& context)
     auto secrets = key_provider.unlockSecretKeys();
     secrets->removeKeyAuthenticationCodeBiometry();
     key_provider.lockSecretKeys(secrets);
+}
+
+// MARK: - User Info
+
+RequestPtr ActivationServiceV4::fetchUserInfo()
+{
+    LOCK_GUARD();
+    auto context = lockContext();
+    auto self = shared_from_this();
+    return RequestBuilder(*context, v4::Endpoint_UserInfo)
+        .withResponseCallback([self, context](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            context->sessionData().setUserInfo(body);
+            return nullptr;
+        })
+        .build();
 }
 
 } // namespace v4

@@ -110,12 +110,21 @@ public:
     /// - Throws: `Exception` with `EC_InvalidData` if sequence of bytes contains invalid or unsupported data.
     void deserialize(const cc7::ByteRange& serialized_data);
     
+    /// Get User Info claims.
+    /// - Returns: User Info claims.
+    const cc7::json::JsonValue& getUserInfo() const;
+    
+    /// Set User Info claims.
+    /// - Parameter userInfo: User Info claims.
+    void setUserInfo(const cc7::json::JsonValue& userInfo);
     
 private:
     ConstPowerAuthSpecPtr _target_specification;
     RegistrationDataPtr _rd;
     PersistentDataPtr _pd;
     bool _modified;
+    
+    cc7::json::JsonValue _user_info;
 };
 
 CC7_SHARED_PTR(SessionData)

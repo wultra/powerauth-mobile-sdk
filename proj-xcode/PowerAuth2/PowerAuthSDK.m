@@ -79,8 +79,6 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     PA2GetActivationStatusTask * _getActivationStatusTask;
     PowerAuthActivationStatus * _lastFetchedActivationStatus;
     // Current pending system status task
-    /// User info
-    PowerAuthUserInfo * _lastFetchedUserInfo;
 }
 
 #pragma mark - Private methods
@@ -676,7 +674,6 @@ static PowerAuthSDK * s_inst;
         PowerAuthActivationResult * result = nil;
         if (response) {
             result = [[PowerAuthActivationResult alloc] initWithCoreActivationResult:response];
-            [self setLastFetchedUserInfo:result.userInfo];
         }
         callback(result, error);
     }];
@@ -954,7 +951,6 @@ static PowerAuthSDK * s_inst;
 {
     [_lock lock];
     _lastFetchedActivationStatus = nil;
-    _lastFetchedUserInfo = nil;
     [_lock unlock];
 }
 
@@ -1765,36 +1761,27 @@ static PowerAuthSDK * s_inst;
 
 - (PowerAuthUserInfo*) lastFetchedUserInfo
 {
-    [_lock lock];
-    PowerAuthUserInfo * info = _lastFetchedUserInfo;
-    [_lock unlock];
-    return info;
-}
-
-- (void) setLastFetchedUserInfo:(PowerAuthUserInfo*)lastFetchedUserInfo
-{
-    [_lock lock];
-    _lastFetchedUserInfo = lastFetchedUserInfo;
-    [_lock unlock];
+    NSDictionary * claims = [_sessionInterface readTaskWithSession:^NSDictionary*(PowerAuthCoreSession *session, NSError **error) {
+        return [session lastUserInfo];
+    } error:nil];
+    return [[PowerAuthUserInfo alloc] initWithDictionary:claims];
 }
 
 - (id<PowerAuthOperationTask>) fetchUserInfo:(void (^)(PowerAuthUserInfo *, NSError *))callback
 {
-//    // Post request
-//    return [_client postObject:nil
-//                            to:[PA2RestApiEndpoint getUserInfo]
-//                    completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
-//                        PowerAuthUserInfo * result;
-//                        if (status == PowerAuthRestApiResponseStatus_OK) {
-//                            result = (PowerAuthUserInfo*)response;
-//                            [self setLastFetchedUserInfo:result];
-//                        } else {
-//                            result = nil;
-//                        }
-//                        callback(result, error);
-//                    }];
-    // TODO: missing impl.
-    return nil;
+    NSError* localError = nil;
+    PowerAuthCoreRequest * request = [_sessionInterface writeTaskWithSession:^PowerAuthCoreRequest*(PowerAuthCoreSession * session, NSError ** error) {
+        return [session fetchUserInfo:error];
+    } error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * _Nonnull request, PowerAuthUserInfo * _Nullable response, NSError * _Nullable error) {
+        PowerAuthUserInfo * info = [[PowerAuthUserInfo alloc] initWithDictionary:request.responseJson];
+        callback(info, error);
+    }];
 }
 
 @end

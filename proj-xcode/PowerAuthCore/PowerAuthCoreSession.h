@@ -145,6 +145,14 @@
  This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) PowerAuthCoreProtocolVersion protocolVersion;
+/**
+ Contains last user info received from the server during activation or explicit user info fetch.
+ This property provides the most recent user info and does not trigger any server communication.
+ If no such information has been received yet, nil is returned.
+ 
+ This property accesses user info cached in the session, so read access must be guaranteed.
+ */
+@property (nonatomic, strong, readonly, nullable) NSDictionary<NSString*, NSObject*>* lastUserInfo;
 
 
 #pragma mark - Serialization
@@ -234,6 +242,17 @@
 /// - Returns: Core request object containing all required information for activation remove.
 - (nullable PowerAuthCoreRequest*) removeActivationWithCredentials:(nonnull PowerAuthCoreCredentials*)credentials
                                                              error:(NSError*_Nullable*_Nullable)error;
+
+#pragma mark - User info
+
+/// Fetch user info from the server.
+///
+/// This function caches the received user info in the session, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for user info fetch.
+- (nullable PowerAuthCoreRequest*) fetchUserInfo:(NSError*_Nullable*_Nullable)error;
 
 #pragma mark - Signature keys management
 

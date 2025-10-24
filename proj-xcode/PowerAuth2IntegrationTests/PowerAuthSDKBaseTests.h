@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#import <XCTest/XCTest.h>
-#import "PowerAuthSdkTestHelper.h"
+#import "BaseTestWithActivation.h"
 
 /**
  The purpose of `PowerAuthSDKTests` is to run a series of integration tests where the
@@ -25,32 +24,5 @@
  need to switch to "PA2_IntegrationTests" scheme and create a configuration.
  Check 'TestConfig/Readme.md' for details.
  */
-@interface PowerAuthSDKBaseTests : XCTestCase
-
-@property (nonatomic, strong, readonly) PowerAuthSdkTestHelper * helper;
-@property (nonatomic, strong, readonly) PowerAuthSDK * sdk;
-@property (nonatomic, readonly) PowerAuthAlgorithm powerAuthAlgorithm;  // override in subclass
-@property (nonatomic, readonly) BOOL supportsActivationWithSignature;
-
-- (void) prepareConfigs:(PowerAuthConfiguration**)configuration
-        biometricConfig:(PowerAuthBiometricConfiguration**)biometricConfiguration
-         keychainConfig:(PowerAuthKeychainConfiguration**)keychainConfiguration
-           clientConfig:(PowerAuthClientConfiguration**)clientConfiguration
-            forTestName:(NSString*)testName;
-
-- (void) reconfigureForTest:(NSString*)testName;
-
-/// Simulate the next HTTP request failure for given path.
-/// - Parameters:
-///   - relativePath: Use `nil` or `"*"` to simulate failure for any next request.
-///                   If path starts with `"/pa"` then use the path as is. If not,
-///                   then function prepends the protocol version depending on the current
-///                   test setup.
-///   - statusCode: Status code to set for the response.
-- (void) simulateNextResponseFailure:(NSString*)relativePath
-                          statusCode:(NSInteger)statusCode;
-
-/// Clear all simulated failure hooks.
-- (void) clearAllSimulateFailures;
-
+@interface PowerAuthSDKBaseTests : BaseTestWithActivation
 @end

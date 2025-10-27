@@ -85,27 +85,51 @@
     return relativePath;
 }
 
+- (BOOL) isRequestFailureSimulatorAvailable
+{
+#if defined(DEBUG)
+    return YES;
+#else
+    return NO;
+#endif
+}
+
 - (void) simulateNextResponseFailure:(NSString*)relativePath
                           statusCode:(NSInteger)statusCode;
 {
     XCTAssertNotEqual(200, statusCode);
+#if defined(DEBUG)
     [PA2CoreHttpClient setNextResponseFailure:[self patchRelativePathForSimulatedFailure:relativePath]
                                    statusCode:statusCode];
+#else
+    XCTFail(@"Not available in release build");
+#endif
+
 }
 
 - (void) simulateNetworkErrorOnSend:(NSString*)relativePath
 {
+#if defined(DEBUG)
     [PA2CoreHttpClient setNextRequestNetworkFailureOnSend:relativePath];
+#else
+    XCTFail(@"Not available in release build");
+#endif
 }
 
 - (void) simulateNetworkErrorOnReceive:(NSString*)relativePath
 {
+#if defined(DEBUG)
     [PA2CoreHttpClient setNextRequestNetworkFailureOnReceive:relativePath];
+#else
+    XCTFail(@"Not available in release build");
+#endif
 }
 
 - (void) clearAllSimulateFailures
 {
+#if defined(DEBUG)
     [PA2CoreHttpClient clearAllFailureHooks];
+#endif
 }
 
 @end

@@ -1713,6 +1713,11 @@
 
 - (void) testSimulatedHttpResponseFailure
 {
+    if (![self isRequestFailureSimulatorAvailable]) {
+        XCTFail(@"Request failure simulator is not available");
+        return;
+    }
+
     // This test validates whether HTTP response failure simulation works properly.
 
     // Set the next server status failed
@@ -1751,6 +1756,10 @@
 
 - (void) testFailedStatusFetch
 {
+    if (![self isRequestFailureSimulatorAvailable]) {
+        XCTFail(@"Request failure simulator is not available");
+        return;
+    }
     // This test validates whether communication between ObjC and C++ request code
     // works properly in case of failure.
     

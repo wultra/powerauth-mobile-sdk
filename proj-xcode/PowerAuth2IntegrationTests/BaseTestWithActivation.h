@@ -36,6 +36,9 @@
 
 - (void) reconfigureForTest:(NSString*)testName;
 
+/// Contains YES if request failure simulator is available. This is typically YES only in DEBUG build.
+@property (nonatomic, readonly) BOOL isRequestFailureSimulatorAvailable;
+
 /// Simulate the next HTTP request failure for given path at non-200 response.
 /// - Parameters:
 ///   - relativePath: Use `nil` or `"*"` to simulate failure for any next request.

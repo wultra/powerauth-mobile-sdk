@@ -35,26 +35,26 @@
 /// Note that currently, only the API for JWS signatures supports hybrid signatures.
 typedef NS_ENUM(int, PowerAuthSignatureKeyId) {
     /// Use all available "master" keys for signature verification.
-    PowerAuthSignatureKeyId_MASTER = 0x00,
+    PowerAuthSignatureKeyId_Master = 0x00,
     /// Use only the EC-based "master" key for ECDSA signature verification.
-    PowerAuthSignatureKeyId_MASTER_EC,
+    PowerAuthSignatureKeyId_Master_EC,
     /// Use only the ML-DSA-based "master" key for ML-DSA signature verification.
-    PowerAuthSignatureKeyId_MASTER_ML_DSA,
+    PowerAuthSignatureKeyId_Master_ML_DSA,
     /// Use all available "server" keys for signature verification.
-    PowerAuthSignatureKeyId_SERVER = 0x10,
+    PowerAuthSignatureKeyId_Server = 0x10,
     /// Use only the EC-based "server" key for ECDSA signature verification.
-    PowerAuthSignatureKeyId_SERVER_EC,
+    PowerAuthSignatureKeyId_Server_EC,
     /// Use only the ML-DSA-based "server" key for ML-DSA signature verification.
-    PowerAuthSignatureKeyId_SERVER_ML_DSA,
+    PowerAuthSignatureKeyId_Server_ML_DSA,
     /// Use all available "device" keys for signature computation or verification.
-    PowerAuthSignatureKeyId_DEVICE = 0x20,
+    PowerAuthSignatureKeyId_Device = 0x20,
     /// Use only the EC-based "device" key for ECDSA signature computation or verification.
-    PowerAuthSignatureKeyId_DEVICE_EC,
+    PowerAuthSignatureKeyId_Device_EC,
     /// Use only the ML-DSA-based "device" key for ML-DSA signature computation or verification.
-    PowerAuthSignatureKeyId_DEVICE_ML_DSA,
+    PowerAuthSignatureKeyId_Device_ML_DSA,
     /// Use the KMAC-based symmetric key for MAC verification.
     /// This key is available only when an activation is present.
-    PowerAuthSignatureKeyId_MAC_PERSONALIZED = 0x30,
+    PowerAuthSignatureKeyId_MacPersonalized = 0x30,
 };
 
 /// The `PowerAuthSignatureKeyType` enumeration defines the types of keys

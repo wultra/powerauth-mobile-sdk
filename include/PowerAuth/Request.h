@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <PowerAuth/Types.h>
+#include <PowerAuth/Response.h>
 #include <cc7/crypto/Parameter.h>
 
 #include <functional>
@@ -25,14 +25,6 @@
 namespace powerAuth {
 
 class Request;
-
-class ResponseObject
-{
-public:
-    virtual ~ResponseObject() = default;
-};
-
-CC7_SHARED_PTR(ResponseObject)
 
 using PrepareRequestCallback = std::function<cc7::json::JsonValue(const Request&)>;
 using ResponseCallback       = std::function<ResponseObjectPtr(const Request&, const cc7::json::JsonValue&)>;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-#import "PA2Codable.h"
+#import <PowerAuth2/PowerAuthSignatureTypes.h>
 
-@interface PA2JwtHeader : NSObject<PA2Decodable, PA2Encodable>
+@import PowerAuthCore;
 
-- (instancetype) initJwtWithAlg:(NSString*)alg;
+@implementation PowerAuthDevicePublicKeyData
 
-- (instancetype) initWithTyp:(NSString*)typ
-                     withAlg:(NSString*)alg;
-
-@property (nonatomic, strong) NSString * typ;
-@property (nonatomic, strong) NSString * alg;
-
-@end
-
-
-@interface PA2JwtObject : NSObject<PA2Decodable, PA2Encodable>
-
-- (instancetype) initWithJwt:(NSString*)jwt;
-
-@property (nonatomic, strong) NSString * jwt;
+- (instancetype) initWithCoreDevicePublicKeyData:(PowerAuthCoreDevicePublicKeyData*)keyData
+{
+    self = [super init];
+    if (self) {
+        _keyType = (PowerAuthSignatureKeyType) keyData.keyType;
+        _keyAlgorithm = keyData.keyAlgorithm;
+        _keyData = keyData.keyData;
+    }
+    return self;
+}
 
 @end

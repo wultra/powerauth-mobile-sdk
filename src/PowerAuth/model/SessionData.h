@@ -43,6 +43,10 @@ public:
     /// Return the protocol version currently used for this instance of session data.
     ProtocolVersion getCurrentProtocolVersion() const noexcept;
     
+    /// Get information whether activation identifier is available. The method is useful to
+    /// test the state when key-exchange phase is complete but activation is not persisted yet.
+    bool hasActivationId() const noexcept;
+    
     /// Get activation identifier.
     /// - Returns: Activation identifier.
     /// - Throws: `Exception` with `EC_MissingActivation` if no registration or persistent data is set.

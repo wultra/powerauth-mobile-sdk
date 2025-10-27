@@ -243,7 +243,7 @@ void EciesClientEncryptor::disableFailWhenTimeIsNotSynchronized()
 #if DEBUG
     _fail_on_nosync_time = false;
 #else
-    throw Exception(EC_InternalError, "Not implemented");
+    throw Exception(EC_InternalError, "Not implemented in RELEASE build");
 #endif
 }
 

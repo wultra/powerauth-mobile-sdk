@@ -78,22 +78,7 @@
             </BuildableReference>
             <SkippedTests>
                <Test
-                  Identifier = "BaseTests_V3/testBasicTokenOperations">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testCreateTokenWithDifferentAuth">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V3/testCustomOfflineSignature">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testEncryptorCreation">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testGroupedCreateTokenRequests">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testJwtSignature">
                </Test>
                <Test
                   Identifier = "BaseTests_V3/testOfflineAuthCode">
@@ -102,49 +87,7 @@
                   Identifier = "BaseTests_V3/testRemoveActivationWithBiometry">
                </Test>
                <Test
-                  Identifier = "BaseTests_V3/testSignDataWithDevicePrivateKey">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testTemporaryKeyExpiration">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testTokens_ConcurrentCreationAndRemove">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V3/testValidateSignature">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V3/testVerifyServerSignedData">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testEncryptorCreation">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testJwtSignature">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testSignDataWithDevicePrivateKey">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testTemporaryKeyExpiration">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testVerifyServerSignedData">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testEncryptorCreation">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testJwtSignature">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testSignDataWithDevicePrivateKey">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testTemporaryKeyExpiration">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testVerifyServerSignedData">
                </Test>
                <Test
                   Identifier = "PowerAuthConcurrencyTests">

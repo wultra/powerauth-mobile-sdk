@@ -21,25 +21,15 @@
 #import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
 
 
-/**
- The PowerAuthCoreProtocolVersion enum defines PowerAuth protocol versions.
- */
+/// The `PowerAuthCoreProtocolVersion` enum defines PowerAuth protocol versions.
 typedef NS_ENUM(int, PowerAuthCoreProtocolVersion) {
-    /**
-     Protocol version is not specified, or cannot be determined.
-     */
+    /// Protocol version is not specified, or cannot be determined.
     PowerAuthCoreProtocolVersion_NA = 0,
-    /**
-     Protocol version 2
-     */
+    /// Protocol version 2. This version is discontinued and is no longer supported in SDK.
     PowerAuthCoreProtocolVersion_V2 = 2,
-    /**
-     Protocol version 3
-     */
+    /// Protocol version 3. This is the legacy version of the protocol, supported in SDK.
     PowerAuthCoreProtocolVersion_V3 = 3,
-    /**
-     Protocol version 4
-     */
+    /// Protocol version 4. This is the latest version of protocol supported in SDK.
     PowerAuthCoreProtocolVersion_V4 = 4,
 };
 
@@ -56,88 +46,121 @@ typedef NS_ENUM(int, PowerAuthCoreProtocolVersion) {
 
 @end
 
-
-/**
- The PowerAuthCoreSigningDataKey enumeration defines key type used for signature calculation.
- */
-typedef NS_ENUM(int, PowerAuthCoreSigningDataKey) {
-    /**
-     `KEY_SERVER_MASTER_PRIVATE` key was used for signature calculation
-     */
-    PowerAuthCoreSigningDataKey_ECDSA_MasterServerKey = 0,
-    /**
-     `KEY_SERVER_PRIVATE` key was used for signature calculation
-     */
-    PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey = 1,
-    /**
-     `APP_SECRET` key is used for HMAC-SHA256 signature calculation.
-     */
-    PowerAuthCoreSigningDataKey_HMAC_Application = 2,
-    /**
-     `KEY_TRANSPORT` key is used for HMAC-SHA256 signature calculation.
-     */
-    PowerAuthCoreSigningDataKey_HMAC_Activation = 3
+/// The `PowerAuthDevicePublicKeyFormat` enumeration defines the output format
+/// of exported the device public key.
+typedef NS_ENUM(int, PowerAuthCoreDevicePublicKeyFormat) {
+    /// SPKI (X.509) encoded DER format.
+    PowerAuthCoreDevicePublicKeyFormat_SPKI,
+    /// RAW key format. The output format depends on the key type:
+    /// - For "EC" based keys, the output data is ASN.1 encoded, as specified in ANSI X9.63.
+    /// - For "ML-DSA" based keys, the output data is the result of OpenSSL `EVP_PKEY_get_raw_public_key()`
+    ///   function.
+    PowerAuthCoreDevicePublicKeyFormat_RAW,
 };
 
-/**
- The `PowerAuthCoreSignatureFormat` enumeration defines signature type expected at input, or produced
- at output.
- */
-typedef NS_ENUM(int, PowerAuthCoreSignatureFormat) {
-    /**
-     If used, then `PowerAuthCoreSignatureFormat_ECDSA_DER` is used for ECDSA signature.
-     For the HMAC signature, the raw bytes is always used.
-     */
-    PowerAuthCoreSignatureFormat_Default = 0,
-    /**
-     ECDSA signature in DER format is expected at input, or produced at output:
-     ```
-     // ASN.1 notation:
-     ECDSASignature ::= SEQUENCE {
-         r   INTEGER,
-         s   INTEGER
-     }
-     ```
-     */
-    PowerAuthCoreSignatureFormat_ECDSA_DER = 1,
-    /**
-     ECDSA signature in JOSE format is expected at input, or produced at output.
-     */
-    PowerAuthCoreSignatureFormat_ECDSA_JOSE = 2
+/// The `PowerAuthCoreSignatureKeyType` enumeration defines types of keys
+/// used for sign or verify operations.
+typedef NS_ENUM(int, PowerAuthCoreSignatureKeyType) {
+    /// Elliptic Curve based key.
+    PowerAuthCoreSignatureKeyType_EC,
+    /// ML-DSA based key.
+    PowerAuthCoreSignatureKeyType_ML_DSA,
 };
 
-/**
- The PowerAuthCoreSignedData object contains data and signature calculated from data.
- */
-@interface PowerAuthCoreSignedData : NSObject
-/**
- A signing key to use.
- */
-@property (nonatomic, assign) PowerAuthCoreSigningDataKey signingDataKey;
-/**
- A format of signature expected at input or produced at output.
- */
-@property (nonatomic, assign) PowerAuthCoreSignatureFormat signatureFormat;
-/**
- A data protected with signature
- */
-@property (nonatomic, strong, nonnull) NSData * data;
-/**
- A signagure calculated for data
- */
-@property (nonatomic, strong, nonnull) NSData * signature;
-/**
- A data protected with signature in Base64 format. The value is
- mapped to the `data` property.
- */
-@property (nonatomic, strong, nonnull) NSString * dataBase64;
-/**
- A signagure calculated for data in Base64 format. The value is
- mapped to the `signature` property.
- */
-@property (nonatomic, strong, nonnull) NSString * signatureBase64;
+/// The `PowerAuthCoreDevicePublicKeyData` object contains containing exported
+/// device public key.
+@interface PowerAuthCoreDevicePublicKeyData : NSObject
+
+/// Default construction is unavailable
+- (nonnull instancetype) init NS_UNAVAILABLE;
+
+/// Type of public key.
+@property (nonatomic, readonly) PowerAuthCoreSignatureKeyType keyType;
+/// Contains information about key algorithm ("P-256", "P-384", "ML-DSA-65", etc.)
+@property (nonatomic, strong, readonly, nonnull) NSString * keyAlgorithm;
+/// Public key data.
+@property (nonatomic, strong, readonly, nonnull) NSData * keyData;
 
 @end
+
+/// The `PowerAuthCoreSignatureKeyId` enumeration defines keys available for
+/// signature calculation or verification.
+///
+/// Note that some keys are available only for signing or only for verification.
+/// The operation may end with exception if you use a wrong key identifier.
+typedef NS_ENUM(int, PowerAuthCoreSignatureKeyId) {
+    /// Use all available "master" keys for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_MASTER_P256_PUBLIC` for protocol V3
+    /// - `KEY_MASTER_ECDSA_P384_PUBLIC`, `KEY_MASTER_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_MASTER = 0x00,
+
+    /// Use only the "EC"-based "master" key for signature verification.
+    /// Depending on availability, the following will be used:
+    /// - `KEY_MASTER_P256_PUBLIC` for protocol V3
+    /// - `KEY_MASTER_ECDSA_P384_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_MASTER_EC,
+
+    /// Use only the "ML-DSA"-based "master" key for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_MASTER_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_MASTER_ML_DSA,
+
+    /// Use all available "server" keys for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_SERVER_P256_PUBLIC` for protocol V3
+    /// - `KEY_SERVER_ECDSA_P384_PUBLIC`, `KEY_SERVER_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_SERVER = 0x10,
+    /// Use only the "EC"-based "server" key for signature verification.
+    /// Depending on availability, the following will be used:
+    /// - `KEY_SERVER_P256_PUBLIC` for protocol V3
+    /// - `KEY_SERVER_ECDSA_P384_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_SERVER_EC,
+    /// Use only the "ML-DSA"-based "server" key for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_MASTER_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_SERVER_ML_DSA,
+    
+    /// Use all available "device" keys for signature computation or verification.
+    /// Depending on key availability, the following will be used for signing:
+    /// - `KEY_DEVICE_P256_PRIVATE` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PRIVATE`, `KEY_DEVICE_MLDSA65_PRIVATE` for protocol V4
+    /// For the signature verification, the following will be used:
+    /// - `KEY_DEVICE_P256_PUBLIC` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PUBLIC`, `KEY_DEVICE_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_DEVICE = 0x20,
+    /// Use only the "EC"-based "server" key for signature computation or verification.
+    /// Depending on key availability, the following will be used for signing:
+    /// - `KEY_DEVICE_P256_PRIVATE` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PRIVATE` for protocol V4
+    /// For the signature verification, the following will be used:
+    /// - `KEY_DEVICE_P256_PUBLIC` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_DEVICE_EC,
+    /// Use only the "ML-DSA"-based "server" key for signature computation or verification.
+    /// Depending on key availability, the following will be used for signing:
+    /// - `KEY_DEVICE_MLDSA65_PRIVATE` for protocol V4
+    /// For the signature verification, the following will be used:
+    /// - `KEY_DEVICE_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_DEVICE_ML_DSA,
+    
+    /// Use "KMAC"-based symmetric key for signature verification. The following key will be used:
+    /// - `KEY_MAC_PERSONALIZED_DATA` for protocol V4
+    PowerAuthCoreSignatureKeyId_MAC_PERSONALIZED = 0x30,
+};
+
+/// The `PowerAuthCoreVaultEncryptionKeyId` enumeration defines the types of vault keys
+/// supported in the PowerAuth Mobile SDK.
+typedef NS_ENUM(int, PowerAuthCoreVaultEncryptionKeyId) {
+    /// This type of vault key can be provided after successful 2FA authentication
+    /// on the server.
+    PowerAuthCoreVaultEncryptionKeyId_2FA,
+    /// This type of vault key can be provided after authentication with the user's password.
+    PowerAuthCoreVaultEncryptionKeyId_Knowledge,
+    /// This is a legacy key available only when PowerAuthSDK is running on a legacy
+    /// protocol. The key can be provided after authentication with the user's password.
+    PowerAuthCoreVaultEncryptionKeyId_Legacy,
+};
 
 /// The `PowerAuthCoreEncryptorScope` enumeration defines how `PowerAuthCoreEncryptor` encryptor
 /// is configured.

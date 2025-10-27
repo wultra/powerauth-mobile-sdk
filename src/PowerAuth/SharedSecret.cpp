@@ -107,7 +107,7 @@ public:
         }
         return _ec_key_factory->newPrivateKey(FromBase64String(key_data->second), KEY_FORMAT_RAW);
 #else
-        throw std::logic_error("Not implemented");
+        throw Exception(EC_InternalError, "Not implemented in RELEASE build");
 #endif
     }
     
@@ -119,7 +119,7 @@ public:
             { "ecdhe_client_private_key",  private_key.exportKeyToBase64(KEY_FORMAT_RAW) }
         };
 #else
-        throw std::logic_error("Not implemented");
+        throw Exception(EC_InternalError, "Not implemented in RELEASE build");
 #endif
     }
     
@@ -259,7 +259,7 @@ public:
                                                _ec_key_factory->newPrivateKey(FromBase64String(ec_key_data->second), KEY_FORMAT_RAW),
                                                _kem_key_factory->newPrivateKey(FromBase64String(kem_key_data->second), KEY_FORMAT_PKCS8));
 #else
-        throw std::logic_error("Not implemented");
+        throw Exception(EC_InternalError, "Not implemented in RELEASE build");
 #endif
     }
     
@@ -272,7 +272,7 @@ public:
             { "kem_client_private_key",   ctx.kem_private_key->exportKeyToBase64(KEY_FORMAT_PKCS8) }
         };
 #else
-        throw std::logic_error("Not implemented");
+        throw Exception(EC_InternalError, "Not implemented in RELEASE build");
 #endif
     }
     

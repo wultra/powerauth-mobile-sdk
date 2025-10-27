@@ -17,6 +17,7 @@
             "encryptedStatusBlob":          { "class": "string" },
             "devicePublicKeyFingerprint":   { "class": "string" },
             "encryptedStatusBlobNonce":     { "class": "string" },
+            "activationSignature":          { "class": "string" },
             "protocolVersion":              { "class": "int" }
         }
     }

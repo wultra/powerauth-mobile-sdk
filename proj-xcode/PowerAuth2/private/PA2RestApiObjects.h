@@ -14,8 +14,5 @@
  * limitations under the License.
  */
 
-// Requests objects
-#import "PA2JwtObject.h"
-
 // Response objects
 #import <PowerAuth2/PowerAuthUserInfo.h>

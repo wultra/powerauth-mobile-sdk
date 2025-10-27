@@ -1,10 +1,11 @@
 {
-    "path": "/rest/v4/signature/ecdsa/verify",
+    "path": "/rest/v4/dsa/verify",
     "parameters": [
         "activationId",
         "data",
         "signature",
-        "signatureFormat"
+        "signatureFormat",
+        "signatureType"
     ],
     "response": {
         "class": "dictionary"

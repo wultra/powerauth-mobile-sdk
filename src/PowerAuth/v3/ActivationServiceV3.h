@@ -23,7 +23,7 @@ namespace powerAuth {
 namespace v3 {
 
 class ActivationServiceV3 :
-    public Service,
+    public ServiceWithContext,
     public IActivationService,
     public std::enable_shared_from_this<ActivationServiceV3>
 {
@@ -87,22 +87,8 @@ private:
                                                const cc7::crypto::PublicKey& device_public_key,
                                                const cc7::crypto::PublicKey& server_public_key) const;
     
-    // Biometric factor
-    
-    /// Process vault unlock key response and set the biometric factor.
-    /// - Parameters:
-    ///    - context: Context reference.
-    ///    - response: Response with the encrypted vault encryption key.
-    ///    - new_biometry_kek: New biometry kek.
-    void doAddBiometricFactor(Context& context,
-                              const cc7::json::JsonValue& response,
-                              const cc7::ByteRange& new_biometry_kek);
-    
-    /// Acquire context from weak context pointer. If context no longer exists, then throws exception.
-    ContextPtr lockContext();
-    
-    const ContextWeakPtr _weak_context;
     const SessionDataPtr _session_data;
+    const VaultServicePtr _vault_service;
     
     std::string _activation_fingerprint;
 };

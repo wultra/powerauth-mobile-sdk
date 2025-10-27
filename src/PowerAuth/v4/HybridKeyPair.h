@@ -105,14 +105,18 @@ private:
 };
 
 // Helper functions
-
 const cc7::crypto::PublicKey& HybridKey_GetKey1(const cc7::crypto::PublicKey& hybrid_key);
 const cc7::crypto::PublicKey& HybridKey_GetKey2(const cc7::crypto::PublicKey& hybrid_key);
+const cc7::crypto::PublicKeyPtr& HybridKey_GetKey1Ptr(const cc7::crypto::PublicKey& hybrid_key);
+const cc7::crypto::PublicKeyPtr& HybridKey_GetKey2Ptr(const cc7::crypto::PublicKey& hybrid_key);
+
 cc7::json::JsonValue      HybridKey_ToJson(const cc7::crypto::PublicKey& hybrid_key, PowerAuthSpecPtr specification);
 cc7::crypto::PublicKeyPtr HybridKey_FromJson(const cc7::json::JsonValue& key_data, const cc7::crypto::KeyPairFactory& key_pair_factory);
 
 const cc7::crypto::PrivateKey& HybridKey_GetKey1(const cc7::crypto::PrivateKey& hybrid_key);
 const cc7::crypto::PrivateKey& HybridKey_GetKey2(const cc7::crypto::PrivateKey& hybrid_key);
+const cc7::crypto::PrivateKeyPtr& HybridKey_GetKey1Ptr(const cc7::crypto::PrivateKey& hybrid_key);
+const cc7::crypto::PrivateKeyPtr& HybridKey_GetKey2Ptr(const cc7::crypto::PrivateKey& hybrid_key);
 
 } // namespace v4
 } // namespace powerAuth

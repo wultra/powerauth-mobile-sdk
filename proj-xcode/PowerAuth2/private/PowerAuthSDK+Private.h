@@ -69,3 +69,14 @@
 // Reveal private readonly property that helps distinguish between "current" or "any set" biometric access.
 @property (nonatomic, readonly) PowerAuthKeychainItemAccess biometricItemAccess;
 @end
+
+@interface PowerAuthVaultEncryptionKey (Private)
+- (instancetype) initWithCoreData:(PowerAuthCoreData*)coreData
+                            keyId:(PowerAuthVaultEncryptionKeyId)keyId
+                            index:(UInt64)index
+                             base:(BOOL)base;
+@end
+
+@interface PowerAuthDevicePublicKeyData (Private)
+- (instancetype) initWithCoreDevicePublicKeyData:(PowerAuthCoreDevicePublicKeyData*)keyData;
+@end

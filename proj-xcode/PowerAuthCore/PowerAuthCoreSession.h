@@ -254,7 +254,7 @@
 /// - Returns: Core request object containing all required information for user info fetch.
 - (nullable PowerAuthCoreRequest*) fetchUserInfo:(NSError*_Nullable*_Nullable)error;
 
-#pragma mark - Signature keys management
+#pragma mark - Factor keys management
 
 /// Verify user's password on the server.
 ///
@@ -313,9 +313,12 @@
 #pragma mark - Authentication
 
 /// Calculate online authentication header for HTTP request.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
 /// - Parameters:
 ///   - credentials: Credentials used for authentication.
-///   - uriIdentifier: URI identfier
+///   - uriIdentifier: URI identifier
 ///   - httpMethod: HTTP method
 ///   - requestBody: Request body.
 ///   - error: Pointer where error is set in case of failure.
@@ -327,6 +330,9 @@
                                                                     error:(NSError *_Nullable*_Nullable)error;
 
 /// Calculate human readable authentication code for offline authentication.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
 /// - Parameters:
 ///   - credentials: Credentials used for authentication.
 ///   - uriIdentifier: URI identifier.
@@ -342,6 +348,9 @@
                                                     error:(NSError *_Nullable*_Nullable)error;
 
 /// Normalize parameters of GET HTTP request into data suitable for function that calculate online authentication header.
+///
+/// This function doesn't use session's state, so it doesn't require any granted access.
+///
 /// - Parameters:
 ///   - parameters: Dictionary with get parameters.
 ///   - error: Pointer where error is set in case of failure.
@@ -351,17 +360,145 @@
 
 #pragma mark - Tokens
 
+/// Calculate HTTP header for token authentication.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameters:
+///   - tokenIdentifier: Token's identifier.
+///   - tokenSecret: Token's secret.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: `PowerAuthCoreHttpHeader` object if succeeds.
 - (nullable PowerAuthCoreHttpHeader*) calculateTokenHeader:(nonnull NSString *)tokenIdentifier
                                                tokenSecret:(nonnull NSData*)tokenSecret
                                                      error:(NSError *_Nullable*_Nullable)error;
 
+/// Create access token on the server.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameters:
+///   - credentials: Credentials used for token creation.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for token creation.
 - (nullable PowerAuthCoreRequest*) createAccessToken:(nonnull PowerAuthCoreCredentials*)credentials
                                                error:(NSError *_Nullable*_Nullable)error;
 
+/// Remove access token from the server.
+/// - Parameters:
+///   - tokenIdentifier: Token's identifier.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for token removal.
 - (nullable PowerAuthCoreRequest*) removeAccessToken:(nonnull NSString *)tokenIdentifier
                                                error:(NSError *_Nullable*_Nullable)error;
 
 #pragma mark - Vault operations
+
+/// Fetch vault key from the server. If the requested key is `PowerAuthCoreVaultKeyType_Legacy`,
+/// then also apply key derivation with given index. In case of success, the response object
+/// contains instance of `PowerAuthCoreData` object.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+/// 
+/// - Parameters:
+///   - credentials: Credentials used for access the key.
+///   - keyId: Vault encryption key to fetch.
+///   - index: Derivation index of the vault key. The value is ignored for non-"legacy" keys.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for accessing the key.
+- (nullable PowerAuthCoreRequest*) fetchVaultEncryptionKey:(nonnull PowerAuthCoreCredentials*)credentials
+                                                     keyId:(PowerAuthCoreVaultEncryptionKeyId)keyId
+                                                     index:(UInt64)index
+                                                     error:(NSError *_Nullable*_Nullable)error;
+
+/// Derive already existing key into new key. If the key type is `PowerAuthCoreVaultKeyType_Legacy`,
+/// then return error.
+/// - Parameters:
+///   - vaultKey: Original key.
+///   - keyId: Identifier of current vault encryption key.
+///   - index: Derivation index of the new key.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: `PowerAuthCoreData` instance with derived key.
++ (nullable PowerAuthCoreData*) deriveVaultEncryptionKey:(nonnull PowerAuthCoreData*)vaultKey
+                                                   keyId:(PowerAuthCoreVaultEncryptionKeyId)keyId
+                                                   index:(UInt64)index
+                                                   error:(NSError *_Nullable*_Nullable)error;
+
+#pragma mark - Digital signatures
+
+/// Export device public key into the specified format.
+/// - Parameters:
+///   - format: Required format of the output public key data.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Array of `PowerAuthCoreDevicePublicKeyData` objects or `nil` in case of failure.
+- (nullable NSArray<PowerAuthCoreDevicePublicKeyData*>*) exportDevicePublicKeysToFormat:(PowerAuthCoreDevicePublicKeyFormat)format
+                                                                                  error:(NSError *_Nullable*_Nullable)error;
+
+/// Verify a digital signature over the given data.
+/// - Parameters:
+///   - signature: Signature calculated from signed data.
+///   - data: Signed data.
+///   - keyId: Key used for signature verification. The key must support signature verification.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: `YES` if signature is valid, otherwise `NO`. If failure is caused by invalid signature,
+///            then no error is set in the provided error pointer.
+- (BOOL) verifySignature:(nonnull NSData*)signature
+                    data:(nonnull NSData*)data
+                   keyId:(PowerAuthCoreSignatureKeyId)keyId
+                   error:(NSError *_Nullable*_Nullable)error;
+
+/// Verify server-signed data in JWS or JWT form.
+///
+/// - Parameters:
+///   - signedData: JWS or JWT signed data.
+///   - compactForm: If `true`, the provided string is a JWT instead of a full JWS object.
+///   - strict: If `true`, all provided keys must be used to successfully verify
+///             their corresponding signatures. If `false`, verification succeeds when at least one provided key
+///             matches a valid signature; however, invalid or mismatched signatures still result in an error.
+///   - keyId: Key used for signature verification. The key must support such operation.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: `YES` if signature is valid, otherwise `NO`. If failure is caused by invalid signature,
+///            then no error is set in the provided error pointer.
+- (BOOL) jwsVerifySignature:(nonnull NSString*)signedData
+                compactForm:(BOOL)compactForm
+                     strict:(BOOL)strict
+                      keyId:(PowerAuthCoreSignatureKeyId)keyId
+                      error:(NSError *_Nullable*_Nullable)error;
+
+/// Create a digital signature over the given data. If the request succeeds, the
+/// response contains a `NSData` with the calculated signature.
+///
+/// - Parameters:
+///   - data: Data to sign.
+///   - credentials: Credentials used for unlocking the device private key.
+///   - keyId: Key used for signature calculation. The key must support such operation.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for unlocking device private key
+///            or `nil` in case of failure.
+- (nullable PowerAuthCoreRequest*) signData:(nullable NSData*)data
+                                credentials:(nonnull PowerAuthCoreCredentials*)credentials
+                                      keyId:(PowerAuthCoreSignatureKeyId)keyId
+                                      error:(NSError *_Nullable*_Nullable)error;
+
+/// Create a JWS (or compact JWT) over the given data. If the request succeeds, the
+/// response contains a `NSString` with the calculated JWS or JWT.
+
+/// - Parameters:
+///   - data: Data to sign and embed into JWS.
+///   - dataType: Data type set to JOSE header. Use `"JWT"` or `nil` if no type is set.
+///   - compactForm: If `YES`, the result contains a compact JWT string instead of a JWS.
+///                 If used with hybrid keys, an error is reported.
+///   - credentials: Credentials used for unlocking the device private key.
+///   - keyId: Key used for signature calculation. The key must support such operation.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for unlocking device private key
+///            or `nil` in case of failure.
+- (nullable PowerAuthCoreRequest*) jwsSignData:(nullable NSData*)data
+                                      dataType:(nullable NSString*)dataType
+                                   compactForm:(BOOL)compactForm
+                                   credentials:(nonnull PowerAuthCoreCredentials*)credentials
+                                         keyId:(PowerAuthCoreSignatureKeyId)keyId
+                                         error:(NSError *_Nullable*_Nullable)error;
 
 #pragma mark - External Encryption Key
 

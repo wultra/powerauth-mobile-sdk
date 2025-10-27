@@ -25,7 +25,7 @@ namespace v4 {
 
 class TokenServiceV4 :
     public ITokenService,
-    public Service,
+    public ServiceWithContext,
     public std::enable_shared_from_this<TokenServiceV4>
 {
 public:
@@ -46,10 +46,7 @@ private:
     
     SessionDataPtr _session_data;
     TimeServicePtr _time_service;
-    ContextWeakPtr _weak_context;
     cc7::crypto::NonceGeneratorPtr _nonce_generator;
-    
-    ContextPtr lockContext();
 };
 
 } // namespace v4

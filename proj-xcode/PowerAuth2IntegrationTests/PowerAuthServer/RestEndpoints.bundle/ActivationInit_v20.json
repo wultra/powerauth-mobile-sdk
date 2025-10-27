@@ -12,6 +12,8 @@
             "activationId":             { "class" : "string" },
             "activationCode":           { "class" : "string" },
             "activationSignature":      { "class" : "string" },
+            "activationSignatureMldsa": { "class" : "string" },
+            "activationSignatureEcdsa": { "class" : "string" },
             "userId":                   { "class" : "string" },
             "applicationId":            { "class" : "string" }
         }

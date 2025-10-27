@@ -541,7 +541,7 @@ cc7::ByteRange SecretKeysV3::keyActivationSecret()
     });
 }
 
-const cc7::crypto::PrivateKey& SecretKeysV3::devicePrivateKey()
+const cc7::crypto::PrivateKeyPtr& SecretKeysV3::getDevicePrivateKeyPtr()
 {
     checkAccessLevel(KEY_ENCRYPTION_VAULT, AL_VAULT);
     if (!_device_private) {
@@ -550,8 +550,9 @@ const cc7::crypto::PrivateKey& SecretKeysV3::devicePrivateKey()
                                                             ZERO16_IV,
                                                             _pool.getKey(CKEY_DEVICE_PRIVATE, any_input));
         _device_private = _owner->signingKeyFactory().newPrivateKey(key_data, cc7::crypto::KEY_FORMAT_RAW);
+        _device_private->setSealed();
     }
-    return *_device_private;
+    return _device_private;
 }
 
 cc7::ByteRange SecretKeysV3::ckeyDevicePrivate()

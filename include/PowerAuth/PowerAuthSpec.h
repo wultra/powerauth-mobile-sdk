@@ -18,7 +18,6 @@
 
 #include <PowerAuth/SharedSecret.h>
 #include <PowerAuth/Algorithms.h>
-#include <cc7/jwt/JwtKey.h>
 
 namespace powerAuth {
 
@@ -74,8 +73,11 @@ public:
     /// then throws exception.
     SharedSecret::Algorithm sharedSecret() const;
     
-    /// Get algorithm(s) for digital signature calculation.
+    /// Get algorithm(s) for digital signature calculation or verification.
     const AlgorithmPair& getSignatureAlgorithms() const noexcept;
+    
+    /// Get algorithm(s) for JWS digital signature calculation or verification.
+    const AlgorithmPair& getJwsSignatureAlgorithms() const noexcept;
     
     /// Get algorithm(s) for constructing key-pairs.
     const AlgorithmPair& getSigningKeyPairAlgorithms() const noexcept;
@@ -100,6 +102,7 @@ private:
                   const std::string& name,
                   SharedSecretSpecPtr sharedSecret,
                   AlgorithmPair signature_algorithms,
+                  AlgorithmPair jws_algorithms,
                   AlgorithmPair signing_key_pair_algorithms);
     
     Algorithm _algorithm;
@@ -107,6 +110,7 @@ private:
     std::string _name;
     SharedSecretSpecPtr _shared_secret;
     AlgorithmPair _signature_algorithms;
+    AlgorithmPair _jws_signature_algorithms;
     AlgorithmPair _signing_key_pair_algorithms;
     
     static const PowerAuthSpec spec_LEGACY_P256;

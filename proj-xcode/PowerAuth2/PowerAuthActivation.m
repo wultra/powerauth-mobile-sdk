@@ -18,10 +18,6 @@
 #import <PowerAuth2/PowerAuthLog.h>
 #import "PA2PrivateMacros.h"
 
-#if defined(DEBUG)
-#import "PA2ObjectSerialization.h"
-#endif
-
 @implementation PowerAuthActivation
 
 #pragma mark - Init & Copy

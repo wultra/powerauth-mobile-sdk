@@ -73,6 +73,8 @@
 @property (nonatomic, strong) NSString * activationOTP;
 @property (nonatomic, strong) NSString * activationCode;
 @property (nonatomic, strong) NSString * activationSignature;
+@property (nonatomic, strong) NSString * activationSignatureEcdsa;
+@property (nonatomic, strong) NSString * activationSignatureMldsa;
 @property (nonatomic, strong) NSString * userId;
 @property (nonatomic, strong) NSString * applicationId;
 
@@ -125,6 +127,7 @@ extern NSString * PATSActivationOtpValidationEnumToString(PATSActivationOtpValid
 @property (nonatomic, strong) NSString * encryptedStatusBlob;
 @property (nonatomic, strong) NSString * encryptedStatusBlobNonce;
 @property (nonatomic, strong) NSString * devicePublicKeyFingerprint;
+@property (nonatomic, strong) NSString * activationSignature;
 @property (nonatomic, assign) NSInteger protocolVersion;
 
 @end

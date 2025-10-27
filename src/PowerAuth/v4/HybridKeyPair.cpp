@@ -243,6 +243,19 @@ public:
         return std::make_shared<HybridPrivateKey>(_key1, _key2);
     }
     
+    void setSealed() noexcept override
+    {
+        _key1->setSealed();
+        if (_key2) {
+            _key2->setSealed();
+        }
+    }
+    
+    bool isSealed() const noexcept override
+    {
+        return _key1->isSealed();
+    }
+    
     const PrivateKeyPtr& getKey1() const noexcept
     {
         return _key1;
@@ -333,15 +346,24 @@ bool HybridKeyPairFactory::isHybrid() const noexcept
 
 const crypto::PublicKey& HybridKey_GetKey1(const crypto::PublicKey& hybrid_key)
 {
-    auto hybrid = dynamic_cast<const HybridPublicKey*>(&hybrid_key);
-    if (!hybrid) {
-        throw Exception(EC_InternalError, "Key is not HybridPublicKey");
-    }
-    return *hybrid->getKey1();
+    return *HybridKey_GetKey1Ptr(hybrid_key);
 }
 
 const crypto::PublicKey& HybridKey_GetKey2(const crypto::PublicKey& hybrid_key)
 {
+    return *HybridKey_GetKey2Ptr(hybrid_key);
+}
+
+const cc7::crypto::PublicKeyPtr& HybridKey_GetKey1Ptr(const cc7::crypto::PublicKey& hybrid_key)
+{
+    auto hybrid = dynamic_cast<const HybridPublicKey*>(&hybrid_key);
+    if (!hybrid) {
+        throw Exception(EC_InternalError, "Key is not HybridPublicKey");
+    }
+    return hybrid->getKey1();
+}
+const cc7::crypto::PublicKeyPtr& HybridKey_GetKey2Ptr(const cc7::crypto::PublicKey& hybrid_key)
+{
     auto hybrid = dynamic_cast<const HybridPublicKey*>(&hybrid_key);
     if (!hybrid) {
         throw Exception(EC_InternalError, "Key is not HybridPublicKey");
@@ -350,19 +372,29 @@ const crypto::PublicKey& HybridKey_GetKey2(const crypto::PublicKey& hybrid_key)
     if (!key_ptr) {
         throw Exception(EC_InternalError, "Hybrid key doesn't contain key #2");
     }
-    return *key_ptr;
+    return key_ptr;
 }
 
 const crypto::PrivateKey& HybridKey_GetKey1(const crypto::PrivateKey& hybrid_key)
+{
+    return *HybridKey_GetKey1Ptr(hybrid_key);
+}
+
+const crypto::PrivateKey& HybridKey_GetKey2(const crypto::PrivateKey& hybrid_key)
+{
+    return *HybridKey_GetKey2Ptr(hybrid_key);
+}
+
+const cc7::crypto::PrivateKeyPtr& HybridKey_GetKey1Ptr(const cc7::crypto::PrivateKey& hybrid_key)
 {
     auto hybrid = dynamic_cast<const HybridPrivateKey*>(&hybrid_key);
     if (!hybrid) {
         throw Exception(EC_InternalError, "Key is not HybridPrivateKey");
     }
-    return *hybrid->getKey1();
+    return hybrid->getKey1();
 }
 
-const crypto::PrivateKey& HybridKey_GetKey2(const crypto::PrivateKey& hybrid_key)
+const cc7::crypto::PrivateKeyPtr& HybridKey_GetKey2Ptr(const cc7::crypto::PrivateKey& hybrid_key)
 {
     auto hybrid = dynamic_cast<const HybridPrivateKey*>(&hybrid_key);
     if (!hybrid) {
@@ -372,8 +404,9 @@ const crypto::PrivateKey& HybridKey_GetKey2(const crypto::PrivateKey& hybrid_key
     if (!key_ptr) {
         throw Exception(EC_InternalError, "Hybrid key doesn't contain key #2");
     }
-    return *key_ptr;
+    return key_ptr;
 }
+
 
 json::JsonValue HybridKey_ToJson(const crypto::PublicKey& hybrid_key, PowerAuthSpecPtr specification)
 {

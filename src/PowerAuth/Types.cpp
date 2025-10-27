@@ -20,6 +20,8 @@
 
 namespace powerAuth {
 
+// MARK: - ProtocolVersion
+
 const std::string& ProtocolVersion_GetHttpHeaderVersion(ProtocolVersion protocol_version)
 {
     if (protocol_version == Version_NA) {

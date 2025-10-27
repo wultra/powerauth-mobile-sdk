@@ -25,7 +25,7 @@
             "SupportApplicationVersion":    "SupportApplicationVersion_v10",
             "UnsupportApplicationVersion":  "UnsupportApplicationVersion_v10",
             "TokenValidate":                "TokenValidate_v10",
-            "VerifyECDSASignature":         "VerifyECDSASignature_v10"
+            "VerifyECDSASignature":         "VerifyECDSASignature_v10",
         },
         "v13": {
             "GetApplicationList":           "GetApplicationList_v13",
@@ -63,9 +63,8 @@
             "SupportApplicationVersion":    "SupportApplicationVersion_v20",
             "UnsupportApplicationVersion":  "UnsupportApplicationVersion_v20",
             "TokenValidate":                "TokenValidate_P4",
-            "VerifyECDSASignature":         "VerifyECDSASignature_v20",
-            "CreateNonPersonalizedOfflineSignaturePayload":     "CreateNonPersonalizedOfflineSignaturePayload_v20",
-            "CreatePersonalizedOfflineSignaturePayload":        "CreatePersonalizedOfflineSignaturePayload_v20",
+            "CreateNonPersonalizedOfflineSignaturePayload":     "CreateNonPersonalizedOfflineSignaturePayload_P4",
+            "CreatePersonalizedOfflineSignaturePayload":        "CreatePersonalizedOfflineSignaturePayload_P4",
         }
     }
 }

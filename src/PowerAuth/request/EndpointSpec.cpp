@@ -57,7 +57,7 @@ const EndpointSpec Endpoint_BiometryRemove {
 };
 
 const EndpointSpec Endpoint_VaultUnlock {
-    
+    Version_V4, "/pa/v4/vault/unlock", "/pa/vault/unlock", EncryptorId::VAULT_UNLOCK
 };
 
 const EndpointSpec Endpoint_TokenCreate {

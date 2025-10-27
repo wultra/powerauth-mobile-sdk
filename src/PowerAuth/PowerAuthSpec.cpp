@@ -17,7 +17,6 @@
 #include <PowerAuth/PowerAuthSpec.h>
 
 #include "v4/HybridKeyPair.h"
-#include "v4/HybridSignature.h"
 
 namespace powerAuth {
 
@@ -27,6 +26,7 @@ const PowerAuthSpec PowerAuthSpec::spec_LEGACY_P256 {
     "LEGACY",
     nullptr,
     { "ECDSA-SHA-256", "" },
+    { "ES256", "" },
     { "P-256", "" }
 };
 
@@ -35,7 +35,8 @@ const PowerAuthSpec PowerAuthSpec::spec_EC_P384 {
     Version_V4,
     "EC_P384",
     SharedSecret::specForAlgorithm(SharedSecret::EC_P384),
-    { "ECDSA-SHA3-384", "" },
+    { "ECDSA-SHA-384", "" },
+    { "ES384", "" },
     { "P-384", "" }
 };
 
@@ -44,7 +45,8 @@ const PowerAuthSpec PowerAuthSpec::spec_EC_P384_ML_L3 {
     Version_V4,
     "EC_P384_ML_L3",
     SharedSecret::specForAlgorithm(SharedSecret::EC_P384_ML_L3),
-    { "ECDSA-SHA3-384", "ML-DSA-65" },
+    { "ECDSA-SHA-384", "ML-DSA-65" },
+    { "ES384", "ML-DSA-65" },
     { "P-384", "ML-DSA-65" }
 };
 
@@ -68,12 +70,14 @@ PowerAuthSpec::PowerAuthSpec(Algorithm algorithm,
                              const std::string& name,
                              SharedSecretSpecPtr sharedSecret,
                              AlgorithmPair signature_algorithms,
+                             AlgorithmPair jws_algorithms,
                              AlgorithmPair signing_key_pair_algorithms) :
     _algorithm(algorithm),
     _protocol_version(version),
     _name(name),
     _shared_secret(sharedSecret),
     _signature_algorithms(signature_algorithms),
+    _jws_signature_algorithms(jws_algorithms),
     _signing_key_pair_algorithms(signing_key_pair_algorithms)
 {
 }
@@ -128,6 +132,11 @@ SharedSecret::Algorithm PowerAuthSpec::sharedSecret() const
 const PowerAuthSpec::AlgorithmPair& PowerAuthSpec::getSignatureAlgorithms() const noexcept
 {
     return _signature_algorithms;
+}
+
+const PowerAuthSpec::AlgorithmPair& PowerAuthSpec::getJwsSignatureAlgorithms() const noexcept
+{
+    return _jws_signature_algorithms;
 }
 
 const PowerAuthSpec::AlgorithmPair& PowerAuthSpec::getSigningKeyPairAlgorithms() const noexcept

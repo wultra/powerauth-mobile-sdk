@@ -50,6 +50,16 @@ ConstPowerAuthSpecPtr SessionData::getCurrentSpecification() const noexcept
     return _target_specification;
 }
 
+bool SessionData::hasActivationId() const noexcept
+{
+    if (hasPersistentData()) {
+        return true;
+    } else if (hasRegistrationData()) {
+        return registrationData().isKeyExchangeComplete();
+    }
+    return false;
+}
+
 std::string SessionData::getActivationId() const
 {
     if (hasPersistentData()) {

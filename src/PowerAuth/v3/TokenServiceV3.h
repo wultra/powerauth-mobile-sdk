@@ -25,7 +25,7 @@ namespace v3 {
 
 class TokenServiceV3 :
     public ITokenService,
-    public Service,
+    public ServiceWithContext,
     public std::enable_shared_from_this<TokenServiceV3>
 {
 public:
@@ -40,12 +40,9 @@ public:
     
 private:
     ResponseObjectPtr processCreateAccessTokenResponse(AuthFactors factors, const cc7::json::JsonValue& response);
-    
-    ContextPtr lockContext();
 
     SessionDataPtr _session_data;
     TimeServicePtr _time_service;
-    ContextWeakPtr _weak_context;
     cc7::crypto::NonceGeneratorPtr _nonce_generator;
 };
 

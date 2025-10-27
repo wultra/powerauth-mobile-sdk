@@ -33,5 +33,10 @@ const cc7::crypto::PublicKey& IKeyProvider::serverPublicKey()
     return *getServerPublicKeyPtr();
 }
 
+const cc7::crypto::PrivateKey& ISecretKeys::devicePrivateKey()
+{
+    return *getDevicePrivateKeyPtr();
+}
+
 } // namespace powerAuth
 

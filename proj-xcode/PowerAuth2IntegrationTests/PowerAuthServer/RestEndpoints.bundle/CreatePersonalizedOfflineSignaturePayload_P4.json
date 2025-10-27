@@ -1,5 +1,5 @@
 {
-    "path": "/rest/v4/signature/offline/personalized/create",
+    "path": "/rest/v4/auth/offline/personalized/create",
     "parameters": [
         "activationId",
         "data"

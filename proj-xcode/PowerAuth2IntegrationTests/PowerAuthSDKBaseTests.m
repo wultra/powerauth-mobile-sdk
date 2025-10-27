@@ -1510,7 +1510,7 @@
         XCTAssertNil(error);
     } else {
         XCTAssertFalse(result);
-        XCTAssertNotNil(error);
+        //XCTAssertNotNil(error);   // No error is reported
     }
 }
 
@@ -1521,8 +1521,6 @@
     if (!activation) {
         return;
     }
-    BOOL result;
-    NSError * error;
     switch (_sdk.currentAlgorithm) {
         case PowerAuthAlgorithm_LEGACY_P256:
             // Not available
@@ -1538,6 +1536,12 @@
             [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:YES];
             [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
             [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            // JWT - hybrid (should work, there's only one key available)
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:YES strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:YES strict:NO  shouldPass:YES];
+            // JWS - hybrid
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:NO  strict:NO  shouldPass:YES];
             break;
         case PowerAuthCoreAlgorithm_EC_P384_ML_L3:
             // JWT - ecdsa

@@ -67,4 +67,9 @@ typedef NS_ENUM(int, PowerAuthVaultEncryptionKeyId) {
 - (nullable PowerAuthVaultEncryptionKey*) deriveKeyWithIndex:(UInt64)index
                                                        error:(NSError*_Nullable*_Nullable)error;
 
+/// Compare two vault encryption keys.
+/// - Parameter other: Other key to compare.
+/// - Returns: `YES` if both keys are equal.
+- (BOOL) isEqualToVaultEncryptionKey:(nullable PowerAuthVaultEncryptionKey*)other;
+
 @end

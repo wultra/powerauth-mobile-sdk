@@ -1730,7 +1730,7 @@
     XCTAssertTrue(result);
 }
 
-#pragma mark - ECIES
+#pragma mark - End-2-End Encryption
 
 - (void) testEncryptorCreation
 {
@@ -1762,7 +1762,132 @@
     XCTAssertNotNil(encryptor);
 }
 
-// TODO: Vault encryption keys
+#pragma mark - Vault keys
+
+- (PowerAuthVaultEncryptionKey*) fetchVaultEncryptionKey:(PowerAuthVaultEncryptionKeyId)keyId
+                                             credentials:(PowerAuthAuthentication*)credentials
+                                              shouldPass:(BOOL)shouldPass
+{
+    __block NSError * outError = nil;
+    PowerAuthVaultEncryptionKey * vaultKey = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchVaultEncryptionKey:credentials keyIdentifier:keyId callback:^(PowerAuthVaultEncryptionKey * _Nullable encryptionKey, NSError * _Nullable error) {
+            outError = error;
+            [waiting reportCompletion:encryptionKey];
+        }];
+    }];
+    if (shouldPass) {
+        XCTAssertNotNil(vaultKey);
+        XCTAssertNil(outError);
+        XCTAssertEqual(keyId, vaultKey.keyId);
+    } else {
+        XCTAssertNil(vaultKey);
+        XCTAssertNotNil(outError);
+    }
+    return vaultKey;
+}
+
+- (PowerAuthCoreData*) fetchLegacyVaultKey:(PowerAuthAuthentication*)credentials
+                           derivationIndex:(NSUInteger)derivationIndex
+                                shouldPass:(BOOL)shouldPass
+{
+    __block NSError * outError = nil;
+    PowerAuthCoreData * vaultKey = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchEncryptionKey:credentials index:derivationIndex callback:^(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error) {
+            outError = error;
+            [waiting reportCompletion:encryptionKey];
+        }];
+    }];
+    if (shouldPass) {
+        XCTAssertNotNil(vaultKey);
+        XCTAssertNil(outError);
+    } else {
+        XCTAssertNil(vaultKey);
+        XCTAssertNotNil(outError);
+    }
+    return vaultKey;
+}
+
+- (void) testVaultEncryptionKeys
+{
+    // This test requires PAS configured for a very short temporary key lifespan.
+    CHECK_TEST_CONFIG();
+
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithFakeBiometry activationOtp:nil];
+    if (!activation) {
+        return;
+    }
+    NSError * error;
+    PowerAuthVaultEncryptionKey *legacy, *any2fa, *knowledge, *other, *another;
+    if ([_sdk currentAlgorithm] != PowerAuthAlgorithm_LEGACY_P256) {
+        // V4
+        any2fa = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:YES];
+        XCTAssertEqual(YES, any2fa.baseKey);
+        XCTAssertEqual(0, any2fa.derivationIndex);
+        XCTAssertEqual(32, any2fa.key.sensitiveData.length);
+        other = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:YES];
+        XCTAssertEqualObjects(any2fa, other);
+        other = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_KnowledgeOrBiometry credentials:activation.biometryCredentials shouldPass:YES];
+        XCTAssertEqualObjects(any2fa, other);
+
+        knowledge = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Knowledge credentials:activation.credentials shouldPass:YES];
+        XCTAssertEqual(YES, knowledge.baseKey);
+        XCTAssertEqual(0, knowledge.derivationIndex);
+        XCTAssertEqual(32, knowledge.key.sensitiveData.length);
+        XCTAssertNotEqualObjects(any2fa, knowledge);
+        other = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Knowledge credentials:activation.credentials shouldPass:YES];
+        XCTAssertEqualObjects(knowledge, other);
+        
+        // Derive other keys
+        other = [any2fa deriveKeyWithIndex:1000 error:&error];
+        XCTAssertNotNil(other);
+        XCTAssertEqual(NO, other.baseKey);
+        XCTAssertEqual(1000, other.derivationIndex);
+        XCTAssertNotNil(other.key);
+        another = [any2fa deriveKeyWithIndex:1000 error:&error];
+        XCTAssertEqualObjects(other, another);
+        
+        other = [knowledge deriveKeyWithIndex:1000 error:&error];
+        XCTAssertNotNil(other);
+        XCTAssertEqual(NO, other.baseKey);
+        XCTAssertEqual(1000, other.derivationIndex);
+        XCTAssertNotNil(other.key);
+        another = [knowledge deriveKeyWithIndex:1000 error:&error];
+        XCTAssertEqualObjects(other, another);
+        
+
+        // Following fetch operations should fail
+        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Knowledge credentials:activation.biometryCredentials shouldPass:NO];
+        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Legacy credentials:activation.credentials shouldPass:NO];
+        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Legacy credentials:activation.biometryCredentials shouldPass:NO];
+        [self fetchLegacyVaultKey:activation.credentials derivationIndex:0 shouldPass:NO];
+        [self fetchLegacyVaultKey:activation.biometryCredentials derivationIndex:0 shouldPass:NO];
+        
+    } else {
+        // V3
+        legacy = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Legacy credentials:activation.credentials shouldPass:YES];
+        XCTAssertNotNil(legacy);
+        XCTAssertEqual(PowerAuthVaultEncryptionKeyId_Legacy, legacy.keyId);
+        XCTAssertEqual(NO, legacy.baseKey);
+        XCTAssertEqual(0, legacy.derivationIndex);
+        XCTAssertEqual(16, legacy.key.sensitiveData.length);
+        // Compare to manually created key
+        PowerAuthCoreData * legacyKeyFetch = [self fetchLegacyVaultKey:activation.credentials derivationIndex:0 shouldPass:YES];
+        XCTAssertEqualObjects(legacy.key, legacyKeyFetch);
+        
+        // legacy key should not support derivation
+        PowerAuthVaultEncryptionKey * derivedKey = [legacy deriveKeyWithIndex:1000 error:&error];
+        XCTAssertNil(derivedKey);
+        XCTAssertNotNil(error);
+
+        // Following fetch operations should fail
+        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Knowledge credentials:activation.credentials shouldPass:NO];
+        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:NO];
+        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Legacy credentials:activation.biometryCredentials shouldPass:NO];
+        [self fetchLegacyVaultKey:activation.biometryCredentials derivationIndex:0 shouldPass:NO];
+    }
+}
+
+// TODO: Temporary key expiration
 
 //- (void) testTemporaryKeyExpiration
 //{

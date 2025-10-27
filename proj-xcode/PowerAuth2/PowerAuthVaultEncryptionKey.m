@@ -53,4 +53,29 @@
                                                             base:NO];
 }
 
+- (BOOL) isEqualToVaultEncryptionKey:(nullable PowerAuthVaultEncryptionKey*)other
+{
+    if (!other) {
+        return NO;
+    }
+    if (self == other) {
+        return YES;
+    }
+    return _baseKey == other->_baseKey &&
+            _derivationIndex == other->_derivationIndex &&
+            _keyId == other->_keyId &&
+            [_key isEqualToCoreData:other->_key];
+}
+
+- (BOOL) isEqual:(id)object
+{
+    if (self == object) {
+        return YES;
+    }
+    if ([object isKindOfClass:[PowerAuthVaultEncryptionKey class]]) {
+        return [self isEqualToVaultEncryptionKey:object];
+    }
+    return NO;
+}
+
 @end

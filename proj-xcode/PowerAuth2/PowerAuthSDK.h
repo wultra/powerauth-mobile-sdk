@@ -1034,13 +1034,14 @@
 @interface PowerAuthSDK (UserInfo)
 
 /**
- Contains last properly fetched instance of `PowerAuthUserInfo` object. The value is updated during the activation process
- or by calling `fetchUserInfo()` function.
+ Retrieve last fetched user info cached in the Session Data.
+ The value is updated during the activation process or by calling `fetchUserInfo()` function.
  */
 @property (nonatomic, readonly, nullable) PowerAuthUserInfo * lastFetchedUserInfo;
 
 /**
- Fetch information about the user from the server. If operation succeed, then the user information object is also stored to `lastFetchedUserInfo` property.
+ Fetch information about the user from the server. If operation succeed, then the claims are also stored
+ to the Session Data and accessible via the `lastFetchedUserInfo`.
  @param callback The callback method with an user info data.
  @return PowerAuthOperationTask associated with the running request.
  */

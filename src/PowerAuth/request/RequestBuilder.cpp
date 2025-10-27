@@ -61,6 +61,15 @@ RequestBuilder& RequestBuilder::withAuthentication(const CredentialsPtr &authent
     return *this;
 }
 
+RequestBuilder& RequestBuilder::withAuthenticator(const IAuthenticationServicePtr& authenticator)
+{
+    if (!_request->_endpoint.isAuthenticated()) {
+        throw Exception(EC_WrongParameter, "Endpoint is not authenticated");
+    }
+    _request->_authenticator = authenticator;
+    return *this;
+}
+
 RequestBuilder& RequestBuilder::withPrepareCallback(PrepareRequestCallback callback)
 {
     if (_has_body) {
@@ -98,7 +107,10 @@ RequestPtr RequestBuilder::build()
         if (_request->_authentication == nullptr) {
             throw Exception(EC_InternalError, "Authentication object is missing");
         }
-        _request->_authenticator = _context.getAuthenticationServicePtr();
+        
+        if (!_request->_authenticator) {
+            _request->_authenticator = _context.getAuthenticationServicePtr();
+        }
     }
     if (_request->_endpoint.isEncrypted()) {
         _request->_encryptor_factory = _context.getEncryptorFactoryPtr();

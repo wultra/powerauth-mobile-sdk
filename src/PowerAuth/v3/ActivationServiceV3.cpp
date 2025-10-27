@@ -110,6 +110,10 @@ ResponseObjectPtr ActivationServiceV3::processResponseActivationData(Context& co
     rd.authCodeCounterData      = ctr_data;
     rd.serverPublicKey          = server_public_key;
     
+    // Store received User Info into Session Data
+    auto user_info = L1_data.findValueAtPath("userInfo");
+    _session_data->setUserInfo(user_info ? *user_info : cc7::json::JsonValue());
+    
     return std::make_shared<ActivationResult>(calculateActivationFingerprint(), L1_data);
 }
 
@@ -387,6 +391,21 @@ RequestPtr ActivationServiceV3::removeBiometricFactor()
     key_provider.lockSecretKeys(secrets);
     
     return nullptr;
+}
+
+// MARK: - User Info
+
+RequestPtr ActivationServiceV3::fetchUserInfo()
+{
+    LOCK_GUARD();
+    auto context = lockContext();
+    auto self = shared_from_this();
+    return RequestBuilder(*context, v3::Endpoint_UserInfo)
+        .withResponseCallback([self, context](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            context->sessionData().setUserInfo(body);
+            return nullptr;
+        })
+        .build();
 }
 
 } // namespace v3

@@ -28,7 +28,8 @@ struct EndpointSpec
         FL_ALLOWED_IN_UPGRADE       = 1 << 1,
         FL_SYNCHRONIZE_TIME         = 1 << 2,
         FL_NOT_WRAPPED              = 1 << 3,
-        FL_PENDING_REGISTRATION     = 1 << 4
+        FL_PENDING_REGISTRATION     = 1 << 4,
+        FL_FORCE_ENCRYPTION_HEADER  = 1 << 5
     };
     
     ProtocolVersion version;
@@ -72,6 +73,11 @@ struct EndpointSpec
     {
         return !isEncrypted() && (flags & FL_NOT_WRAPPED) == 0;
     }
+    
+    bool forceEncryptionHeader() const noexcept
+    {
+        return (flags & FL_FORCE_ENCRYPTION_HEADER) == FL_FORCE_ENCRYPTION_HEADER;
+    }
 };
 
 namespace v4 {
@@ -89,11 +95,15 @@ extern const EndpointSpec Endpoint_VaultUnlock;
 extern const EndpointSpec Endpoint_TokenCreate;
 extern const EndpointSpec Endpoint_TokenRemove;
 extern const EndpointSpec Endpoint_ValidateCredentials;
+extern const EndpointSpec Endpoint_ProtocolUpgradeStart;
+extern const EndpointSpec Endpoint_ProtocolUpgradeConfirm;
+extern const EndpointSpec Endpoint_UserInfo;
 
 } // namespace v4
 
 namespace v3 {
 
+extern const EndpointSpec Endpoint_SystemStatus;
 extern const EndpointSpec Endpoint_TemporaryKey;
 extern const EndpointSpec Endpoint_ActivationCreate;
 extern const EndpointSpec Endpoint_ActivationStatus;
@@ -102,6 +112,7 @@ extern const EndpointSpec Endpoint_SignatureValidate;
 extern const EndpointSpec Endpoint_VaultUnlock;
 extern const EndpointSpec Endpoint_TokenCreate;
 extern const EndpointSpec Endpoint_TokenRemove;
+extern const EndpointSpec Endpoint_UserInfo;
 
 } // namespace v3
 

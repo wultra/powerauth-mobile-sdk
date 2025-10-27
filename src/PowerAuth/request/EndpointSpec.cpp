@@ -21,7 +21,7 @@ namespace powerAuth {
 namespace v4 {
 
 const EndpointSpec Endpoint_SystemStatus {
-    Version_V4, "/pa/v3/status", "", EncryptorId::NONE, EndpointSpec::FL_ALLOWED_IN_UPGRADE
+    Version_V4, "/pa/v4/status", "", EncryptorId::NONE, EndpointSpec::FL_ALLOWED_IN_UPGRADE
 };
 
 const EndpointSpec Endpoint_TemporaryKey {
@@ -72,9 +72,28 @@ const EndpointSpec Endpoint_ValidateCredentials {
     Version_V4, "/pa/v4/auth/validate", "/pa/auth/validate", EncryptorId::NONE
 };
 
+/// Authenticated with V3.3 authentication code
+const EndpointSpec Endpoint_ProtocolUpgradeStart {
+    Version_V4, "/pa/v4/upgrade/start", "/pa/upgrade/start", EncryptorId::UPGRADE_START,
+    EndpointSpec::FL_ALLOWED_IN_UPGRADE | EndpointSpec::FL_SERIALIZED | EndpointSpec::FL_FORCE_ENCRYPTION_HEADER
+};
+
+const EndpointSpec Endpoint_ProtocolUpgradeConfirm {
+    Version_V4, "/pa/v4/upgrade/confirm", "/pa/upgrade/confirm", EncryptorId::NONE,
+    EndpointSpec::FL_ALLOWED_IN_UPGRADE | EndpointSpec::FL_SERIALIZED
+};
+
+const EndpointSpec Endpoint_UserInfo {
+    Version_V4, "/pa/v4/user/info", "", EncryptorId::ACTIVATION_SCOPE_GENERIC
+};
+
 } // namespace v4
 
 namespace v3 {
+
+const EndpointSpec Endpoint_SystemStatus {
+    Version_V3, "/pa/v3/status", "", EncryptorId::NONE, EndpointSpec::FL_ALLOWED_IN_UPGRADE
+};
 
 const EndpointSpec Endpoint_TemporaryKey {
     Version_V3, "/pa/v3/keystore/create", "", EncryptorId::NONE
@@ -101,11 +120,15 @@ const EndpointSpec Endpoint_VaultUnlock {
 };
 
 const EndpointSpec Endpoint_TokenCreate {
-    Version_V4, "/pa/v3/token/create", "/pa/token/create", EncryptorId::CREATE_TOKEN
+    Version_V3, "/pa/v3/token/create", "/pa/token/create", EncryptorId::CREATE_TOKEN
 };
 
 const EndpointSpec Endpoint_TokenRemove {
-    Version_V4, "/pa/v3/token/remove", "/pa/token/remove", EncryptorId::NONE
+    Version_V3, "/pa/v3/token/remove", "/pa/token/remove", EncryptorId::NONE
+};
+
+const EndpointSpec Endpoint_UserInfo {
+    Version_V3, "/pa/v3/user/info", "", EncryptorId::ACTIVATION_SCOPE_GENERIC
 };
 
 } // namespace v3

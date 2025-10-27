@@ -109,6 +109,11 @@ public:
     /// - Throws:
     ///   - `Exception` in case of failure.
     virtual RequestPtr removeBiometricFactor() = 0;
+    
+    /// Fetch user info.
+    ///
+    /// - Returns: Request data for fetch user info endpoint.
+    virtual RequestPtr fetchUserInfo() = 0;
 };
 
 CC7_SHARED_PTR(IActivationService)

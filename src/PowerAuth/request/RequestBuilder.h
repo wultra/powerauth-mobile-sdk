@@ -18,6 +18,7 @@
 
 #include <PowerAuth/Request.h>
 #include <PowerAuth/Credentials.h>
+#include <PowerAuth/AuthenticationService.h>
 #include "EndpointSpec.h"
 
 namespace powerAuth {
@@ -57,6 +58,10 @@ public:
     /// Add credentials in case the request is authenticated.
     /// - Parameter authentication: Credentials for authentication.
     RequestBuilder& withAuthentication(const CredentialsPtr& authentication);
+    
+    /// Add custom authenticator. If not set, the one defined in the current context will be used.
+    /// - Parameter authenticator: Authentication service to use for authentication.
+    RequestBuilder& withAuthenticator(const IAuthenticationServicePtr& authenticator);
     
     /// Add a custom parameter to the request. Note that you must use the `Parameter::copy()`
     /// method if you want to include a byte array or text as part of the request.

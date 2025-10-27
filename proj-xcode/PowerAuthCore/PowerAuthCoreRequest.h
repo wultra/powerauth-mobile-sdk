@@ -77,12 +77,12 @@ typedef void(^PowerAuthCoreRequestCallback)(id _Nullable response, NSError * _Nu
 @property (nonatomic, readonly, strong, nullable) id responseJson;
 
 /// Cancel the request and release underlying resources. You have to call this method
-/// when the operation is canceled by the application or when failure response is
-/// received from the server.
-///
-/// - Returns: YES in case of success, or NO if internal cancelation failed.
-///            Check `failure` property for more details.
-- (BOOL) cancel;
+/// when the operation is canceled by the application.
+- (void) cancel;
+
+/// Set request as failed. You have to call this method when the HTTP request ends with
+/// external failure, such as non-200 status code is received.
+- (void) setFailed;
 
 /// Prepare request body and headers. It's recommended to call this method on background
 /// execution queue to avoid main thread disruptions.

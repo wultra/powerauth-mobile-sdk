@@ -50,16 +50,20 @@ public:
     /// Object's destructor.
     ~Request();
     
-    /// Cancel the request. The networking code should call this method also when the
-    /// non-200 response code is received.
+    /// Cancel the request.
     void cancel() noexcept;
         
-    /// Set external reason of failure.
-    /// - Parameter exception: Reason of failure.
-    void setFailed(std::exception_ptr exception = nullptr) noexcept;
+    /// Cancel the request from the parent task.
+    void cancelFromTask() noexcept;
+    
+    /// Set external reason of failure. If request is already completed, then method does nothing.
+    /// - Parameters:
+    ///   - exception: Reason of failure. If `nullptr`, then request is still set as failed.
+    void setFailed(std::exception_ptr exception) noexcept;
     
     /// Re-throw reason of failure. The method is useful in case the external code wants
-    /// to investigate the reason of failure. If no failure 
+    /// to investigate the reason of failure. If request did not fail, then the method
+    /// throws `Exception` with `EC_NotAllowed`.
     void reThrowFailure() const;
 
     /// Prepare the request body and the headers. You have to call this method before you
@@ -228,6 +232,10 @@ private:
     
     /// Process failure and re-throw the provided exception.
     void processFailure [[noreturn]] (ErrorCode ec, const std::string& msg, std::exception_ptr failure);
+    
+    /// Common cancel implementation.
+    /// - Parameter clear_task: If `true` then also clear `_task` reference.
+    void cancelImpl(bool clear_task) noexcept;
     
     /// Notify all listeners about the request completion.
     void notifyResult() noexcept;

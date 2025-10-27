@@ -19,83 +19,6 @@
 
 @implementation PowerAuthSDKBaseTests
 
-#pragma mark - Test setup
-
-- (void)setUp
-{
-    [super setUp];
-    [self reconfigureForTest:[PowerAuthSdkTestHelper currentTestNameFromTestCase:self]];
-}
-
-- (void) tearDown
-{
-    [_helper cleanup];
-    [super tearDown];
-}
-
-
-- (void) prepareConfigs:(PowerAuthConfiguration**)configuration
-        biometricConfig:(PowerAuthBiometricConfiguration**)biometricConfiguration
-         keychainConfig:(PowerAuthKeychainConfiguration**)keychainConfiguration
-           clientConfig:(PowerAuthClientConfiguration**)clientConfiguration
-            forTestName:(NSString*)testName
-{
-    if ([testName isEqualToString:@"testCustomOfflineAuthCode"]) {
-        (*configuration).offlineAuthenticationCodeComponentLength = 4;
-    }
-    (*configuration).algorithm = self.powerAuthAlgorithm;
-}
-
-- (PowerAuthAlgorithm) powerAuthAlgorithm
-{
-    return PowerAuthAlgorithm_DEFAULT;
-}
-
-- (BOOL) supportsActivationWithSignature
-{
-    return self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256;
-}
-
-- (void) reconfigureForTest:(NSString *)testName
-{
-    _helper = [PowerAuthSdkTestHelper createCustom:^(PowerAuthConfiguration **configuration, PowerAuthBiometricConfiguration **biometricConfiguration, PowerAuthKeychainConfiguration **keychainConfiguration, PowerAuthClientConfiguration **clientConfiguration) {
-        [self prepareConfigs:configuration biometricConfig:biometricConfiguration keychainConfig:keychainConfiguration clientConfig:clientConfiguration forTestName:testName];
-    }];
-    [_helper printConfig];
-    _sdk = _helper.sdk;
-    _helper.testServerApi.clientProtocolVersion = _sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? PATS_P33 : PATS_P40;
-}
-
-#pragma mark - Helper utilities
-
-/**
- Checks whether the test config is valid. You should use this macro in all unit tests
- defined in this class.
- */
-#define CHECK_TEST_CONFIG()     \
-    if (!_sdk) {                \
-        XCTFail(@"Test configuration is not valid.");   \
-        return;                 \
-    }
-
-/**
- Checks boolean value in result local variable and returns |obj| value if contains NO.
- */
-#define CHECK_RESULT_RET(obj)   \
-    if (result == NO) {         \
-        return obj;             \
-    }
-
-/**
-  Checks whether biometry is available for testing.
- */
-#define CHECK_BIOMETRY()        \
-    if (![PowerAuthKeychain canUseBiometricAuthentication]) { \
-        XCTFail(@"Biometric authentication is not available on this simulator. Please go to Device Simulator and make sure that `Features -> Face/Touch ID -> Enrolled` is ON"); \
-        return;                 \
-    }
-
-
 #pragma mark - Integration tests
 
 - (void) testAlgorithmSetup
@@ -1218,17 +1141,30 @@
 {
     CHECK_TEST_CONFIG();
     
+    //
+    // This test validates that the User Info claims are stored correctly after activation
+    // and properly updated after fetching new User Info from the server.
+    //
+    
+    // Test the `lastFetchedUserInfo` is nil before the data are fetched.
+    XCTAssertFalse(_sdk.hasValidActivation);
+    XCTAssertNil(_sdk.lastFetchedUserInfo);
+    
     PowerAuthSdkActivation * activation = [_helper createActivation:YES];
     if (!activation) {
         return;
     }
+    
+    // Test that the User Info from the Activation response is stored as last fetched.
     PowerAuthUserInfo * infoFromActivation = activation.activationResult.userInfo;
     NSString * userId = _helper.testServerConfig.userIdentifier;
     XCTAssertNotNil(_sdk.lastFetchedUserInfo);
     XCTAssertNotNil(infoFromActivation);
     XCTAssertEqualObjects(userId, _sdk.lastFetchedUserInfo.subject);
     XCTAssertEqualObjects(userId, infoFromActivation.subject);
+    XCTAssertEqualObjects(infoFromActivation.allClaims[@"jti"], _sdk.lastFetchedUserInfo.allClaims[@"jti"]);
     
+    // Fetch fresh User Info.
     PowerAuthUserInfo * info = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         [_sdk fetchUserInfo:^(PowerAuthUserInfo * userInfo, NSError * error) {
             XCTAssertNil(error);
@@ -1237,7 +1173,10 @@
     }];
     XCTAssertNotNil(info);
     XCTAssertEqualObjects(info.subject, _helper.testServerConfig.userIdentifier);
-    XCTAssertEqual(info, _sdk.lastFetchedUserInfo);
+    
+    // Check the last fetched User Info was updated (i.e. JWT ID was changed).
+    XCTAssertNotEqualObjects(info.allClaims[@"jti"], infoFromActivation.allClaims[@"jti"]);
+    XCTAssertEqualObjects(info.allClaims[@"jti"], _sdk.lastFetchedUserInfo.allClaims[@"jti"]);
 }
 
 #pragma mark - Digital signatures
@@ -1823,33 +1762,34 @@
     XCTAssertNotNil(encryptor);
 }
 
+// TODO: Vault encryption keys
 
-- (void) testTemporaryKeyExpiration
-{
-    // This test requires PAS configured for a very short temporary key lifespan.
-    CHECK_TEST_CONFIG();
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-    if (!activation) {
-        return;
-    }
-
-    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk fetchEncryptionKey:_helper.authPossessionWithKnowledge index:1000 callback:^(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error) {
-            [waiting reportCompletion:@(error == nil)];
-        }];
-    }] boolValue];
-    XCTAssertTrue(result);
-    
-    [NSThread sleepForTimeInterval:15.0];
-    
-    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk fetchEncryptionKey:_helper.authPossessionWithKnowledge index:1000 callback:^(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error) {
-            [waiting reportCompletion:@(error == nil)];
-        }];
-    }] boolValue];
-    XCTAssertTrue(result);
-}
+//- (void) testTemporaryKeyExpiration
+//{
+//    // This test requires PAS configured for a very short temporary key lifespan.
+//    CHECK_TEST_CONFIG();
+//    
+//    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+//    if (!activation) {
+//        return;
+//    }
+//
+//    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+//        [_sdk fetchEncryptionKey:_helper.authPossessionWithKnowledge index:1000 callback:^(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error) {
+//            [waiting reportCompletion:@(error == nil)];
+//        }];
+//    }] boolValue];
+//    XCTAssertTrue(result);
+//    
+//    [NSThread sleepForTimeInterval:15.0];
+//    
+//    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+//        [_sdk fetchEncryptionKey:_helper.authPossessionWithKnowledge index:1000 callback:^(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error) {
+//            [waiting reportCompletion:@(error == nil)];
+//        }];
+//    }] boolValue];
+//    XCTAssertTrue(result);
+//}
 
 #pragma mark - Tokens
 
@@ -2163,6 +2103,141 @@
     XCTAssertEqual(PowerAuthActivationState_Active, [_helper fetchActivationStatus].state);
     XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
     
+    [_helper cleanup];
+}
+
+- (void) testSimulatedHttpResponseFailure
+{
+    if (![self isRequestFailureSimulatorAvailable]) {
+        XCTFail(@"Request failure simulator is not available");
+        return;
+    }
+
+    // This test validates whether HTTP response failure simulation works properly.
+
+    // Set the next server status failed
+    [self simulateNextResponseFailure:@"/status" statusCode:500];
+    // Should fail
+    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchServerStatus:^(PowerAuthServerStatus * _Nullable status, NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertFalse(result);
+    // Should work
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchServerStatus:^(PowerAuthServerStatus * _Nullable status, NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(result);
+    // Should fail
+    // Set result from any HTTP request as failure
+    [self simulateNextResponseFailure:nil statusCode:500];
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchServerStatus:^(PowerAuthServerStatus * _Nullable status, NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertFalse(result);
+    // Should work
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchServerStatus:^(PowerAuthServerStatus * _Nullable status, NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(result);
+}
+
+- (void) testFailedStatusFetch
+{
+    if (![self isRequestFailureSimulatorAvailable]) {
+        XCTFail(@"Request failure simulator is not available");
+        return;
+    }
+    // This test validates whether communication between ObjC and C++ request code
+    // works properly in case of failure.
+    
+    XCTAssertFalse(_sdk.hasPendingActivation);
+    
+    PATSInitActivationResponse * activationData = [_helper.testServerApi initializeActivation:_helper.testServerConfig.userIdentifier
+                                                                                otpValidation:PATSActivationOtpValidation_NONE
+                                                                                   otp:nil];
+    NSString * activationCode = [activationData activationCodeWithoutSignature];
+    __block PowerAuthActivationResult * activationResult = nil;
+    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        // Set next "/pa/*/status" to fail, so time will not be synchronized.
+        [self simulateNextResponseFailure:@"/keystore/create" statusCode:500];
+        // Create activation
+        NSString * activationName = _helper.testServerConfig.userActivationName;
+        PowerAuthActivation * activation = [PowerAuthActivation activationWithActivationCode:activationCode name:activationName error:nil];
+        [_sdk createActivation:activation callback:^(PowerAuthActivationResult * result, NSError * error) {
+            activationResult = result;
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertFalse(result);
+    XCTAssertFalse(_sdk.hasPendingActivation);
+    
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        // Create activation
+        NSString * activationName = _helper.testServerConfig.userActivationName;
+        PowerAuthActivation * activation = [PowerAuthActivation activationWithActivationCode:activationCode name:activationName error:nil];
+        [_sdk createActivation:activation callback:^(PowerAuthActivationResult * result, NSError * error) {
+            activationResult = result;
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(result);
+    XCTAssertTrue(_sdk.hasPendingActivation);
+
+    // persist activation
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk persistActivationWithPassword:@"1234" callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(result);
+    
+    // commit activation
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+    if (status.state == PowerAuthActivationState_PendingCommit) {
+        result = [_helper.testServerApi commitActivation:activationData.activationId];
+        XCTAssertTrue(result);
+    }
+    status = [_helper fetchActivationStatus];
+    XCTAssertEqual(status.state, PowerAuthActivationState_Active);
+
+    // Activation is now active, let's test the C++ Task failure propagation.
+    //
+    // This is a bit tricky, we have to calculate too many signatures with no validation on the server,
+    // to force a local counter to be too ahead against server's. This will trigger a dummy auth code validation
+    // on the server with "possession" factor. We trigger this request to fail. The next similar request should work.
+    
+    [self simulateNextResponseFailure:@"/auth/validate" statusCode:500];
+    [self simulateNextResponseFailure:@"/signature/validate" statusCode:500];
+
+    PowerAuthAuthentication * auth = [PowerAuthAuthentication possessionWithPassword:@"1234"];
+    for (int i = 0; i < CTR_LOOKAHEAD + 2; i++) {
+        // Just calculate signature on the client. This step simulates a network connection failure.
+        PowerAuthHttpHeader * header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:auth method:@"POST" uriId:@"/some/identifier" body:nil error:NULL];
+        XCTAssertNotNil(header);
+        if ((i % 4) == 0) {
+            // Every 4th signature calculation try to get the status
+            status = [_helper fetchActivationStatus];
+            XCTAssertNotNil(status);
+            // Everything should be OK, because getting the status fires signature validation internally.
+            XCTAssertEqual(status.state, PowerAuthActivationState_Active);
+        }
+    }
+    // Validate password
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk validatePassword:@"1234" callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(result);
+        
     [_helper cleanup];
 }
 

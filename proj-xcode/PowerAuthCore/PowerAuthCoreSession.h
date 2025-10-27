@@ -407,6 +407,14 @@
 
 #pragma mark - Digital signatures
 
+/// Export device public key into the specified format.
+/// - Parameters:
+///   - format: Required format of the output public key data.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Array of `PowerAuthCoreDevicePublicKeyData` objects or `nil` in case of failure.
+- (nullable NSArray<PowerAuthCoreDevicePublicKeyData*>*) exportDevicePublicKeysToFormat:(PowerAuthCoreDevicePublicKeyFormat)format
+                                                                                  error:(NSError *_Nullable*_Nullable)error;
+
 /// Verify a digital signature over the given data.
 /// - Parameters:
 ///   - signature: Signature calculated from signed data.

@@ -66,6 +66,18 @@ typedef NS_ENUM(int, PowerAuthSignatureKeyType) {
     PowerAuthSignatureKeyType_ML_DSA,
 };
 
+/// The `PowerAuthDevicePublicKeyFormat` enumeration defines the output format
+/// used when exporting the device public key.
+typedef NS_ENUM(int, PowerAuthDevicePublicKeyFormat) {
+    /// DER key format, which corresponds to the SPKI or X.509 structure.
+    PowerAuthDevicePublicKeyFormat_Der,
+    /// RAW key format. The actual output depends on the key type:
+    /// - For EC-based keys, the output data is ASN.1 encoded, as specified in ANSI X9.63.
+    /// - For ML-DSA-based keys, the output data is obtained using the OpenSSL
+    ///   `EVP_PKEY_get_raw_public_key()` function.
+    PowerAuthDevicePublicKeyFormat_Raw,
+};
+
 /// The `PowerAuthDevicePublicKeyData` class represents exported
 /// device public key data.
 @interface PowerAuthDevicePublicKeyData : NSObject

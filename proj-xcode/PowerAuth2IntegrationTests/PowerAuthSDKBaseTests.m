@@ -1242,6 +1242,72 @@
 
 #pragma mark - Digital signatures
 
+- (void) testExportDevicePublicKey
+{
+    CHECK_TEST_CONFIG();
+    
+    NSError * error = nil;
+    NSArray<PowerAuthDevicePublicKeyData*>* keys = [_sdk exportDevicePublicKeysToFormat:PowerAuthDevicePublicKeyFormat_Der error:&error];
+    XCTAssertNil(keys);
+    XCTAssertNotNil(error);
+    error = nil;
+    keys = [_sdk exportDevicePublicKeysToFormat:PowerAuthDevicePublicKeyFormat_Raw error:&error];
+    XCTAssertNil(keys);
+    XCTAssertNotNil(error);
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    NSDictionary<NSNumber*, NSString*>* keyMapping;
+    switch (_sdk.currentAlgorithm) {
+        case PowerAuthAlgorithm_LEGACY_P256:
+            keyMapping = @{ @(PowerAuthSignatureKeyType_EC) : @"P-256" };
+            break;
+        case PowerAuthAlgorithm_EC_P384:
+            keyMapping = @{ @(PowerAuthSignatureKeyType_EC) : @"P-384" };
+            break;
+        case PowerAuthAlgorithm_EC_P384_ML_L3:
+            keyMapping = @{ @(PowerAuthSignatureKeyType_EC) : @"P-384", @(PowerAuthSignatureKeyType_ML_DSA) : @"ML-DSA-65" };
+            break;
+        default:
+            XCTFail(@"Unsupported algorithm");
+            return;
+    }
+    error = nil;
+    keys = [_sdk exportDevicePublicKeysToFormat:PowerAuthDevicePublicKeyFormat_Der error:&error];
+    XCTAssertNotNil(keys);
+    XCTAssertNil(error);
+    __block NSUInteger matched = 0;
+    [keys enumerateObjectsUsingBlock:^(PowerAuthDevicePublicKeyData * _Nonnull keyData, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString * expectedKeyAlgorithm = keyMapping[@(keyData.keyType)];
+        if (!expectedKeyAlgorithm) {
+            XCTFail(@"Key type %@ not supported", @(keyData.keyType));
+            return;
+        }
+        XCTAssertEqualObjects(expectedKeyAlgorithm, keyData.keyAlgorithm);
+        matched++;
+    }];
+    XCTAssertEqual(matched, keyMapping.count);
+    
+    error = nil;
+    keys = [_sdk exportDevicePublicKeysToFormat:PowerAuthDevicePublicKeyFormat_Raw error:&error];
+    XCTAssertNotNil(keys);
+    XCTAssertNil(error);
+    matched = 0;
+    [keys enumerateObjectsUsingBlock:^(PowerAuthDevicePublicKeyData * _Nonnull keyData, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString * expectedKeyAlgorithm = keyMapping[@(keyData.keyType)];
+        if (!expectedKeyAlgorithm) {
+            XCTFail(@"Key type %@ not supported", @(keyData.keyType));
+            return;
+        }
+        XCTAssertEqualObjects(expectedKeyAlgorithm, keyData.keyAlgorithm);
+        matched++;
+    }];
+    XCTAssertEqual(matched, keyMapping.count);
+}
+
 - (void) testActivationCodeSignature
 {
     CHECK_TEST_CONFIG();
@@ -1259,7 +1325,7 @@
             error = nil;
             success = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:activation.activationData.activationSignature options:0]
                                         signedData:activationCodeData
-                                     keyIdentifier:PowerAuthSignatureKeyId_MASTER_EC
+                                     keyIdentifier:PowerAuthSignatureKeyId_Master_EC
                                              error:&error];
             XCTAssertTrue(success);
             XCTAssertNil(error);
@@ -1270,7 +1336,7 @@
             error = nil;
             success = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:activation.activationData.activationSignatureMldsa options:0]
                                         signedData:activationCodeData
-                                     keyIdentifier:PowerAuthSignatureKeyId_MASTER_ML_DSA
+                                     keyIdentifier:PowerAuthSignatureKeyId_Master_ML_DSA
                                              error:&error];
             XCTAssertTrue(success);
             XCTAssertNil(error);
@@ -1281,7 +1347,7 @@
             error = nil;
             success = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:activation.activationData.activationSignatureEcdsa options:0]
                                         signedData:activationCodeData
-                                     keyIdentifier:PowerAuthSignatureKeyId_MASTER_EC
+                                     keyIdentifier:PowerAuthSignatureKeyId_Master_EC
                                              error:&error];
             XCTAssertTrue(success);
             XCTAssertNil(error);
@@ -1319,7 +1385,7 @@
         NSData * signedData = [payload.parsedSignedData dataUsingEncoding:NSUTF8StringEncoding];
         result = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:payload.parsedSignature options:0]
                                    signedData:signedData
-                                keyIdentifier:PowerAuthSignatureKeyId_MASTER_EC
+                                keyIdentifier:PowerAuthSignatureKeyId_Master_EC
                                         error:nil];
         XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
     }
@@ -1330,11 +1396,11 @@
         if (_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
             // V3 uses SERVER_EC key for signature
             expectedSigningKey = @"1";
-            signingKeyId = PowerAuthSignatureKeyId_SERVER_EC;
+            signingKeyId = PowerAuthSignatureKeyId_Server_EC;
         } else {
             // V4 uses MAC key
             expectedSigningKey = @"2";
-            signingKeyId = PowerAuthSignatureKeyId_MAC_PERSONALIZED;
+            signingKeyId = PowerAuthSignatureKeyId_MacPersonalized;
         }
         NSString * dataForSigning = @"All your money are belong to us!";
         payload = [_helper.testServerApi createPersonalizedOfflineSignaturePayload:activation.activationId data:dataForSigning];
@@ -1432,19 +1498,19 @@
     PowerAuthAuthentication * auth = activation.credentials;
     switch (_sdk.currentAlgorithm) {
         case PowerAuthAlgorithm_EC_P384_ML_L3:
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE signatureType:@"ECDSA" authentication:auth shouldPass:NO];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:YES];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device signatureType:@"ECDSA" authentication:auth shouldPass:NO];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:YES];
             break;
         case PowerAuthAlgorithm_EC_P384:
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE signatureType:@"ECDSA" authentication:auth shouldPass:YES];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:NO];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device signatureType:@"ECDSA" authentication:auth shouldPass:YES];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:NO];
             break;
         case PowerAuthAlgorithm_LEGACY_P256:
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE signatureType:@"ECDSA" authentication:auth shouldPass:YES];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
-            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:NO];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device signatureType:@"ECDSA" authentication:auth shouldPass:YES];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
+            [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_ML_DSA signatureType:@"MLDSA" authentication:auth shouldPass:NO];
             break;
     }
 }
@@ -1467,18 +1533,18 @@
         case PowerAuthAlgorithm_EC_P384:
             XCTAssertNotNil(ecdsa);
             XCTAssertNil(mldsa);
-            result = [_sdk verifyDigitalSignature:ecdsa signedData:dataForSigning keyIdentifier:PowerAuthSignatureKeyId_SERVER_EC error:&error];
+            result = [_sdk verifyDigitalSignature:ecdsa signedData:dataForSigning keyIdentifier:PowerAuthSignatureKeyId_Server_EC error:&error];
             XCTAssertTrue(result);
             XCTAssertNil(error);
             break;
         case PowerAuthCoreAlgorithm_EC_P384_ML_L3:
             XCTAssertNotNil(ecdsa);
             XCTAssertNotNil(mldsa);
-            result = [_sdk verifyDigitalSignature:ecdsa signedData:dataForSigning keyIdentifier:PowerAuthSignatureKeyId_SERVER_EC error:&error];
+            result = [_sdk verifyDigitalSignature:ecdsa signedData:dataForSigning keyIdentifier:PowerAuthSignatureKeyId_Server_EC error:&error];
             XCTAssertTrue(result);
             XCTAssertNil(error);
             error = nil;
-            result = [_sdk verifyDigitalSignature:mldsa signedData:dataForSigning keyIdentifier:PowerAuthSignatureKeyId_SERVER_ML_DSA error:&error];
+            result = [_sdk verifyDigitalSignature:mldsa signedData:dataForSigning keyIdentifier:PowerAuthSignatureKeyId_Server_ML_DSA error:&error];
             XCTAssertTrue(result);
             XCTAssertNil(error);
             break;
@@ -1527,46 +1593,46 @@
             break;
         case PowerAuthAlgorithm_EC_P384:
             // JWT
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_EC     signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_EC     signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
             // JWS
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_EC     signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_EC     signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
             // JWT - hybrid (should work, there's only one key available)
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:YES strict:YES shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:YES strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:nil      compactForm:YES strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:nil      compactForm:YES strict:NO  shouldPass:YES];
             // JWS - hybrid
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:NO  strict:YES shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:NO  strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:nil      compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:nil      compactForm:NO  strict:NO  shouldPass:YES];
             break;
         case PowerAuthCoreAlgorithm_EC_P384_ML_L3:
             // JWT - ecdsa
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_EC     signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_EC     signatureType:@"ECDSA" compactForm:YES strict:NO  shouldPass:YES];
             // JWT - mldsa
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"MLDSA" compactForm:YES strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_ML_DSA signatureType:@"MLDSA" compactForm:YES strict:YES shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"MLDSA" compactForm:YES strict:NO  shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_ML_DSA signatureType:@"MLDSA" compactForm:YES strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"MLDSA" compactForm:YES strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_ML_DSA signatureType:@"MLDSA" compactForm:YES strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"MLDSA" compactForm:YES strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_ML_DSA signatureType:@"MLDSA" compactForm:YES strict:NO  shouldPass:YES];
             // JWS - ecdsa
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_EC     signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_EC     signatureType:@"ECDSA" compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_EC     signatureType:@"ECDSA" compactForm:NO  strict:NO  shouldPass:YES];
             // JWS - mldsa
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"MLDSA" compactForm:NO  strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_ML_DSA signatureType:@"MLDSA" compactForm:NO  strict:YES shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:@"MLDSA" compactForm:NO  strict:NO  shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER_ML_DSA signatureType:@"MLDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"MLDSA" compactForm:NO  strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_ML_DSA signatureType:@"MLDSA" compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"MLDSA" compactForm:NO  strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server_ML_DSA signatureType:@"MLDSA" compactForm:NO  strict:NO  shouldPass:YES];
             // JWS - hybrid
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:NO  strict:YES shouldPass:YES];
-            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_SERVER        signatureType:nil      compactForm:NO  strict:NO  shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:nil      compactForm:NO  strict:YES shouldPass:YES];
+            [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:nil      compactForm:NO  strict:NO  shouldPass:YES];
             break;
         default:
             XCTFail(@"Unsupported algorithm");
@@ -1642,18 +1708,18 @@
     PowerAuthAuthentication * auth = activation.credentials;
     switch (_sdk.currentAlgorithm) {
         case PowerAuthAlgorithm_EC_P384_ML_L3:
-            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA compactForm:NO strict:YES authentication:auth shouldPass:YES];
-            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA compactForm:YES strict:YES authentication:auth shouldPass:YES];
-            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE compactForm:NO strict:YES authentication:auth shouldPass:YES];
-            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC compactForm:NO strict:YES authentication:auth shouldPass:YES];
-            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC compactForm:YES strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_ML_DSA compactForm:NO strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_ML_DSA compactForm:YES strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device compactForm:NO strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_EC compactForm:NO strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_EC compactForm:YES strict:YES authentication:auth shouldPass:YES];
             break;
         case PowerAuthAlgorithm_EC_P384:
-            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE compactForm:YES strict:YES authentication:auth shouldPass:YES];
-            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE compactForm:NO strict:YES authentication:auth shouldPass:YES];
-            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC compactForm:NO strict:YES authentication:auth shouldPass:YES];
-            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_EC compactForm:YES strict:YES authentication:auth shouldPass:YES];
-            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_DEVICE_ML_DSA compactForm:NO strict:YES authentication:auth shouldPass:NO];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device compactForm:YES strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device compactForm:NO strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_EC compactForm:NO strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_EC compactForm:YES strict:YES authentication:auth shouldPass:YES];
+            [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_ML_DSA compactForm:NO strict:YES authentication:auth shouldPass:NO];
             break;
         case PowerAuthAlgorithm_LEGACY_P256:
             // API not supported on the server
@@ -1676,7 +1742,7 @@
                          dataToSign:[NSJSONSerialization dataWithJSONObject:originalClaims options:0 error:nil]
                            dataType:@"JWT"
                             compact:YES
-                      keyIdentifier:PowerAuthSignatureKeyId_DEVICE_EC callback:^(NSString * _Nullable jws, NSError * _Nullable error) {
+                      keyIdentifier:PowerAuthSignatureKeyId_Device_EC callback:^(NSString * _Nullable jws, NSError * _Nullable error) {
             [waiting reportCompletion:jws];
         }];
     }];
@@ -1684,7 +1750,7 @@
     BOOL result = [_sdk verifyJwsSignature:jwt
                                    compact:YES
                                     strict:YES
-                             keyIdentifier:PowerAuthSignatureKeyId_DEVICE_EC
+                             keyIdentifier:PowerAuthSignatureKeyId_Device_EC
                                      error:&error];
     XCTAssertTrue(result);
     XCTAssertNil(error);

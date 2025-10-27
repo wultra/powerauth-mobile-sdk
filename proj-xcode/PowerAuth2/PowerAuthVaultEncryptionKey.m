@@ -41,7 +41,8 @@
     NSError * localError = nil;
     PowerAuthCoreData * newKey = [PowerAuthCoreSession deriveVaultEncryptionKey:_key
                                                                           keyId:(PowerAuthCoreVaultEncryptionKeyId)_keyId
-                                                                          index:index error:&localError];
+                                                                          index:index
+                                                                          error:&localError];
     if (localError) {
         PA2WrapError(localError, error);
         return nil;

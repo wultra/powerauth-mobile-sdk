@@ -1578,6 +1578,22 @@ static PowerAuthSDK * s_inst;
 
 @implementation PowerAuthSDK (DigitalSignatures)
 
+- (nullable NSArray<PowerAuthDevicePublicKeyData*>*) exportDevicePublicKeysToFormat:(PowerAuthDevicePublicKeyFormat)format
+                                                                              error:(NSError*_Nullable*_Nullable)error
+{
+    NSArray<PowerAuthCoreDevicePublicKeyData*>* coreKeys = [_sessionInterface readTaskWithSession:^NSArray* (PowerAuthCoreSession * session, NSError ** error) {
+        return [session exportDevicePublicKeysToFormat:(PowerAuthCoreDevicePublicKeyFormat)format error:error];
+    } error:error];
+    if (!coreKeys) {
+        return nil;
+    }
+    NSMutableArray<PowerAuthDevicePublicKeyData*>* outputKeys = [NSMutableArray arrayWithCapacity:coreKeys.count];
+    [coreKeys enumerateObjectsUsingBlock:^(PowerAuthCoreDevicePublicKeyData * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        [outputKeys addObject:[[PowerAuthDevicePublicKeyData alloc] initWithCoreDevicePublicKeyData:obj]];
+    }];
+    return outputKeys;
+}
+
 - (BOOL) verifyDigitalSignature:(nonnull NSData*)signature
                      signedData:(nullable NSData*)signedData
                   keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
@@ -1671,7 +1687,7 @@ static PowerAuthSDK * s_inst;
 {
     return [self calculateDigitalSignature:authentication
                                 dataToSign:data
-                             keyIdentifier:PowerAuthSignatureKeyId_DEVICE_EC
+                             keyIdentifier:PowerAuthSignatureKeyId_Device_EC
                                   callback:callback];
 }
 
@@ -1683,7 +1699,7 @@ static PowerAuthSDK * s_inst;
                             dataToSign:[NSJSONSerialization dataWithJSONObject:claims options:0 error:nil]
                               dataType:@"JWT"
                                compact:YES
-                         keyIdentifier:PowerAuthSignatureKeyId_DEVICE_EC
+                         keyIdentifier:PowerAuthSignatureKeyId_Device_EC
                               callback:callback];
 }
 
@@ -1693,7 +1709,7 @@ static PowerAuthSDK * s_inst;
 {
     return [self verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:signature options:0]
                              signedData:data
-                          keyIdentifier:masterKey ? PowerAuthSignatureKeyId_MASTER_EC : PowerAuthSignatureKeyId_SERVER_EC
+                          keyIdentifier:masterKey ? PowerAuthSignatureKeyId_Master_EC : PowerAuthSignatureKeyId_Server_EC
                                   error:nil];
 }
 #pragma clang diagnostic pop // PA2_DEPRECATED(2.0.0)

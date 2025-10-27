@@ -739,6 +739,14 @@
 
 @interface PowerAuthSDK (DigitalSignatures)
 
+/// Export device public key into the specified format.
+/// - Parameters:
+///   - format: Required format of the output public key data.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Array of `PowerAuthDevicePublicKeyData` objects or `nil` in case of failure.
+- (nullable NSArray<PowerAuthDevicePublicKeyData*>*) exportDevicePublicKeysToFormat:(PowerAuthDevicePublicKeyFormat)format
+                                                                              error:(NSError*_Nullable*_Nullable)error;
+
 /// Verifies a digital signature for the given data using the key specified by its identifier.
 ///
 /// If the selected key identifier represents multiple key types, an error is reported.

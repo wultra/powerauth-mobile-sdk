@@ -612,6 +612,28 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 
 #pragma mark - Digital signatures
 
+- (nullable NSArray<PowerAuthCoreDevicePublicKeyData*>*) exportDevicePublicKeysToFormat:(PowerAuthCoreDevicePublicKeyFormat)format
+                                                                                  error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
+    try {
+        auto output_format = format == PowerAuthCoreDevicePublicKeyFormat_SPKI ? cc7::crypto::KEY_FORMAT_SPKI : cc7::crypto::KEY_FORMAT_RAW;
+        auto public_keys = _session->exportDevicePublicKeys(output_format);
+        NSMutableArray * array = [NSMutableArray arrayWithCapacity:public_keys.size()];
+        for (auto& key_data : public_keys) {
+            [array addObject:[[PowerAuthCoreDevicePublicKeyData alloc] initWithKeyData:key_data]];
+        }
+        return array;
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
+
 - (BOOL) verifySignature:(nonnull NSData*)signature
                     data:(nonnull NSData*)data
                    keyId:(PowerAuthCoreSignatureKeyId)keyId

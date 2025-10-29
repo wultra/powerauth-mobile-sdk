@@ -27,7 +27,6 @@ namespace powerAuth {
 class Configuration
 {
 public:
-    
     /// Contains PowerAuth algorithm used in the instance.
     PowerAuthSpec::Algorithm algorithm() const noexcept;
     
@@ -47,16 +46,25 @@ public:
     const cc7::ByteArray& applicationSecretBytes() const noexcept;
     
     /// Contains P-384 master server's public key.
-    const cc7::ByteArray& ecdsaMasterServerPublicKey() const noexcept;
+    const cc7::ByteArray& p384MasterServerPublicKey() const noexcept;
     
     /// Contains ML-DSA-65 master server's public key.
-    const cc7::ByteArray& mldsaMasterServerPublicKey() const noexcept;
+    const cc7::ByteArray& mldsa65MasterServerPublicKey() const noexcept;
+    
+    /// Contains ML-DSA-87 master server's public key.
+    const cc7::ByteArray& mldsa87MasterServerPublicKey() const noexcept;
     
     /// Contains legacy P-256 master server's public key.
-    const cc7::ByteArray& legacyMasterServerPublicKey() const noexcept;
+    const cc7::ByteArray& p256MasterServerPublicKey() const noexcept;
     
     /// Contains device specific data.
     const cc7::ByteArray& deviceSpecificData() const noexcept;
+    
+    /// Return master server public key with given key identifier. If key is not set,
+    /// then returns reference to empty array.
+    /// - Parameter key_id: Key identifier.
+    /// - Returns: Reference to key data.
+    const cc7::ByteArray& masterServerPublicKeyWithId(PowerAuthSpec::MasterKeyId key_id) const noexcept;
     
     /// Validate public keys and throw exception if some required key is invalid.
     /// - Throws: `Exception` with `EC_InvalidData` if some key is invalid.
@@ -103,14 +111,17 @@ public:
         /// - Returns: `true` if load succeeded, `false` otherwise.
         bool loadFromSdkConfig(const std::string& sdk_config) noexcept;
         
+        bool validatePublicKeysPresence() const noexcept;
+        
         const PowerAuthSpec::Algorithm _algorithm;
         std::string _instance_id;
         cc7::ByteArray _device_specific_data;
         cc7::ByteArray _application_key;
         cc7::ByteArray _application_secret;
-        cc7::ByteArray _ecdsa_master_server_public_key;
-        cc7::ByteArray _mldsa_master_server_public_key;
-        cc7::ByteArray _legacy_master_server_public_key;
+        cc7::ByteArray _p256_master_server_public_key;
+        cc7::ByteArray _p384_master_server_public_key;
+        cc7::ByteArray _mldsa65_master_server_public_key;
+        cc7::ByteArray _mldsa87_master_server_public_key;
     };
     
     /// Function validates whether the provided SDK configuration string is correct.
@@ -130,9 +141,10 @@ private:
                   const cc7::ByteArray& device_specific_data,
                   const cc7::ByteArray& application_key,
                   const cc7::ByteArray& application_secret,
-                  const cc7::ByteArray& ecdsa_master_server_public_key,
-                  const cc7::ByteArray& mldsa_master_server_public_key,
-                  const cc7::ByteArray& legacy_master_server_public_key);
+                  const cc7::ByteArray& p256_master_server_public_key,
+                  const cc7::ByteArray& p384_master_server_public_key,
+                  const cc7::ByteArray& mldsa65_master_server_public_key,
+                  const cc7::ByteArray& mldsa87_master_server_public_key);
     
     const PowerAuthSpec::Algorithm _algorithm;
     const std::string _instance_id;
@@ -141,9 +153,10 @@ private:
     const cc7::ByteArray _application_secret;
     const std::string _application_key_string;
     const std::string _application_secret_string;
-    const cc7::ByteArray _ecdsa_master_server_public_key;
-    const cc7::ByteArray _mldsa_master_server_public_key;
-    const cc7::ByteArray _legacy_master_server_public_key;
+    const cc7::ByteArray _p256_master_server_public_key;
+    const cc7::ByteArray _p384_master_server_public_key;
+    const cc7::ByteArray _mldsa65_master_server_public_key;
+    const cc7::ByteArray _mldsa87_master_server_public_key;
 };
 
 CC7_SHARED_PTR(Configuration)

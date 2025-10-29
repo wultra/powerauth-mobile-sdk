@@ -26,7 +26,7 @@ namespace powerAuth {
 class PowerAuthSpec
 {
 public:
-    
+        
     enum Algorithm
     {
         /// Legacy protocol V3.3
@@ -40,13 +40,48 @@ public:
         /// Protocol V4.0
         /// - Signatures: ECDSA with P384 + ML-DSA-65
         /// - SharedSecret: ECDHE with P384 + ML-KEM-768
-        EC_P384_ML_L3
+        EC_P384_ML_L3,
+        /// Protocol V4.0
+        /// - Signatures: ECDSA with P384 + ML-DSA-87
+        /// - SharedSecret: ECDHE with P384 + ML-KEM-1024
+        EC_P384_ML_L5,
     };
     
+    /// Master key identifier used in binary configuration.
+    enum MasterKeyId
+    {
+        /// V3: Legacy key using P-256.
+        KEY_ID_P256     = 0x01,
+        /// V4: P-384 key.
+        KEY_ID_P384     = 0x02,
+        /// V4: ML-DSA-65 key.
+        KEY_ID_MLDSA65  = 0x03,
+        /// V4: ML-DSA-87 key.
+        KEY_ID_MLDSA87  = 0x04,
+        
+        /// No key specified.
+        KEY_ID_NONE     = 0x00,
+    };
+    
+    /// Master key specification, contains combination of key identifier
+    /// and the serialization format.
+    struct MasterKeySpec
+    {
+        /// Configuration's key identifier.
+        MasterKeyId keyId;
+        /// Key serialization format used in configuration.
+        cc7::crypto::KeyFormat keyFormat;
+    };
+
     /// Type defining two algorithm identifiers. If hybrid scheme is used,
     /// then `first` and `second` contains valid identifiers. For non-hybrid schemes,
     /// only `first` is set.
     typedef std::pair<std::string, std::string> AlgorithmPair;
+    
+    /// Type defines two master key specifications. If hybrid scheme is used,
+    /// then `first` and `second` contains valid specification. For non-hybrid schemes,
+    /// `second` has key identifier set to `KEY_ID_NONE`.
+    typedef std::pair<MasterKeySpec, MasterKeySpec> MasterKeyPair;
     
     /// Returns `true` if this is legacy protocol.
     bool isLegacy() const noexcept;
@@ -69,6 +104,9 @@ public:
     /// Returns string representation of algorithm for this specification.
     const std::string& algorithmName() const noexcept;
 
+    /// Get master key specifications for proper loading the key from the configuration.
+    const MasterKeyPair& getMasterKeySpec() const noexcept;
+
     /// Returns shared secret algorithm for this specification. If this is legacy specification,
     /// then throws exception.
     SharedSecret::Algorithm sharedSecret() const;
@@ -81,7 +119,7 @@ public:
     
     /// Get algorithm(s) for constructing key-pairs.
     const AlgorithmPair& getSigningKeyPairAlgorithms() const noexcept;
-    
+        
     /// Get new KeyPairFactory instance that allows you to construct key-pair for signature
     /// calculation or verification.
     const cc7::crypto::KeyPairFactoryPtr getSigningKeyPairFactory() const;
@@ -94,6 +132,10 @@ public:
     /// - Parameter algorithm: Algorithm to look for.
     /// - Returns: Pointer to specification or `nullptr` if no such algorithm exists.
     static PowerAuthSpec const * const specForAlgorithmId(cc7::byte algorithm) noexcept;
+    /// Look for specification by string representing algorithm's name.
+    /// - Parameter algorithm: Algorithm to look for.
+    /// - Returns: Pointer to specification or `nullptr` if no such algorithm exists.
+    static PowerAuthSpec const * const specForAlgorithmName(const std::string& algorithm) noexcept;
     
 private:
     
@@ -101,6 +143,7 @@ private:
                   ProtocolVersion version,
                   const std::string& name,
                   SharedSecretSpecPtr sharedSecret,
+                  MasterKeyPair key_specs,
                   AlgorithmPair signature_algorithms,
                   AlgorithmPair jws_algorithms,
                   AlgorithmPair signing_key_pair_algorithms);
@@ -109,6 +152,7 @@ private:
     ProtocolVersion _protocol_version;
     std::string _name;
     SharedSecretSpecPtr _shared_secret;
+    MasterKeyPair _key_specs;
     AlgorithmPair _signature_algorithms;
     AlgorithmPair _jws_signature_algorithms;
     AlgorithmPair _signing_key_pair_algorithms;
@@ -116,6 +160,7 @@ private:
     static const PowerAuthSpec spec_LEGACY_P256;
     static const PowerAuthSpec spec_EC_P384;
     static const PowerAuthSpec spec_EC_P384_ML_L3;
+    static const PowerAuthSpec spec_EC_P384_ML_L5;
 };
 
 typedef PowerAuthSpec const * PowerAuthSpecPtr;

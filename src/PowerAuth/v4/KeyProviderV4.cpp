@@ -73,10 +73,11 @@ cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getMasterServerPublicKeyPtr()
 {
     checkNotDestroyed();
     if (!_master_server_public_key) {
-        _master_server_public_key = getKeyPairFactory().newPublicKeyFromData(_configuration->ecdsaMasterServerPublicKey(),
-                                                                             cc7::crypto::KEY_FORMAT_X963,
-                                                                             _configuration->mldsaMasterServerPublicKey(),
-                                                                             cc7::crypto::KEY_FORMAT_SPKI);
+        auto key_specs = _specification->getMasterKeySpec();
+        _master_server_public_key = getKeyPairFactory().newPublicKeyFromData(_configuration->masterServerPublicKeyWithId(key_specs.first.keyId),
+                                                                             key_specs.first.keyFormat,
+                                                                             _configuration->masterServerPublicKeyWithId(key_specs.second.keyId),
+                                                                             key_specs.second.keyFormat);
     }
     return _master_server_public_key;
 }

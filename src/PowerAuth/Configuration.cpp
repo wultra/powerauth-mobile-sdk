@@ -31,9 +31,10 @@ Configuration::Configuration(PowerAuthSpec::Algorithm algorithm,
                              const cc7::ByteArray& device_specific_data,
                              const cc7::ByteArray& application_key,
                              const cc7::ByteArray& application_secret,
-                             const cc7::ByteArray& ecdsa_master_server_public_key,
-                             const cc7::ByteArray& mldsa_master_server_public_key,
-                             const cc7::ByteArray& legacy_master_server_public_key) :
+                             const cc7::ByteArray& p256_master_server_public_key,
+                             const cc7::ByteArray& p384_master_server_public_key,
+                             const cc7::ByteArray& mldsa65_master_server_public_key,
+                             const cc7::ByteArray& mldsa87_master_server_public_key) :
     _algorithm(algorithm),
     _instance_id(instance_id),
     _device_specific_data(device_specific_data),
@@ -41,9 +42,10 @@ Configuration::Configuration(PowerAuthSpec::Algorithm algorithm,
     _application_secret(application_secret),
     _application_key_string(application_key.base64()),
     _application_secret_string(application_secret.base64()),
-    _ecdsa_master_server_public_key(ecdsa_master_server_public_key),
-    _mldsa_master_server_public_key(mldsa_master_server_public_key),
-    _legacy_master_server_public_key(legacy_master_server_public_key)
+    _p256_master_server_public_key(p256_master_server_public_key),
+    _p384_master_server_public_key(p384_master_server_public_key),
+    _mldsa65_master_server_public_key(mldsa65_master_server_public_key),
+    _mldsa87_master_server_public_key(mldsa87_master_server_public_key)
 {
 }
 
@@ -82,27 +84,41 @@ const cc7::ByteArray& Configuration::applicationSecretBytes() const noexcept
     return _application_secret;
 }
 
-const cc7::ByteArray& Configuration::ecdsaMasterServerPublicKey() const noexcept
+const cc7::ByteArray& Configuration::p256MasterServerPublicKey() const noexcept
 {
-    return _ecdsa_master_server_public_key;
+    return _p256_master_server_public_key;
 }
 
-const cc7::ByteArray& Configuration::mldsaMasterServerPublicKey() const noexcept
+const cc7::ByteArray& Configuration::p384MasterServerPublicKey() const noexcept
 {
-    return _mldsa_master_server_public_key;
+    return _p384_master_server_public_key;
 }
 
-const cc7::ByteArray& Configuration::legacyMasterServerPublicKey() const noexcept
+const cc7::ByteArray& Configuration::mldsa65MasterServerPublicKey() const noexcept
 {
-    return _legacy_master_server_public_key;
+    return _mldsa65_master_server_public_key;
+}
+
+const cc7::ByteArray& Configuration::mldsa87MasterServerPublicKey() const noexcept
+{
+    return _mldsa87_master_server_public_key;
 }
 
 void Configuration::validatePublicKeys() const
 {
     try {
-        algorithms().v3.p256().newPublicKey(_legacy_master_server_public_key, cc7::crypto::KEY_FORMAT_X963);
-        algorithms().v4.p384().newPublicKey(_ecdsa_master_server_public_key, cc7::crypto::KEY_FORMAT_X963);
-        algorithms().v4.mldsa65key().newPublicKey(_mldsa_master_server_public_key, cc7::crypto::KEY_FORMAT_SPKI);
+        if (!_p256_master_server_public_key.empty()) {
+            algorithms().v3.p256().newPublicKey(_p256_master_server_public_key, cc7::crypto::KEY_FORMAT_X963);
+        }
+        if (!_p384_master_server_public_key.empty()) {
+            algorithms().v4.p384().newPublicKey(_p384_master_server_public_key, cc7::crypto::KEY_FORMAT_X963);
+        }
+        if (!_mldsa65_master_server_public_key.empty()) {
+            algorithms().v4.mldsa65key().newPublicKey(_mldsa65_master_server_public_key, cc7::crypto::KEY_FORMAT_SPKI);
+        }
+        if (!_mldsa87_master_server_public_key.empty()) {
+            algorithms().v4.mldsa87key().newPublicKey(_mldsa87_master_server_public_key, cc7::crypto::KEY_FORMAT_SPKI);
+        }
     } catch (...) {
         Exception::reThrowWrapped(EC_InvalidData, "Configuration contains invalid public key");
     }
@@ -115,6 +131,19 @@ bool Configuration::validateSdkConfig(const std::string& sdk_config, PowerAuthSp
         return true;
     } catch (Exception & e) {
         return false;
+    }
+}
+
+const cc7::ByteArray& Configuration::masterServerPublicKeyWithId(PowerAuthSpec::MasterKeyId key_id) const noexcept
+{
+    static const cc7::ByteArray EMPTY;
+    switch (key_id) {
+        case PowerAuthSpec::KEY_ID_P256: return _p256_master_server_public_key;
+        case PowerAuthSpec::KEY_ID_P384: return _p384_master_server_public_key;
+        case PowerAuthSpec::KEY_ID_MLDSA65: return _mldsa65_master_server_public_key;
+        case PowerAuthSpec::KEY_ID_MLDSA87: return _mldsa87_master_server_public_key;
+        default:
+            return EMPTY;
     }
 }
 
@@ -157,16 +186,14 @@ ConfigurationPtr Configuration::Builder::build() const
                                       _device_specific_data,
                                       _application_key,
                                       _application_secret,
-                                      _ecdsa_master_server_public_key,
-                                      _mldsa_master_server_public_key,
-                                      _legacy_master_server_public_key);
+                                      _p256_master_server_public_key,
+                                      _p384_master_server_public_key,
+                                      _mldsa65_master_server_public_key,
+                                      _mldsa87_master_server_public_key);
     return std::shared_ptr<Configuration>(instance);
 }
 
 static const cc7::byte CONFIG_VER  = 0x01;
-static const cc7::byte P256_KEY_ID = 0x01;
-static const cc7::byte P384_KEY_ID = 0x02;
-static const cc7::byte MLDSA65_KEY_ID = 0x03;
 
 bool Configuration::Builder::loadFromSdkConfig(const std::string &sdk_config) noexcept
 {
@@ -192,23 +219,37 @@ bool Configuration::Builder::loadFromSdkConfig(const std::string &sdk_config) no
         if (!reader.readByte(key_id) || !reader.readRange(key_data)) {
             return false;
         }
-        if (key_id == P256_KEY_ID) {
-            _legacy_master_server_public_key = key_data;
-        } else if (key_id == P384_KEY_ID) {
-            _ecdsa_master_server_public_key = key_data;
-        } else if (key_id == MLDSA65_KEY_ID) {
-            _mldsa_master_server_public_key = key_data;
+        if (key_id == PowerAuthSpec::KEY_ID_P256) {
+            _p256_master_server_public_key = key_data;
+        } else if (key_id == PowerAuthSpec::KEY_ID_P384) {
+            _p384_master_server_public_key = key_data;
+        } else if (key_id == PowerAuthSpec::KEY_ID_MLDSA65) {
+            _mldsa65_master_server_public_key = key_data;
+        } else if (key_id == PowerAuthSpec::KEY_ID_MLDSA87) {
+            _mldsa87_master_server_public_key = key_data;
         }
     }
-    if (_algorithm == PowerAuthSpec::LEGACY_P256) {
-        // If legacy algorithm is used, then only legacy master server public key
-        // is required
-        return !_legacy_master_server_public_key.empty();
+    return validatePublicKeysPresence();
+}
+
+bool Configuration::Builder::validatePublicKeysPresence() const noexcept
+{
+    auto p256    = !_p256_master_server_public_key.empty();
+    auto p384    = !_p384_master_server_public_key.empty();
+    auto mldsa65 = !_mldsa65_master_server_public_key.empty();
+    auto mldsa87 = !_mldsa87_master_server_public_key.empty();
+    switch (_algorithm) {
+        case PowerAuthSpec::LEGACY_P256:
+            return p256;
+        case PowerAuthSpec::EC_P384:
+            return p256 && p384;
+        case PowerAuthSpec::EC_P384_ML_L3:
+            return p256 && p384 && mldsa65;
+        case PowerAuthSpec::EC_P384_ML_L5:
+            return p256 && p384 && mldsa87;
+        default:
+            return false;
     }
-    // New algorithms require all public keys
-    return !(_legacy_master_server_public_key.empty() ||
-             _ecdsa_master_server_public_key.empty() ||
-             _mldsa_master_server_public_key.empty());
 }
 
 } // namespace powerAuth

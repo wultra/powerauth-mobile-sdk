@@ -342,6 +342,11 @@ static const SharedSecret::Specification spec_EC_P384_ML_L3 {
     "EC_P384_ML_L3",
     "shared-secret/ec-p384-ml-l3"
 };
+static const SharedSecret::Specification spec_EC_P384_ML_L5 {
+    SharedSecret::EC_P384_ML_L5,
+    "EC_P384_ML_L5",
+    "shared-secret/ec-p384-ml-l5"
+};
 
 cc7::byte SharedSecret::Specification::numericIdentifier() const noexcept
 {
@@ -353,6 +358,7 @@ SharedSecretSpecPtr SharedSecret::specForAlgorithm(Algorithm algorithm)
     switch (algorithm) {
         case EC_P384:           return &spec_EC_P384;
         case EC_P384_ML_L3:     return &spec_EC_P384_ML_L3;
+        case EC_P384_ML_L5:     return &spec_EC_P384_ML_L5;
         default:                return nullptr;
     }
 }
@@ -365,6 +371,9 @@ SharedSecretSpecPtr SharedSecret::specForAlgorithm(const std::string &algorithm)
     if (algorithm == spec_EC_P384_ML_L3.algorithm) {
         return &spec_EC_P384_ML_L3;
     }
+    if (algorithm == spec_EC_P384_ML_L5.algorithm) {
+        return &spec_EC_P384_ML_L5;
+    }
     return nullptr;
 }
 
@@ -373,6 +382,7 @@ SharedSecretSpecPtr SharedSecret::specForAlgorithmId(cc7::byte algorithm_id)
     switch (algorithm_id) {
         case EC_P384:           return &spec_EC_P384;
         case EC_P384_ML_L3:     return &spec_EC_P384_ML_L3;
+        case EC_P384_ML_L5:     return &spec_EC_P384_ML_L5;
         default:                return nullptr;
     }
 }
@@ -387,6 +397,8 @@ ISharedSecretPtr SharedSecret::getInstance(Algorithm algorithm)
                 return std::make_shared<SharedSecretEc>(spec, algs.key_P384, algs.kagree_ECDH_NULLKDF);
             case EC_P384_ML_L3:
                 return std::make_shared<SharedSecretEcKem>(spec, algs.key_P384, algs.key_MLKEM_768, algs.kagree_ECDH_NULLKDF, algs.kencap_MLKEM_768);
+            case EC_P384_ML_L5:
+                return std::make_shared<SharedSecretEcKem>(spec, algs.key_P384, algs.key_MLKEM_1024, algs.kagree_ECDH_NULLKDF, algs.kencap_MLKEM_1024);
             default:
                 break;
         }

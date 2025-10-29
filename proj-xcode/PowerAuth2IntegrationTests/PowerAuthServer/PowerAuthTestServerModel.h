@@ -74,7 +74,8 @@
 @property (nonatomic, strong) NSString * activationCode;
 @property (nonatomic, strong) NSString * activationSignature;
 @property (nonatomic, strong) NSString * activationSignatureEcdsa;
-@property (nonatomic, strong) NSString * activationSignatureMldsa;
+@property (nonatomic, strong) NSString * activationSignatureMldsa65;
+@property (nonatomic, strong) NSString * activationSignatureMldsa87;
 @property (nonatomic, strong) NSString * userId;
 @property (nonatomic, strong) NSString * applicationId;
 

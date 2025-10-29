@@ -162,6 +162,10 @@ static NSString * PA_Ver_Current = @"4.0";
                                                 clientConfiguration:clientConfig
                                               keychainConfiguration:keychainConfig
                                                               error:&error];
+    if (error) {
+        XCTAssertNil(error);
+        return nil;
+    }
     [sdk removeActivationLocal];
     
     result = sdk != nil;
@@ -397,6 +401,7 @@ static NSString * PA_Ver_Current = @"4.0";
     }
     XCTAssertTrue([serverActivationStatus.activationName isEqualToString:_testServerConfig.userActivationName]);
     // Test whether the device's public key fingerprint is equal on server and client.
+    XCTAssertTrue([activationFingerprintBeforeCommit isEqualToString:activationResult.activationFingerprint]);
     XCTAssertTrue([serverActivationStatus.devicePublicKeyFingerprint isEqualToString:activationResult.activationFingerprint]);
     XCTAssertTrue([serverActivationStatus.devicePublicKeyFingerprint isEqualToString:_sdk.activationFingerprint]);
     XCTAssertTrue([serverActivationStatus.devicePublicKeyFingerprint isEqualToString:activationFingerprintBeforeCommit]);

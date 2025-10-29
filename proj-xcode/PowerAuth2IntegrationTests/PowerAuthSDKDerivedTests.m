@@ -46,6 +46,15 @@
 }
 @end
 
+@interface BaseTests_V4_EC_P384_ML_L5 : PowerAuthSDKBaseTests
+@end
+@implementation BaseTests_V4_EC_P384_ML_L5
+- (PowerAuthAlgorithm) powerAuthAlgorithm
+{
+    return PowerAuthAlgorithm_EC_P384_ML_L5;
+}
+@end
+
 // MARK: - Tests with activation data sharing
 
 @interface SharedTests_V3 : PowerAuthSDKSharedBaseTests
@@ -72,6 +81,15 @@
 - (PowerAuthAlgorithm) powerAuthAlgorithm
 {
     return PowerAuthAlgorithm_EC_P384_ML_L3;
+}
+@end
+
+@interface SharedTests_V4_EC_P384_ML_L5 : PowerAuthSDKSharedBaseTests
+@end
+@implementation SharedTests_V4_EC_P384_ML_L5
+- (PowerAuthAlgorithm) powerAuthAlgorithm
+{
+    return PowerAuthAlgorithm_EC_P384_ML_L5;
 }
 @end
 

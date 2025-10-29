@@ -54,6 +54,7 @@ typedef NS_ENUM(int, PowerAuthSignatureKeyId) {
     PowerAuthSignatureKeyId_Device_ML_DSA,
     /// Use the KMAC-based symmetric key for MAC verification.
     /// This key is available only when an activation is present.
+    /// Note that the key is not supported in JWS routines.
     PowerAuthSignatureKeyId_MacPersonalized = 0x30,
 };
 

@@ -80,8 +80,8 @@ bool SignatureService::verifySignature(const cc7::ByteRange &signed_data, const 
         auto mac_key = calculateSymmetricKey(*context);
         const auto& kmac = algorithms().v4.kmac256();
         return kmac.verifyToken(mac_key, signed_data, signature, {
-            { cc7::crypto::MAC_PARAM_CUSTOM_STRING, cc7::crypto::Parameter::ref("JOSE") },
-            { cc7::crypto::MAC_PARAM_DIGEST_LENGTH, cc7::crypto::Parameter::take((size_t)64) },
+            { cc7::crypto::MAC_PARAM_CUSTOM_STRING, cc7::crypto::Parameter::ref("PA4MAC-QR") },
+            { cc7::crypto::MAC_PARAM_DIGEST_LENGTH, cc7::crypto::Parameter::take((size_t)32) },
         });
     }
     // DSA
@@ -131,8 +131,7 @@ bool SignatureService::jwsVerifySignature(const std::string &signed_data,
     
     cc7::jwt::JwsKeyList keys;
     if (spec->keyToUse == SignatureKeySpec::MAC) {
-        auto mac_key = calculateSymmetricKey(*context);
-        keys.push_back(cc7::jwt::JwsKey::symmetricKey("KMAC256", cc7::crypto::SymmetricKey::getInstance(mac_key)));
+        throw Exception(EC_WrongParameter, "KEY_MAC_PERSONALIZED is not supported in JWS");
     } else {
         auto keys_and_verifiers = populatePublicKeys(*context, spec, true);
         for (auto& item : keys_and_verifiers) {

@@ -178,6 +178,7 @@ enum class SignatureKeyId
     
     /// Use "KMAC"-based symmetric key for signature verification. The following key will be used:
     /// - `KEY_MAC_PERSONALIZED_DATA` for protocol V4
+    /// Note that the key is not supported in JWS routines.
     KEY_MAC_PERSONALIZED = 0x30
 };
 

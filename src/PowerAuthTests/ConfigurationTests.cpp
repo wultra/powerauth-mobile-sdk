@@ -52,7 +52,7 @@ public:
     
     void testBuilderWithConfig(int step)
     {
-        auto data = buildConfig("success", 0, true);
+        auto data = buildConfig(0, true);
         auto builder = Configuration::Builder(data["config"].asString())
             .withDeviceSpecificData(MakeRange("specific-data"));
         auto config = builder.build();
@@ -152,33 +152,13 @@ public:
         auto testData = json::JsonValue::array();
         auto& array = testData.asMutableArray();
         // valid
-        array.push_back(buildConfig("validV4", 0));
-        array.push_back(buildConfig("validV4 - different order 1", 1));
-        array.push_back(buildConfig("validV4 - different order 2", 2));
-        array.push_back(buildConfig("validV4 - different order 3", 3));
-        array.push_back(buildConfig("validV4 - unknown key",       4));
-        array.push_back(buildConfig("validV3",                     5));
-        array.push_back(buildConfig("validV3 - unknown key",       6));
-        array.push_back(buildConfig("validV3 - different order",   7));
-        array.push_back(buildConfig("validV4 - L5 without L3",     8));
-        array.push_back(buildConfig("validV4 - L3 without L5",     9));
-        array.push_back(buildConfig("validV4 - P384 only",         10));
-        // broken
-        array.push_back(buildConfig("badVersion       ", 11));
-        array.push_back(buildConfig("appKeyTooLong    ", 12));
-        array.push_back(buildConfig("appKeyTooShort   ", 13));
-        array.push_back(buildConfig("appKeyIncomplete ", 14));
-        array.push_back(buildConfig("appSecTooLong    ", 15));
-        array.push_back(buildConfig("appSecTooShort   ", 16));
-        array.push_back(buildConfig("appSecIncomplete ", 17));
-        array.push_back(buildConfig("noKeys           ", 18));
-        array.push_back(buildConfig("p256Missing      ", 19));
-        array.push_back(buildConfig("p256Only         ", 20));
-        array.push_back(buildConfig("p256Incomplete   ", 21));
-        array.push_back(buildConfig("p384Missing      ", 22));
-        array.push_back(buildConfig("mldsa65Missing   ", 23));
-        array.push_back(buildConfig("mldsa87Missing   ", 24));
-        array.push_back(buildConfig("p256triple       ", 25));
+        for (int step = 0; step <= 10; step++) {
+            array.push_back(buildConfig(step));
+        }
+        // invalid
+        for (int step = 20; step <= 34; step++) {
+            array.push_back(buildConfig(step));
+        }
         auto object = json::JsonValue::object();
         object["description"] = json::JsonValue("Test vectors for application configuration string");
         object["data"] = testData;
@@ -197,32 +177,33 @@ public:
     //
     // --- all tests below should fail ---
     //
-    //  11 - Bad version
-    //  12 - App key too long
-    //  13 - App key too short
-    //  14 - App key incomplete
-    //  15 - App secret too long
-    //  16 - App secret too short
-    //  17 - App secret incomplete
-    //  18 - no keys
-    //  19 - P256 missing
-    //  20 - P256 only
-    //  21 - P256 incomplete
-    //  22 - P384 missing
-    //  23 - MLDSA65 missing
-    //  24 - MLDSA87 missing
-    //  25 - P256 triple
+    //  20 - Bad version
+    //  21 - App key too long
+    //  22 - App key too short
+    //  23 - App key incomplete
+    //  24 - App secret too long
+    //  25 - App secret too short
+    //  26 - App secret incomplete
+    //  27 - no keys
+    //  28 - P256 missing
+    //  29 - P256 only
+    //  30 - P256 incomplete
+    //  31 - P384 missing
+    //  32 - MLDSA65 missing
+    //  33 - MLDSA87 missing
+    //  34 - P256 triple
 
     
-    cc7::json::JsonValue buildConfig(const std::string& comment, int broken_step, bool out_params = false) {
+    cc7::json::JsonValue buildConfig(int broken_step, bool out_params = false) {
         
+        std::string info;
         PowerAuthSpec::Algorithm algorithm = PowerAuthSpec::EC_P384_ML_L3;
         cc7::byte version = 0x01;
         size_t app_key_len = 16;
         size_t app_sec_len = 16;
         auto app_key = cc7::crypto::GetRandomData(app_key_len);
         auto app_sec = cc7::crypto::GetRandomData(app_sec_len);
-                    
+        
         cc7::byte      p256_key_id  = 0x01;
         cc7::ByteArray p256_key     = algorithms().v3.p256().generateKeyPair()->getPublicKey().exportKey(KEY_FORMAT_X963);
         size_t         p256_key_len = p256_key.size();
@@ -241,107 +222,118 @@ public:
         
         switch (broken_step) {
             case 0:
+                info = "validV4";
                 break;
             case 1:
+                info = "validV4 - different order 1";
                 keys_order = { mldsa87_key_id, mldsa65_key_id, p256_key_id, p384_key_id };
                 break;
             case 2:
+                info = "validV4 - different order 2";
                 keys_order = { mldsa65_key_id, p384_key_id, p256_key_id, mldsa87_key_id };
                 break;
             case 3:
+                info = "validV4 - different order 3";
                 keys_order = { p256_key_id, p384_key_id, mldsa87_key_id, mldsa65_key_id };
                 break;
             case 4:
+                info = "validV4 - unknown key";
                 keys_order.push_back(other_key_id);
                 break;
             case 5:
+                info = "validV3";
                 algorithm = PowerAuthSpec::LEGACY_P256;
                 keys_order = { p256_key_id };
                 break;
             case 6:
+                info = "validV3 - unknown key";
                 algorithm = PowerAuthSpec::LEGACY_P256;
                 keys_order = { p256_key_id, other_key_id };
                 break;
             case 7:
+                info = "validV3 - different order";
                 algorithm = PowerAuthSpec::LEGACY_P256;
                 keys_order = { other_key_id, p256_key_id };
                 break;
             case 8:
+                info = "validV4 - L5 without L3";
                 algorithm = PowerAuthSpec::EC_P384_ML_L5;
                 keys_order = { p256_key_id, p384_key_id, mldsa87_key_id };
                 break;
             case 9:
+                info = "validV4 - L3 without L5";
                 algorithm = PowerAuthSpec::EC_P384_ML_L3;
                 keys_order = { p256_key_id, p384_key_id, mldsa65_key_id };
                 break;
             case 10:
+                info = "validV4 - P384 only";
                 algorithm = PowerAuthSpec::EC_P384;
                 keys_order = { p256_key_id, p384_key_id };
                 break;
                 
-            case 11:
-                // Bad version
+            case 20:
+                info = "Bad version";
                 version = 0x02;
                 break;
-            case 12:
-                // App key too long
+            case 21:
+                info = "App key too long";
                 app_key.push_back(0xee);
                 app_key_len++;
                 break;
-            case 13:
-                // App key too short
+            case 22:
+                info = "App key too short";
                 app_key.pop_back();
                 app_key_len--;
                 break;
-            case 14:
-                // App key incomplete
+            case 23:
+                info = "App key incomplete";
                 app_key.pop_back();
                 break;
-            case 15:
-                // App secret too long
+            case 24:
+                info = "App secret too long";
                 app_sec.push_back(0xee);
                 app_sec_len++;
                 break;
-            case 16:
-                // App secret too short
+            case 25:
+                info = "App secret too short";
                 app_sec.pop_back();
                 app_sec_len--;
                 break;
-            case 17:
-                // App secret incomplete
+            case 26:
+                info = "App secret incomplete";
                 app_sec.pop_back();
                 break;
-            case 18:
-                // no keys
+            case 27:
+                info = "no keys";
                 keys_order.clear();
                 break;
-            case 19:
-                //  19 - P256 missing
+            case 28:
+                info = "P256 missing";
                 keys_order = { mldsa65_key_id, mldsa87_key_id, p384_key_id };
                 break;
-            case 20:
-                //  20 - P256 only
+            case 29:
+                info = "P256 only";
                 keys_order = { p256_key_id };
                 break;
-            case 21:
-                //  21 - P256 incomplete
+            case 30:
+                info = "P256 incomplete";
                 p256_key.pop_back();
                 break;
-            case 22:
-                //  22 - P384 missing
+            case 31:
+                info = "P384 missing";
                 keys_order = { mldsa65_key_id, mldsa87_key_id, p256_key_id };
                 break;
-            case 23:
-                //  23 - MLDSA65 missing
+            case 32:
+                info = "MLDSA65 missing";
                 keys_order = { p384_key_id, mldsa87_key_id, p256_key_id };
                 break;
-            case 24:
-                //  24 - MLDSA87 missing
+            case 33:
+                info = "MLDSA87 missing";
                 algorithm = PowerAuthSpec::EC_P384_ML_L5;
                 keys_order = { p384_key_id, mldsa65_key_id, p256_key_id };
                 break;
-            case 25:
-                //  25 - P256 triple
+            case 34:
+                info = "P256 triple";
                 keys_order = { p256_key_id, p256_key_id, p256_key_id };
                 break;
             default:
@@ -376,8 +368,8 @@ public:
         } while(false);
         
         auto obj = json::JsonValue::object();
-        obj["info"]     = json::JsonValue(comment);
-        obj["success"]  = json::JsonValue(broken_step < 11);
+        obj["info"]     = json::JsonValue(info);
+        obj["success"]  = json::JsonValue(broken_step < 20);
         obj["config"]   = json::JsonValue(writer.serializedData().base64String());
         obj["algorithm"] = json::JsonValue(PowerAuthSpec::specForAlgorithm(algorithm)->algorithmName());
         if (out_params) {

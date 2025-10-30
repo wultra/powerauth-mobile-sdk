@@ -25,27 +25,16 @@ ProtocolUpgradeTask::ProtocolUpgradeTask(const ContextPtr& context, const Passwo
     Task("ProtocolUpgradeTask", context),
     _session_data(context->getSessionDataPtr()),
     _password(password),
-    _new_biometry_kek(new_biometry_kek)
+    _new_biometry_kek(new_biometry_kek),
+    _confirmAttempts(3)
 {
 }
 
 void ProtocolUpgradeTask::onTaskStart()
 {
     Task::onTaskStart();
-    
-    switch (_session_data->getCurrentProtocolVersion()) {
-        case Version_V3:
-            startProtocolUpgrade();
-            break;
-            
-        case Version_V4:
-            /// Local activation is already on V4, check the server state and send the confirm request if expected.
-            fetchActivationStatus();
-            break;
-            
-        default:
-            break;
-    }
+    // Fetch activation status to obtain the current state of the protocol upgrade.
+    fetchActivationStatus();
 }
 
 void ProtocolUpgradeTask::onRequestSuccess(const Request &request)
@@ -72,15 +61,16 @@ void ProtocolUpgradeTask::onRequestFailure(const Request &request)
 {
     switch (request.getParentTaskTag()) {
         case START_UPGRADE:
+            /// Could not start the protocol upgrade.
             resetState();
             break;
         
         case CONFIRM_UPGRADE:
-            fetchActivationStatus();
-            break;
-            
-        case FETCH_ACTIVATION_STATUS:
-            setCompleted();
+            /// Protocol upgrade confirm failed, either fetch the activation status to check if confirm is still needed.
+            /// Or complete the task, if no attempts left.
+            if (--_confirmAttempts > 0) {
+                fetchActivationStatus(RF_IGNORE_FAILURE);
+            }
             break;
     }
 }
@@ -95,6 +85,14 @@ void ProtocolUpgradeTask::startProtocolUpgrade()
 {
     LOCK_GUARD();
     auto current_context = lockContext();
+    
+    if (!_password) {
+        throw Exception(EC_WrongParameter, "Password not present for the protocol upgrade.");
+    }
+    Credentials::validatePassword(*_password);
+    if (_session_data->persistentData().hasBiometricFactorKey()) {
+        Credentials::validateFactorKek(_new_biometry_kek, Version_V4);
+    }
     
     auto new_ud = UpgradeData::create();
     _session_data->setUpgradeData(new_ud);
@@ -179,17 +177,32 @@ void ProtocolUpgradeTask::confirmProtocolUpgrade()
     setNextRequest(request, CONFIRM_UPGRADE, RF_IGNORE_FAILURE);
 }
 
-void ProtocolUpgradeTask::fetchActivationStatus()
+void ProtocolUpgradeTask::fetchActivationStatus(RequestFlags flags)
 {
     auto request = lockContext()->activationService().fetchActivationStatus();
-    setNextRequest(request, FETCH_ACTIVATION_STATUS, RF_IGNORE_FAILURE);
+    setNextRequest(request, FETCH_ACTIVATION_STATUS, flags);
 }
 
 void ProtocolUpgradeTask::processActivationStatus(const ActivationStatus &status)
 {
-    if (status.protocolVersion() == Version_V4 && status.isPendingUpgradeConfirm()) {
-        // Local protocol seems already upgraded, but server still awaits upgrade confirm.
-        confirmProtocolUpgrade();
+    switch (_session_data->getCurrentProtocolVersion()) {
+        case Version_V3:
+            // SDK runs on V3, start the protocol upgrade, if available.
+            if (status.isProtocolUpgradeAvailable()) {
+                startProtocolUpgrade();
+            }
+            break;
+
+        case Version_V4:
+            // SDK runs on V4, confirm may still be necessary.
+            if (status.protocolVersion() == Version_V4 && status.isPendingUpgradeConfirm()) {
+                // Local protocol seems already upgraded, but server still awaits upgrade confirm.
+                confirmProtocolUpgrade();
+            }
+            break;
+
+        default:
+            break;
     }
 }
 
@@ -198,6 +211,7 @@ void ProtocolUpgradeTask::resetState()
     LOCK_GUARD();
     auto context = lockContext();
     
+    _confirmAttempts = 3;
     _session_data->resetUpgradeData();
     context->destroyTargetAlgorithmContext();
 }

@@ -180,12 +180,6 @@ TaskPtr Session::startProtocolUpgrade(const PasswordPtr& password, const cc7::By
 {
     LOCK_GUARD();
     checkActivationData();
-    
-    if (sessionData().persistentData().hasBiometricFactorKey()) {
-        Credentials::validateFactorKek(new_biometry_kek, Version_V4);
-    }
-    Credentials::validatePassword(*password);
-    
     return std::make_shared<ProtocolUpgradeTask>(_context, password, new_biometry_kek);
 }
 

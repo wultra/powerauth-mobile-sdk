@@ -53,13 +53,16 @@ private:
     void confirmProtocolUpgrade();
     
     /// Fetch activation status.
-    void fetchActivationStatus();
+    void fetchActivationStatus(RequestFlags flags = RF_NONE);
     /// Process activation status. The main purpose is to check the protocol version registered
-    /// on the server's side and to check if the confirm protocol upgrade request is still awaited.
+    /// on the server's side or to check if the confirm protocol upgrade request is still awaited.
     void processActivationStatus(const ActivationStatus& status);
     
-    /// Clear the upgrade context.
+    /// Reset the upgrade procedure.
     void resetState();
+    
+    /// Number of attempts to confirm the protocol upgrade.
+    int _confirmAttempts;
     
     const SessionDataPtr _session_data;
     

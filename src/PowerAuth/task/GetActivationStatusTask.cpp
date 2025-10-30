@@ -15,7 +15,6 @@
  */
 
 #include "GetActivationStatusTask.h"
-#include "../request/RequestBuilder.h"
 
 namespace powerAuth {
 

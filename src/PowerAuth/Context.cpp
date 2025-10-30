@@ -176,7 +176,7 @@ const IClientEncryptorFactoryPtr& Context::getEncryptorFactoryPtr() const noexce
 {
     /// During protocol upgrade we use the E2EE approach of the target algorithm.
     if (_session_data->hasUpgradeData() && _target_context) {
-        CHECK_SERVICE_PTR(_target_context->_encryptor_factory)
+        CHECK_AS_SERVICE_PTR(_target_context->_encryptor_factory)
         return _target_context->_encryptor_factory;
     }
     
@@ -288,7 +288,7 @@ std::shared_ptr<Context> Context::getTargetAlgorithmContextPtr() const noexcept
 void Context::createServices(bool initial_setup, ConstPowerAuthSpecPtr specification)
 {
     auto self = shared_from_this();
-    auto version = protocolVersion();
+    auto version = specification->protocolVersion();
     if (initial_setup) {
         // Initial objects construction
         _time_service = std::make_shared<TimeService>(self);

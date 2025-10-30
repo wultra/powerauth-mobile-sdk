@@ -40,7 +40,6 @@ void GetActivationStatusTask::onRequestSuccess(const Request &request)
         case FETCH_STATUS:
             processActivationStatus(*request.getTypedResponseObject<ActivationStatus>());
             break;
-        case CONFIRM_UPGRADE:
         case SYNC_COUNTER:
             setCompleted();
             break;
@@ -56,19 +55,11 @@ void GetActivationStatusTask::onRequestFailure(const Request &request)
         // The previously captured status is preserved and reported as the final result of the task.
         setCompleted();
     }
-    
-    if (request.getParentTaskTag() == CONFIRM_UPGRADE) {
-        // Failure in the upgrade confirm does not affect status fetching.
-        setCompleted();
-    }
 }
 
 void GetActivationStatusTask::processActivationStatus(const ActivationStatus &status)
 {
-    if (status.protocolVersion() == Version_V4 && status.isPendingUpgradeConfirm()) {
-        // Local protocol seems already upgraded, but server still awaits upgrade confirm.
-        setNextRequest(prepareRequestConfirmProtocolUpgrade(), CONFIRM_UPGRADE, RF_IGNORE_FAILURE);
-    } else if (status.isCounterSynchronizationRecommended()) {
+    if (status.isCounterSynchronizationRecommended()) {
         // Seems that local counter is too ahead against the server. It's recommended to calculate
         // dummy possession signature to allow server's counter to catch-up with the client.
         auto request = _authentication_service->verifyCredentialsWithReason(Credentials::possession(), VerifyCredentialsReason::COUNTER_SYNCHRONIZATION);
@@ -76,14 +67,6 @@ void GetActivationStatusTask::processActivationStatus(const ActivationStatus &st
     } else {
         setCompleted();
     }
-}
-
-RequestPtr GetActivationStatusTask::prepareRequestConfirmProtocolUpgrade()
-{
-    auto context = lockContext();
-    return RequestBuilder(*context, v4::Endpoint_ProtocolUpgradeConfirm)
-        .withAuthentication(Credentials::possession())
-        .build();
 }
 
 } // namespace powerAuth

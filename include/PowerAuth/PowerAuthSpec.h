@@ -81,7 +81,7 @@ public:
     /// Type defines two master key specifications. If hybrid scheme is used,
     /// then `first` and `second` contains valid specification. For non-hybrid schemes,
     /// `second` has key identifier set to `KEY_ID_NONE`.
-    typedef std::pair<MasterKeySpec, MasterKeySpec> MasterKeyPair;
+    typedef std::pair<MasterKeySpec, MasterKeySpec> MasterKeySpecPair;
     
     /// Returns `true` if this is legacy protocol.
     bool isLegacy() const noexcept;
@@ -105,7 +105,7 @@ public:
     const std::string& algorithmName() const noexcept;
 
     /// Get master key specifications for proper loading the key from the configuration.
-    const MasterKeyPair& getMasterKeySpec() const noexcept;
+    const MasterKeySpecPair& getMasterKeySpecs() const noexcept;
 
     /// Returns shared secret algorithm for this specification. If this is legacy specification,
     /// then throws exception.
@@ -143,7 +143,7 @@ private:
                   ProtocolVersion version,
                   const std::string& name,
                   SharedSecretSpecPtr sharedSecret,
-                  MasterKeyPair key_specs,
+                  MasterKeySpecPair key_specs,
                   AlgorithmPair signature_algorithms,
                   AlgorithmPair jws_algorithms,
                   AlgorithmPair signing_key_pair_algorithms);
@@ -152,7 +152,7 @@ private:
     ProtocolVersion _protocol_version;
     std::string _name;
     SharedSecretSpecPtr _shared_secret;
-    MasterKeyPair _key_specs;
+    MasterKeySpecPair _key_specs;
     AlgorithmPair _signature_algorithms;
     AlgorithmPair _jws_signature_algorithms;
     AlgorithmPair _signing_key_pair_algorithms;

@@ -101,7 +101,7 @@ PowerAuthSpec::PowerAuthSpec(Algorithm algorithm,
                              ProtocolVersion version,
                              const std::string& name,
                              SharedSecretSpecPtr sharedSecret,
-                             MasterKeyPair key_specs,
+                             MasterKeySpecPair key_specs,
                              AlgorithmPair signature_algorithms,
                              AlgorithmPair jws_algorithms,
                              AlgorithmPair signing_key_pair_algorithms) :
@@ -163,7 +163,7 @@ SharedSecret::Algorithm PowerAuthSpec::sharedSecret() const
     return _shared_secret->identifier;
 }
 
-const PowerAuthSpec::MasterKeyPair& PowerAuthSpec::getMasterKeySpec() const noexcept
+const PowerAuthSpec::MasterKeySpecPair& PowerAuthSpec::getMasterKeySpecs() const noexcept
 {
     return _key_specs;
 }

@@ -73,7 +73,7 @@ cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getMasterServerPublicKeyPtr()
 {
     checkNotDestroyed();
     if (!_master_server_public_key) {
-        auto key_specs = _specification->getMasterKeySpec();
+        auto key_specs = _specification->getMasterKeySpecs();
         _master_server_public_key = getKeyPairFactory().newPublicKeyFromData(_configuration->masterServerPublicKeyWithId(key_specs.first.keyId),
                                                                              key_specs.first.keyFormat,
                                                                              _configuration->masterServerPublicKeyWithId(key_specs.second.keyId),

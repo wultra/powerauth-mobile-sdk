@@ -162,8 +162,9 @@ static NSString * PA_Ver_Current = @"4.0";
                                                 clientConfiguration:clientConfig
                                               keychainConfiguration:keychainConfig
                                                               error:&error];
+    XCTAssertNotNil(sdk);
+    XCTAssertNil(error);
     if (error) {
-        XCTAssertNil(error);
         return nil;
     }
     [sdk removeActivationLocal];

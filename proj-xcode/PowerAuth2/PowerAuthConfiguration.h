@@ -29,10 +29,23 @@ typedef NS_ENUM(NSInteger, PowerAuthAlgorithm) {
     /// and instance of `PowerAuthSDK` will use legacy protocol only for communicating with the server.
     PowerAuthAlgorithm_LEGACY_P256 = 0,
     /// Algorithm identifier for V4 protocol, using only cryptography based on elliptic curves.
+    /// The following algorithms are used:
+    /// - Key agreement: ECDHE with P-384
+    /// - Signatures: ECDSA with P-384
     PowerAuthAlgorithm_EC_P384 = 1,
     /// Algorithm identifier for V4 protocol, using quantum resistant algorithms combined with
     /// elliptic curves.
+    /// The following algorithms are used:
+    /// - Key agreement: ECDHE with P-384 combined with ML-KEM-768
+    /// - Signatures: ECDSA with P-384 combined with ML-DSA-65
     PowerAuthAlgorithm_EC_P384_ML_L3 = 2,
+    /// Algorithm identifier for V4 protocol, using quantum resistant algorithms combined with
+    /// elliptic curves.
+    /// The following algorithms are used:
+    /// - Key agreement: ECDHE with P-384 combined with ML-KEM-1024
+    /// - Signatures: ECDSA with P-384 combined with ML-DSA-87
+    PowerAuthAlgorithm_EC_P384_ML_L5 = 3,
+    
     /// Default algorithm. Value is identical to `PowerAuthAlgorithm_EC_P384_ML_L3`.
     PowerAuthAlgorithm_DEFAULT = PowerAuthAlgorithm_EC_P384_ML_L3
 };

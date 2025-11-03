@@ -28,6 +28,9 @@ typedef NS_ENUM(int, PowerAuthCoreAlgorithm) {
     /// Algorithm identifier for V4 protocol, using quantum resistant algorithms combined with
     /// elliptic curves.
     PowerAuthCoreAlgorithm_EC_P384_ML_L3 = 2,
+    /// Algorithm identifier for V4 protocol, using quantum resistant algorithms combined with
+    /// elliptic curves.
+    PowerAuthCoreAlgorithm_EC_P384_ML_L5 = 3,
 };
 
 /// The `PowerAuthCoreConfig` object contains configuration for `PowerAuthCoreSession` object.

@@ -62,7 +62,7 @@ cc7::crypto::ConstPublicKeyPtr KeyProviderV3::getMasterServerPublicKeyPtr()
 {
     checkNotDestroyed();
     if (!_master_server_public_key) {
-        _master_server_public_key = signingKeyFactory().newPublicKey(_configuration->legacyMasterServerPublicKey(), cc7::crypto::KEY_FORMAT_X963);
+        _master_server_public_key = signingKeyFactory().newPublicKey(_configuration->p256MasterServerPublicKey(), cc7::crypto::KEY_FORMAT_X963);
     }
     return _master_server_public_key;
 }

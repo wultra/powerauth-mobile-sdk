@@ -1210,6 +1210,9 @@
         case PowerAuthAlgorithm_EC_P384_ML_L3:
             keyMapping = @{ @(PowerAuthSignatureKeyType_EC) : @"P-384", @(PowerAuthSignatureKeyType_ML_DSA) : @"ML-DSA-65" };
             break;
+        case PowerAuthAlgorithm_EC_P384_ML_L5:
+            keyMapping = @{ @(PowerAuthSignatureKeyType_EC) : @"P-384", @(PowerAuthSignatureKeyType_ML_DSA) : @"ML-DSA-87" };
+            break;
         default:
             XCTFail(@"Unsupported algorithm");
             return;
@@ -1271,15 +1274,42 @@
             break;
 
         case PowerAuthAlgorithm_EC_P384_ML_L3:
-            XCTAssertNotNil(activation.activationData.activationSignatureMldsa);
+            XCTAssertNotNil(activation.activationData.activationSignatureMldsa65);
             error = nil;
-            success = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:activation.activationData.activationSignatureMldsa options:0]
+            success = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:activation.activationData.activationSignatureMldsa65 options:0]
                                         signedData:activationCodeData
                                      keyIdentifier:PowerAuthSignatureKeyId_Master_ML_DSA
                                              error:&error];
             XCTAssertTrue(success);
             XCTAssertNil(error);
-            // fall-through
+            XCTAssertNotNil(activation.activationData.activationSignatureEcdsa);
+            error = nil;
+            success = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:activation.activationData.activationSignatureEcdsa options:0]
+                                        signedData:activationCodeData
+                                     keyIdentifier:PowerAuthSignatureKeyId_Master_EC
+                                             error:&error];
+            XCTAssertTrue(success);
+            XCTAssertNil(error);
+            break;
+            
+        case PowerAuthAlgorithm_EC_P384_ML_L5:
+            XCTAssertNotNil(activation.activationData.activationSignatureMldsa87);
+            error = nil;
+            success = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:activation.activationData.activationSignatureMldsa87 options:0]
+                                        signedData:activationCodeData
+                                     keyIdentifier:PowerAuthSignatureKeyId_Master_ML_DSA
+                                             error:&error];
+            XCTAssertTrue(success);
+            XCTAssertNil(error);
+            XCTAssertNotNil(activation.activationData.activationSignatureEcdsa);
+            error = nil;
+            success = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:activation.activationData.activationSignatureEcdsa options:0]
+                                        signedData:activationCodeData
+                                     keyIdentifier:PowerAuthSignatureKeyId_Master_EC
+                                             error:&error];
+            XCTAssertTrue(success);
+            XCTAssertNil(error);
+            break;
             
         case PowerAuthAlgorithm_EC_P384:
             XCTAssertNotNil(activation.activationData.activationSignatureEcdsa);
@@ -1436,6 +1466,7 @@
     }
     PowerAuthAuthentication * auth = activation.credentials;
     switch (_sdk.currentAlgorithm) {
+        case PowerAuthAlgorithm_EC_P384_ML_L5:
         case PowerAuthAlgorithm_EC_P384_ML_L3:
             [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device signatureType:@"ECDSA" authentication:auth shouldPass:NO];
             [self verifyDataSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_EC signatureType:@"ECDSA" authentication:auth shouldPass:YES];
@@ -1476,6 +1507,7 @@
             XCTAssertTrue(result);
             XCTAssertNil(error);
             break;
+        case PowerAuthCoreAlgorithm_EC_P384_ML_L5:
         case PowerAuthCoreAlgorithm_EC_P384_ML_L3:
             XCTAssertNotNil(ecdsa);
             XCTAssertNotNil(mldsa);
@@ -1548,6 +1580,7 @@
             [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:nil      compactForm:NO  strict:YES shouldPass:YES];
             [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:nil      compactForm:NO  strict:NO  shouldPass:YES];
             break;
+        case PowerAuthCoreAlgorithm_EC_P384_ML_L5:
         case PowerAuthCoreAlgorithm_EC_P384_ML_L3:
             // JWT - ecdsa
             [self verifyJwsServerSignedData:PowerAuthSignatureKeyId_Server        signatureType:@"ECDSA" compactForm:YES strict:YES shouldPass:NO]; // strict mode require all keys to satisfy
@@ -1646,6 +1679,7 @@
     }
     PowerAuthAuthentication * auth = activation.credentials;
     switch (_sdk.currentAlgorithm) {
+        case PowerAuthAlgorithm_EC_P384_ML_L5:
         case PowerAuthAlgorithm_EC_P384_ML_L3:
             [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_ML_DSA compactForm:NO strict:YES authentication:auth shouldPass:YES];
             [self verifyJwtSignedWithSignatureKeyId:PowerAuthSignatureKeyId_Device_ML_DSA compactForm:YES strict:YES authentication:auth shouldPass:YES];

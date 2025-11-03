@@ -36,14 +36,18 @@ Algorithms::V4::Pointers Algorithms::V4::build()
     // KeyFactory
     auto key_P384            = KeyPairFactory::getInstance("P-384");
     auto key_MLKEM_768       = KeyPairFactory::getInstance("ML-KEM-768");
+    auto key_MLKEM_1024      = KeyPairFactory::getInstance("ML-KEM-1024");
     auto key_MLDSA_65        = KeyPairFactory::getInstance("ML-DSA-65");
+    auto key_MLDSA_87        = KeyPairFactory::getInstance("ML-DSA-87");
     // Signature
     auto sign_ECDSA_SHA2_256 = Signature::getInstance("ECDSA-SHA-256");
     auto sign_ECDSA_SHA2_384 = Signature::getInstance("ECDSA-SHA-384");
     auto sign_ECDSA_SHA3_256 = Signature::getInstance("ECDSA-SHA3-256");
     auto sign_MLDSA_65       = Signature::getInstance("ML-DSA-65");
+    auto sign_MLDSA_87       = Signature::getInstance("ML-DSA-87");
     // KeyEncapsulation
     auto kencap_MLKEM_768    = KeyEncapsulation::getInstance("ML-KEM-768");
+    auto kencap_MLKEM_1024   = KeyEncapsulation::getInstance("ML-KEM-1024");
     // KeyAgreement
     auto kagree_ECDH_NULLKDF = KeyAgreement::getInstance("ECDH");
     // MessageDigest
@@ -71,14 +75,18 @@ Algorithms::V4::Pointers Algorithms::V4::build()
         // KeyFactory
         key_P384,
         key_MLKEM_768,
+        key_MLKEM_1024,
         key_MLDSA_65,
+        key_MLDSA_87,
         // Signature
         sign_ECDSA_SHA2_256,
         sign_ECDSA_SHA2_384,
         sign_ECDSA_SHA3_256,
         sign_MLDSA_65,
+        sign_MLDSA_87,
         // KeyEncapsulation
         kencap_MLKEM_768,
+        kencap_MLKEM_1024,
         // KeyAgreement
         kagree_ECDH_NULLKDF,
         // MessageDigest

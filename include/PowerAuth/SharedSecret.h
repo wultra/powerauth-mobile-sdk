@@ -174,7 +174,12 @@ public:
         /// This hybrid algorithm is PQC ready.
         ///
         /// This algorithm is supported since PowerAuth protocol V4.0.
-        EC_P384_ML_L3
+        EC_P384_ML_L3,
+        /// The shared secret is deduced with using ECDHE with P-384 curve and ML-KEM-1024.
+        /// This hybrid algorithm is PQC ready.
+        ///
+        /// This algorithm is supported since PowerAuth protocol V4.0.
+        EC_P384_ML_L5
     };
     
     /// The `Specification` structure contains specification with various algorithm details

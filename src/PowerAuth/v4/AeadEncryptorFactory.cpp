@@ -90,7 +90,7 @@ bool AeadEncryptorFactory::hasTemporaryKey(EncryptorScope scope)
     checkNotDestroyed();
     auto& ki = keyInfo(scope);
     if (ki.isValid()) {
-        if (!ki.isExpired(_time_service->currentTimeMillis())) {
+        if (!ki.isExpired(_time_service->currentTime())) {
             return true;
         }
         ki.clear();

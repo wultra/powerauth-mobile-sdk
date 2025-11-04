@@ -86,6 +86,8 @@ private:
     
     std::unique_ptr<SecretKeysV4> createSecretKeys();
     std::unique_ptr<PersistentData> createPDFromSecretKeys(SecretKeysV4& secret_keys);
+    std::unique_ptr<PersistentData> fromRegistrationData(SecretKeysV4& secret_keys);
+    std::unique_ptr<PersistentData> fromUpgradeData(SecretKeysV4& secret_keys);
     void updateSessionData(SecretKeysV4& secret_keys);
     
     cc7::crypto::PublicKeyPtr decryptPublicKey(const cc7::ByteRange& key_data, const std::string& aead_kc);

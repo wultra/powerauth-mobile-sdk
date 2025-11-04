@@ -49,6 +49,23 @@ public:
     ///   - configuration: Instance configuration.
     Context(PowerAuthSpecPtr specification, ConfigurationPtr configuration);
     
+    /// Construct context object as a copy of an existing (primary) context object.
+    /// During the copy-construction no services of the context are created.
+    /// - Parameters:
+    ///   - primary_context: Primary context.
+    Context(const Context& primary_context);
+    
+    /// Create instance of context for the target algorithm based on this existing primary context.
+    /// It is used when multiple algorithmic contexts are needed (e.g. protocol upgrade) that share
+    /// common settings, while allowing specialization for the target algorithm.
+    /// Returns the new context for the target algorithm.
+    std::shared_ptr<Context> createTargetAlgorithmContext();
+    
+    void destroyTargetAlgorithmContext();
+    
+    /// Returns the target algorithm context if exists.
+    std::shared_ptr<Context> getTargetAlgorithmContextPtr() const noexcept;
+    
     /// Return configuration used to construct this context.
     const Configuration& configuration() const noexcept;
     /// Return current protocol version.
@@ -112,11 +129,12 @@ public:
     void clearSensitiveData();
     void restoreSensitiveData();
     
+
 private:
-    
+
     void createServices(bool initial_setup, ConstPowerAuthSpecPtr specification);
     void destroyServices();
-    
+
     mutable SharedMutexPtr _shared_mutex;
     const ConfigurationPtr _configuration;
     PowerAuthSpecPtr _specification;
@@ -134,6 +152,8 @@ private:
     SignatureServicePtr _signature_service;
     
     std::vector<IServicePtr> _services;
+    
+    std::shared_ptr<Context> _target_context;
 };
 
 CC7_SHARED_PTR(Context)

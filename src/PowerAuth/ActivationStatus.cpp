@@ -75,6 +75,11 @@ bool ActivationStatus::isProtocolUpgradeAvailable() const noexcept
     return _is_protocol_upgrade_available;
 }
 
+bool ActivationStatus::isPendingUpgradeConfirm() const noexcept
+{
+    return _is_pending_upgrade_confirm;
+}
+
 bool ActivationStatus::isCounterSynchronizationRecommended() const noexcept
 {
     if (_activation_state == ActivationState::Active) {
@@ -146,7 +151,9 @@ ActivationStatus::BinaryData ActivationStatus::parseStatusBlobV4(const cc7::Byte
 bool ActivationStatus::validateStatusBlobV4(const BinaryData &data) noexcept
 {
     return data.state >= ServerState_Created && data.state <= ServerState_Removed &&
-           data.currentVersion == Version_V4 &&
+           (data.currentVersion == Version_V4 ||
+            (data.currentVersion == Version_V3 && data.statusFlags & STATUS_FLAG_UPGRADE_CONFIRM)
+           ) &&
            data.upgradeVersion >= Version_V4 &&
            data.failCount <= data.maxFailCount &&
            data.lookAheadCount > 0 && data.lookAheadCount <= v4::LOOK_AHEAD_MAX;

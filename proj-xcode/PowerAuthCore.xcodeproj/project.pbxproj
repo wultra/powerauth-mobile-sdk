@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		8F00060C2E65794700C57A29 /* TokenServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F0006052E65794000C57A29 /* TokenServiceV3.cpp */; };
 		8F00060D2E65794700C57A29 /* TokenServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F0006052E65794000C57A29 /* TokenServiceV3.cpp */; };
+		8F00064F2E70727600C57A29 /* UpgradeData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F00064E2E70726D00C57A29 /* UpgradeData.cpp */; };
+		8F0006502E70727600C57A29 /* UpgradeData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F00064E2E70726D00C57A29 /* UpgradeData.cpp */; };
+		8F0006662E82AF6700C57A29 /* ProtocolUpgradeTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F0006652E82AF6700C57A29 /* ProtocolUpgradeTask.cpp */; };
+		8F0006672E82AF6700C57A29 /* ProtocolUpgradeTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F0006652E82AF6700C57A29 /* ProtocolUpgradeTask.cpp */; };
 		8F97E43F2E4B3C3F00063075 /* ActivationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */; };
 		8F97E4402E4B3C3F00063075 /* ActivationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */; };
 		8F97E47C2E58AC9E00063075 /* AuthenticationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E47B2E58AC9E00063075 /* AuthenticationServiceV3.cpp */; };
@@ -474,6 +478,10 @@
 /* Begin PBXFileReference section */
 		8F0006022E6578C900C57A29 /* TokenServiceV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TokenServiceV3.h; sourceTree = "<group>"; };
 		8F0006052E65794000C57A29 /* TokenServiceV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TokenServiceV3.cpp; sourceTree = "<group>"; };
+		8F00063F2E70683700C57A29 /* UpgradeData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpgradeData.h; sourceTree = "<group>"; };
+		8F00064E2E70726D00C57A29 /* UpgradeData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UpgradeData.cpp; sourceTree = "<group>"; };
+		8F0006642E82AF6700C57A29 /* ProtocolUpgradeTask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProtocolUpgradeTask.h; sourceTree = "<group>"; };
+		8F0006652E82AF6700C57A29 /* ProtocolUpgradeTask.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ProtocolUpgradeTask.cpp; sourceTree = "<group>"; };
 		8F97E43D2E4B3C3F00063075 /* ActivationServiceV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActivationServiceV3.h; sourceTree = "<group>"; };
 		8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ActivationServiceV3.cpp; sourceTree = "<group>"; };
 		8F97E47A2E58AC9E00063075 /* AuthenticationServiceV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AuthenticationServiceV3.h; sourceTree = "<group>"; };
@@ -794,6 +802,8 @@
 		BF062BDB2E6B08DE001436AD /* task */ = {
 			isa = PBXGroup;
 			children = (
+				8F0006642E82AF6700C57A29 /* ProtocolUpgradeTask.h */,
+				8F0006652E82AF6700C57A29 /* ProtocolUpgradeTask.cpp */,
 				BF062BDC2E6B08FA001436AD /* GetActivationStatusTask.h */,
 				BF062BDD2E6B08FA001436AD /* GetActivationStatusTask.cpp */,
 			);
@@ -988,6 +998,8 @@
 				BF4D86232DEF10D800D32F55 /* PersistentData.cpp */,
 				BF4D86302DF0629300D32F55 /* RegistrationData.h */,
 				BF4D86312DF0629300D32F55 /* RegistrationData.cpp */,
+				8F00063F2E70683700C57A29 /* UpgradeData.h */,
+				8F00064E2E70726D00C57A29 /* UpgradeData.cpp */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -1645,6 +1657,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8F0006502E70727600C57A29 /* UpgradeData.cpp in Sources */,
 				BF4D86582DF4F37D00D32F55 /* RequestBuilder.cpp in Sources */,
 				BF4D86862DFAD29D00D32F55 /* HttpHeaderHelper.cpp in Sources */,
 				BF4D862A2DF0481B00D32F55 /* Constants.cpp in Sources */,
@@ -1655,6 +1668,7 @@
 				BFCA38372E1D5E4B002F595F /* Service.cpp in Sources */,
 				BF4D85512DE483DB00D32F55 /* AuthenticationService.cpp in Sources */,
 				BF99D9032073E14100735ED2 /* Password.cpp in Sources */,
+				8F0006662E82AF6700C57A29 /* ProtocolUpgradeTask.cpp in Sources */,
 				BF4D855C2DE48AA900D32F55 /* TokenService.cpp in Sources */,
 				BF0825D22E01629500B89A68 /* AeadEncryptorFactory.cpp in Sources */,
 				8F00060D2E65794700C57A29 /* TokenServiceV3.cpp in Sources */,
@@ -1766,6 +1780,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8F00064F2E70727600C57A29 /* UpgradeData.cpp in Sources */,
 				BF4D86592DF4F37D00D32F55 /* RequestBuilder.cpp in Sources */,
 				BF4D86872DFAD29D00D32F55 /* HttpHeaderHelper.cpp in Sources */,
 				BF4D862B2DF0481B00D32F55 /* Constants.cpp in Sources */,
@@ -1776,6 +1791,7 @@
 				BFCA38362E1D5E4B002F595F /* Service.cpp in Sources */,
 				BF4D85522DE483DB00D32F55 /* AuthenticationService.cpp in Sources */,
 				BF6ADD6E24C84C0C001B3E5E /* Password.cpp in Sources */,
+				8F0006672E82AF6700C57A29 /* ProtocolUpgradeTask.cpp in Sources */,
 				BF4D855A2DE48AA900D32F55 /* TokenService.cpp in Sources */,
 				BF0825D32E01629500B89A68 /* AeadEncryptorFactory.cpp in Sources */,
 				8F00060C2E65794700C57A29 /* TokenServiceV3.cpp in Sources */,

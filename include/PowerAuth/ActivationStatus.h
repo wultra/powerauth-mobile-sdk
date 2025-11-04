@@ -105,6 +105,9 @@ public:
     /// - Parameter max_supported_version: Specify maximum supported version in this SDK.
     bool isProtocolUpgradePossible(ProtocolVersion max_supported_version) const noexcept;
     
+    /// Contains information whether the server expects protocol upgrade confirmation.
+    bool isPendingUpgradeConfirm() const noexcept;
+    
     /// Contains information whether it's recommended to synchronize the local counter
     /// with the server.
     bool isCounterSynchronizationRecommended() const noexcept;

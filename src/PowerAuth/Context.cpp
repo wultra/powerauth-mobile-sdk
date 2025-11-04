@@ -174,6 +174,12 @@ const TimeServicePtr& Context::getTimeServicePtr() const noexcept
 
 const IClientEncryptorFactoryPtr& Context::getEncryptorFactoryPtr() const noexcept
 {
+    /// During protocol upgrade we use the E2EE approach of the target algorithm.
+    if (_session_data->hasUpgradeData() && _target_context) {
+        CHECK_AS_SERVICE_PTR(_target_context->_encryptor_factory)
+        return _target_context->_encryptor_factory;
+    }
+    
     CHECK_AS_SERVICE_PTR(_encryptor_factory)
     return _encryptor_factory;
 }
@@ -247,10 +253,42 @@ ContextPtr Context::getInstance(ConfigurationPtr configuration)
     return context;
 }
 
+Context::Context(const Context& primary_context) :
+    _shared_mutex(primary_context.getSharedMutexPtr()),
+    _configuration(primary_context.getConfigurationPtr()),
+    _time_service(primary_context.getTimeServicePtr()),
+    _session_data(primary_context.getSessionDataPtr())
+{
+}
+
+std::shared_ptr<Context> Context::createTargetAlgorithmContext()
+{
+    auto spec = PowerAuthSpec::specForAlgorithm(_configuration->algorithm());
+    _target_context = std::make_shared<Context>(*this);
+    _target_context->createServices(false, spec);
+    return _target_context;
+}
+
+void Context::destroyTargetAlgorithmContext()
+{
+    if (!_target_context) {
+        return;
+    }
+    
+    _target_context->destroyServices();
+    _target_context = nullptr;
+}
+
+std::shared_ptr<Context> Context::getTargetAlgorithmContextPtr() const noexcept
+{
+    CHECK_OBJ_PTR(_target_context);
+    return _target_context;
+}
+
 void Context::createServices(bool initial_setup, ConstPowerAuthSpecPtr specification)
 {
     auto self = shared_from_this();
-    auto version = protocolVersion();
+    auto version = specification->protocolVersion();
     if (initial_setup) {
         // Initial objects construction
         _time_service = std::make_shared<TimeService>(self);
@@ -262,6 +300,7 @@ void Context::createServices(bool initial_setup, ConstPowerAuthSpecPtr specifica
         // V4
         _shared_secret = SharedSecret::getInstance(_specification->sharedSecret());
         _key_provider = std::make_shared<v4::KeyProviderV4>(self);
+        _key_provider->asService()->restoreSensitiveData();
         _vault_service = std::make_shared<VaultService>(self, version);
         _encryptor_factory = std::make_shared<v4::AeadEncryptorFactory>(self);
         _activation_service = std::make_shared<v4::ActivationServiceV4>(self);

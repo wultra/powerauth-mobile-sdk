@@ -68,6 +68,20 @@ bool PersistentData::hasBiometricFactorKey() const noexcept
     return !factor_key.empty();
 }
 
+bool PersistentData::hasDataForVersion(ProtocolVersion version) const noexcept
+{
+    switch (version) {
+        case Version_V4:
+            return _v4 != nullptr;
+            
+        case Version_V3:
+            return _v3 != nullptr;
+            
+        default:
+            return false;
+    }
+}
+
 PersistentData::V3& PersistentData::v3()
 {
     if (_v3 == nullptr) {

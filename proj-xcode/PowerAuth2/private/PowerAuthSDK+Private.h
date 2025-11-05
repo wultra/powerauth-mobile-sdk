@@ -18,6 +18,7 @@
 #import <PowerAuth2/PowerAuthKeychain.h>
 
 #import "PA2GetActivationStatusTask.h"
+#import "PA2ProtocolUpgradeTask.h"
 #import "PA2KeystoreService.h"
 #import "PA2CoreCredentialsResolver.h"
 #import "PowerAuthActivationStatus+Private.h"
@@ -29,7 +30,7 @@
 @import PowerAuthCore;
 
 // Exposing several private interfaces
-@interface PowerAuthSDK (Private) <PA2GetActivationStatusTaskDelegate, PA2CoreCredentialsResolver>
+@interface PowerAuthSDK (Private) <PA2GetActivationStatusTaskDelegate, PA2ProtocolUpgradeTaskDelegate, PA2CoreCredentialsResolver>
 /**
  Contains instance identifier
  */

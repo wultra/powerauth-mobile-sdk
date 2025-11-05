@@ -150,6 +150,31 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
                                            credentials:(PowerAuthAuthentication*)credentials;
 
 /**
+ Creates a new activation using the protocol version defined by the base test,
+ and configures it to support an upgrade to the specified target algorithm.
+ 
+ @param targetAlgorithm Algorithm to which the activation is expected to be upgraded.
+ @param biometryKek Biometry KEK to set for the new activation. If `nil`, biometry factor is not set.
+ @return A `PowerAuthSDK` instance with a activation preconfigured for a protocol upgrade scenario.
+ */
+- (PowerAuthSDK*) prepareActivationForUpgradeTest:(PowerAuthAlgorithm)targetAlgorithm
+                                  withBiometryKek:(PowerAuthCoreData*)biometryKek;
+
+/**
+ Start the protocol upgrade procedure.
+
+ @param newBiometryKek An optional biometry KEK to be used during for the upgrade.
+ @param shouldFinish Boolean flag indicating whether the call should finish successfully or not.
+ */
+- (void) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)newBiometryKek
+                                      shouldFinish:(BOOL)shouldFinish;
+
+/**
+ Confirm the protocol upgrade.
+ */
+- (void) confirmProtocolUpgrade;
+
+/**
  Returns an activation status object. May return nil if status is not available yet, which is also valid operation.
  */
 - (PowerAuthActivationStatus*) fetchActivationStatus;
@@ -188,6 +213,14 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 - (BOOL) validateAuthentication:(PowerAuthAuthentication*)auth data:(NSData*)data method:(NSString*)method uriId:(NSString*)uriId
                     online:(BOOL)online
                    cripple:(NSInteger)cripple;
+
+/**
+ Verify connectivity with the Server API and update endpoint settings as needed.
+ It is especially useful when a protocol upgrade has occurred during testing and a different API version should be used.
+ 
+ @return `YES` if the connection was successfully refreshed, or `NO` if the refresh failed.
+ */
+- (BOOL) refreshTestServerApiConnection;
 
 // Utils
 

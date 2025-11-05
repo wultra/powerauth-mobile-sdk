@@ -152,8 +152,12 @@ void ProtocolUpgradeTask::processResponseStartProtocolUpgrade(const cc7::json::J
     ud.sharedSecretContext = nullptr;
     ud.sharedSecretAlgorithm = nullptr;
     
+    const auto credentials = _session_data->persistentData().hasBiometricFactorKey()
+        ? *InitialCredentials::credentials(_password->passwordData(), _new_biometry_kek)
+        : *InitialCredentials::credentials(_password->passwordData());
+    
     auto& keyProvider = upgrade_context->keyProvider();
-    auto secrets = keyProvider.unlockInitialSecretKeys(*InitialCredentials::credentials(_password->passwordData(), _new_biometry_kek), ud.calculatedSharedSecret);
+    auto secrets = keyProvider.unlockInitialSecretKeys(credentials, ud.calculatedSharedSecret);
     keyProvider.lockSecretKeys(secrets);
     
     if (!_session_data->hasPersistentData(Version_V4)) {

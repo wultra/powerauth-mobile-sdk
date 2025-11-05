@@ -244,7 +244,7 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
         NSError * error = op.operationError;
         // Make sure the core request is set as failed before we call the completion.
         if (error) {
-            [self setCoreRequestFinished:request isFailed:NO urlTask:nil];
+            [self setCoreRequestFinished:request isFailed:YES urlTask:nil];
         }
         completion(request, object, error);
     };
@@ -470,7 +470,7 @@ static NSMutableDictionary * _GetFailureData(void)
     dispatch_once(&onceToken, ^{
         s_Failures = [NSMutableDictionary dictionary];
         s_Failures[KEY_RESP] = [NSMutableDictionary dictionary];
-        s_Failures[KEY_SEND] = [NSMutableSet set];
+        s_Failures[KEY_SEND] = [NSMutableDictionary dictionary];
         s_Failures[KEY_RECV] = [NSMutableSet set];
     });
     return s_Failures;
@@ -494,12 +494,13 @@ static NSString * _ProcessRelativePath(NSString * relativePath)
 }
 
 + (void) setNextRequestNetworkFailureOnSend:(nullable NSString*)relativePath
+                                repeatCount:(NSInteger)count
 {
     NSMutableDictionary * failures = _GetFailureData();
     @synchronized (failures) {
         relativePath = _ProcessRelativePath(relativePath);
-        NSMutableSet * onSend = failures[KEY_SEND];
-        [onSend addObject:relativePath];
+        NSMutableDictionary * onSend = failures[KEY_SEND];
+        onSend[relativePath] = @(count);
         PowerAuthLog(@"!!! Next HTTP request will fail on send: %@", relativePath);
     }
 }
@@ -520,7 +521,7 @@ static NSString * _ProcessRelativePath(NSString * relativePath)
     NSMutableDictionary * failures = _GetFailureData();
     @synchronized (failures) {
         NSMutableDictionary * response = failures[KEY_RESP];
-        NSMutableSet *        onSend   = failures[KEY_SEND];
+        NSMutableDictionary * onSend   = failures[KEY_SEND];
         NSMutableSet *        onRecv   = failures[KEY_RECV];
         if (onSend.count || onRecv.count || response.count) {
             // Do not spoil log in case there's no hook
@@ -536,16 +537,22 @@ static NSError * _GetSimulatedRequestFailure(NSString * basePath, NSString * rel
 {
     NSMutableDictionary * failures = _GetFailureData();
     @synchronized (failures) {
-        NSMutableSet * onSend = failures[KEY_SEND];
+        NSMutableDictionary * onSend = failures[KEY_SEND];
         if ([onSend count]) {
             NSString * pathToMatch = relativePath;
-            BOOL matched = [onSend containsObject:pathToMatch];
-            if (!matched) {
+            NSNumber * count = onSend[pathToMatch];
+            if (!count) {
                 pathToMatch = @"*";
-                matched = [onSend containsObject:pathToMatch];
+                count = onSend[pathToMatch];
             }
-            if (matched) {
-                [onSend removeObject:pathToMatch];
+            if (count) {
+                NSInteger remaining = count.unsignedIntegerValue;
+                if (remaining > 1) {
+                    onSend[pathToMatch] = @(remaining - 1);
+                } else {
+                    [onSend removeObjectForKey:pathToMatch];
+                }
+                
                 NSString * urlString = [basePath stringByAppendingString:relativePath];
                 return [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorCannotFindHost userInfo:@{
                     NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Simulated error on data send: %@", urlString]

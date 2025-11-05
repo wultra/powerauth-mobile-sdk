@@ -346,6 +346,24 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
 }
 
+- (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePassword*)password
+                                              withNewBiometryKek:(nullable PowerAuthCoreData*)newBiometryKek
+                                               error: (NSError*_Nullable*_Nullable)error;
+{
+    if (![self requireWriteAccess:error]) {
+        return nil;
+    }
+    try {
+        auto task = _session->startProtocolUpgrade(password ? password.passObjRef : nil, newBiometryKek ? newBiometryKek.byteArrayRef : cc7::ByteRange());
+        return [[PowerAuthCoreTask alloc] initWithTask:task];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
+
 - (nullable PowerAuthCoreRequest*) removeActivationWithCredentials:(nonnull PowerAuthCoreCredentials*)credentials
                                                              error:(NSError * _Nullable __autoreleasing * _Nullable)error
 {

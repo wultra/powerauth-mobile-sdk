@@ -74,6 +74,14 @@ typedef NS_ENUM(NSInteger, PowerAuthActivationState) {
  must support this custom object.
  */
 @property (nonatomic, strong, nullable, readonly) NSDictionary<NSString*, NSObject*>* customObject;
+/**
+ Contains YES if upgrade to a newer protocol version is available.
+ */
+@property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
+/**
+ Contains YES if the server expects protocol upgrade confirmation.
+ */
+@property (nonatomic, assign, readonly) BOOL isPendingUpgradeConfirm;
 
 @end
 

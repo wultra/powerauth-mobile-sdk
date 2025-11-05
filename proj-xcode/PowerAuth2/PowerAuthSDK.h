@@ -348,6 +348,44 @@
  */
 @property (nonatomic, strong, nullable, readonly) PowerAuthActivationStatus * lastFetchedActivationStatus;
 
+/**
+ Start the protocol upgrade process.
+ 
+ @param password Required core password instance used to authenticate the protocol upgrade start request.
+ @param newBiometryKek Optional parameter. If a biometry factor is configured in the current protocol version
+ and no new biometry KEK is provided, one will be automatically generated for the upgraded protocol.
+ @param callback A callback called when the upgrade task finishes.
+ @return Protocol upgrade task instance.
+ */
+- (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(nonnull PowerAuthCorePassword*)password
+                                                          withNewBiometryKek:(nullable PowerAuthCoreData*)newBiometryKek
+                                                                    callback:(nonnull void(^)(id _Nullable result, NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(startProtocolUpgradeWithCorePassword(password:withNewBiometryKek:callback:));
+
+/**
+ Start the protocol upgrade process without specifying a new biometry KEK.
+ If a biometry factor is configured in the current protocol version,
+ a new biometry KEK  will be automatically generated for the upgraded protocol.
+ 
+ @param password Required core password instance used to authenticate the protocol upgrade start request.
+ @param callback A callback called when the upgrade task finishes.
+ @return Protocol upgrade task instance.
+ */
+- (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(nonnull PowerAuthCorePassword*)password
+                                                                    callback:(nonnull void(^)(id _Nullable result, NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(startProtocolUpgradeWithCorePassword(password:callback:));
+
+/**
+ Confirm the protocol upgrade.
+ Internally a new protocol upgrade task is initiated without passing a password, and so it is only allowed
+ to confirm the protocol upgrade. This is used when the upgrade task was already started, the protocol
+ was updated locally, but the final confirmation step has not yet been completed.
+ 
+ @param callback A callback called when the upgrade task finishes.
+ @return Protocol upgrade task instance.
+ */
+- (nullable id<PowerAuthOperationTask>) confirmProtocolUpgrade:(nonnull void(^)(id _Nullable result, NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(confirmProtocolUpgrade(callback:));
 
 /** Remove current activation by calling a PowerAuth Standard RESTful API endpoint '/pa/activation/remove'.
  

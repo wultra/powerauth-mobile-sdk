@@ -110,7 +110,18 @@
 - (void) simulateNetworkErrorOnSend:(NSString*)relativePath
 {
 #if defined(DEBUG)
-    [PA2CoreHttpClient setNextRequestNetworkFailureOnSend:relativePath];
+    [self simulateNetworkErrorOnSend:relativePath repeatCount:1];
+#else
+    XCTFail(@"Not available in release build");
+#endif
+}
+
+- (void) simulateNetworkErrorOnSend:(NSString*)relativePath
+                        repeatCount:(NSInteger)count
+{
+    XCTAssertGreaterThan(count, 0);
+#if defined(DEBUG)
+    [PA2CoreHttpClient setNextRequestNetworkFailureOnSend:[self patchRelativePathForSimulatedFailure:relativePath] repeatCount:count];
 #else
     XCTFail(@"Not available in release build");
 #endif
@@ -119,7 +130,7 @@
 - (void) simulateNetworkErrorOnReceive:(NSString*)relativePath
 {
 #if defined(DEBUG)
-    [PA2CoreHttpClient setNextRequestNetworkFailureOnReceive:relativePath];
+    [PA2CoreHttpClient setNextRequestNetworkFailureOnReceive:[self patchRelativePathForSimulatedFailure:relativePath]];
 #else
     XCTFail(@"Not available in release build");
 #endif

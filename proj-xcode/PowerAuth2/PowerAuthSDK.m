@@ -76,7 +76,8 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     
     /// Current pending status task.
     PA2GetActivationStatusTask * _getActivationStatusTask;
-    // Current pending system status task
+    /// Current pending protocol upgrade task
+    PA2ProtocolUpgradeTask * _protocolUpgradeTask;
 }
 
 #pragma mark - Private methods
@@ -611,6 +612,7 @@ static PowerAuthSDK * s_inst;
     [_lock lock];
     
     [_getActivationStatusTask cancel];
+    [_protocolUpgradeTask cancel];
     [_timeSynchronizationService cancelAllPendingRequests];
     [_tokenStore cancelAllTasks];
     
@@ -900,6 +902,85 @@ static PowerAuthSDK * s_inst;
     }
     
     return [[PowerAuthActivationStatus alloc] initWithCoreStatus:coreStatus];
+}
+
+#pragma mark - Protocol upgrade
+
+- (id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(PowerAuthCorePassword*)password
+                                                 withNewBiometryKek:(PowerAuthCoreData*)newBiometryKek
+                                                           callback:(void(^)(id status, NSError * error))callback
+{
+    [_lock lock];
+    
+    id<PowerAuthOperationTask> task = [_protocolUpgradeTask createChildTask:callback];
+    if (!task) {
+        PowerAuthCoreData * biometryKek = nil;
+        if (self.hasBiometryFactor) {
+            if (newBiometryKek) {
+                biometryKek = newBiometryKek;
+            } else {
+                biometryKek = [_sessionInterface readTaskWithSession:^PowerAuthCoreData* _Nullable(PowerAuthCoreSession* session, NSError** error) {
+                    return [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V4 error:error];
+                } error:nil];
+            }
+        }
+        
+        _protocolUpgradeTask = [[PA2ProtocolUpgradeTask alloc] initWithHttpClient:_client sessionProvider:_sessionInterface delegate:self sharedLock:_lock password:password newBiometryKek:biometryKek];
+        
+        task = [_protocolUpgradeTask createChildTask:callback];
+    }
+    
+    [_lock unlock];
+    return task;
+}
+
+- (id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(PowerAuthCorePassword*)password
+                                                                callback:(void(^)(id status, NSError * error))callback
+{
+    return [self startProtocolUpgradeWithCorePassword:password
+                                   withNewBiometryKek:nil
+                                             callback:callback];
+}
+
+- (id<PowerAuthOperationTask>) confirmProtocolUpgrade:(void(^)(id status, NSError * error))callback
+{
+    [_lock lock];
+    
+    id<PowerAuthOperationTask> task = [_protocolUpgradeTask createChildTask:callback];
+    if (!task) {
+        _protocolUpgradeTask = [[PA2ProtocolUpgradeTask alloc] initWithHttpClient:_client sessionProvider:_sessionInterface delegate:self sharedLock:_lock];
+        
+        task = [_protocolUpgradeTask createChildTask:callback];
+    }
+    
+    [_lock unlock];
+    return task;
+}
+
+- (void) startProtocolUpgradeTask:(PA2ProtocolUpgradeTask*)task
+             didFinishedWithError:(NSError*)error
+            newBiometryKekToStore:(PowerAuthCoreData*)newBiometryKek
+{
+    if (!error && self.hasBiometryFactor && newBiometryKek) {
+        [_biometryOnlyKeychain updateValue:newBiometryKek.sensitiveData forKey:_biometryKeyIdentifier];
+    }
+    
+    if (_protocolUpgradeTask == task) {
+        _protocolUpgradeTask = nil;
+        
+        // This is the reference to task which is going to finish its execution soon.
+        // The ivar no longer holds the reference to the task, but we should keep that reference
+        // for a little bit longer, to guarantee, that we don't destroy that object during its
+        // finalization stage.
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            // The following call does nothing, because the old task is no longer stored
+            // in the `_protocolUpgradeTask` ivar. It just guarantees that the object will be alive
+            // during waiting to execute the operation block.
+            [self startProtocolUpgradeTask:task
+                      didFinishedWithError:nil
+                     newBiometryKekToStore:nil];
+        }];
+    }
 }
 
 #pragma mark Removing an activation

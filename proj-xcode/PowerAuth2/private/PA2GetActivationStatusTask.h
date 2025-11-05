@@ -37,9 +37,7 @@
 @end
 
 /**
- The `PA2GetActivationStatusTask` class implements getting activation status from the server
- and the protocol upgrade. The upgrade is started automatically, depending on the
- local and server's state of the activation.
+ The `PA2GetActivationStatusTask` class implements getting activation status from the server.
  */
 @interface PA2GetActivationStatusTask : PA2GroupedTask<PowerAuthActivationStatus*>
 

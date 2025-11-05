@@ -485,6 +485,87 @@ static NSString * PA_Ver_Current = @"4.0";
     _currentActivation = nil;
 }
 
+- (PowerAuthSDK*) prepareActivationForUpgradeTest:(PowerAuthAlgorithm)targetAlgorithm
+                                 withBiometryKek:(PowerAuthCoreData*)biometryKek
+{
+    /// Create activation
+    PowerAuthSdkActivation * activation = [self createActivation:NO];
+    XCTAssertTrue(activation.success);
+    
+    PowerAuthActivationStatus * status = [self fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertTrue(status.isProtocolUpgradeAvailable);
+    
+    if (biometryKek) {
+        XCTAssertFalse(_sdk.hasBiometryFactor);
+        [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk addBiometryFactorWithCorePassword:_currentActivation.credentials.password customBiometryKek:biometryKek callback:^(NSError * _Nullable error) {
+                XCTAssertNil(error);
+                [waiting reportCompletion:nil];
+            }];
+        }];
+    }
+    XCTAssertEqual(biometryKek != nil, _sdk.hasBiometryFactor);
+    
+    /// Extract Session Data
+    NSData * sessionData = [self sessionCoreSerializedState];
+    
+    /// Reconfigure SDK to support `targetAlgorithm` suite
+    PowerAuthConfiguration* newConfig = [_sdk.configuration copy];
+    newConfig.algorithm = targetAlgorithm;
+    [self reCreateSdkInstanceWithConfiguration:newConfig biometricConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
+    
+    /// Load the old V3 session
+    BOOL deserializationSucceeded = [self sessionCoreDeserializeState:sessionData];
+    XCTAssertTrue(deserializationSucceeded);
+    XCTAssertTrue([_sdk hasValidActivation]);
+    XCTAssertEqualObjects(activation.activationId, _sdk.activationIdentifier);
+    XCTAssertTrue([self checkForCorePassword:activation.credentials.password]);
+
+    status = [self fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertFalse(status.isPendingUpgradeConfirm);
+    if (_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        // Protocol upgrade should be available for legacy protocol.
+        XCTAssertTrue(status.isProtocolUpgradeAvailable);
+    }
+    
+    return _sdk;
+}
+
+- (void) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)newBiometryKek
+                                      shouldFinish:(BOOL)shouldFinish
+{
+    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk startProtocolUpgradeWithCorePassword:_currentActivation.credentials.password withNewBiometryKek:newBiometryKek callback:^(id status, NSError *error) {
+            [waiting reportCompletion:@(error == nil)];
+            shouldFinish ? XCTAssertNil(error) : XCTAssertNotNil(error);
+        }];
+        XCTAssertNotNil(task);
+        
+    }] boolValue];
+    XCTAssertEqual(shouldFinish, result);
+    
+    PowerAuthActivationStatus * status = [self fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+}
+
+- (void) confirmProtocolUpgrade
+{
+    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk confirmProtocolUpgrade:^(id status, NSError *error) {
+            [waiting reportCompletion:@(error == nil)];
+            XCTAssertNil(error);
+        }];
+        XCTAssertNotNil(task);
+        
+    }] boolValue];
+    XCTAssertTrue(result);
+    
+    PowerAuthActivationStatus * status = [self fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+}
+
 - (PowerAuthSDK*) reCreateSdkInstanceWithConfiguration:(PowerAuthConfiguration*)configuration
                                 biometricConfiguration:(PowerAuthBiometricConfiguration*)biometricConfiguration
                                  keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
@@ -784,6 +865,11 @@ static NSString * PA_Ver_Current = @"4.0";
         }
     }
     return result;
+}
+
+- (BOOL) refreshTestServerApiConnection
+{
+    return [_testServerApi validateConnection];
 }
 
 #pragma mark - Tokens

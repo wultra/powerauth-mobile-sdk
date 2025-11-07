@@ -90,7 +90,7 @@
 #pragma mark - Activation status fetcher
 
 /**
- Performs getting status from the server and starts protocol upgrade, if possible.
+ Performs getting activation status from the server.
  */
 - (void) fetchActivationStatusAndTestUpgrade
 {

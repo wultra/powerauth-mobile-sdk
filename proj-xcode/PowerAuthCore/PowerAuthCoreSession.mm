@@ -355,7 +355,15 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
     try {
         auto task = _session->startProtocolUpgrade(password ? password.passObjRef : nil, newBiometryKek ? newBiometryKek.byteArrayRef : cc7::ByteRange());
-        return [[PowerAuthCoreTask alloc] initWithTask:task];
+        return [[PowerAuthCoreTask alloc] initWithTask:task withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto result = std::dynamic_pointer_cast<powerAuth::ProtocolUpgradeResult>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No ProtocolUpgradeResult object created");
+            }
+            
+            return [[PowerAuthCoreProtocolUpgradeResult alloc] initWithProtocolUpgradeResult:*result];
+        }];
+        
     } catch (...) {
         if (error) {
             *error = BuildNSErrorFromException();

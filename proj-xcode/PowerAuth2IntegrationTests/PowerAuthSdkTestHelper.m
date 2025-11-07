@@ -533,21 +533,23 @@ static NSString * PA_Ver_Current = @"4.0";
     return _sdk;
 }
 
-- (void) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)newBiometryKek
+- (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)newBiometryKek
                                       shouldFinish:(BOOL)shouldFinish
 {
-    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk startProtocolUpgradeWithCorePassword:_currentActivation.credentials.password withNewBiometryKek:newBiometryKek callback:^(id status, NSError *error) {
-            [waiting reportCompletion:@(error == nil)];
+    PowerAuthProtocolUpgradeResult * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        // Start protocol upgrade task.
+        id<PowerAuthOperationTask> task = [_sdk startProtocolUpgradeWithCorePassword:_currentActivation.credentials.password withNewBiometryKek:newBiometryKek callback:^(PowerAuthProtocolUpgradeResult * result, NSError *error) {
+            [waiting reportCompletion:result];
             shouldFinish ? XCTAssertNil(error) : XCTAssertNotNil(error);
         }];
         XCTAssertNotNil(task);
-        
-    }] boolValue];
-    XCTAssertEqual(shouldFinish, result);
+    }];
     
-    PowerAuthActivationStatus * status = [self fetchActivationStatus];
-    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    if (shouldFinish) {
+        XCTAssertNotNil(result);
+    }
+    
+    return result;
 }
 
 - (void) confirmProtocolUpgrade

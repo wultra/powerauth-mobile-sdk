@@ -17,6 +17,7 @@
 #import <PowerAuth2/PowerAuthActivation.h>
 #import <PowerAuth2/PowerAuthActivationResult.h>
 #import <PowerAuth2/PowerAuthActivationStatus.h>
+#import <PowerAuth2/PowerAuthProtocolUpgradeResult.h>
 #import <PowerAuth2/PowerAuthAuthentication.h>
 #import <PowerAuth2/PowerAuthConfiguration.h>
 #import <PowerAuth2/PowerAuthClientConfiguration.h>
@@ -359,7 +360,7 @@
  */
 - (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(nonnull PowerAuthCorePassword*)password
                                                           withNewBiometryKek:(nullable PowerAuthCoreData*)newBiometryKek
-                                                                    callback:(nonnull void(^)(id _Nullable result, NSError * _Nullable error))callback
+                                                                    callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
                             NS_SWIFT_NAME(startProtocolUpgradeWithCorePassword(password:withNewBiometryKek:callback:));
 
 /**
@@ -372,7 +373,7 @@
  @return Protocol upgrade task instance.
  */
 - (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(nonnull PowerAuthCorePassword*)password
-                                                                    callback:(nonnull void(^)(id _Nullable result, NSError * _Nullable error))callback
+                                                                    callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
                             NS_SWIFT_NAME(startProtocolUpgradeWithCorePassword(password:callback:));
 
 /**

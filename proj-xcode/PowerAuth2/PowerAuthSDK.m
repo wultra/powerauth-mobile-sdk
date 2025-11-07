@@ -908,7 +908,7 @@ static PowerAuthSDK * s_inst;
 
 - (id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(PowerAuthCorePassword*)password
                                                  withNewBiometryKek:(PowerAuthCoreData*)newBiometryKek
-                                                           callback:(void(^)(id status, NSError * error))callback
+                                                           callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
 {
     [_lock lock];
     
@@ -935,7 +935,7 @@ static PowerAuthSDK * s_inst;
 }
 
 - (id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(PowerAuthCorePassword*)password
-                                                                callback:(void(^)(id status, NSError * error))callback
+                                                                callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
 {
     return [self startProtocolUpgradeWithCorePassword:password
                                    withNewBiometryKek:nil

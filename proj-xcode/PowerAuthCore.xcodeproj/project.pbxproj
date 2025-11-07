@@ -17,6 +17,13 @@
 		8F97E4402E4B3C3F00063075 /* ActivationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */; };
 		8F97E47C2E58AC9E00063075 /* AuthenticationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E47B2E58AC9E00063075 /* AuthenticationServiceV3.cpp */; };
 		8F97E47D2E58AC9E00063075 /* AuthenticationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E47B2E58AC9E00063075 /* AuthenticationServiceV3.cpp */; };
+		8FE2E31A2EBCEA770044055E /* ProtocolUpgradeResult.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FE2E3192EBCEA770044055E /* ProtocolUpgradeResult.cpp */; };
+		8FE2E31B2EBCEA770044055E /* ProtocolUpgradeResult.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FE2E3192EBCEA770044055E /* ProtocolUpgradeResult.cpp */; };
+		8FE2E31C2EBCEA770044055E /* ProtocolUpgradeResult.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FE2E3192EBCEA770044055E /* ProtocolUpgradeResult.cpp */; };
+		8FE2E3632EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 8FE2E3612EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		8FE2E3642EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8FE2E3622EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.mm */; };
+		8FE2E3652EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 8FE2E3612EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		8FE2E3662EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8FE2E3622EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.mm */; };
 		BF0135DF2E8C0E9700F7A9D6 /* SignatureService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF0135DE2E8C0E9700F7A9D6 /* SignatureService.cpp */; };
 		BF0135E02E8C0E9700F7A9D6 /* SignatureService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF0135DE2E8C0E9700F7A9D6 /* SignatureService.cpp */; };
 		BF062B9B2E61B4DC001436AD /* TokenServiceV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF062B9A2E61B4DC001436AD /* TokenServiceV4.cpp */; };
@@ -486,6 +493,10 @@
 		8F97E43E2E4B3C3F00063075 /* ActivationServiceV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ActivationServiceV3.cpp; sourceTree = "<group>"; };
 		8F97E47A2E58AC9E00063075 /* AuthenticationServiceV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AuthenticationServiceV3.h; sourceTree = "<group>"; };
 		8F97E47B2E58AC9E00063075 /* AuthenticationServiceV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AuthenticationServiceV3.cpp; sourceTree = "<group>"; };
+		8FE2E3122EBCE9ED0044055E /* ProtocolUpgradeResult.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProtocolUpgradeResult.h; sourceTree = "<group>"; };
+		8FE2E3192EBCEA770044055E /* ProtocolUpgradeResult.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ProtocolUpgradeResult.cpp; sourceTree = "<group>"; };
+		8FE2E3612EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreProtocolUpgradeResult.h; sourceTree = "<group>"; };
+		8FE2E3622EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreProtocolUpgradeResult.mm; sourceTree = "<group>"; };
 		BF0135D72E8C0E5C00F7A9D6 /* SignatureService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SignatureService.h; sourceTree = "<group>"; };
 		BF0135DE2E8C0E9700F7A9D6 /* SignatureService.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SignatureService.cpp; sourceTree = "<group>"; };
 		BF062B992E61B4DC001436AD /* TokenServiceV4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TokenServiceV4.h; sourceTree = "<group>"; };
@@ -881,6 +892,7 @@
 		BF3ACC972073DF5F00B8107E /* PowerAuth */ = {
 			isa = PBXGroup;
 			children = (
+				8FE2E3122EBCE9ED0044055E /* ProtocolUpgradeResult.h */,
 				BF3ACC9D2073DF5F00B8107E /* Session.h */,
 				BF4D86342DF1A8BC00D32F55 /* PowerAuthSpec.h */,
 				BF4D85242DDDE6B100D32F55 /* Exception.h */,
@@ -1115,6 +1127,7 @@
 				BF4D864B2DF31B4500D32F55 /* Context.h */,
 				BF4D854C2DE476CD00D32F55 /* Context.cpp */,
 				BFAAC9972E3E6B0600062165 /* ActivationResult.cpp */,
+				8FE2E3192EBCEA770044055E /* ProtocolUpgradeResult.cpp */,
 				BF4D863D2DF2D91900D32F55 /* ActivationStatus.cpp */,
 				BF4D86842DFAD29D00D32F55 /* HttpHeaderHelper.h */,
 				BF4D86852DFAD29D00D32F55 /* HttpHeaderHelper.cpp */,
@@ -1179,6 +1192,8 @@
 				BFAAC98C2E3E609700062165 /* PowerAuthCoreActivationResult.mm */,
 				BFC892382E5486BD009169A9 /* PowerAuthCoreActivationStatus.h */,
 				BFC892392E5486BD009169A9 /* PowerAuthCoreActivationStatus.mm */,
+				8FE2E3612EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h */,
+				8FE2E3622EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.mm */,
 				BFF21BAF2E170C48000BF450 /* PowerAuthCoreEncryptorFactory.h */,
 				BFF21BB02E170C48000BF450 /* PowerAuthCoreEncryptorFactory.mm */,
 				BFA9807F253DA559004D2CF9 /* PowerAuthCoreOtpUtil.h */,
@@ -1293,6 +1308,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8FE2E3632EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h in Headers */,
 				BF062BE42E6B11F2001436AD /* PowerAuthCoreTask.h in Headers */,
 				BFA980B2253DA55A004D2CF9 /* PowerAuthCorePrivateImpl.h in Headers */,
 				BF3DADEA2D65EDD90096ED4F /* PowerAuthCoreData.h in Headers */,
@@ -1322,6 +1338,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8FE2E3652EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h in Headers */,
 				BF062BE32E6B11F2001436AD /* PowerAuthCoreTask.h in Headers */,
 				BFA980B3253DA55A004D2CF9 /* PowerAuthCorePrivateImpl.h in Headers */,
 				BF3DADE72D65EDD90096ED4F /* PowerAuthCoreData.h in Headers */,
@@ -1699,6 +1716,7 @@
 				8F97E43F2E4B3C3F00063075 /* ActivationServiceV3.cpp in Sources */,
 				BF4D86362DF1A96900D32F55 /* PowerAuthSpec.cpp in Sources */,
 				BF0825E82E0308AA00B89A68 /* SecretKeysPool.cpp in Sources */,
+				8FE2E31A2EBCEA770044055E /* ProtocolUpgradeResult.cpp in Sources */,
 				BF4D86432DF2DF3400D32F55 /* Configuration.cpp in Sources */,
 				BF4D868E2DFBEFD600D32F55 /* FunctionsV3.cpp in Sources */,
 				BFAAC99F2E3F6E4800062165 /* CommonFunctions.cpp in Sources */,
@@ -1737,6 +1755,7 @@
 				BFA980B0253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.mm in Sources */,
 				BFA9809C253DA55A004D2CF9 /* PowerAuthCoreTypes.mm in Sources */,
 				BFA98090253DA559004D2CF9 /* PowerAuthCorePassword.mm in Sources */,
+				8FE2E3642EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.mm in Sources */,
 				BFA980AA253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm in Sources */,
 				BFF21BAB2E169554000BF450 /* PowerAuthCoreSession.mm in Sources */,
 				BFF21BB22E170C48000BF450 /* PowerAuthCoreEncryptorFactory.mm in Sources */,
@@ -1753,6 +1772,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8FE2E3662EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.mm in Sources */,
 				BF720DD02642A5EA00D5932A /* PowerAuthCoreDeprecated.m in Sources */,
 				BFF21BBD2E17CCAC000BF450 /* PowerAuthCoreCredentials.mm in Sources */,
 				BF062BA52E61D78A001436AD /* PowerAuthCoreTokenData.mm in Sources */,
@@ -1773,6 +1793,7 @@
 				BF062BE22E6B11F2001436AD /* PowerAuthCoreTask.mm in Sources */,
 				BFF21BA82E158E61000BF450 /* PowerAuthCoreRequest.mm in Sources */,
 				BFF21B9E2E157263000BF450 /* PowerAuthCoreError.mm in Sources */,
+				8FE2E31C2EBCEA770044055E /* ProtocolUpgradeResult.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1822,6 +1843,7 @@
 				8F97E4402E4B3C3F00063075 /* ActivationServiceV3.cpp in Sources */,
 				BF4D86372DF1A96900D32F55 /* PowerAuthSpec.cpp in Sources */,
 				BF0825E92E0308AA00B89A68 /* SecretKeysPool.cpp in Sources */,
+				8FE2E31B2EBCEA770044055E /* ProtocolUpgradeResult.cpp in Sources */,
 				BF4D86422DF2DF3400D32F55 /* Configuration.cpp in Sources */,
 				BF4D868D2DFBEFD600D32F55 /* FunctionsV3.cpp in Sources */,
 				BFAAC9A02E3F6E4800062165 /* CommonFunctions.cpp in Sources */,

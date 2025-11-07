@@ -41,7 +41,6 @@ void ProtocolUpgradeTask::onRequestSuccess(const Request &request)
 {
     switch (request.getParentTaskTag()) {
         case START_UPGRADE:
-            processResponseStartProtocolUpgrade(request.getResponseJson());
             confirmProtocolUpgrade();
             break;
             
@@ -99,8 +98,12 @@ void ProtocolUpgradeTask::startProtocolUpgrade()
     
     auto upgrade_context = current_context->createTargetAlgorithmContext();
     
+    auto self = std::dynamic_pointer_cast<ProtocolUpgradeTask>(Task::shared_from_this());
     auto request = RequestBuilder(*upgrade_context, v4::Endpoint_ProtocolUpgradeStart)
         .withJson(prepareRequestStartProtocolUpgrade(upgrade_context))
+        .withResponseCallback([self](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            return self->processResponseStartProtocolUpgrade(body);
+        })
         .withAuthenticator(current_context->getAuthenticationServicePtr())
         .withAuthentication(Credentials::knowledge(_password->passwordData()))
         .build();
@@ -127,7 +130,7 @@ cc7::json::JsonValue ProtocolUpgradeTask::prepareRequestStartProtocolUpgrade(con
     });
 }
 
-void ProtocolUpgradeTask::processResponseStartProtocolUpgrade(const cc7::json::JsonValue& response)
+ProtocolUpgradeResultPtr ProtocolUpgradeTask::processResponseStartProtocolUpgrade(const cc7::json::JsonValue& response)
 {
     LOCK_GUARD();
     auto current_context = lockContext();
@@ -167,6 +170,8 @@ void ProtocolUpgradeTask::processResponseStartProtocolUpgrade(const cc7::json::J
     // Switch primary context to V4
     current_context->destroyTargetAlgorithmContext();
     current_context->updateAfterProtocolVersionChange();
+    
+    return ProtocolUpgradeResult::UpgradeConfirmPending();
 }
 
 void ProtocolUpgradeTask::confirmProtocolUpgrade()
@@ -175,10 +180,13 @@ void ProtocolUpgradeTask::confirmProtocolUpgrade()
     auto context = lockContext();
     
     auto request = RequestBuilder(*context, v4::Endpoint_ProtocolUpgradeConfirm)
+        .withResponseCallback([](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            return ProtocolUpgradeResult::UpgradeConfirmed();
+        })
         .withAuthentication(Credentials::possession())
         .build();
     
-    setNextRequest(request, CONFIRM_UPGRADE, RF_IGNORE_FAILURE);
+    setNextRequest(request, CONFIRM_UPGRADE, RF_PRIMARY | RF_IGNORE_FAILURE);
 }
 
 void ProtocolUpgradeTask::fetchActivationStatus(RequestFlags flags)

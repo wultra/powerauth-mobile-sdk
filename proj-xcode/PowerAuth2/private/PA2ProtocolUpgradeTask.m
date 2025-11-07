@@ -15,6 +15,7 @@
  */
 
 #import "PA2ProtocolUpgradeTask.h"
+#import "PowerAuthProtocolUpgradeResult+Private.h"
 #import "PA2CoreHttpClient.h"
 
 @import PowerAuthCore;
@@ -87,8 +88,8 @@
 {
     [super onTaskStart];
     
-    [self startProtocolUpgrade:^(NSError *error) {
-        [self complete:nil error:error];
+    [self startProtocolUpgrade:^(PowerAuthProtocolUpgradeResult *result, NSError *error) {
+        [self complete:result error:error];
     }];
 }
 
@@ -97,7 +98,7 @@
     [super onTaskRestart];
 }
 
-- (void) onTaskCompleteWithResult:(id)result error:(NSError *)error
+- (void) onTaskCompleteWithResult:(PowerAuthProtocolUpgradeResult*)result error:(NSError *)error
 {
     [super onTaskCompleteWithResult:result error:error];
     [_delegate startProtocolUpgradeTask:self
@@ -112,7 +113,7 @@
 
 #pragma mark - Protocol upgrade task procedure start
 
-- (void) startProtocolUpgrade:(void(^)(NSError *error))callback
+- (void) startProtocolUpgrade:(void(^)(PowerAuthProtocolUpgradeResult *result, NSError *error))callback
 {
     NSError* localError = nil;
     PowerAuthCoreTask * task = [_sessionProvider writeTaskWithSession:^PowerAuthCoreTask* (PowerAuthCoreSession * session, NSError** error) {
@@ -122,14 +123,19 @@
     } error:&localError];
     
     if (localError) {
-        callback(localError);
+        callback(nil, localError);
         return;
     }
     
-    id<PowerAuthOperationTask> startUpgradeTask = [_client postCoreTask:task completion:^(PowerAuthCoreTask * task, id response, NSError * error) {
-        callback(error);
+    id<PowerAuthOperationTask> startUpgradeTask = [_client postCoreTask:task completion:^(PowerAuthCoreTask *task, PowerAuthCoreProtocolUpgradeResult *coreResult, NSError *error) {
+        PowerAuthProtocolUpgradeResult *result;
+        if (coreResult) {
+            result = [[PowerAuthProtocolUpgradeResult alloc] initWithCoreProtocolUpgradeResult:coreResult];
+        } else {
+            result = nil;
+        }
+        callback(result, error);
     }];
-    
     [self replaceCancelableOperation:startUpgradeTask];
 }
 

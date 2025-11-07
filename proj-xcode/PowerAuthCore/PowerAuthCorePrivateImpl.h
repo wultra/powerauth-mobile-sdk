@@ -24,6 +24,7 @@
 #include <PowerAuth/TokenService.h>
 #include <PowerAuth/ActivationResult.h>
 #include <PowerAuth/ActivationStatus.h>
+#include <PowerAuth/ProtocolUpgradeResult.h>
 
 #include <cc7/crypto/Crypto.h>
 #include <cc7/objc/ObjcHelper.h>
@@ -34,6 +35,7 @@
 #import <PowerAuthCore/PowerAuthCoreActivationResult.h>
 #import <PowerAuthCore/PowerAuthCoreActivationStatus.h>
 #import <PowerAuthCore/PowerAuthCoreTokenData.h>
+#import <PowerAuthCore/PowerAuthCoreProtocolUpgradeResult.h>
 
 /*
  This header contains various private interfaces, internally used
@@ -92,6 +94,10 @@ typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::ResponseObjectPtr& re
 
 @interface PowerAuthCoreDevicePublicKeyData (Private)
 - (instancetype) initWithKeyData:(const powerAuth::DevicePublicKeyData&)keyData;
+@end
+
+@interface PowerAuthCoreProtocolUpgradeResult (Private)
+- (instancetype) initWithProtocolUpgradeResult:(const powerAuth::ProtocolUpgradeResult&)protocolUpgradeResult;
 @end
 
 // Services

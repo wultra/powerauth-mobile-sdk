@@ -2413,10 +2413,11 @@
     const PowerAuthAlgorithm targetAlgorithm = PowerAuthAlgorithm_EC_P384;
     
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:nil];
-    [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:YES];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:YES];
     
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
-    
+    XCTAssertFalse(result.activationStatusFetchRequired);
+
     [_helper cleanup];
 }
 
@@ -2431,10 +2432,11 @@
     const PowerAuthAlgorithm targetAlgorithm = PowerAuthAlgorithm_EC_P384_ML_L3;
     
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:nil];
-    [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:YES];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:YES];
     
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
-    
+    XCTAssertFalse(result.activationStatusFetchRequired);
+
     [_helper cleanup];
 }
 
@@ -2458,22 +2460,23 @@
 
     // Start protocol upgrade with custom new biometry KEK.
     PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:32];
-    [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:TRUE];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:TRUE];
     
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
     XCTAssertTrue(_sdk.hasBiometryFactor);
+    XCTAssertFalse(result.activationStatusFetchRequired);
 
     // Check biometry factor KEK was upgraded.
     PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
-    BOOL result = [_helper refreshTestServerApiConnection] &&
-                  [_helper validateAuthentication:newBiometryAuth
-                                             data:randomData
-                                           method:@"POST"
-                                            uriId:@"/hello/there"
-                                           online:YES
-                                          cripple:0];
-    XCTAssertTrue(result);
+    BOOL authenticationValid = [_helper refreshTestServerApiConnection] &&
+                               [_helper validateAuthentication:newBiometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertTrue(authenticationValid);
     
     [_helper cleanup];
 }
@@ -2496,10 +2499,11 @@
     
     // Activation status fetch fails for this test.
     [self simulateNetworkErrorOnSend:@"/activation/status"];
-    [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:FALSE];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:FALSE];
     
     // Assert protocol version did not change.
     XCTAssertEqual(self.powerAuthAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertNil(result);
 
     // Activation status is still active and upgrade is available.
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
@@ -2510,13 +2514,13 @@
     // Assert the old biometry factor key still works.
     PowerAuthAuthentication * oldBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:oldBiometryKek customPossessionKey:nil];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
-    BOOL result = [_helper validateAuthentication:oldBiometryAuth
-                                             data:randomData
-                                           method:@"POST"
-                                            uriId:@"/hello/there"
-                                           online:YES
-                                          cripple:0];
-    XCTAssertTrue(result);
+    BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertTrue(authenticationValid);
     
     [_helper cleanup];
 }
@@ -2537,10 +2541,11 @@
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:oldBiometryKek];
     
     [self simulateNextResponseFailure:@"/pa/v4/upgrade/start" statusCode:500];
-    [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:FALSE];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:FALSE];
     
     // Protocol version did not change.
     XCTAssertEqual(self.powerAuthAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertNil(result);
 
     // Activation status is still active and upgrade is available.
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
@@ -2551,13 +2556,13 @@
     // Assert the old biometry factor key still works.
     PowerAuthAuthentication * oldBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:oldBiometryKek customPossessionKey:nil];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
-    BOOL result = [_helper validateAuthentication:oldBiometryAuth
-                                             data:randomData
-                                           method:@"POST"
-                                            uriId:@"/hello/there"
-                                           online:YES
-                                          cripple:0];
-    XCTAssertTrue(result);
+    BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertTrue(authenticationValid);
     
     [_helper cleanup];
 }
@@ -2578,15 +2583,18 @@
     PowerAuthCoreData * oldBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:16];
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:oldBiometryKek];
     
-    // Simulate failure of the upgrade confirm.
+    // Simulate response failure of the upgrade confirm.
     [self simulateNextResponseFailure:@"/pa/v4/upgrade/confirm" statusCode:500];
-    [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:TRUE];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:TRUE];
     
     // Protocol version upgraded.
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
+    
+    // Result of the protocol upgrade shows that activation status should be fetched.
+    XCTAssertTrue(result.activationStatusFetchRequired);
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
 
     // The activation status shows upgrade is completed.
-    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
     XCTAssertFalse(status.isPendingUpgradeConfirm);
     XCTAssertFalse(status.isProtocolUpgradeAvailable);
@@ -2594,14 +2602,14 @@
     // Check that the old biometry factor does not work anymore.
     PowerAuthAuthentication * oldBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:oldBiometryKek customPossessionKey:nil];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
-    BOOL result = [_helper refreshTestServerApiConnection] &&
-                  [_helper validateAuthentication:oldBiometryAuth
-                                             data:randomData
-                                           method:@"POST"
-                                            uriId:@"/hello/there"
-                                           online:YES
-                                          cripple:0];
-    XCTAssertFalse(result);
+    BOOL authenticationValid = [_helper refreshTestServerApiConnection] &&
+                               [_helper validateAuthentication:oldBiometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertFalse(authenticationValid);
 
     [_helper cleanup];
 }
@@ -2625,13 +2633,16 @@
     
     // Set 3 failures in a row, as there are 3 confirm attempts in the task.
     [self simulateNetworkErrorOnSend:@"/pa/v4/upgrade/confirm" repeatCount:3];
-    [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:TRUE];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:TRUE];
     
     // Protocol version is upgraded.
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
+    
+    // Result of the protocol upgrade shows that activation status should be fetched.
+    XCTAssertTrue(result.activationStatusFetchRequired);
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
 
     // Activation status shows that server awaits the upgrade confirm.
-    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
     XCTAssertTrue(status.isPendingUpgradeConfirm);
     XCTAssertTrue(status.isProtocolUpgradeAvailable);
@@ -2639,14 +2650,14 @@
     // Check biometry factor already updated.
     PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
-    BOOL result = [_helper refreshTestServerApiConnection] &&
-                  [_helper validateAuthentication:newBiometryAuth
-                                             data:randomData
-                                           method:@"POST"
-                                            uriId:@"/hello/there"
-                                           online:YES
-                                          cripple:0];
-    XCTAssertTrue(result);
+    BOOL authenticationValid = [_helper refreshTestServerApiConnection] &&
+                               [_helper validateAuthentication:newBiometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertTrue(authenticationValid);
     
     // Run the task again to confirm the upgrade.
     [_helper confirmProtocolUpgrade];
@@ -2678,13 +2689,16 @@
     // Fail the upgrade confirm, and the following status to fail without trying more attempts.
     [self simulateNetworkErrorOnSend:@"/pa/v4/upgrade/confirm"];
     [self simulateNextResponseFailure:@"/pa/v4/activation/status" statusCode:500];
-    [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:TRUE];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:TRUE];
     
     // Protocol version is upgraded.
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
+    
+    // Result of the protocol upgrade shows that activation status should be fetched.
+    XCTAssertTrue(result.activationStatusFetchRequired);
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
 
     // Activation status shows that server awaits the upgrade confirm.
-    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
     XCTAssertTrue(status.isPendingUpgradeConfirm);
     XCTAssertTrue(status.isProtocolUpgradeAvailable);
@@ -2715,23 +2729,24 @@
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:nil];
     
     PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:32];
-    [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:TRUE];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:TRUE];
     
     // Protocol version is upgraded.
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertFalse(result.activationStatusFetchRequired);
     
     // Check biometry factor not set.
     XCTAssertFalse(_sdk.hasBiometryFactor);
     PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
-    BOOL result = [_helper refreshTestServerApiConnection] &&
-                  [_helper validateAuthentication:newBiometryAuth
-                                             data:randomData
-                                           method:@"POST"
-                                            uriId:@"/hello/there"
-                                           online:YES
-                                          cripple:0];
-    XCTAssertFalse(result);
+    BOOL authenticationValid = [_helper refreshTestServerApiConnection] &&
+                               [_helper validateAuthentication:newBiometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertFalse(authenticationValid);
     
     [_helper cleanup];
 }

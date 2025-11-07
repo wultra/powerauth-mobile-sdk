@@ -2573,8 +2573,9 @@
     //
     // Test successful upgrade from V3 to V4 protocol. In this case
     // there is a simulated response failure when confirming the upgrade.
-    // Even though the upgrade confirm response was not received,
-    // the following activation status shows the upgrade is completed.
+    // Even though the upgrade confirm response was not received, server
+    // has processed the confirm request, and so the following activation
+    // status shows the upgrade is completed.
     //
     const PowerAuthAlgorithm targetAlgorithm = PowerAuthAlgorithm_EC_P384_ML_L3;
     
@@ -2621,7 +2622,8 @@
     // there is a simulated network error 3 times in the row when
     // sending the upgrade confirm request. Meaning that the task
     // completes while the server still awaits the upgrade confirm.
-    // To finish the protocol upgrade, task must be run again.
+    // To finish the protocol upgrade, activation status fetch is
+    // required to confirm the protocol upgrade in the background.
     //
     const PowerAuthAlgorithm targetAlgorithm = PowerAuthAlgorithm_EC_P384_ML_L3;
     PowerAuthCoreData * oldBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:16];
@@ -2635,14 +2637,6 @@
     // Protocol version is upgraded.
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
     
-    // Result of the protocol upgrade shows that activation status should be fetched.
-    XCTAssertTrue(result.activationStatusFetchRequired);
-    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
-
-    // Activation status shows that server awaits the upgrade confirm.
-    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertTrue(status.isProtocolUpgradeAvailable);
-    
     // Check biometry factor already updated.
     PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
@@ -2655,15 +2649,22 @@
                                                        cripple:0];
     XCTAssertTrue(authenticationValid);
     
-    /* TODO
-    // Run the task again to confirm the upgrade.
-    [_helper confirmProtocolUpgrade];
+    // Result of the protocol upgrade shows that activation status should be fetched.
+    XCTAssertTrue(result.activationStatusFetchRequired);
     
-    // Activation status now shows that upgrade is completed.
-    status = [_helper fetchActivationStatus];
+    // Make the background confirm request fail too.
+    [self simulateNetworkErrorOnSend:@"/pa/v4/upgrade/confirm"];
+    NSError * error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status,NSError * error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    // Fetch failed, because the background confirm failed.
+    XCTAssertNotNil(error);
+    
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
     XCTAssertFalse(status.isProtocolUpgradeAvailable);
-     */
     
     [_helper cleanup];
 }
@@ -2678,7 +2679,8 @@
     // confirm request followed by activation status response failure.
     // Meaning that the task completes without multiple attempts, while
     // the server still awaits the upgrade confirm. To finish the
-    // protocol upgrade, task must be run again.
+    // protocol upgrade, activation status fetch is required to confirm
+    // the protocol upgrade in the background.
     //
     const PowerAuthAlgorithm targetAlgorithm = PowerAuthAlgorithm_EC_P384_ML_L3;
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:nil];
@@ -2694,20 +2696,8 @@
     // Result of the protocol upgrade shows that activation status should be fetched.
     XCTAssertTrue(result.activationStatusFetchRequired);
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
-
-    // Activation status shows that server awaits the upgrade confirm.
-    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertTrue(status.isProtocolUpgradeAvailable);
-    
-    /* TODO
-    // Run the task again to confirm the upgrade.
-    [_helper confirmProtocolUpgrade];
-    
-    // Activation status now shows that upgrade is completed.
-    status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
     XCTAssertFalse(status.isProtocolUpgradeAvailable);
-     */
     
     [_helper cleanup];
 }

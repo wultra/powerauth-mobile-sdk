@@ -15,6 +15,7 @@
  */
 
 #include "GetActivationStatusTask.h"
+#include "../request/RequestBuilder.h"
 
 namespace powerAuth {
 
@@ -39,6 +40,7 @@ void GetActivationStatusTask::onRequestSuccess(const Request &request)
         case FETCH_STATUS:
             processActivationStatus(*request.getTypedResponseObject<ActivationStatus>());
             break;
+        case PROTOCOL_UPGRADE_CONFIRM:
         case SYNC_COUNTER:
             setCompleted();
             break;
@@ -58,7 +60,10 @@ void GetActivationStatusTask::onRequestFailure(const Request &request)
 
 void GetActivationStatusTask::processActivationStatus(const ActivationStatus &status)
 {
-    if (status.isCounterSynchronizationRecommended()) {
+    if (status.protocolVersion() == Version_V4 && status.isPendingUpgradeConfirm()) {
+        // Protocol upgrade is not confirmed yet.
+        confirmProtocolUpgrade();
+    } else if (status.isCounterSynchronizationRecommended()) {
         // Seems that local counter is too ahead against the server. It's recommended to calculate
         // dummy possession signature to allow server's counter to catch-up with the client.
         auto request = _authentication_service->verifyCredentialsWithReason(Credentials::possession(), VerifyCredentialsReason::COUNTER_SYNCHRONIZATION);
@@ -66,6 +71,18 @@ void GetActivationStatusTask::processActivationStatus(const ActivationStatus &st
     } else {
         setCompleted();
     }
+}
+
+void GetActivationStatusTask::confirmProtocolUpgrade()
+{
+    LOCK_GUARD();
+    auto context = lockContext();
+    
+    auto request = RequestBuilder(*context, v4::Endpoint_ProtocolUpgradeConfirm)
+        .withAuthentication(Credentials::possession())
+        .build();
+    
+    setNextRequest(request, PROTOCOL_UPGRADE_CONFIRM, RF_NONE);
 }
 
 } // namespace powerAuth

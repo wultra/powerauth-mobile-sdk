@@ -247,7 +247,9 @@ ResponseObjectPtr ActivationServiceV3::processResponseActivationStatus(Context& 
     }
     
     // Check counter synchronization
-    return std::make_shared<ActivationStatus>(Version_V3, local_state, counter_state, binary_data, custom_object);
+    auto activation_status = std::make_shared<ActivationStatus>(Version_V3, local_state, counter_state, binary_data, custom_object);
+    _session_data->setActivationStatus(activation_status);
+    return activation_status;
 }
 
 cc7::ByteArray ActivationServiceV3::decryptActivationStatusBlob(const cc7::json::JsonValue& response, const cc7::ByteRange& challenge, const ISecretKeysPtr& secrets)

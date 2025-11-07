@@ -21,6 +21,7 @@
 #import <PowerAuthCore/PowerAuthCoreTimeService.h>
 #import <PowerAuthCore/PowerAuthCoreEncryptorFactory.h>
 #import <PowerAuthCore/PowerAuthCoreCredentials.h>
+#import <PowerAuthCore/PowerAuthCoreActivationStatus.h>
 
 
 /// The `PowerAuthCoreSessionDelegate` provide interface required for interaction
@@ -153,7 +154,14 @@
  This property accesses user info cached in the session, so read access must be guaranteed.
  */
 @property (nonatomic, strong, readonly, nullable) NSDictionary<NSString*, NSObject*>* lastUserInfo;
-
+/**
+ Contains last activation status received from the server.
+ This property provides the most recent activation status and does not trigger any server communication.
+ If no such information has been received yet, nil is returned.
+ 
+ This property accesses activation status cached in the session, so read access must be guaranteed.
+ */
+@property (nonatomic, strong, readonly, nullable) PowerAuthCoreActivationStatus * lastActivationStatus;
 
 #pragma mark - Serialization
 

@@ -142,6 +142,14 @@ public:
     /// - Parameter userInfo: User Info claims.
     void setUserInfo(const cc7::json::JsonValue& userInfo);
     
+    /// Get activation status object pointer
+    /// - Returns: Activation status object pointer.
+    const ActivationStatusPtr& getActivationStatusPtr() const noexcept;
+    
+    /// Set activation status object.
+    /// - Parameter ptr: Pointer to activation status object.
+    void setActivationStatus(ActivationStatusPtr& ptr);
+    
 private:
     ConstPowerAuthSpecPtr _target_specification;
     RegistrationDataPtr _rd;
@@ -149,7 +157,9 @@ private:
     UpgradeDataPtr _ud;
     bool _modified;
     
+    // Cached data
     cc7::json::JsonValue _user_info;
+    ActivationStatusPtr _activation_status;
 };
 
 CC7_SHARED_PTR(SessionData)

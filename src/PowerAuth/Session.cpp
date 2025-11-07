@@ -247,6 +247,12 @@ cc7::json::JsonValue Session::lastUserInfo() const noexcept
     return _context->sessionData().getUserInfo();
 }
 
+ActivationStatusPtr Session::lastActivationStatus() const noexcept
+{
+    LOCK_GUARD();
+    return _context->sessionData().getActivationStatusPtr();
+}
+
 void Session::checkActivationData() const
 {
     if (!sessionData().hasPersistentData()) {

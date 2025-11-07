@@ -171,11 +171,6 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
                                                                  shouldFinish:(BOOL)shouldFinish;
 
 /**
- Confirm the protocol upgrade.
- */
-- (void) confirmProtocolUpgrade;
-
-/**
  Returns an activation status object. May return nil if status is not available yet, which is also valid operation.
  */
 - (PowerAuthActivationStatus*) fetchActivationStatus;

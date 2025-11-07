@@ -942,21 +942,6 @@ static PowerAuthSDK * s_inst;
                                              callback:callback];
 }
 
-- (id<PowerAuthOperationTask>) confirmProtocolUpgrade:(void(^)(id status, NSError * error))callback
-{
-    [_lock lock];
-    
-    id<PowerAuthOperationTask> task = [_protocolUpgradeTask createChildTask:callback];
-    if (!task) {
-        _protocolUpgradeTask = [[PA2ProtocolUpgradeTask alloc] initWithHttpClient:_client sessionProvider:_sessionInterface delegate:self sharedLock:_lock];
-        
-        task = [_protocolUpgradeTask createChildTask:callback];
-    }
-    
-    [_lock unlock];
-    return task;
-}
-
 - (void) startProtocolUpgradeTask:(PA2ProtocolUpgradeTask*)task
              didFinishedWithError:(NSError*)error
             newBiometryKekToStore:(PowerAuthCoreData*)newBiometryKek

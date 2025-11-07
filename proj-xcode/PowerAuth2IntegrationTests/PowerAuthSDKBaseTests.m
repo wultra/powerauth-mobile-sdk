@@ -2508,7 +2508,6 @@
     // Activation status is still active and upgrade is available.
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertFalse(status.isPendingUpgradeConfirm);
     XCTAssertTrue(status.isProtocolUpgradeAvailable);
     
     // Assert the old biometry factor key still works.
@@ -2550,7 +2549,6 @@
     // Activation status is still active and upgrade is available.
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertFalse(status.isPendingUpgradeConfirm);
     XCTAssertTrue(status.isProtocolUpgradeAvailable);
     
     // Assert the old biometry factor key still works.
@@ -2596,7 +2594,6 @@
 
     // The activation status shows upgrade is completed.
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertFalse(status.isPendingUpgradeConfirm);
     XCTAssertFalse(status.isProtocolUpgradeAvailable);
     
     // Check that the old biometry factor does not work anymore.
@@ -2644,7 +2641,6 @@
 
     // Activation status shows that server awaits the upgrade confirm.
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertTrue(status.isPendingUpgradeConfirm);
     XCTAssertTrue(status.isProtocolUpgradeAvailable);
     
     // Check biometry factor already updated.
@@ -2659,14 +2655,15 @@
                                                        cripple:0];
     XCTAssertTrue(authenticationValid);
     
+    /* TODO
     // Run the task again to confirm the upgrade.
     [_helper confirmProtocolUpgrade];
     
     // Activation status now shows that upgrade is completed.
     status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertFalse(status.isPendingUpgradeConfirm);
     XCTAssertFalse(status.isProtocolUpgradeAvailable);
+     */
     
     [_helper cleanup];
 }
@@ -2700,17 +2697,17 @@
 
     // Activation status shows that server awaits the upgrade confirm.
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertTrue(status.isPendingUpgradeConfirm);
     XCTAssertTrue(status.isProtocolUpgradeAvailable);
     
+    /* TODO
     // Run the task again to confirm the upgrade.
     [_helper confirmProtocolUpgrade];
     
     // Activation status now shows that upgrade is completed.
     status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertFalse(status.isPendingUpgradeConfirm);
     XCTAssertFalse(status.isProtocolUpgradeAvailable);
+     */
     
     [_helper cleanup];
 }

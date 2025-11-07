@@ -47,8 +47,6 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
 @property (nonatomic, assign, readonly) UInt32 remainingAttempts;
 /// Contains YES if upgrade to a newer protocol version is available.
 @property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
-/// Contains YES if the server expects protocol upgrade confirmation.
-@property (nonatomic, assign, readonly) BOOL isPendingUpgradeConfirm;
 
 // SDK-private (application should not use such interface)
 

@@ -59,11 +59,6 @@
     return _status->isProtocolUpgradeAvailable();
 }
 
-- (BOOL) isPendingUpgradeConfirm
-{
-    return _status->isPendingUpgradeConfirm();
-}
-
 - (BOOL) isCounterSynchronizationRecommended
 {
     return _status->isCounterSynchronizationRecommended();

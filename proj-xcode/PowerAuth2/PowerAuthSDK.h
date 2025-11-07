@@ -376,18 +376,6 @@
                                                                     callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
                             NS_SWIFT_NAME(startProtocolUpgradeWithCorePassword(password:callback:));
 
-/**
- Confirm the protocol upgrade.
- Internally a new protocol upgrade task is initiated without passing a password, and so it is only allowed
- to confirm the protocol upgrade. This is used when the upgrade task was already started, the protocol
- was updated locally, but the final confirmation step has not yet been completed.
- 
- @param callback A callback called when the upgrade task finishes.
- @return Protocol upgrade task instance.
- */
-- (nullable id<PowerAuthOperationTask>) confirmProtocolUpgrade:(nonnull void(^)(id _Nullable result, NSError * _Nullable error))callback
-                            NS_SWIFT_NAME(confirmProtocolUpgrade(callback:));
-
 /** Remove current activation by calling a PowerAuth Standard RESTful API endpoint '/pa/activation/remove'.
  
  @param authentication An authentication instance specifying what factors should be used to sign the request.

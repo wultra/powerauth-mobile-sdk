@@ -524,7 +524,6 @@ static NSString * PA_Ver_Current = @"4.0";
 
     status = [self fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertFalse(status.isPendingUpgradeConfirm);
     if (_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
         // Protocol upgrade should be available for legacy protocol.
         XCTAssertTrue(status.isProtocolUpgradeAvailable);
@@ -550,22 +549,6 @@ static NSString * PA_Ver_Current = @"4.0";
     }
     
     return result;
-}
-
-- (void) confirmProtocolUpgrade
-{
-    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk confirmProtocolUpgrade:^(id status, NSError *error) {
-            [waiting reportCompletion:@(error == nil)];
-            XCTAssertNil(error);
-        }];
-        XCTAssertNotNil(task);
-        
-    }] boolValue];
-    XCTAssertTrue(result);
-    
-    PowerAuthActivationStatus * status = [self fetchActivationStatus];
-    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
 }
 
 - (PowerAuthSDK*) reCreateSdkInstanceWithConfiguration:(PowerAuthConfiguration*)configuration

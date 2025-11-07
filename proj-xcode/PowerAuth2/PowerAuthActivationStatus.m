@@ -54,11 +54,6 @@
     return _status.isProtocolUpgradeAvailable;
 }
 
-- (BOOL) isPendingUpgradeConfirm
-{
-    return _status.isPendingUpgradeConfirm;
-}
-
 @end
 
 @implementation PowerAuthActivationStatus (Private)

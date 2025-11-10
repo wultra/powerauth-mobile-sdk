@@ -45,6 +45,7 @@ void ProtocolUpgradeTask::onRequestSuccess(const Request &request)
             break;
             
         case CONFIRM_UPGRADE:
+            _session_data->persistentData().v4().flags.pendingProtocolUpgrade = 0;
             break;
             
         case FETCH_ACTIVATION_STATUS:
@@ -167,7 +168,11 @@ ProtocolUpgradeResultPtr ProtocolUpgradeTask::processResponseStartProtocolUpgrad
         throw Exception(EC_InternalError, "PersistentData V4 not created after lock");
     }
     
+    // V4 persistent data were created, set flag protocol upgrade still pending.
+    _session_data->persistentData().v4().flags.pendingProtocolUpgrade = 1;
+    
     // Switch primary context to V4
+    _session_data->resetUpgradeData();
     current_context->destroyTargetAlgorithmContext();
     current_context->updateAfterProtocolVersionChange();
     

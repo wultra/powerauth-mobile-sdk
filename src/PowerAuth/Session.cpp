@@ -145,6 +145,12 @@ bool Session::hasValidActivationData() const noexcept
     return sessionData().hasPersistentData();
 }
 
+bool Session::hasPendingProtocolUpgrade() const noexcept
+{
+    LOCK_GUARD();
+    return _context->hasProtocolUpgradePending();
+}
+
 std::string Session::activationId() const noexcept
 {
     LOCK_GUARD();

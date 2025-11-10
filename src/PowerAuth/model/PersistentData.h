@@ -108,6 +108,15 @@ public:
         cc7::ByteArray  cDevicePublicKey;
         /// Encrypted device's private key.
         cc7::ByteArray  cDevicePrivateKey;
+        
+        struct _Flags {
+            /// True if the session is currently in a protocol upgrade process.
+            cc7::U32 pendingProtocolUpgrade : 1;
+        };
+        union {
+            _Flags      flags;
+            cc7::U32    flagsU32;
+        };
     };
     
     /// Returns activation identifier.

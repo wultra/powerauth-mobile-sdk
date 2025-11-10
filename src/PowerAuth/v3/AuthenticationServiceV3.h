@@ -23,7 +23,7 @@ namespace powerAuth {
 namespace v3 {
 
 class AuthenticationServiceV3 :
-    public Service,
+    public ServiceWithContext,
     public IAuthenticationService,
     public std::enable_shared_from_this<AuthenticationServiceV3>
 {
@@ -54,7 +54,6 @@ private:
     
     void moveCounterForward(cc7::ByteArray& hash_counter, cc7::byte& byte_counter);
     
-    const ContextWeakPtr _weak_context;
     const ConfigurationPtr _configuration;
     const SessionDataPtr _session_data;
     const IKeyProviderPtr _key_provider;

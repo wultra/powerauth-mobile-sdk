@@ -360,4 +360,9 @@ void Context::updateAfterProtocolVersionChange()
     createServices(false, _session_data->getCurrentSpecification());
 }
 
+bool Context::hasProtocolUpgradePending() const noexcept
+{
+    return _session_data->hasUpgradeData() || _session_data->hasUpgradePendingFlag();
+}
+
 } // namespace powerAuth

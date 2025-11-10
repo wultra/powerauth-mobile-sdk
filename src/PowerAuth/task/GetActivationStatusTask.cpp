@@ -41,6 +41,8 @@ void GetActivationStatusTask::onRequestSuccess(const Request &request)
             processActivationStatus(*request.getTypedResponseObject<ActivationStatus>());
             break;
         case PROTOCOL_UPGRADE_CONFIRM:
+            lockContext()->sessionData().persistentData().v4().flags.pendingProtocolUpgrade = 0;
+            break;
         case SYNC_COUNTER:
             setCompleted();
             break;
@@ -60,9 +62,15 @@ void GetActivationStatusTask::onRequestFailure(const Request &request)
 
 void GetActivationStatusTask::processActivationStatus(const ActivationStatus &status)
 {
-    if (status.protocolVersion() == Version_V4 && status.isPendingUpgradeConfirm()) {
-        // Protocol upgrade is not confirmed yet.
-        confirmProtocolUpgrade();
+    if (status.protocolVersion() == Version_V4) {
+        auto context = lockContext();
+        if (status.isPendingUpgradeConfirm()) {
+            // Protocol upgrade is not confirmed yet.
+            confirmProtocolUpgrade();
+        } else if (context->hasProtocolUpgradePending()) {
+            // Protocol upgrade confirmed, but locally the flag is still set.
+            context->sessionData().persistentData().v4().flags.pendingProtocolUpgrade = 0;
+        }
     } else if (status.isCounterSynchronizationRecommended()) {
         // Seems that local counter is too ahead against the server. It's recommended to calculate
         // dummy possession signature to allow server's counter to catch-up with the client.

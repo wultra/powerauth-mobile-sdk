@@ -93,7 +93,6 @@ void SessionData::setPersistentData(PersistentDataPtr &ptr)
 {
     _modified = true;
     _rd = nullptr;
-    _ud = nullptr;
     _pd = std::move(ptr);
 }
 
@@ -115,6 +114,15 @@ bool SessionData::hasPersistentData(ProtocolVersion version) const noexcept
 bool SessionData::hasUpgradeData() const noexcept
 {
     return _ud != nullptr;
+}
+
+bool SessionData::hasUpgradePendingFlag() const noexcept
+{
+    if (!hasPersistentData(Version_V4)) {
+        return false;
+    }
+    
+    return _pd->v4().flags.pendingProtocolUpgrade;
 }
 
 void SessionData::resetSessionData()

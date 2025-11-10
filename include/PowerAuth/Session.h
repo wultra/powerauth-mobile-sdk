@@ -138,6 +138,9 @@ public:
     /// Get information whether the session contains valid activation data.
     bool hasValidActivationData() const noexcept;
     
+    /// Get information whether the session is currently in a protocol upgrade process
+    bool hasPendingProtocolUpgrade() const noexcept;
+    
     /// Get activation identifier.
     /// - Returns: Activation identifier or empty string if there's no activation.
     std::string activationId() const noexcept;

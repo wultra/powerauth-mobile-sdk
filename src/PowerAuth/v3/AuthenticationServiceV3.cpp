@@ -27,8 +27,7 @@ namespace v3 {
 #define LOCK_GUARD() std::lock_guard<std::recursive_mutex> _lock_guard(*_lock)
 
 AuthenticationServiceV3::AuthenticationServiceV3(const ContextPtr& context) :
-    Service("AuthenticationServiceV3", context->getSharedMutexPtr()),
-    _weak_context(context),
+    ServiceWithContext("AuthenticationServiceV3", context, context->getSharedMutexPtr()),
     _configuration(context->getConfigurationPtr()),
     _session_data(context->getSessionDataPtr()),
     _key_provider(context->getKeyProviderPtr())
@@ -50,7 +49,7 @@ HttpHeader AuthenticationServiceV3::calculateOnlineAuthenticationHeader(const Cr
         throw Exception(EC_WrongActivationState, "Authentication header calculation is not allowed during activation registration");
     }
     
-    if (_session_data->hasUpgradeData() && !auth_data.allowedInUpgrade) {
+    if (lockContext()->hasProtocolUpgradePending() && !auth_data.allowedInUpgrade) {
         throw Exception(EC_WrongActivationState, "Authentication header calculation is not allowed during pending protocol upgrade");
     }
     
@@ -97,7 +96,7 @@ std::string AuthenticationServiceV3::calculateOfflineAuthenticationCode(const Cr
         throw Exception(EC_WrongActivationState, "Offline authentication code calculation is not allowed during activation registration");
     }
     
-    if (_session_data->hasUpgradeData()) {
+    if (lockContext()->hasProtocolUpgradePending()) {
         throw Exception(EC_WrongActivationState, "Offline authentication code calculation is not allowed during protocol upgrade");
     }
     
@@ -121,13 +120,11 @@ std::string AuthenticationServiceV3::calculateOfflineAuthenticationCode(const Cr
 
 RequestPtr AuthenticationServiceV3::verifyCredentials(const CredentialsPtr& credentials, const cc7::json::JsonValue& body)
 {
-    if (auto context = _weak_context.lock()) {
-        return RequestBuilder(*context, v3::Endpoint_SignatureValidate)
-            .withJson(body)
-            .withAuthentication(credentials)
-            .build();
-    }
-    throw Exception(EC_MissingActivation, "Session object is destroyed");
+    auto context = lockContext();
+    return RequestBuilder(*context, v3::Endpoint_SignatureValidate)
+        .withJson(body)
+        .withAuthentication(credentials)
+        .build();
 }
 
 std::vector<cc7::ByteRange> AuthenticationServiceV3::prepareFactorKeys(ISecretKeys &secrets, AuthFactors factors)

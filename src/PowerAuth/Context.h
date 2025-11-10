@@ -129,6 +129,7 @@ public:
     void clearSensitiveData();
     void restoreSensitiveData();
     
+    bool hasProtocolUpgradePending() const noexcept;
 
 private:
 

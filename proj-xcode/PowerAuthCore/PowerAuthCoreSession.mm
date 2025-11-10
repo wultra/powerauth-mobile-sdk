@@ -182,8 +182,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 - (BOOL) hasPendingProtocolUpgrade
 {
     [self requireReadAccess:nil];
-    // TODO: missing impl.
-    return NO;
+    return _session->hasPendingProtocolUpgrade();
 }
 
 - (PowerAuthCoreProtocolVersion) protocolVersion

@@ -934,10 +934,26 @@ static PowerAuthSDK * s_inst;
     return task;
 }
 
+- (id<PowerAuthOperationTask>) startProtocolUpgradeWithPassword:(NSString*)password
+                                             withNewBiometryKek:(PowerAuthCoreData*)newBiometryKek
+                                                       callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
+{
+    return [self startProtocolUpgradeWithCorePassword:[PowerAuthCorePassword passwordWithString:password]
+                                   withNewBiometryKek:newBiometryKek callback:callback];
+}
+
 - (id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(PowerAuthCorePassword*)password
-                                                                callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
+                                                           callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
 {
     return [self startProtocolUpgradeWithCorePassword:password
+                                   withNewBiometryKek:nil
+                                             callback:callback];
+}
+
+- (id<PowerAuthOperationTask>) startProtocolUpgradeWithPassword:(NSString*)password
+                                                       callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
+{
+    return [self startProtocolUpgradeWithCorePassword:[PowerAuthCorePassword passwordWithString:password]
                                    withNewBiometryKek:nil
                                              callback:callback];
 }

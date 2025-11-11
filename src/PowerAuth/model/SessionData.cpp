@@ -123,6 +123,7 @@ void SessionData::resetSessionData()
     _rd = nullptr;
     _pd = nullptr;
     _user_info = cc7::json::JsonValue();
+    _activation_status = nullptr;
     _ud = nullptr;
 }
 
@@ -230,6 +231,16 @@ const cc7::json::JsonValue& SessionData::getUserInfo() const
 void SessionData::setUserInfo(const cc7::json::JsonValue& userInfo)
 {
     _user_info = userInfo;
+}
+
+const ActivationStatusPtr& SessionData::getActivationStatusPtr() const noexcept
+{
+    return _activation_status;
+}
+
+void SessionData::setActivationStatus(ActivationStatusPtr& ptr)
+{
+    _activation_status = ptr;
 }
 
 } // namespace powerAuth

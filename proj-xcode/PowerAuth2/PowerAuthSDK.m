@@ -76,7 +76,6 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     
     /// Current pending status task.
     PA2GetActivationStatusTask * _getActivationStatusTask;
-    PowerAuthActivationStatus * _lastFetchedActivationStatus;
     // Current pending system status task
 }
 
@@ -877,9 +876,6 @@ static PowerAuthSDK * s_inst;
     // So, we can freely mutate objects in this instance.
     if (_getActivationStatusTask == task) {
         _getActivationStatusTask = nil;
-        if (status) {
-            _lastFetchedActivationStatus = status;
-        }
         // This is the reference to task which is going to finish its execution soon.
         // The ivar no longer holds the reference to the task, but we should keep that reference
         // for a little bit longer, to guarantee, that we don't destroy that object during its
@@ -895,10 +891,15 @@ static PowerAuthSDK * s_inst;
 
 - (PowerAuthActivationStatus*) lastFetchedActivationStatus
 {
-    [_lock lock];
-    PowerAuthActivationStatus * status = _lastFetchedActivationStatus;
-    [_lock unlock];
-    return status;
+    PowerAuthCoreActivationStatus * coreStatus = [_sessionInterface readTaskWithSession:^PowerAuthCoreActivationStatus*(PowerAuthCoreSession *session, NSError **error) {
+        return [session lastActivationStatus];
+    } error:nil];
+    
+    if (!coreStatus) {
+        return nil;
+    }
+    
+    return [[PowerAuthActivationStatus alloc] initWithCoreStatus:coreStatus];
 }
 
 #pragma mark Removing an activation
@@ -948,9 +949,6 @@ static PowerAuthSDK * s_inst;
  */
 - (void) clearCachedData
 {
-    [_lock lock];
-    _lastFetchedActivationStatus = nil;
-    [_lock unlock];
 }
 
 #pragma mark - Authentication codes

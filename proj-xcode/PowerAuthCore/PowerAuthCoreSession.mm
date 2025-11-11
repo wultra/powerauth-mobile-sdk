@@ -198,6 +198,18 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     return cc7::objc::JsonValueToObjC(_session->lastUserInfo());
 }
 
+- (nullable PowerAuthCoreActivationStatus*) lastActivationStatus
+{
+    [self requireReadAccess:nil];
+    
+    const auto status = _session->lastActivationStatus();
+    if (!status) {
+        return nil;
+    }
+    
+    return [[PowerAuthCoreActivationStatus alloc] initWithActivationStatus:status];
+}
+
 #pragma mark - Serialization
 
 - (nullable NSData*) serializedState:(NSError*_Nullable*_Nullable)error

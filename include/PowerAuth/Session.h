@@ -233,6 +233,11 @@ public:
     ///
     /// - Returns: Most recently fetched User Info.
     cc7::json::JsonValue lastUserInfo() const noexcept;
+    
+    /// Retrieve the most recently fetched Activation Status stored in the Session Data.
+    ///
+    /// - Returns: Most recently fetched Activation Status.
+    ActivationStatusPtr lastActivationStatus() const noexcept;
 
 private:
     

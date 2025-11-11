@@ -394,7 +394,7 @@
 
 #pragma mark - Vault operations
 
-/// Fetch vault key from the server. If the requested key is `PowerAuthCoreVaultKeyType_Legacy`,
+/// Fetch vault key from the server. If the requested key is `PowerAuthCoreSecureVaultKeyId_Legacy`,
 /// then also apply key derivation with given index. In case of success, the response object
 /// contains instance of `PowerAuthCoreData` object.
 ///
@@ -411,7 +411,7 @@
                                                      index:(UInt64)index
                                                      error:(NSError *_Nullable*_Nullable)error;
 
-/// Derive already existing key into new key. If the key type is `PowerAuthCoreVaultKeyType_Legacy`,
+/// Derive already existing key into new key. If the key type is `PowerAuthCoreSecureVaultKeyId_Legacy`,
 /// then return error.
 /// - Parameters:
 ///   - vaultKey: Original key.
@@ -443,7 +443,7 @@
 ///   - keyId: Key used for signature verification. The key must support signature verification.
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: `true` if signature is valid, otherwise `false`. If failure is caused by invalid signature,
-///            then no error is set in the provided error pointer.
+///            then error with `PowerAuthCoreError_WrongSignature` is returned.
 - (BOOL) verifySignature:(nonnull NSData*)signature
                     data:(nonnull NSData*)data
                    keyId:(PowerAuthCoreSignatureKeyId)keyId
@@ -460,7 +460,7 @@
 ///   - keyId: Key used for signature verification. The key must support such operation.
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: `true` if signature is valid, otherwise `false`. If failure is caused by invalid signature,
-///            then no error is set in the provided error pointer.
+///            then error with `PowerAuthCoreError_WrongSignature` is returned
 - (BOOL) jwsVerifySignature:(nonnull NSString*)signedData
                 compactForm:(BOOL)compactForm
                      strict:(BOOL)strict

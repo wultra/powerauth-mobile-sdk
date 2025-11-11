@@ -488,13 +488,16 @@ static NSString * PA_Ver_Current = @"4.0";
 - (PowerAuthSDK*) prepareActivationForUpgradeTest:(PowerAuthAlgorithm)targetAlgorithm
                                  withBiometryKek:(PowerAuthCoreData*)biometryKek
 {
+    /// Protocol upgrade not availbale before calling a fetch activation status.
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    
     /// Create activation
     PowerAuthSdkActivation * activation = [self createActivation:NO];
     XCTAssertTrue(activation.success);
     
     PowerAuthActivationStatus * status = [self fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertTrue(status.isProtocolUpgradeAvailable);
+    XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
     
     if (biometryKek) {
         XCTAssertFalse(_sdk.hasBiometryFactor);
@@ -524,10 +527,7 @@ static NSString * PA_Ver_Current = @"4.0";
 
     status = [self fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    if (_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
-        // Protocol upgrade should be available for legacy protocol.
-        XCTAssertTrue(status.isProtocolUpgradeAvailable);
-    }
+    XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
     
     return _sdk;
 }

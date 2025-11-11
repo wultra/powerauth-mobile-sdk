@@ -2512,7 +2512,7 @@
     // Activation status is still active and upgrade is available.
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertTrue(status.isProtocolUpgradeAvailable);
+    XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
     
     // Assert the old biometry factor key still works.
     PowerAuthAuthentication * oldBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:oldBiometryKek customPossessionKey:nil];
@@ -2554,7 +2554,7 @@
     // Activation status is still active and upgrade is available.
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertTrue(status.isProtocolUpgradeAvailable);
+    XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
     
     // Assert the old biometry factor key still works.
     PowerAuthAuthentication * oldBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:oldBiometryKek customPossessionKey:nil];
@@ -2602,7 +2602,7 @@
 
     // The activation status shows upgrade is completed.
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertFalse(status.isProtocolUpgradeAvailable);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     
     // Check that the old biometry factor does not work anymore.
@@ -2671,12 +2671,13 @@
     // Fetch failed, because the background confirm failed.
     XCTAssertNotNil(error);
     XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertFalse(status.isProtocolUpgradeAvailable);
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
-    
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+
     [_helper cleanup];
 }
 
@@ -2709,7 +2710,7 @@
     XCTAssertTrue(result.activationStatusFetchRequired);
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertFalse(status.isProtocolUpgradeAvailable);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     
     [_helper cleanup];

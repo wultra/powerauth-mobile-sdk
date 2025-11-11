@@ -2515,7 +2515,6 @@
     // Activation status is still active and upgrade is available.
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertTrue(status.isProtocolUpgradeAvailable);
     XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
     
     // Assert the old biometry factor key still works.
@@ -2558,7 +2557,6 @@
     // Activation status is still active and upgrade is available.
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertTrue(status.isProtocolUpgradeAvailable);
     XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
     
     // Assert the old biometry factor key still works.
@@ -2608,7 +2606,6 @@
 
     // The activation status shows upgrade is completed.
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertFalse(status.isProtocolUpgradeAvailable);
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     

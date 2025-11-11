@@ -49,11 +49,6 @@
     return _status.customObject;
 }
 
-- (BOOL) isProtocolUpgradeAvailable
-{
-    return _status.isProtocolUpgradeAvailable;
-}
-
 @end
 
 @implementation PowerAuthActivationStatus (Private)

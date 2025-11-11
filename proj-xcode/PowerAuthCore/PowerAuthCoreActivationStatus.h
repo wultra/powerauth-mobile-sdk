@@ -45,11 +45,11 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
 /// Contains (maxFailCount - failCount) if state is `PowerAuthCoreActivationState_Active`,
 /// otherwise `0`.
 @property (nonatomic, assign, readonly) UInt32 remainingAttempts;
-/// Contains YES if upgrade to a newer protocol version is available.
-@property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
 
 // SDK-private (application should not use such interface)
 
+/// Contains YES if upgrade to a newer protocol version is available.
+@property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
 /// Returns YES if dummy authentication code calculation is recommended to prevent
 /// the counter's de-synchronization.
 @property (nonatomic, assign, readonly) BOOL isCounterSynchronizationRecommended;

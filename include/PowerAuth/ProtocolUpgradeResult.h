@@ -51,7 +51,8 @@ public:
     bool isPendingUpgradeConfirm() const noexcept;
     
     /**
-     * Get upgraded activation fingerprint.
+     * Get upgraded activation fingerprint. Returns empty string if the
+     * `isPendingUpgradeConfirm` is evaluated to `true`.
      */
     const std::string& activationFingerprint() const noexcept;
     

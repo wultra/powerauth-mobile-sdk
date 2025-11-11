@@ -118,11 +118,7 @@ bool SessionData::hasUpgradeData() const noexcept
 
 bool SessionData::hasUpgradePendingFlag() const noexcept
 {
-    if (!hasPersistentData(Version_V4)) {
-        return false;
-    }
-    
-    return _pd->v4().flags.pendingProtocolUpgrade;
+    return hasPersistentData(Version_V4) && _pd->v4().flags.pendingProtocolUpgrade;
 }
 
 void SessionData::resetSessionData()

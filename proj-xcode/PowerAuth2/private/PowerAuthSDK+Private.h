@@ -70,11 +70,9 @@
 @property (nonatomic, readonly) PowerAuthKeychainItemAccess biometricItemAccess;
 @end
 
-@interface PowerAuthVaultEncryptionKey (Private)
+@interface PowerAuthSecureVaultKey (Private)
 - (instancetype) initWithCoreData:(PowerAuthCoreData*)coreData
-                            keyId:(PowerAuthVaultEncryptionKeyId)keyId
-                            index:(UInt64)index
-                             base:(BOOL)base;
+                            keyId:(PowerAuthSecureVaultKeyId)keyId;
 @end
 
 @interface PowerAuthDevicePublicKeyData (Private)

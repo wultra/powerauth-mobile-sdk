@@ -30,7 +30,7 @@
 #import <PowerAuth2/PowerAuthExternalPendingOperation.h>
 #import <PowerAuth2/PowerAuthUserInfo.h>
 #import <PowerAuth2/PowerAuthServerStatus.h>
-#import <PowerAuth2/PowerAuthVaultEncryptionKey.h>
+#import <PowerAuth2/PowerAuthSecureVaultKey.h>
 #import <PowerAuth2/PowerAuthSignatureTypes.h>
 
 // Deprecated
@@ -289,11 +289,11 @@
 
 /**
  Persist activation that was created and store related data using provided authentication instance.
- 
+
+ The method is deprecated, please use asynchronous variant of this method as a replacement.
  @param authentication An authentication instance specifying what factors should be stored.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
- @deprecated Please use asynchronous variant of this method as a replacement.
  */
 - (BOOL) persistActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                        error:(NSError * _Nullable * _Nullable)error
@@ -301,12 +301,13 @@
 
 /** Persist activation that was created and store related data using default authentication instance setup with provided password.
  
+ The method is deprecated, please use asynchronous variant of this method as a replacement.
+ 
  Calling this method is equivalent to `persistActivationWithAuthentication:error:` with authentication object set to use possession and provided password.
  
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
- @deprecated Please use asynchronous variant of this method as a replacement.
  */
 - (BOOL) persistActivationWithPassword:(nonnull NSString*)password
                                  error:(NSError * _Nullable * _Nullable)error
@@ -315,12 +316,13 @@
 
 /** Persist activation that was created and store related data using default authentication instance setup with provided password.
  
+ The method is deprecated, please use asynchronous variant of this method as a replacement.
+ 
  Calling this method is equivalent to `persistActivationWithAuthentication:error:` with authentication object set to use possession and provided password.
  
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
- @deprecated Please use asynchronous variant of this method as a replacement.
  */
 - (BOOL) persistActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
                                      error:(NSError * _Nullable * _Nullable)error
@@ -439,6 +441,8 @@
 
 /** Compute the HTTP authentication header for GET HTTP method, URI identifier and HTTP query parameters using provided authentication information.
  
+ The method is deprecated, please use `authenticationHeaderForRequestWithParams(with:method:uriId:params:)` as a replacement.
+ 
  This method may block a main thread - make sure to dispatch it asynchronously.
  
  @param authentication An authentication instance specifying what factors should be used to sign the request.
@@ -447,7 +451,6 @@
  @param error Error reference in case some error occurs.
  @return HTTP header with PowerAuth authentication code. In case of error, this method return 'nil'.
  @exception NSException thrown in case configuration is not present.
- @deprecated Use `authenticationHeaderForRequestWithParams(with:method:uriId:params:)` as a replacement.
  */
 - (nullable PowerAuthHttpHeader*) requestGetSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                                   uriId:(nonnull NSString*)uriId
@@ -456,6 +459,8 @@
                                                                         PA2_DEPRECATED(2.0.0);
 
 /** Compute the HTTP authentication code header for given HTTP method, URI identifier and HTTP request body using provided authentication information.
+ 
+ The method is deprecated, please use `authenticationHeaderForRequestWithBody(with:method:uriId:body:)` as a replacement.
  
  This method may block a main thread - make sure to dispatch it asynchronously.
  
@@ -466,7 +471,6 @@
  @param error Error reference in case some error occurs.
  @return HTTP header with PowerAuth authentication code. In case of error, this method return 'nil'.
  @exception NSException thrown in case configuration is not present.
- @deprecated Use `authenticationHeaderForRequestWithBody(with:method:uriId:body:)` as a replacement.
  */
 - (nullable PowerAuthHttpHeader*) requestSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                               method:(nonnull NSString*)method
@@ -477,6 +481,8 @@
 
 /** Compute the offline authentication code for URI identifier and HTTP request body using provided authentication information.
  
+ The method is deprecated, please use `offlineAuthenticationCode(with:uriId:body:nonce:callback:)` method as a replacement.
+ 
  This method may block a main thread - make sure to dispatch it asynchronously.
  
  @param authentication An authentication instance specifying what factors should be used to sign the request. The possession and knowledge is recommended.
@@ -486,7 +492,6 @@
  @param error Error reference in case some error occurs.
  @return String representing a calculated authentication code for all involved factors. In case of error, this method return 'nil'.
  @exception NSException thrown in case configuration is not present.
- @deprecated Use `offlineAuthenticationCode(with:uriId:body:nonce:callback:)` method as a replacement.
  */
 - (nullable NSString*) offlineSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                     uriId:(nonnull NSString*)uriId
@@ -515,11 +520,11 @@
 
 /** Change the password using local re-encryption, do not validate old password by calling any endpoint.
  
+ Method is deprecated and you should use `changePassword(from:to:callback:)` as a replacement.
+ 
  You are responsible for validating the old password against some server endpoint yourself before using it in this method.
  If you do not validate the old password to make sure it is correct, calling this method will corrupt the local data, since
  existing data will be decrypted using invalid PIN code and re-encrypted with a new one.
- 
- Method is deprecated and you should use `changePassword(from:to:callback:)` as a replacement.
  
  @param oldPassword Old password, currently set to store the data.
  @param newPassword New password, to be set in case authentication with old password passes.
@@ -648,9 +653,9 @@
 
 /** Remove the biometry related factor key.
  
- @return YES if the key was successfully removed, NO otherwise.
+ The method is deprecated, use asynchronous method with callback as a replacement.
  
- @deprecated Use asynchronous method with callback as a replacement.
+ @return YES if the key was successfully removed, NO otherwise.
  */
 - (BOOL) removeBiometryFactor PA2_DEPRECATED(2.0.0);
 
@@ -713,8 +718,9 @@
 @interface PowerAuthSDK (VaultEncryption)
 
 /**
- Generate an derived encryption key with given index. The method is effective only if PowerAuthSDK is running at protocol version 3.
- The method is subject to remove once PowerAuth Mobile SDK drops support of old protocol version.
+ Generate an derived encryption key with given index. The method is effective only if PowerAuthSDK is running at protocol version 3.3
+ 
+ Be aware that the method is subject to remove once PowerAuth Mobile SDK drops support of old protocol version.
  
  @param authentication Authentication used for vault unlocking call.
  @param index Index of the derived key using KDF.
@@ -727,14 +733,21 @@
 
 /// Get a vault encryption key from the server.
 ///
+/// Be careful how you use this method, because its functionality depends on the current protocol version. The function has the following limitations:
+///
+/// - If activation is still at protocol version 3.3:
+///   - Only `legacy` key is supported and the returned key has always derivation index set to `0`.
+/// - If activation is already at protocol version 4.0 and newer:
+///   - The `legacy` key is no longer supported.
+///
 /// @param authentication Authentication used for vault unlocking call.
 /// @param keyIdentifier Vault encryption key identifier.
-/// @param callback The callback method with the provided encryption key.
+/// @param callback The callback method with the provided vault key.
 /// @return `PowerAuthOperationTask` associated with the running request. If `nil` is returned, then function failed at input validations.
-- (nullable id<PowerAuthOperationTask>) fetchVaultEncryptionKey:(nonnull PowerAuthAuthentication*)authentication
-                                                  keyIdentifier:(PowerAuthVaultEncryptionKeyId)keyIdentifier
-                                                       callback:(nonnull void(^)(PowerAuthVaultEncryptionKey * _Nullable encryptionKey, NSError *_Nullable error))callback
-            NS_SWIFT_NAME(fetchVaultEncryptionKey(authentication:keyIdentifier:callback:));
+- (nullable id<PowerAuthOperationTask>) fetchSecureVaultKey:(nonnull PowerAuthAuthentication*)authentication
+                                              keyIdentifier:(PowerAuthSecureVaultKeyId)keyIdentifier
+                                                   callback:(nonnull void(^)(PowerAuthSecureVaultKey * _Nullable vaultKey, NSError *_Nullable error))callback
+                                        NS_SWIFT_NAME(fetchSecureVaultKey(authentication:keyIdentifier:callback:));
 @end
 
 @interface PowerAuthSDK (DigitalSignatures)
@@ -796,7 +809,7 @@
 ///   - keyIdentifier: The identifier of the key used for signature calculation.
 ///   - callback: The callback invoked with the resulting signature or an error.
 /// - Returns: A `PowerAuthOperationTask` associated with the running request,
-///   or `nil` if input validation fails.
+///            or `nil` if input validation fails.
 - (nullable id<PowerAuthOperationTask>) calculateDigitalSignature:(nonnull PowerAuthAuthentication*)authentication
                                                        dataToSign:(nullable NSData*)dataToSign
                                                     keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
@@ -816,7 +829,7 @@
 ///   - keyIdentifier: The identifier of the key used for signature calculation.
 ///   - callback: The callback invoked with the resulting signature or an error.
 /// - Returns: A `PowerAuthOperationTask` associated with the running request,
-///   or `nil` if input validation fails.
+///            or `nil` if input validation fails.
 - (nullable id<PowerAuthOperationTask>) calculateJwsSignature:(nonnull PowerAuthAuthentication*)authentication
                                                    dataToSign:(nullable NSData*)dataToSign
                                                      dataType:(nullable NSString*)dataType
@@ -829,7 +842,7 @@
 
 /**
  Sign given data with the original device private key (asymmetric signature).
-
+ 
  The method is deprecated, use `calculateDigitalSignature(authentication:forData:withKey:callback:)` as a replacement.
  
  @param authentication Authentication used for vault unlocking call.
@@ -845,7 +858,7 @@
 /**
  Sign provided claims with the original device private key (asymmetric signature).
  
- The method is deprecated, use `calculateJwsSignature(authentication:forData:compact:withKey:callback:)` as a replacement.
+ The method is deprecated, use `calculateJwsSignature(authentication:forData:dataType:compact:withKey:callback:)` as a replacement.
  
  @param authentication Authentication used for vault unlocking call.
  @param claims Claims to be signed with the private key.
@@ -858,6 +871,9 @@
                                                                 PA2_DEPRECATED(2.0.0);
 /**
  Validates whether the data has been signed with master server private key or personalized server's private key.
+ 
+ The method is deprecated, use `verifyDigitalSignature(signature:forData:withKey:)` as replacement.
+ 
  @param data An arbitrary data
  @param signature A signature calculated for data, in Base64 format
  @param masterKey If YES, then master server public key is used for validation, otherwise personalized server's public key.

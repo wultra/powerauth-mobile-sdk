@@ -87,20 +87,24 @@ ResponseObjectPtr VaultService::processVaultKeyResponse(Context &context, VaultK
     return response_object;
 }
 
-RequestPtr VaultService::fetchVaultEncryptionKey(const CredentialsPtr &credentials, VaultEncryptionKeyId key_id, cc7::U64 index) const
+RequestPtr VaultService::fetchVaultEncryptionKey(const CredentialsPtr &credentials, SecureVaultKeyId key_id, cc7::U64 index) const
 {
-    if (_protocol_version == Version_V3 && key_id != VaultEncryptionKeyId::LEGACY) {
-        throw Exception(EC_WrongParameter, "Only legacy vault encryption key is supported in protocol V3");
+    auto is_legacy = key_id == SecureVaultKeyId::LEGACY;
+    if (_protocol_version == Version_V3 && !is_legacy) {
+        throw Exception(EC_WrongParameter, "Only legacy secure vault key is supported in protocol V3");
+    }
+    if (_protocol_version == Version_V4 && is_legacy) {
+        throw Exception(EC_WrongParameter, "Legacy secure vault key is not supported in protocol V4");
     }
     VaultKeyType key_type;
     switch (key_id) {
-        case VaultEncryptionKeyId::ANY_2FA:
+        case SecureVaultKeyId::ANY_2FA:
             key_type = VaultKeyType::KDK_APP_VAULT_2FA;
             break;
-        case VaultEncryptionKeyId::KNOWLEDGE:
+        case SecureVaultKeyId::KNOWLEDGE:
             key_type = VaultKeyType::KDK_APP_VAULT_KNOWLEDGE;
             break;
-        case VaultEncryptionKeyId::LEGACY:
+        case SecureVaultKeyId::LEGACY:
             key_type = VaultKeyType::KEK_DEVICE_PRIVATE;
             break;
     }
@@ -111,30 +115,33 @@ RequestPtr VaultService::fetchVaultEncryptionKey(const CredentialsPtr &credentia
     });
 }
 
-cc7::ByteArray VaultService::deriveVaultEncryptionKey(const cc7::ByteRange& key, cc7::U64 index, VaultEncryptionKeyId key_id)
+cc7::ByteArray VaultService::deriveVaultEncryptionKey(const cc7::ByteRange& key, cc7::U64 index, cc7::U64 key_size, SecureVaultKeyId key_id)
 {
+    if (key_size < 16) {
+        throw Exception(EC_WrongParameter, "Key size is too short");
+    }
     std::string label;
     switch (key_id) {
-        case VaultEncryptionKeyId::ANY_2FA:   label = "app/kdf/2fa"; break;
-        case VaultEncryptionKeyId::KNOWLEDGE: label = "app/kdf/knowledge"; break;
-        case VaultEncryptionKeyId::LEGACY:
+        case SecureVaultKeyId::ANY_2FA:   label = "app/kdf/2fa"; break;
+        case SecureVaultKeyId::KNOWLEDGE: label = "app/kdf/knowledge"; break;
+        case SecureVaultKeyId::LEGACY:
             throw Exception(EC_WrongParameter, "Legacy key cannot be derived");
     }
     auto be_index = cc7::ToBigEndian(index);
-    return algorithms().v4.kdf().derive(key, label , cc7::MakeRange(be_index));
+    return algorithms().v4.kdf().derive(key, label, cc7::MakeRange(be_index), key_size);
 }
 
-ResponseObjectPtr VaultService::processVaultEncryptionKeyResponse(Context& context, ISecretKeys& secret_keys, VaultEncryptionKeyId key_id, cc7::U64 index) const
+ResponseObjectPtr VaultService::processVaultEncryptionKeyResponse(Context& context, ISecretKeys& secret_keys, SecureVaultKeyId key_id, cc7::U64 index) const
 {
     cc7::ByteArray vault_key;
     switch (key_id) {
-        case VaultEncryptionKeyId::ANY_2FA:
+        case SecureVaultKeyId::ANY_2FA:
             vault_key = secret_keys.kdkAppVault2FA();
             break;
-        case VaultEncryptionKeyId::KNOWLEDGE:
+        case SecureVaultKeyId::KNOWLEDGE:
             vault_key = secret_keys.kdkAppVaultKnowledge();
             break;
-        case VaultEncryptionKeyId::LEGACY:
+        case SecureVaultKeyId::LEGACY:
             // In V3 key provider, KEK_DEVICE_PRIVATE is equal to KEY_ENCRYPTION_VAULT
             vault_key = algorithms().v3.kdf().derive(secret_keys.kekDevicePrivate(), index);
             break;

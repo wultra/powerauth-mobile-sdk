@@ -152,15 +152,15 @@ typedef NS_ENUM(int, PowerAuthCoreSignatureKeyId) {
 
 /// The `PowerAuthCoreVaultEncryptionKeyId` enumeration defines the types of vault keys
 /// supported in the PowerAuth Mobile SDK.
-typedef NS_ENUM(int, PowerAuthCoreVaultEncryptionKeyId) {
+typedef NS_ENUM(int, PowerAuthCoreSecureVaultKeyId) {
     /// This type of vault key can be provided after successful 2FA authentication
     /// on the server.
-    PowerAuthCoreVaultEncryptionKeyId_2FA,
+    PowerAuthCoreSecureVaultKeyId_2FA = 1,
     /// This type of vault key can be provided after authentication with the user's password.
-    PowerAuthCoreVaultEncryptionKeyId_Knowledge,
+    PowerAuthCoreSecureVaultKeyId_Knowledge = 2,
     /// This is a legacy key available only when PowerAuthSDK is running on a legacy
     /// protocol. The key can be provided after authentication with the user's password.
-    PowerAuthCoreVaultEncryptionKeyId_Legacy,
+    PowerAuthCoreSecureVaultKeyId_Legacy = 3,
 };
 
 /// The `PowerAuthCoreEncryptorScope` enumeration defines how `PowerAuthCoreEncryptor` encryptor

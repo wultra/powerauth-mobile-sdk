@@ -21,19 +21,13 @@
 
 @class PowerAuthCoreHttpHeader;
 
-/**
- Class representing HTTP header generated in PowerAuth mobile SDK.
- */
+/// Class representing HTTP header generated in PowerAuth mobile SDK.
 @interface PowerAuthHttpHeader : NSObject
 
-/**
- HTTP header's name
- */
+/// HTTP header's name
 @property (nonatomic, strong, readonly, nonnull) NSString *key;
 
-/**
- HTTP header's value
- */
+/// HTTP header's value
 @property (nonatomic, strong, readonly, nonnull) NSString *value;
 
 /// Create header with content from the core header.

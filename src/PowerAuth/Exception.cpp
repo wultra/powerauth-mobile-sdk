@@ -17,6 +17,7 @@
 #include <PowerAuth/Exception.h>
 #include <cc7/crypto/CryptoException.h>
 #include <cc7/json/JsonException.h>
+#include <cc7/jwt/JwtException.h>
 
 namespace powerAuth {
 
@@ -41,6 +42,8 @@ std::string Exception::defaultMessage(ErrorCode error) noexcept
             return "Invalid response received";
         case EC_BiometryNotAllowed:
             return "Biometry not configured";
+        case EC_WrongSignature:
+            return "Invalid signature";
         case EC_NotAllowed:
             return "Operation is not allowed in object's state";
         case EC_TimeNotSynchronized:
@@ -64,6 +67,8 @@ static ErrorCode inspectErrorCode(std::exception_ptr e, bool& no_wrap_needed)
         return e.error();
     } catch (cc7::json::JsonException & e) {
         return EC_InvalidData;
+    } catch (cc7::jwt::JwtException & e) {
+        return EC_Cryptography;
     } catch (cc7::crypto::UnsupportedAlgorithm & e) {
         return EC_InternalError;
     } catch (cc7::crypto::InternalError & e) {

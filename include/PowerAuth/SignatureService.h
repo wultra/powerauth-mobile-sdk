@@ -83,7 +83,7 @@ public:
     ///   - signature: Signature calculated from signed data.
     ///   - key_to_use: Key used for signature verification. The key
     ///                 must support signature verification.
-    bool verifySignature(const cc7::ByteRange& signed_data,
+    void verifySignature(const cc7::ByteRange& signed_data,
                          const cc7::ByteRange& signature,
                          SignatureKeyId key_to_use) const;
     
@@ -106,8 +106,7 @@ public:
     ///                 must support the signature verification.
     ///   - is_compact_form: If `true`, the provided string is a JWT instead of a full JWS object.
     ///   - verify_mode: Specify signature verification mode.
-    /// - Returns: `true` if signature is valid.
-    bool jwsVerifySignature(const std::string &signed_data,
+    void jwsVerifySignature(const std::string &signed_data,
                             SignatureKeyId key_to_use,
                             bool is_compact_form,
                             cc7::jwt::JwsVerifyMode verify_mode) const;

@@ -596,7 +596,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 #pragma mark - Vault operations
 
 - (nullable PowerAuthCoreRequest*) fetchVaultEncryptionKey:(nonnull PowerAuthCoreCredentials*)credentials
-                                                     keyId:(PowerAuthCoreVaultEncryptionKeyId)keyId
+                                                     keyId:(PowerAuthCoreSecureVaultKeyId)keyId
                                                      index:(UInt64)index
                                                      error:(NSError *_Nullable*_Nullable)error
 {
@@ -604,7 +604,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
         return nil;
     }
     try {
-        auto request = _session->fetchVaultEncryptionKey(credentials.credentialsRef, static_cast<VaultEncryptionKeyId>(keyId), index);
+        auto request = _session->fetchVaultEncryptionKey(credentials.credentialsRef, static_cast<SecureVaultKeyId>(keyId), index);
         return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
             auto dataResponse = std::dynamic_pointer_cast<powerAuth::DataResponse>(response);
             if (!dataResponse) {
@@ -621,12 +621,13 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 }
 
 + (nullable PowerAuthCoreData*) deriveVaultEncryptionKey:(nonnull PowerAuthCoreData*)vaultKey
-                                                   keyId:(PowerAuthCoreVaultEncryptionKeyId)keyId
+                                                   keyId:(PowerAuthCoreSecureVaultKeyId)keyId
                                                    index:(UInt64)index
+                                                 keySize:(UInt64)keySize
                                                    error:(NSError *_Nullable*_Nullable)error
 {
     try {
-        auto derived = Session::deriveVaultEncryptionKey(vaultKey.byteArrayRef, index, static_cast<VaultEncryptionKeyId>(keyId));
+        auto derived = Session::deriveVaultEncryptionKey(vaultKey.byteArrayRef, index, keySize, static_cast<SecureVaultKeyId>(keyId));
         return [[PowerAuthCoreData alloc] initWithByteRange:derived];
     } catch (...) {
         if (error) {
@@ -670,9 +671,10 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
         return NO;
     }
     try {
-        return _session->verifySignature(cc7::objc::CopyFromNSData(data),
-                                         cc7::objc::CopyFromNSData(signature),
-                                         static_cast<SignatureKeyId>(keyId));
+        _session->verifySignature(cc7::objc::CopyFromNSData(data),
+                                  cc7::objc::CopyFromNSData(signature),
+                                  static_cast<SignatureKeyId>(keyId));
+        return YES;
     } catch (...) {
         if (error) {
             *error = BuildNSErrorFromException();
@@ -691,10 +693,11 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
         return NO;
     }
     try {
-        return _session->jwsVerifySignature(cc7::objc::CopyFromNSString(signedData),
-                                            static_cast<SignatureKeyId>(keyId),
-                                            compactForm,
-                                            strict);
+        _session->jwsVerifySignature(cc7::objc::CopyFromNSString(signedData),
+                                     static_cast<SignatureKeyId>(keyId),
+                                     compactForm,
+                                     strict);
+        return YES;
     } catch (...) {
         if (error) {
             *error = BuildNSErrorFromException();

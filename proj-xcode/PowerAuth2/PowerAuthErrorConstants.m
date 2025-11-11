@@ -87,8 +87,14 @@ NSError * PA2WrapError(NSError * error, NSError** out_error)
             case PowerAuthCoreError_BiometryNotAllowed:
                 errorCode = PowerAuthErrorCode_BiometryNotAvailable;
                 break;
+            case PowerAuthCoreError_WrongSignature:
+                errorCode = PowerAuthErrorCode_WrongSignature;
+                break;
             case PowerAuthCoreError_Canceled:
                 errorCode = PowerAuthErrorCode_OperationCancelled;
+                break;
+            case PowerAuthCoreError_TimeNotSynchronized:
+                errorCode = PowerAuthErrorCode_TimeSynchronization;
                 break;
             default:
                 errorCode = PowerAuthErrorCode_CoreError;

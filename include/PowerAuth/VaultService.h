@@ -68,15 +68,16 @@ public:
     ///   - key_id: Encryption key identifier.
     ///   - index: Derivation index for legacy key.
     /// - Returns: HTTP request object.
-    RequestPtr fetchVaultEncryptionKey(const CredentialsPtr& credentials, VaultEncryptionKeyId key_id, cc7::U64 index) const;
+    RequestPtr fetchVaultEncryptionKey(const CredentialsPtr& credentials, SecureVaultKeyId key_id, cc7::U64 index) const;
     
     /// Derive existing vault encryption key into another key.
     /// - Parameters:
     ///   - key: Key material to derive.
     ///   - index: Derivation index.
+    ///   - key_size: Size of derived key in bytes. Minimum is 16 bytes.
     ///   - key_id: Identifier of current vault key.
     /// - Returns: Derived key.
-    static cc7::ByteArray deriveVaultEncryptionKey(const cc7::ByteRange& key, cc7::U64 index, VaultEncryptionKeyId key_id);
+    static cc7::ByteArray deriveVaultEncryptionKey(const cc7::ByteRange& key, cc7::U64 index, cc7::U64 key_size, SecureVaultKeyId key_id);
     
     /// Create instance of service for given protocol version.
     /// - Parameters:
@@ -113,7 +114,7 @@ private:
     ///   - key_id: Vault key identifier.
     ///   - index: Derivation index for legacy key.
     /// - Returns: `DataResponse` object.
-    ResponseObjectPtr processVaultEncryptionKeyResponse(Context& context, ISecretKeys& secret_keys, VaultEncryptionKeyId key_id, cc7::U64 index) const;
+    ResponseObjectPtr processVaultEncryptionKeyResponse(Context& context, ISecretKeys& secret_keys, SecureVaultKeyId key_id, cc7::U64 index) const;
     
     const IKeyProviderPtr _key_provider;
     const ProtocolVersion _protocol_version;

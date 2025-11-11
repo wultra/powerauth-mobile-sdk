@@ -310,10 +310,10 @@
 		BFBFA7212E96674800907B39 /* PowerAuthSignatureTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = BFBFA71F2E96674800907B39 /* PowerAuthSignatureTypes.m */; };
 		BFBFA7222E96674800907B39 /* PowerAuthSignatureTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = BFBFA71E2E96674800907B39 /* PowerAuthSignatureTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFBFA7232E96674800907B39 /* PowerAuthSignatureTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = BFBFA71F2E96674800907B39 /* PowerAuthSignatureTypes.m */; };
-		BFBFA72D2E966C2300907B39 /* PowerAuthVaultEncryptionKey.m in Sources */ = {isa = PBXBuildFile; fileRef = BFBFA72B2E966C2300907B39 /* PowerAuthVaultEncryptionKey.m */; };
-		BFBFA72F2E966C2300907B39 /* PowerAuthVaultEncryptionKey.m in Sources */ = {isa = PBXBuildFile; fileRef = BFBFA72B2E966C2300907B39 /* PowerAuthVaultEncryptionKey.m */; };
-		BFBFA7362E96B3BD00907B39 /* PowerAuthVaultEncryptionKey.h in Headers */ = {isa = PBXBuildFile; fileRef = BFBFA7352E96B3BD00907B39 /* PowerAuthVaultEncryptionKey.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BFBFA7372E96B3BD00907B39 /* PowerAuthVaultEncryptionKey.h in Headers */ = {isa = PBXBuildFile; fileRef = BFBFA7352E96B3BD00907B39 /* PowerAuthVaultEncryptionKey.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFBFA72D2E966C2300907B39 /* PowerAuthSecureVaultKey.m in Sources */ = {isa = PBXBuildFile; fileRef = BFBFA72B2E966C2300907B39 /* PowerAuthSecureVaultKey.m */; };
+		BFBFA72F2E966C2300907B39 /* PowerAuthSecureVaultKey.m in Sources */ = {isa = PBXBuildFile; fileRef = BFBFA72B2E966C2300907B39 /* PowerAuthSecureVaultKey.m */; };
+		BFBFA7362E96B3BD00907B39 /* PowerAuthSecureVaultKey.h in Headers */ = {isa = PBXBuildFile; fileRef = BFBFA7352E96B3BD00907B39 /* PowerAuthSecureVaultKey.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFBFA7372E96B3BD00907B39 /* PowerAuthSecureVaultKey.h in Headers */ = {isa = PBXBuildFile; fileRef = BFBFA7352E96B3BD00907B39 /* PowerAuthSecureVaultKey.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFC1925827FAF28F001455C1 /* TestHostAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC1925727FAF28F001455C1 /* TestHostAppApp.swift */; };
 		BFC1925A27FAF28F001455C1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC1925927FAF28F001455C1 /* ContentView.swift */; };
 		BFC1925C27FAF292001455C1 /* Assets-iOS.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFC1925B27FAF292001455C1 /* Assets-iOS.xcassets */; };
@@ -658,8 +658,8 @@
 		BFBD685B2C5A457C007AE16F /* PA2KeystoreService.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2KeystoreService.m; sourceTree = "<group>"; };
 		BFBFA71E2E96674800907B39 /* PowerAuthSignatureTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthSignatureTypes.h; sourceTree = "<group>"; };
 		BFBFA71F2E96674800907B39 /* PowerAuthSignatureTypes.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSignatureTypes.m; sourceTree = "<group>"; };
-		BFBFA72B2E966C2300907B39 /* PowerAuthVaultEncryptionKey.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthVaultEncryptionKey.m; sourceTree = "<group>"; };
-		BFBFA7352E96B3BD00907B39 /* PowerAuthVaultEncryptionKey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthVaultEncryptionKey.h; sourceTree = "<group>"; };
+		BFBFA72B2E966C2300907B39 /* PowerAuthSecureVaultKey.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSecureVaultKey.m; sourceTree = "<group>"; };
+		BFBFA7352E96B3BD00907B39 /* PowerAuthSecureVaultKey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthSecureVaultKey.h; sourceTree = "<group>"; };
 		BFC1925527FAF28F001455C1 /* PowerAuth2TestsHostApp-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PowerAuth2TestsHostApp-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFC1925727FAF28F001455C1 /* TestHostAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHostAppApp.swift; sourceTree = "<group>"; };
 		BFC1925927FAF28F001455C1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -876,8 +876,8 @@
 				BF0899E02A97408500AF29E5 /* PowerAuthTimeSynchronizationService.h */,
 				BFDA50342A9799BD0091A2E2 /* PowerAuthServerStatus.h */,
 				BFDA50352A9799BD0091A2E2 /* PowerAuthServerStatus.m */,
-				BFBFA7352E96B3BD00907B39 /* PowerAuthVaultEncryptionKey.h */,
-				BFBFA72B2E966C2300907B39 /* PowerAuthVaultEncryptionKey.m */,
+				BFBFA7352E96B3BD00907B39 /* PowerAuthSecureVaultKey.h */,
+				BFBFA72B2E966C2300907B39 /* PowerAuthSecureVaultKey.m */,
 				BFBFA71E2E96674800907B39 /* PowerAuthSignatureTypes.h */,
 				BFBFA71F2E96674800907B39 /* PowerAuthSignatureTypes.m */,
 			);
@@ -1254,7 +1254,7 @@
 				BF5EB51224C85FE200F9DDB2 /* PowerAuthConfiguration.h in Headers */,
 				BF11504D2E184A5B008601DE /* PA2CoreHttpClient.h in Headers */,
 				BF062BEC2E6B2692001436AD /* PA2CoreTaskWrapper.h in Headers */,
-				BFBFA7362E96B3BD00907B39 /* PowerAuthVaultEncryptionKey.h in Headers */,
+				BFBFA7362E96B3BD00907B39 /* PowerAuthSecureVaultKey.h in Headers */,
 				BFFECF2A26385BC9001DA7A9 /* PowerAuthActivationCode+Private.h in Headers */,
 				BF28C1A929815D6900E2CD8E /* PowerAuthUserInfo.h in Headers */,
 				BF6B39EC27F312D100BDF579 /* PA2SharedMemory.h in Headers */,
@@ -1389,7 +1389,7 @@
 				BF28AA2027EB4E8A00FBFCEB /* PA2Result.h in Headers */,
 				BF8CF50A2032EB41002A6B6E /* PowerAuthSDK.h in Headers */,
 				BF8CF50B2032EB41002A6B6E /* PowerAuthRestApiError.h in Headers */,
-				BFBFA7372E96B3BD00907B39 /* PowerAuthVaultEncryptionKey.h in Headers */,
+				BFBFA7372E96B3BD00907B39 /* PowerAuthSecureVaultKey.h in Headers */,
 				BF8CF50D2032EB41002A6B6E /* PA2PrivateMacros.h in Headers */,
 				BFF6045B2D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.h in Headers */,
 			);
@@ -1802,7 +1802,7 @@
 				BF28AA1A27EB1EDE00FBFCEB /* PA2SessionDataProvider.m in Sources */,
 				BF28AA2F27ECA34900FBFCEB /* PowerAuthExternalPendingOperation.m in Sources */,
 				BF5EB4C824C85FE200F9DDB2 /* PowerAuthBasicHttpAuthenticationRequestInterceptor.m in Sources */,
-				BFBFA72F2E966C2300907B39 /* PowerAuthVaultEncryptionKey.m in Sources */,
+				BFBFA72F2E966C2300907B39 /* PowerAuthSecureVaultKey.m in Sources */,
 				BFF6045D2D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.m in Sources */,
 				BF5EB4C924C85FE200F9DDB2 /* PowerAuthConfiguration.m in Sources */,
 				BF5EB4CE24C85FE200F9DDB2 /* PowerAuthCustomHeaderRequestInterceptor.m in Sources */,
@@ -1893,7 +1893,7 @@
 				BF8CF4812032EB41002A6B6E /* PA2PrivateTokenKeychainStore.m in Sources */,
 				BF1ED0C52846274700D6B380 /* PA2CreateTokenTask.m in Sources */,
 				BF8CF4822032EB41002A6B6E /* PowerAuthClientSslNoValidationStrategy.m in Sources */,
-				BFBFA72D2E966C2300907B39 /* PowerAuthVaultEncryptionKey.m in Sources */,
+				BFBFA72D2E966C2300907B39 /* PowerAuthSecureVaultKey.m in Sources */,
 				BF4017F22636CBCB00C1E65C /* PA2WeakArray.m in Sources */,
 				BF8CF4842032EB41002A6B6E /* PowerAuthSystem.m in Sources */,
 				BF8CF4852032EB41002A6B6E /* PowerAuthSDK+WatchSupport.m in Sources */,

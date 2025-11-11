@@ -59,6 +59,8 @@ NSError * BuildNSErrorFromException(std::exception_ptr ptr)
     NSMutableArray * additional = [NSMutableArray array];
     powerAuth::ErrorCode error_code = powerAuth::EC_Other;
     
+    ptr = Exception::wrapException();
+    
     // Iterate over exception chain and extract debug information
     while (ptr != nullptr) {
         std::string cpp_message;

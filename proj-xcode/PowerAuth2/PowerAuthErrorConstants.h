@@ -158,6 +158,10 @@ typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
      Other, unspecified error.
      */
     PowerAuthErrorCode_Other                        = 22,
+    /**
+     Digital or JWS signature is not valid.
+     */
+    PowerAuthErrorCode_WrongSignature               = 23
 };
 
 @interface NSError (PowerAuthErrorCode)

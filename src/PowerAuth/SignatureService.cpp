@@ -69,7 +69,7 @@ SignatureService::SignatureService(const ContextPtr& context) :
 
 // MARK: Classic Signatures
 
-bool SignatureService::verifySignature(const cc7::ByteRange &signed_data, const cc7::ByteRange &signature, SignatureKeyId key_to_use) const
+void SignatureService::verifySignature(const cc7::ByteRange &signed_data, const cc7::ByteRange &signature, SignatureKeyId key_to_use) const
 {
     LOCK_GUARD();
     auto context = lockContext();
@@ -79,15 +79,22 @@ bool SignatureService::verifySignature(const cc7::ByteRange &signed_data, const 
         // Symmetric key
         auto mac_key = calculateSymmetricKey(*context);
         const auto& kmac = algorithms().v4.kmac256();
-        return kmac.verifyToken(mac_key, signed_data, signature, {
+        auto result = kmac.verifyToken(mac_key, signed_data, signature, {
             { cc7::crypto::MAC_PARAM_CUSTOM_STRING, cc7::crypto::Parameter::ref("PA4MAC-QR") },
             { cc7::crypto::MAC_PARAM_DIGEST_LENGTH, cc7::crypto::Parameter::take((size_t)32) },
         });
+        if (!result) {
+            throw Exception(EC_WrongSignature, "Invalid MAC");
+        }
+    } else {
+        // DSA
+        auto key_with_verifier = populatePublicKeys(*context, spec, false).front();
+        auto verifier = cc7::crypto::Signature::getInstance(key_with_verifier.second);
+        auto result = verifier->verify(*key_with_verifier.first, signature, signed_data);
+        if (!result) {
+            throw Exception(EC_WrongSignature, "Invalid digital signature");
+        }
     }
-    // DSA
-    auto key_with_verifier = populatePublicKeys(*context, spec, false).front();
-    auto verifier = cc7::crypto::Signature::getInstance(key_with_verifier.second);
-    return verifier->verify(*key_with_verifier.first, signature, signed_data);
 }
 
 RequestPtr SignatureService::signData(const CredentialsPtr &credentials, const cc7::ByteRange &data_to_sign, SignatureKeyId key_to_use) const
@@ -118,7 +125,7 @@ ResponseObjectPtr SignatureService::doSignData(Context &context, const cc7::Byte
 
 // MARK: JWS
 
-bool SignatureService::jwsVerifySignature(const std::string &signed_data,
+void SignatureService::jwsVerifySignature(const std::string &signed_data,
                                           SignatureKeyId key_to_use,
                                           bool is_compact_form,
                                           cc7::jwt::JwsVerifyMode verify_mode) const
@@ -138,15 +145,19 @@ bool SignatureService::jwsVerifySignature(const std::string &signed_data,
             keys.push_back(cc7::jwt::JwsKey::publicKey(item.second, item.first));
         }
     }
+    bool in_verify = false;
     try {
         auto reader = is_compact_form
                             ? cc7::jwt::JwtReader::fromCompact(signed_data)
                             : cc7::jwt::JwtReader::fromJsonString(signed_data);
+        in_verify = true;
         reader.verify(keys, verify_mode, *_jws_provider);
-        return true;
-    } catch (...) {
-        // TODO: log exception
-        return false;
+    } catch (cc7::jwt::JwtException & e) {
+        if (in_verify) {
+            throw Exception(EC_WrongSignature, e.cause());
+        } else {
+            throw Exception(EC_InvalidData, "Invalid input data", e.cause());
+        }
     }
 }
 

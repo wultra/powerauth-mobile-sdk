@@ -33,4 +33,11 @@
  */
 @property (nonatomic, assign, readonly) BOOL activationStatusFetchRequired;
 
+/**
+ Decimalized fingerprint calculated from device and server public keys.
+ The value is not present, if the protocol upgrade is not yet finished,
+ i.e. the `activationStatusFetchRequired`field is set to `YES`.
+ */
+@property (nonatomic, strong, readonly, nullable) NSString * activationFingerprint;
+
 @end

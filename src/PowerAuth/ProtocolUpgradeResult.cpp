@@ -18,24 +18,31 @@
 
 namespace powerAuth {
 
-ProtocolUpgradeResult::ProtocolUpgradeResult(bool is_pending_upgrade_confirm) :
-    _is_pending_upgrade_confirm(is_pending_upgrade_confirm)
+ProtocolUpgradeResult::ProtocolUpgradeResult(bool is_pending_upgrade_confirm,
+                                             const std::string& activation_fingerprint) :
+    _is_pending_upgrade_confirm(is_pending_upgrade_confirm),
+    _activation_fingerprint(activation_fingerprint)
 {
 }
 
 std::shared_ptr<ProtocolUpgradeResult> ProtocolUpgradeResult::UpgradeConfirmPending()
 {
-    return std::make_shared<ProtocolUpgradeResult>(true);
+    return std::make_shared<ProtocolUpgradeResult>(true, std::string());
 }
 
-std::shared_ptr<ProtocolUpgradeResult> ProtocolUpgradeResult::UpgradeConfirmed()
+std::shared_ptr<ProtocolUpgradeResult> ProtocolUpgradeResult::UpgradeConfirmed(const std::string& activation_fingerprint)
 {
-    return std::make_shared<ProtocolUpgradeResult>(false);
+    return std::make_shared<ProtocolUpgradeResult>(false, activation_fingerprint);
 }
 
 bool ProtocolUpgradeResult::isPendingUpgradeConfirm() const noexcept
 {
     return _is_pending_upgrade_confirm;
+}
+
+const std::string& ProtocolUpgradeResult::activationFingerprint() const noexcept
+{
+    return _activation_fingerprint;
 }
 
 } // namespace powerAuth

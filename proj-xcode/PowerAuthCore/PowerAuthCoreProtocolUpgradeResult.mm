@@ -24,6 +24,9 @@
     self = [super init];
     if (self) {
         _activationStatusFetchRequired = protocolUpgradeResult.isPendingUpgradeConfirm();
+        _activationFingerprint = protocolUpgradeResult.activationFingerprint().empty()
+            ? nil
+            : cc7::objc::CopyToNSString(protocolUpgradeResult.activationFingerprint());
     }
     return self;
 }

@@ -948,7 +948,8 @@ static PowerAuthSDK * s_inst;
                                                        callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
 {
     return [self startProtocolUpgradeWithCorePassword:[PowerAuthCorePassword passwordWithString:password]
-                                   withNewBiometryKek:newBiometryKek callback:callback];
+                                   withNewBiometryKek:newBiometryKek
+                                             callback:callback];
 }
 
 - (id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(PowerAuthCorePassword*)password

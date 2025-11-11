@@ -25,6 +25,7 @@
     self = [super init];
     if (self) {
         _activationStatusFetchRequired = result.activationStatusFetchRequired;
+        _activationFingerprint = result.activationFingerprint;
     }
     return self;
 }

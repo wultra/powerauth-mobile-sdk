@@ -30,8 +30,10 @@ public:
     /**
      * Constructs ProtocolUpgradeResult instance.
      * @param is_pending_upgrade_confirm True if the upgrade confirm is pending, false if confirmed.
+     * @param activation_fingerprint Upgraded activation fingerprint.
      */
-    ProtocolUpgradeResult(bool is_pending_upgrade_confirm);
+    ProtocolUpgradeResult(bool is_pending_upgrade_confirm,
+                          const std::string& activation_fingerprint);
     
     /**
      * Creates a `ProtocolUpgradeResult` indicating that the upgrade confirm is pending.
@@ -39,18 +41,23 @@ public:
     static std::shared_ptr<ProtocolUpgradeResult> UpgradeConfirmPending();
     /**
      * Creates a `ProtocolUpgradeResult` indicating that the upgrade has been confirmed.
+     * @param activation_fingerprint Upgraded activation fingerprint.
      */
-    static std::shared_ptr<ProtocolUpgradeResult> UpgradeConfirmed();
+    static std::shared_ptr<ProtocolUpgradeResult> UpgradeConfirmed(const std::string& activation_fingerprint);
     
     /**
      * True if the upgrade confirmation is pending, false otherwise.
      */
     bool isPendingUpgradeConfirm() const noexcept;
     
-private:
+    /**
+     * Get upgraded activation fingerprint.
+     */
+    const std::string& activationFingerprint() const noexcept;
     
-    // Indicates whether the protocol upgrade confirm is pending.
+private:
     const bool _is_pending_upgrade_confirm;
+    const std::string _activation_fingerprint;
     
 };
 

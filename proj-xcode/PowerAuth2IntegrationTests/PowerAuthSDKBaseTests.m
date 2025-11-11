@@ -2417,6 +2417,7 @@
     
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
     XCTAssertFalse(result.activationStatusFetchRequired);
+    XCTAssertNotNil(result.activationFingerprint);
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     
     [_helper cleanup];
@@ -2437,6 +2438,7 @@
     
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
     XCTAssertFalse(result.activationStatusFetchRequired);
+    XCTAssertNotNil(result.activationFingerprint);
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     
     [_helper cleanup];
@@ -2467,6 +2469,7 @@
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
     XCTAssertTrue(_sdk.hasBiometryFactor);
     XCTAssertFalse(result.activationStatusFetchRequired);
+    XCTAssertNotNil(result.activationFingerprint);
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
 
     // Check biometry factor KEK was upgraded.
@@ -2512,6 +2515,7 @@
     // Activation status is still active and upgrade is available.
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertTrue(status.isProtocolUpgradeAvailable);
     XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
     
     // Assert the old biometry factor key still works.
@@ -2554,6 +2558,7 @@
     // Activation status is still active and upgrade is available.
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertTrue(status.isProtocolUpgradeAvailable);
     XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
     
     // Assert the old biometry factor key still works.
@@ -2598,10 +2603,12 @@
     
     // Result of the protocol upgrade shows that activation status should be fetched.
     XCTAssertTrue(result.activationStatusFetchRequired);
+    XCTAssertNil(result.activationFingerprint);
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
 
     // The activation status shows upgrade is completed.
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertFalse(status.isProtocolUpgradeAvailable);
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     
@@ -2660,6 +2667,7 @@
     
     // Result of the protocol upgrade shows that activation status should be fetched.
     XCTAssertTrue(result.activationStatusFetchRequired);
+    XCTAssertNil(result.activationFingerprint);
     
     // Make the background confirm request fail too.
     [self simulateNetworkErrorOnSend:@"/pa/v4/upgrade/confirm"];
@@ -2708,6 +2716,7 @@
     
     // Result of the protocol upgrade shows that activation status should be fetched.
     XCTAssertTrue(result.activationStatusFetchRequired);
+    XCTAssertNil(result.activationFingerprint);
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
@@ -2735,6 +2744,7 @@
     // Protocol version is upgraded.
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
     XCTAssertFalse(result.activationStatusFetchRequired);
+    XCTAssertNotNil(result.activationFingerprint);
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     
     // Check biometry factor not set.

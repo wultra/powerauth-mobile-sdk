@@ -38,12 +38,12 @@ public:
     /**
      * Creates a `ProtocolUpgradeResult` indicating that the upgrade confirm is pending.
      */
-    static std::shared_ptr<ProtocolUpgradeResult> UpgradeConfirmPending();
+    static std::shared_ptr<ProtocolUpgradeResult> upgradeConfirmPending();
     /**
      * Creates a `ProtocolUpgradeResult` indicating that the upgrade has been confirmed.
      * @param activation_fingerprint Upgraded activation fingerprint.
      */
-    static std::shared_ptr<ProtocolUpgradeResult> UpgradeConfirmed(const std::string& activation_fingerprint);
+    static std::shared_ptr<ProtocolUpgradeResult> upgradeConfirmed(const std::string& activation_fingerprint);
     
     /**
      * True if the upgrade confirmation is pending, false otherwise.

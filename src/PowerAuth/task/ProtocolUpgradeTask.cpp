@@ -176,7 +176,7 @@ ProtocolUpgradeResultPtr ProtocolUpgradeTask::processResponseStartProtocolUpgrad
     current_context->destroyTargetAlgorithmContext();
     current_context->updateAfterProtocolVersionChange();
     
-    return ProtocolUpgradeResult::UpgradeConfirmPending();
+    return ProtocolUpgradeResult::upgradeConfirmPending();
 }
 
 void ProtocolUpgradeTask::confirmProtocolUpgrade()
@@ -187,7 +187,7 @@ void ProtocolUpgradeTask::confirmProtocolUpgrade()
     auto request = RequestBuilder(*context, v4::Endpoint_ProtocolUpgradeConfirm)
         .withResponseCallback([context](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
             auto activation_fingerprint = context->activationService().calculateActivationFingerprint();
-            return ProtocolUpgradeResult::UpgradeConfirmed(activation_fingerprint);
+            return ProtocolUpgradeResult::upgradeConfirmed(activation_fingerprint);
         })
         .withAuthentication(Credentials::possession())
         .build();

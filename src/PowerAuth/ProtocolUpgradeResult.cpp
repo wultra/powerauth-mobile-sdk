@@ -25,12 +25,12 @@ ProtocolUpgradeResult::ProtocolUpgradeResult(bool is_pending_upgrade_confirm,
 {
 }
 
-std::shared_ptr<ProtocolUpgradeResult> ProtocolUpgradeResult::UpgradeConfirmPending()
+std::shared_ptr<ProtocolUpgradeResult> ProtocolUpgradeResult::upgradeConfirmPending()
 {
     return std::make_shared<ProtocolUpgradeResult>(true, std::string());
 }
 
-std::shared_ptr<ProtocolUpgradeResult> ProtocolUpgradeResult::UpgradeConfirmed(const std::string& activation_fingerprint)
+std::shared_ptr<ProtocolUpgradeResult> ProtocolUpgradeResult::upgradeConfirmed(const std::string& activation_fingerprint)
 {
     return std::make_shared<ProtocolUpgradeResult>(false, activation_fingerprint);
 }

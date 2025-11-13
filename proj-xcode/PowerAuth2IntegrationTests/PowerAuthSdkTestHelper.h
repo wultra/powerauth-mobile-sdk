@@ -163,11 +163,11 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 /**
  Start the protocol upgrade task.
 
- @param newBiometryKek An optional biometry KEK to be used during for the upgrade.
+ @param customBiometryKek An optional biometry KEK to be used after the upgrade.
  @param shouldFinish Boolean flag indicating whether the call should finish successfully or not.
  @return Result of the protocol upgrade task if completed sucessully, nil on an error.
  */
-- (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)newBiometryKek
+- (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)customBiometryKek
                                                                  shouldFinish:(BOOL)shouldFinish;
 
 /**

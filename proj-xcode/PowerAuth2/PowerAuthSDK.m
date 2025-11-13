@@ -904,15 +904,15 @@ static PowerAuthSDK * s_inst;
 #pragma mark - Protocol upgrade
 
 - (id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(PowerAuthCorePassword*)password
-                                                 withNewBiometryKek:(PowerAuthCoreData*)newBiometryKek
+                                                  customBiometryKek:(PowerAuthCoreData*)customBiometryKek
                                                            callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
 {
     NSError* localError = nil;
     PowerAuthCoreData * biometryKek = nil;
     
     if (self.hasBiometryFactor) {
-        if (newBiometryKek) {
-            biometryKek = newBiometryKek;
+        if (customBiometryKek) {
+            biometryKek = customBiometryKek;
         } else {
             biometryKek = [_sessionInterface readTaskWithSession:^PowerAuthCoreData* _Nullable(PowerAuthCoreSession* session, NSError** error) {
                 return [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V4 error:error];
@@ -926,7 +926,7 @@ static PowerAuthSDK * s_inst;
     
     id<PowerAuthOperationTask> task = [_sessionInterface writeTaskWithSession:^PowerAuthCoreTask*(PowerAuthCoreSession * session, NSError ** error) {
             return [session startProtocolUpgradeWithPassword:password
-                                          withNewBiometryKek:biometryKek
+                                             withBiometryKek:biometryKek
                                                        error:error];
     } error:&localError];
     if (localError) {
@@ -944,11 +944,11 @@ static PowerAuthSDK * s_inst;
 }
 
 - (id<PowerAuthOperationTask>) startProtocolUpgradeWithPassword:(NSString*)password
-                                             withNewBiometryKek:(PowerAuthCoreData*)newBiometryKek
+                                              customBiometryKek:(PowerAuthCoreData*)customBiometryKek
                                                        callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
 {
     return [self startProtocolUpgradeWithCorePassword:[PowerAuthCorePassword passwordWithString:password]
-                                   withNewBiometryKek:newBiometryKek
+                                    customBiometryKek:customBiometryKek
                                              callback:callback];
 }
 
@@ -956,7 +956,7 @@ static PowerAuthSDK * s_inst;
                                                            callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
 {
     return [self startProtocolUpgradeWithCorePassword:password
-                                   withNewBiometryKek:nil
+                                    customBiometryKek:nil
                                              callback:callback];
 }
 
@@ -964,7 +964,7 @@ static PowerAuthSDK * s_inst;
                                                        callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
 {
     return [self startProtocolUpgradeWithCorePassword:[PowerAuthCorePassword passwordWithString:password]
-                                   withNewBiometryKek:nil
+                                    customBiometryKek:nil
                                              callback:callback];
 }
 

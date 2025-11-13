@@ -353,29 +353,29 @@
  Start the protocol upgrade process.
  
  @param password Required core password instance used to authenticate the protocol upgrade start.
- @param newBiometryKek Optional parameter. If a biometry factor is configured in the current protocol version
+ @param customBiometryKek Optional parameter. If a biometry factor is configured in the current protocol version
  and no new biometry KEK is provided, one will be automatically generated for the upgraded protocol.
  @param callback A callback called when the upgrade task finishes.
  @return Protocol upgrade task instance.
  */
 - (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(nonnull PowerAuthCorePassword*)password
-                                                          withNewBiometryKek:(nullable PowerAuthCoreData*)newBiometryKek
+                                                           customBiometryKek:(nullable PowerAuthCoreData*)customBiometryKek
                                                                     callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
-                            NS_SWIFT_NAME(startProtocolUpgrade(password:withNewBiometryKek:callback:));
+                            NS_SWIFT_NAME(startProtocolUpgrade(password:customBiometryKek:callback:));
 
 /**
  Start the protocol upgrade process.
  
  @param password Required password used to authenticate the protocol upgrade start.
- @param newBiometryKek Optional parameter. If a biometry factor is configured in the current protocol version
+ @param customBiometryKek Optional parameter. If a biometry factor is configured in the current protocol version
  and no new biometry KEK is provided, one will be automatically generated for the upgraded protocol.
  @param callback A callback called when the upgrade task finishes.
  @return Protocol upgrade task instance.
  */
 - (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithPassword:(nonnull NSString*)password
-                                                      withNewBiometryKek:(nullable PowerAuthCoreData*)newBiometryKek
+                                                       customBiometryKek:(nullable PowerAuthCoreData*)customBiometryKek
                                                                 callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
-                            NS_SWIFT_NAME(startProtocolUpgrade(password:withNewBiometryKek:callback:));
+                            NS_SWIFT_NAME(startProtocolUpgrade(password:customBiometryKek:callback:));
 
 /**
  Start the protocol upgrade process without specifying a new biometry KEK.

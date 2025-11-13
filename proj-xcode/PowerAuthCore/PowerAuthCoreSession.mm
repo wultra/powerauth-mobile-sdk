@@ -345,14 +345,14 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 }
 
 - (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePassword*)password
-                                              withNewBiometryKek:(nullable PowerAuthCoreData*)newBiometryKek
+                                                 withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
                                                error: (NSError*_Nullable*_Nullable)error;
 {
     if (![self requireWriteAccess:error]) {
         return nil;
     }
     try {
-        auto task = _session->startProtocolUpgrade(password ? password.passObjRef : nil, newBiometryKek ? newBiometryKek.byteArrayRef : cc7::ByteRange());
+        auto task = _session->startProtocolUpgrade(password ? password.passObjRef : nil, biometryKek ? biometryKek.byteArrayRef : cc7::ByteRange());
         return [[PowerAuthCoreTask alloc] initWithTask:task withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
             auto result = std::dynamic_pointer_cast<powerAuth::ProtocolUpgradeResult>(response);
             if (!result) {

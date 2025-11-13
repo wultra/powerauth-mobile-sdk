@@ -532,12 +532,12 @@ static NSString * PA_Ver_Current = @"4.0";
     return _sdk;
 }
 
-- (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)newBiometryKek
+- (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)customBiometryKek
                                       shouldFinish:(BOOL)shouldFinish
 {
     PowerAuthProtocolUpgradeResult * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         // Start protocol upgrade task.
-        id<PowerAuthOperationTask> task = [_sdk startProtocolUpgradeWithCorePassword:_currentActivation.credentials.password withNewBiometryKek:newBiometryKek callback:^(PowerAuthProtocolUpgradeResult * result, NSError *error) {
+        id<PowerAuthOperationTask> task = [_sdk startProtocolUpgradeWithCorePassword:_currentActivation.credentials.password customBiometryKek:customBiometryKek callback:^(PowerAuthProtocolUpgradeResult * result, NSError *error) {
             [waiting reportCompletion:result];
             shouldFinish ? XCTAssertNil(error) : XCTAssertNotNil(error);
         }];

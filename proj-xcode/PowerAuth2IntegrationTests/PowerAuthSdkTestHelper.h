@@ -92,6 +92,11 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
                                  keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
                                    clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration;
 
+/**
+ Re-instantiate PowerAuthSDK instance, while keeping configuration from current PowerAuthSDK.
+ */
+- (PowerAuthSDK*) reCreateSdkInstance;
+
 // Activation
 
 /**

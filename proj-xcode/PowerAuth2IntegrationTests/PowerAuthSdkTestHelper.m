@@ -576,6 +576,14 @@ static NSString * PA_Ver_Current = @"4.0";
     return _sdk;
 }
 
+- (PowerAuthSDK*) reCreateSdkInstance
+{
+    return [self reCreateSdkInstanceWithConfiguration:nil
+                               biometricConfiguration:nil
+                                keychainConfiguration:nil
+                                  clientConfiguration:nil];
+}
+
 /**
  Returns an activation status object. May return nil if status is not available yet, which is also valid operation.
  */

@@ -50,7 +50,7 @@ HttpHeader AuthenticationServiceV3::calculateOnlineAuthenticationHeader(const Cr
     }
     
     if (lockContext()->hasProtocolUpgradePending() && !auth_data.allowedInUpgrade) {
-        throw Exception(EC_WrongActivationState, "Authentication header calculation is not allowed during pending protocol upgrade");
+        throw Exception(EC_PendingProtocolUpgrade, "Authentication header calculation is not allowed during pending protocol upgrade");
     }
     
     auto nonce = cc7::crypto::GetRandomData(v3::ONLINE_AUTH_CODE_NONCE_LENGTH);
@@ -97,7 +97,7 @@ std::string AuthenticationServiceV3::calculateOfflineAuthenticationCode(const Cr
     }
     
     if (lockContext()->hasProtocolUpgradePending()) {
-        throw Exception(EC_WrongActivationState, "Offline authentication code calculation is not allowed during protocol upgrade");
+        throw Exception(EC_PendingProtocolUpgrade, "Offline authentication code calculation is not allowed during protocol upgrade");
     }
     
     auto normalized_data = common::NormalizeDataForAuthCodeCalculation("POST",

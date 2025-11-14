@@ -2653,6 +2653,16 @@
     // Check biometry factor not possible during upgrade.
     PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+    
+    // Authentication header calculation not allowed when protocol upgrade pending.
+    NSError * authCalcError;
+    [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:newBiometryAuth method:@"POST" uriId:@"/hello/there" body:randomData error:&authCalcError];
+    XCTAssertEqual(PowerAuthErrorCode_PendingProtocolUpgrade, authCalcError.powerAuthErrorCode);
+    // Same applies to offline.
+    [_sdk offlineAuthenticationCodeWithAuthentication:newBiometryAuth uriId:@"/hello/there" body:randomData nonce:@"trustmeitisarandomstring" callback:^(NSString * authenticationCode, NSError * error){
+        XCTAssertEqual(PowerAuthErrorCode_PendingProtocolUpgrade, error.powerAuthErrorCode);
+    }];
+    
     BOOL authenticationValid = [_helper validateAuthentication:newBiometryAuth
                                                           data:randomData
                                                         method:@"POST"

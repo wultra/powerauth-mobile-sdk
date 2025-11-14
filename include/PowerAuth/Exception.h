@@ -47,6 +47,8 @@ enum ErrorCode
     EC_Cryptography,
     /// Operation was canceled from elsewhere.
     EC_Canceled,
+    /// Operation is not available during the protocol upgrade.
+    EC_PendingProtocolUpgrade,
     /// Other, unspecified type of error.
     EC_Other
 };

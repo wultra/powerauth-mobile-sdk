@@ -17,6 +17,7 @@
 #pragma once
 
 #include <PowerAuth/Encryptor.h>
+#include <PowerAuth/SharedSecret.h>
 #include "../v4/HybridKeyPair.h"
 
 namespace powerAuth {

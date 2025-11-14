@@ -39,6 +39,7 @@ Algorithms::V4::Pointers Algorithms::V4::build()
     auto key_MLKEM_1024      = KeyPairFactory::getInstance("ML-KEM-1024");
     auto key_MLDSA_65        = KeyPairFactory::getInstance("ML-DSA-65");
     auto key_MLDSA_87        = KeyPairFactory::getInstance("ML-DSA-87");
+    auto key_DHKEM_P384      = KeyPairFactory::getInstance("DHKEM-P384-HKDF-SHA384");
     // Signature
     auto sign_ECDSA_SHA2_256 = Signature::getInstance("ECDSA-SHA-256");
     auto sign_ECDSA_SHA2_384 = Signature::getInstance("ECDSA-SHA-384");
@@ -48,8 +49,10 @@ Algorithms::V4::Pointers Algorithms::V4::build()
     // KeyEncapsulation
     auto kencap_MLKEM_768    = KeyEncapsulation::getInstance("ML-KEM-768");
     auto kencap_MLKEM_1024   = KeyEncapsulation::getInstance("ML-KEM-1024");
-    // KeyAgreement
-    auto kagree_ECDH_NULLKDF = KeyAgreement::getInstance("ECDH");
+    auto kencap_DHKEM_P384   = KeyEncapsulation::getInstance("DHKEM-P384-HKDF-SHA384");
+    kencap_DHKEM_P384->setParameter(KEY_ENCAPSULATION_PARAM_INFO1, Parameter::ref(MakeRange("DHKEM-P384")));
+    kencap_DHKEM_P384->setParameter(KEY_ENCAPSULATION_PARAM_INFO2, Parameter::ref(MakeRange("DHKEM-P384")));
+    
     // MessageDigest
     auto hash_SHA3_256       = MessageDigest::getInstance("SHA3-256");
     // MAC
@@ -76,6 +79,7 @@ Algorithms::V4::Pointers Algorithms::V4::build()
         key_P384,
         key_MLKEM_768,
         key_MLKEM_1024,
+        key_DHKEM_P384,
         key_MLDSA_65,
         key_MLDSA_87,
         // Signature
@@ -87,8 +91,7 @@ Algorithms::V4::Pointers Algorithms::V4::build()
         // KeyEncapsulation
         kencap_MLKEM_768,
         kencap_MLKEM_1024,
-        // KeyAgreement
-        kagree_ECDH_NULLKDF,
+        kencap_DHKEM_P384,
         // MessageDigest
         hash_SHA3_256,
         // MAC

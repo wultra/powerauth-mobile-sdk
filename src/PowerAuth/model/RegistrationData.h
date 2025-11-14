@@ -18,6 +18,7 @@
 
 #include <PowerAuth/Types.h>
 #include <PowerAuth/Encryptor.h>
+#include <PowerAuth/SharedSecret.h>
 #include "../v4/HybridKeyPair.h"
 
 namespace powerAuth {

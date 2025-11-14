@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <PowerAuth/SharedSecret.h>
+#include <PowerAuth/Types.h>
 #include <PowerAuth/Algorithms.h>
 
 namespace powerAuth {
@@ -35,16 +35,27 @@ public:
         LEGACY_P256 = 0,
         /// Protocol V4.0
         /// - Signatures: ECDSA with P384,
-        /// - SharedSecret: ECDHE with P384
+        /// - SharedSecret: DHKEM(P384, HKDF-SHA384)
         EC_P384,
         /// Protocol V4.0
         /// - Signatures: ECDSA with P384 + ML-DSA-65
-        /// - SharedSecret: ECDHE with P384 + ML-KEM-768
+        /// - SharedSecret: DHKEM(P384, HKDF-SHA384) + ML-KEM-768
         EC_P384_ML_L3,
         /// Protocol V4.0
         /// - Signatures: ECDSA with P384 + ML-DSA-87
-        /// - SharedSecret: ECDHE with P384 + ML-KEM-1024
+        /// - SharedSecret: DHKEM(P384, HKDF-SHA384) + ML-KEM-1024
         EC_P384_ML_L5,
+        
+        // Experimental (not exposed to ObjC / Java)
+        
+        /// Protocol V4.0
+        /// - Signatures: ML-DSA-65
+        /// - SharedSecret: ML-KEM-768
+        ML_L3,
+        /// Protocol V4.0
+        /// - Signatures: ML-DSA-87
+        /// - SharedSecret: ML-KEM-1024
+        ML_L5
     };
     
     /// Master key identifier used in binary configuration.
@@ -106,10 +117,6 @@ public:
 
     /// Get master key specifications for proper loading the key from the configuration.
     const MasterKeySpecPair& getMasterKeySpecs() const noexcept;
-
-    /// Returns shared secret algorithm for this specification. If this is legacy specification,
-    /// then throws exception.
-    SharedSecret::Algorithm sharedSecret() const;
     
     /// Get algorithm(s) for digital signature calculation or verification.
     const AlgorithmPair& getSignatureAlgorithms() const noexcept;
@@ -142,7 +149,6 @@ private:
     PowerAuthSpec(Algorithm algorithm,
                   ProtocolVersion version,
                   const std::string& name,
-                  SharedSecretSpecPtr sharedSecret,
                   MasterKeySpecPair key_specs,
                   AlgorithmPair signature_algorithms,
                   AlgorithmPair jws_algorithms,
@@ -151,7 +157,6 @@ private:
     Algorithm _algorithm;
     ProtocolVersion _protocol_version;
     std::string _name;
-    SharedSecretSpecPtr _shared_secret;
     MasterKeySpecPair _key_specs;
     AlgorithmPair _signature_algorithms;
     AlgorithmPair _jws_signature_algorithms;
@@ -161,6 +166,8 @@ private:
     static const PowerAuthSpec spec_EC_P384;
     static const PowerAuthSpec spec_EC_P384_ML_L3;
     static const PowerAuthSpec spec_EC_P384_ML_L5;
+    static const PowerAuthSpec spec_ML_L3;
+    static const PowerAuthSpec spec_ML_L5;
 };
 
 typedef PowerAuthSpec const * PowerAuthSpecPtr;

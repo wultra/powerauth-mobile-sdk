@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <PowerAuth/Types.h>
+#include <PowerAuth/PowerAuthSpec.h>
 #include <cc7/crypto/Crypto.h>
 #include <cc7/json/Json.h>
 
@@ -31,11 +31,8 @@ struct SharedSecretRequest
 {
     /// The selected algorithm.
     std::string algorithm;
-    /// ECDHE client public key in X9.63 format, encoded as Base64 string.
-    std::string ecdhe;
-    /// ML-KEM encapsulation key in SPKI format, encoded as Base64 string. The string is empty if
-    /// the selected algorithm doesn't use ML-KEM.
-    std::string mlkem;
+    /// List with encapsulated keys, in Base64 format.
+    std::vector<std::string> encapsulationKeys;
     
     /// Make JSON representation from the content of this structure.
     /// - Returns: JSON representation created from this structure.
@@ -50,11 +47,8 @@ struct SharedSecretRequest
 /// The `SharedSecretResponse` structure contains response data generated on the server side.
 struct SharedSecretResponse
 {
-    /// ECDHE server public key in X9.63 format, encoded as Base64 string.
-    std::string ecdhe;
-    /// ML-KEM wrapped key data, encoded as Base64 string. The string is empty if
-    /// the selected algorithm doesn't use ML-KEM.
-    std::string mlkem;
+    /// List with encapsulated keys, in Base64 format.
+    std::vector<std::string> encapsulatedKeys;
     
     /// Make JSON representation from the content of this structure.
     /// - Returns: JSON representation created from this structure.
@@ -71,6 +65,13 @@ struct SharedSecretResponse
 class ISharedSecret : public cc7::BaseObject
 {
 public:
+    /// Get implementation of `ISharedSecret` for the selected algorithm.
+    ///
+    /// - Parameter algorithm: Algorithm to select.
+    /// - Returns: Smart pointer to selected algorithm implementation.
+    /// - Throws: `std::logic_error` in case of algorithm enumeration is not supported.
+    static std::shared_ptr<ISharedSecret> getInstance(PowerAuthSpec::Algorithm algorithm);
+    
     /// Generate the request cryptogram on the client side. The returned pair contains the request object and the client's context
     /// required form the shared secret deduction once the response from the server is received.
     ///
@@ -153,77 +154,5 @@ public:
 };
 
 CC7_SHARED_PTR(ISharedSecret)
-
-class SharedSecret
-{
-public:
-    
-    // Disable construction of this class.
-    SharedSecret() = delete;
-    
-    /// The `Algorithm` enumeration class defines algorithms supported
-    /// by this version of PowerAuth library.
-    enum Algorithm
-    {
-        /// The shared secret is deduced with using ECDHE with P-384 curve.
-        /// This algorithm is not PQC ready.
-        ///
-        /// This algorithm is supported since PowerAuth protocol V4.0.
-        EC_P384 = 1,
-        /// The shared secret is deduced with using ECDHE with P-384 curve and ML-KEM-768.
-        /// This hybrid algorithm is PQC ready.
-        ///
-        /// This algorithm is supported since PowerAuth protocol V4.0.
-        EC_P384_ML_L3,
-        /// The shared secret is deduced with using ECDHE with P-384 curve and ML-KEM-1024.
-        /// This hybrid algorithm is PQC ready.
-        ///
-        /// This algorithm is supported since PowerAuth protocol V4.0.
-        EC_P384_ML_L5
-    };
-    
-    /// The `Specification` structure contains specification with various algorithm details
-    /// required internally the shared secret calculation.
-    struct Specification
-    {
-        /// Algorithm identifier.
-        const Algorithm identifier;
-        
-        /// Algorithm's name (e.g. string representation of `SharedSecretAlgorithm` enumeration cases.
-        const std::string algorithm;
-        
-        /// The derivation label used in final KDF.
-        const std::string derivationLabel;
-        
-        /// Numeric identifier of this algorithm.
-        cc7::byte numericIdentifier() const noexcept;
-    };
-    
-    // Static methods
-    
-    /// Get the shared secret specification for the selected algorithm.
-    /// - Parameter algorithm: Algorithm to select.
-    /// - Returns: Pointer to specification structure, or `nullptr` in case that enumeration contains invalid value.
-    static Specification const * const specForAlgorithm(Algorithm algorithm);
-    
-    /// Look up for the shared secret specification by the algorithm's name.
-    /// - Parameter algorithm: String representation of algorithm to look up.
-    /// - Returns: Pointer to specification structure, or `nullptr` in case that such algorithm is not supported.
-    static Specification const * const specForAlgorithm(const std::string & algorithm);
-    
-    /// Look up for the shared secret specification by the algorithm's numeric identifier.
-    /// - Parameter algorithm: Numeric representation of
-    /// - Returns: Pointer to specification structure, or `nullptr` in case that such algorithm is not supported.
-    static Specification const * const specForAlgorithmId(cc7::byte algorithm_id);
-    
-    /// Get implementation of `ISharedSecret` for the selected algorithm.
-    ///
-    /// - Parameter algorithm: Algorithm to select.
-    /// - Returns: Smart pointer to selected algorithm implementation.
-    /// - Throws: `std::logic_error` in case of algorithm enumeration is not supported.
-    static ISharedSecretPtr getInstance(Algorithm algorithm);
-};
-
-typedef SharedSecret::Specification const * const SharedSecretSpecPtr;
 
 } // namespace powerAuth

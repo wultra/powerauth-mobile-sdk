@@ -46,7 +46,12 @@
     if ([testName isEqualToString:@"testCustomOfflineAuthCode"]) {
         (*configuration).offlineAuthenticationCodeComponentLength = 4;
     }
-    (*configuration).algorithm = self.powerAuthAlgorithm;
+    
+    if ([testName hasPrefix:@"testProtocolUpgrade"]) {
+        (*configuration).algorithm = PowerAuthAlgorithm_LEGACY_P256;
+    } else {
+        (*configuration).algorithm = self.powerAuthAlgorithm;
+    }
 }
 
 - (PowerAuthAlgorithm) powerAuthAlgorithm

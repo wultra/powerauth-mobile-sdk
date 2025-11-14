@@ -99,24 +99,6 @@
                   Identifier = "BaseTests_V4_EC_P384/testProtocolUpgradeHybridL3WithBiometry">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384/testProtocolUpgrade_fetchStatusFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testProtocolUpgrade_newBiometryKekWithoutBiometryFactorSet">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testProtocolUpgrade_upgradeConfirmRequestAndStatusResponseFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testProtocolUpgrade_upgradeConfirmRequestFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testProtocolUpgrade_upgradeConfirmResponseFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testProtocolUpgrade_upgradeStartResponseFailure">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testProtocolUpgradeEc">
                </Test>
                <Test
@@ -126,24 +108,6 @@
                   Identifier = "BaseTests_V4_EC_P384_ML_L3/testProtocolUpgradeHybridL3WithBiometry">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testProtocolUpgrade_fetchStatusFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testProtocolUpgrade_newBiometryKekWithoutBiometryFactorSet">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testProtocolUpgrade_upgradeConfirmRequestAndStatusResponseFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testProtocolUpgrade_upgradeConfirmRequestFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testProtocolUpgrade_upgradeConfirmResponseFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testProtocolUpgrade_upgradeStartResponseFailure">
-               </Test>
-               <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L5/testProtocolUpgradeEc">
                </Test>
                <Test
@@ -151,24 +115,6 @@
                </Test>
                <Test
                   Identifier = "BaseTests_V4_EC_P384_ML_L5/testProtocolUpgradeHybridL3WithBiometry">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L5/testProtocolUpgrade_fetchStatusFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L5/testProtocolUpgrade_newBiometryKekWithoutBiometryFactorSet">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L5/testProtocolUpgrade_upgradeConfirmRequestAndStatusResponseFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L5/testProtocolUpgrade_upgradeConfirmRequestFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L5/testProtocolUpgrade_upgradeConfirmResponseFailure">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L5/testProtocolUpgrade_upgradeStartResponseFailure">
                </Test>
                <Test
                   Identifier = "PowerAuthConcurrencyTests">

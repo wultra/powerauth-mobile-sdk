@@ -495,10 +495,6 @@ static NSString * PA_Ver_Current = @"4.0";
     PowerAuthSdkActivation * activation = [self createActivation:NO];
     XCTAssertTrue(activation.success);
     
-    PowerAuthActivationStatus * status = [self fetchActivationStatus];
-    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
-    
     if (biometryKek) {
         XCTAssertFalse(_sdk.hasBiometryFactor);
         [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
@@ -525,9 +521,8 @@ static NSString * PA_Ver_Current = @"4.0";
     XCTAssertEqualObjects(activation.activationId, _sdk.activationIdentifier);
     XCTAssertTrue([self checkForCorePassword:activation.credentials.password]);
 
-    status = [self fetchActivationStatus];
+    PowerAuthActivationStatus * status = [self fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
-    XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
     
     return _sdk;
 }
@@ -543,11 +538,12 @@ static NSString * PA_Ver_Current = @"4.0";
         }];
         XCTAssertNotNil(task);
     }];
+    shouldFinish ? XCTAssertNotNil(result) : XCTAssertNil(result);
     
-    if (shouldFinish) {
-        XCTAssertNotNil(result);
+    if (_sdk.currentAlgorithm > PowerAuthAlgorithm_LEGACY_P256) {
+        _testServerApi.clientProtocolVersion = PATS_P40;
     }
-    
+
     return result;
 }
 
@@ -850,11 +846,6 @@ static NSString * PA_Ver_Current = @"4.0";
         }
     }
     return result;
-}
-
-- (BOOL) refreshTestServerApiConnection
-{
-    return [_testServerApi validateConnection];
 }
 
 #pragma mark - Tokens

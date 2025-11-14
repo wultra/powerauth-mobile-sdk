@@ -210,14 +210,6 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
                     online:(BOOL)online
                    cripple:(NSInteger)cripple;
 
-/**
- Verify connectivity with the Server API and update endpoint settings as needed.
- It is especially useful when a protocol upgrade has occurred during testing and a different API version should be used.
- 
- @return `YES` if the connection was successfully refreshed, or `NO` if the refresh failed.
- */
-- (BOOL) refreshTestServerApiConnection;
-
 // Utils
 
 /**

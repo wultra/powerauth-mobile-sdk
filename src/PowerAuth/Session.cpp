@@ -148,8 +148,10 @@ bool Session::hasValidActivationData() const noexcept
 bool Session::hasProtocolUpgradeAvailable() const noexcept
 {
     LOCK_GUARD();
-    auto& last_activation_status = _context->sessionData().getActivationStatusPtr();
-    return last_activation_status && last_activation_status->isProtocolUpgradeAvailable();
+    auto last_activation_status = _context->sessionData().getActivationStatusPtr();
+    return last_activation_status
+        && last_activation_status->isProtocolUpgradeAvailable()
+        && last_activation_status->isProtocolUpgradePossible(getProtocolVersion(), sessionData().getTargetSpecification()->protocolVersion());
 }
 
 bool Session::hasPendingProtocolUpgrade() const noexcept

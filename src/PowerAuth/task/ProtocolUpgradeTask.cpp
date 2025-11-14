@@ -204,13 +204,20 @@ void ProtocolUpgradeTask::fetchActivationStatus(RequestFlags flags)
 void ProtocolUpgradeTask::processActivationStatus(const ActivationStatus &status)
 {
     switch (_session_data->getCurrentProtocolVersion()) {
-        case Version_V3:
-            // SDK runs on V3, start the protocol upgrade, if available.
-            if (status.isProtocolUpgradeAvailable()) {
-                startProtocolUpgrade();
+        case Version_V3: {
+            // SDK runs on V3, start the protocol upgrade if possible.
+            if (!status.isProtocolUpgradeAvailable()) {
+                throw Exception(EC_NotAllowed, "Protocol upgrade is not available");
             }
+            
+            auto max_supported_version = _session_data->getTargetSpecification()->protocolVersion();
+            if (!status.isProtocolUpgradePossible(Version_V3, max_supported_version)) {
+                throw Exception(EC_NotAllowed, "Protocol upgrade is not possible with current configuration");
+            }
+            
+            startProtocolUpgrade();
             break;
-
+        }
         case Version_V4:
             // SDK runs on V4, confirm may still be necessary.
             if (status.protocolVersion() == Version_V4 && status.isPendingUpgradeConfirm()) {

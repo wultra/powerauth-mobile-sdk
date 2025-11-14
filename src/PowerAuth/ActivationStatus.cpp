@@ -40,8 +40,8 @@ ActivationStatus::ActivationStatus(ProtocolVersion version,
     _server_state(static_cast<ActivationStatus::ServerState>(data.state)),
     _fail_count(data.failCount),
     _max_fail_count(data.maxFailCount),
-    /// Compare with local version to reflect local state, instead server’s assumption during protocol upgrade.
-    _is_protocol_upgrade_available(version < data.upgradeVersion),
+    _upgrade_version(data.upgradeVersion),
+    _is_protocol_upgrade_available(data.currentVersion < data.upgradeVersion),
     _is_pending_activation_confirm(data.statusFlags & STATUS_FLAG_ACTIVATION_CONFIRM),
     _is_pending_upgrade_confirm(data.statusFlags & STATUS_FLAG_UPGRADE_CONFIRM),
     _custom_object(custom_object)
@@ -74,6 +74,12 @@ ActivationStatus::ServerState ActivationStatus::serverState() const noexcept
 bool ActivationStatus::isProtocolUpgradeAvailable() const noexcept
 {
     return _is_protocol_upgrade_available;
+}
+
+bool ActivationStatus::isProtocolUpgradePossible(ProtocolVersion current_version, ProtocolVersion max_supported_version) const noexcept
+{
+    return _upgrade_version > current_version
+        && _upgrade_version <= max_supported_version;
 }
 
 bool ActivationStatus::isPendingUpgradeConfirm() const noexcept

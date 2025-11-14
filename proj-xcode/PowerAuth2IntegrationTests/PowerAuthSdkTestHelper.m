@@ -486,25 +486,14 @@ static NSString * PA_Ver_Current = @"4.0";
 }
 
 - (PowerAuthSDK*) prepareActivationForUpgradeTest:(PowerAuthAlgorithm)targetAlgorithm
-                                 withBiometryKek:(PowerAuthCoreData*)biometryKek
+                                        withFlags:(TestActivationFlags)flags
 {
     /// Protocol upgrade not availbale before calling a fetch activation status.
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     
     /// Create activation
-    PowerAuthSdkActivation * activation = [self createActivation:NO];
+    PowerAuthSdkActivation * activation = [self createActivationWithFlags:flags activationOtp:nil];
     XCTAssertTrue(activation.success);
-    
-    if (biometryKek) {
-        XCTAssertFalse(_sdk.hasBiometryFactor);
-        [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-            [_sdk addBiometryFactorWithCorePassword:_currentActivation.credentials.password customBiometryKek:biometryKek callback:^(NSError * _Nullable error) {
-                XCTAssertNil(error);
-                [waiting reportCompletion:nil];
-            }];
-        }];
-    }
-    XCTAssertEqual(biometryKek != nil, _sdk.hasBiometryFactor);
     
     /// Extract Session Data
     NSData * sessionData = [self sessionCoreSerializedState];
@@ -523,6 +512,10 @@ static NSString * PA_Ver_Current = @"4.0";
 
     PowerAuthActivationStatus * status = [self fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    
+    if (flags & (TestActivationFlags_PersistWithFakeBiometry | TestActivationFlags_PersistWithBiometry)) {
+        XCTAssertTrue(_sdk.hasBiometryFactor);
+    }
     
     return _sdk;
 }

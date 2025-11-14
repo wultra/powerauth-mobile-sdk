@@ -159,11 +159,11 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
  and configures it to support an upgrade to the specified target algorithm.
  
  @param targetAlgorithm Algorithm to which the activation is expected to be upgraded.
- @param biometryKek Biometry KEK to set for the new activation. If `nil`, biometry factor is not set.
+ @param flags Test activation flags to create the activation with.
  @return A `PowerAuthSDK` instance with a activation preconfigured for a protocol upgrade scenario.
  */
 - (PowerAuthSDK*) prepareActivationForUpgradeTest:(PowerAuthAlgorithm)targetAlgorithm
-                                  withBiometryKek:(PowerAuthCoreData*)biometryKek;
+                                        withFlags:(TestActivationFlags)flags;
 
 /**
  Start the protocol upgrade task.

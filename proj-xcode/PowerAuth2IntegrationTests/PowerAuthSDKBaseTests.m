@@ -2411,7 +2411,7 @@
     //
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
     
-    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:nil];
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
     PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
     
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
@@ -2430,7 +2430,6 @@
 - (void) testProtocolUpgradeWithBiometry
 {
     CHECK_TEST_CONFIG();
-    CHECK_BIOMETRY();
     
     //
     // Test successful upgrade from V3 to V4 protocol.
@@ -2439,9 +2438,8 @@
     // the upgrade to longer biometry KEK.
     //
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
-    PowerAuthCoreData * oldBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:16];
     
-    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:oldBiometryKek];
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithFakeBiometry];
     XCTAssertTrue(_sdk.hasBiometryFactor);
 
     // Start protocol upgrade with custom new biometry KEK.
@@ -2458,9 +2456,9 @@
         XCTAssertNotNil(result.activationFingerprint);
         biometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
     } else {
-        biometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:oldBiometryKek customPossessionKey:nil];
+        biometryAuth = _helper.currentActivation.biometryCredentials;
     }
-
+    
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     BOOL authenticationValid = [_helper validateAuthentication:biometryAuth
                                                           data:randomData
@@ -2476,7 +2474,6 @@
 - (void) testProtocolUpgrade_fetchStatusFailure
 {
     CHECK_TEST_CONFIG();
-    CHECK_BIOMETRY();
     
     //
     // Test unsuccessful upgrade from V3 to V4 protocol. In this case
@@ -2486,12 +2483,11 @@
     //
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
     
-    PowerAuthCoreData * oldBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:16];
-    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:oldBiometryKek];
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithFakeBiometry];
     
     // Activation status fetch fails for this test.
     [self simulateNetworkErrorOnSend:@"/pa/v3/activation/status"];
-    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:FALSE];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:NO];
     
     // Assert protocol version did not change.
     XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
@@ -2504,7 +2500,7 @@
     XCTAssertEqual(_sdk.hasProtocolUpgradeAvailable, targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256);
     
     // Assert the old biometry factor key still works.
-    PowerAuthAuthentication * oldBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:oldBiometryKek customPossessionKey:nil];
+    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
                                                           data:randomData
@@ -2520,7 +2516,6 @@
 - (void) testProtocolUpgrade_upgradeStartResponseFailure
 {
     CHECK_TEST_CONFIG();
-    CHECK_BIOMETRY();
     
     //
     // Test unsuccessful upgrade from V3 to V4 protocol. In this case
@@ -2529,11 +2524,10 @@
     //
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
     
-    PowerAuthCoreData * oldBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:16];
-    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:oldBiometryKek];
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithFakeBiometry];
     
     [self simulateNextResponseFailure:@"/pa/v4/upgrade/start" statusCode:500];
-    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:FALSE];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:NO];
     
     // Protocol version did not change.
     XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
@@ -2546,7 +2540,7 @@
     XCTAssertEqual(_sdk.hasProtocolUpgradeAvailable, targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256);
     
     // Assert the old biometry factor key still works.
-    PowerAuthAuthentication * oldBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:oldBiometryKek customPossessionKey:nil];
+    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
                                                           data:randomData
@@ -2562,7 +2556,6 @@
 - (void) testProtocolUpgrade_upgradeConfirmResponseFailure
 {
     CHECK_TEST_CONFIG();
-    CHECK_BIOMETRY();
     
     //
     // Test successful upgrade from V3 to V4 protocol. In this case
@@ -2573,8 +2566,7 @@
     //
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
     
-    PowerAuthCoreData * oldBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:16];
-    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:oldBiometryKek];
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithFakeBiometry];
     
     // Simulate response failure of the upgrade confirm.
     [self simulateNextResponseFailure:@"/pa/v4/upgrade/confirm" statusCode:500];
@@ -2602,7 +2594,7 @@
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     
     // Check that the old biometry factor does not work anymore.
-    PowerAuthAuthentication * oldBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:oldBiometryKek customPossessionKey:nil];
+    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
                                                           data:randomData
@@ -2629,9 +2621,8 @@
     // required to confirm the protocol upgrade in the background.
     //
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
-    PowerAuthCoreData * oldBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:16];
     PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:32];
-    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:oldBiometryKek];
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithBiometry];
     
     // Set 3 failures in a row, as there are 3 confirm attempts in the task.
     [self simulateNetworkErrorOnSend:@"/pa/v4/upgrade/confirm" repeatCount:3];
@@ -2720,7 +2711,7 @@
     // the protocol upgrade in the background.
     //
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
-    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:nil];
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
     
     // Fail the upgrade confirm, and the following status to fail without trying more attempts.
     [self simulateNetworkErrorOnSend:@"/pa/v4/upgrade/confirm"];
@@ -2751,7 +2742,6 @@
 - (void) testProtocolUpgrade_newBiometryKekWithoutBiometryFactorSet
 {
     CHECK_TEST_CONFIG();
-    CHECK_BIOMETRY();
     
     //
     // Test successful upgrade from V3 to V4 protocol. In this case
@@ -2759,7 +2749,7 @@
     // even though the biometry factor is not set for the V3.
     //
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
-    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:nil];
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
     
     PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:32];
     PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
@@ -2805,7 +2795,7 @@
     }
     
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
-    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withBiometryKek:nil];
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
     
     PowerAuthProtocolUpgradeResult * result;
     PowerAuthActivationStatus * status;

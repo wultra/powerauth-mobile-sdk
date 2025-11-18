@@ -90,33 +90,6 @@
                   Identifier = "BaseTests_V3/testValidateSignature">
                </Test>
                <Test
-                  Identifier = "BaseTests_V4_EC_P384/testProtocolUpgradeEc">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testProtocolUpgradeHybridL3">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384/testProtocolUpgradeHybridL3WithBiometry">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testProtocolUpgradeEc">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testProtocolUpgradeHybridL3">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L3/testProtocolUpgradeHybridL3WithBiometry">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L5/testProtocolUpgradeEc">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L5/testProtocolUpgradeHybridL3">
-               </Test>
-               <Test
-                  Identifier = "BaseTests_V4_EC_P384_ML_L5/testProtocolUpgradeHybridL3WithBiometry">
-               </Test>
-               <Test
                   Identifier = "PowerAuthConcurrencyTests">
                </Test>
                <Test

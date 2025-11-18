@@ -674,9 +674,6 @@
 		BFAAC99E2E3F6E4800062165 /* CommonFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CommonFunctions.cpp; sourceTree = "<group>"; };
 		BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CRC16Tests.cpp; sourceTree = "<group>"; };
 		BFB47D3E20753444008A6A52 /* cc7.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cc7.xcodeproj; path = "../cc7/proj-xcode/cc7.xcodeproj"; sourceTree = "<group>"; };
-		BFB6E7612DD5C81800F18982 /* v4-aead.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "v4-aead.json"; sourceTree = "<group>"; };
-		BFB6E7622DD5C81800F18982 /* v4-kdf.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "v4-kdf.json"; sourceTree = "<group>"; };
-		BFB6E7632DD5C81800F18982 /* v4-pbkdf.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "v4-pbkdf.json"; sourceTree = "<group>"; };
 		BFB6E7642DD5CAC600F18982 /* PowerAuthKDFTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PowerAuthKDFTests.cpp; sourceTree = "<group>"; };
 		BFB6E76E2DD5ECF800F18982 /* PowerAuthAEADTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PowerAuthAEADTests.cpp; sourceTree = "<group>"; };
 		BFB6E7782DD7574600F18982 /* SharedSecretTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SharedSecretTests.cpp; sourceTree = "<group>"; };
@@ -701,6 +698,9 @@
 		BFCA38472E295176002F595F /* ActivationServiceV4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActivationServiceV4.h; sourceTree = "<group>"; };
 		BFCA38482E295176002F595F /* ActivationServiceV4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ActivationServiceV4.cpp; sourceTree = "<group>"; };
 		BFE55D472EC78B6700840EB2 /* SharedSecret_Client_Vectors.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SharedSecret_Client_Vectors.json; sourceTree = "<group>"; };
+		BFE55D4E2ECD27D200840EB2 /* aead-v4.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "aead-v4.json"; sourceTree = "<group>"; };
+		BFE55D4F2ECD27D200840EB2 /* kdf-v4.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "kdf-v4.json"; sourceTree = "<group>"; };
+		BFE55D502ECD27D200840EB2 /* pbkdf-v4.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pbkdf-v4.json"; sourceTree = "<group>"; };
 		BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ByteUtils.cpp; sourceTree = "<group>"; };
 		BFEEEBE02A3ADEA7007C6737 /* ByteUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ByteUtils.h; sourceTree = "<group>"; };
 		BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ByteUtilsTests.cpp; sourceTree = "<group>"; };
@@ -1070,9 +1070,9 @@
 				BF4D86912DFDC9F100D32F55 /* E2ee_Application_Scope_Test_Vectors_33.json */,
 				BF4D86902DFDC9F100D32F55 /* E2ee_Activation_Scope_Test_Vectors_40.json */,
 				BF4D86922DFDC9F100D32F55 /* E2ee_Application_Scope_Test_Vectors_40.json */,
-				BFB6E7622DD5C81800F18982 /* v4-kdf.json */,
-				BFB6E7632DD5C81800F18982 /* v4-pbkdf.json */,
-				BFB6E7612DD5C81800F18982 /* v4-aead.json */,
+				BFE55D4E2ECD27D200840EB2 /* aead-v4.json */,
+				BFE55D4F2ECD27D200840EB2 /* kdf-v4.json */,
+				BFE55D502ECD27D200840EB2 /* pbkdf-v4.json */,
 				BF99D8B62073E00D00735ED2 /* compute-derived-keys-v3.json */,
 				BF99D8B12073E00D00735ED2 /* compute-master-secret-key-v3.json */,
 				BF4D86112DEDCAD100D32F55 /* session-setup-v4.json */,

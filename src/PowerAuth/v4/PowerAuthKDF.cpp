@@ -15,6 +15,7 @@
  */
 
 #include "PowerAuthKDF.h"
+#include <PowerAuth/ByteUtils.h>
 
 using namespace cc7;
 using namespace cc7::crypto;
@@ -43,10 +44,10 @@ ByteArray PowerAuthKDF::derive(const ByteRange & key, const std::string & label,
 
 ByteArray PowerAuthKDF::deriveKeyBytes(const cc7::ByteRange &key_material, const cc7::crypto::ParameterList &parameters) const
 {
-    ByteRange key_context, diversifier;
+    ByteRange label, diversifier;
     size_t out_size = 0;
     auto ctx = parameters.beginParameterProcessing();
-    if (!parameters.getBytes(PARAM_KEY_CONTEXT, ctx, key_context)) {
+    if (!parameters.getBytes(PARAM_KEY_CONTEXT, ctx, label)) {
         throw std::invalid_argument("Missing PARAM_KEY_CONTEXT parameter");
     }
     if (!parameters.getSize(KDF_PARAM_KEY_SIZE, ctx, out_size)) {
@@ -55,22 +56,16 @@ ByteArray PowerAuthKDF::deriveKeyBytes(const cc7::ByteRange &key_material, const
     parameters.getBytes(KDF_PARAM_INFO, ctx, diversifier);
     parameters.endParameterProcessing(ctx);
     
-    if (key_context.empty()) {
+    if (label.empty()) {
         throw std::invalid_argument("Empty PARAM_KEY_CONTEXT parameter");
     }
     if (out_size == 0) {
         throw std::invalid_argument("Invalid KDF_PARAM_KEY_SIZE");
     }
-    ByteArray custom;
-    custom.reserve(ALG_NAME.size() + 1 + key_context.size());
-
-    custom.assign(MakeRange(ALG_NAME));
-    custom.append(':');
-    custom.append(key_context);
-    
-    return _kmac->token(key_material, diversifier, {
+    auto custom = utils::ByteUtils_ConcatWithSizes({ label, diversifier });    
+    return _kmac->token(key_material, custom, {
         { MAC_PARAM_DIGEST_LENGTH, Parameter::take(out_size) },
-        { MAC_PARAM_CUSTOM_DATA,   Parameter::ref(custom)    }
+        { MAC_PARAM_CUSTOM_STRING, Parameter::ref(ALG_NAME)  }
     });
 }
 

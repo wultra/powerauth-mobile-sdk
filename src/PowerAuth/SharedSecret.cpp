@@ -104,8 +104,9 @@ public:
                 Exception::reThrowWrapped(EC_Cryptography, "Failed to encapsulate key #" + std::to_string(i));
             }
         }
-        return std::make_pair(SharedSecretResponse { encapsulated_keys },
-                              calculateSharedSecret(secret_keys));
+        auto salt = GetRandomData(v4::SHARED_SECRET_SALT_SIZE);
+        return std::make_pair(SharedSecretResponse { salt.base64(), encapsulated_keys },
+                              calculateSharedSecret(secret_keys, salt));
     }
     
     cc7::ByteArray computeSharedSecret(const SharedSecretContextPtr &context, const SharedSecretResponse &response) const override
@@ -114,6 +115,10 @@ public:
         
         if (response.encapsulatedKeys.size() != _kems.size()) {
             throw Exception(EC_InvalidData, "Wrong number of encapsulated keys in response");
+        }
+        auto salt = Base64::decode(response.salt);
+        if (salt.size() != v4::SHARED_SECRET_SALT_SIZE) {
+            throw Exception(EC_InvalidData, "Wrong size of salt in response");
         }
         std::vector<SymmetricKeyPtr> secret_keys;
         secret_keys.reserve(_kems.size());
@@ -127,7 +132,7 @@ public:
                 Exception::reThrowWrapped(EC_Cryptography, "Failed to decapsulate key #" + std::to_string(i));
             }
         }
-        return calculateSharedSecret(secret_keys);
+        return calculateSharedSecret(secret_keys, salt);
     }
     
     cc7::ByteArray serializeContext(const SharedSecretContextPtr &context) const override
@@ -225,15 +230,30 @@ private:
         return *typed;
     }
     
-    ByteArray calculateSharedSecret(const std::vector<SymmetricKeyPtr>& secret_keys) const
+    ByteArray calculateSharedSecret(const std::vector<SymmetricKeyPtr>& secret_keys, const ByteRange& salt) const
     {
-        ByteArray concatenated;
-        concatenated.reserve(64 * secret_keys.size());
-        
+        ByteArray concatenated_secrets;
+        concatenated_secrets.reserve(64 * secret_keys.size());
         for (auto& key : secret_keys) {
-            concatenated.append(key->getKeyData());
+            const auto& key_data = key->getKeyData();
+            auto size = ToBigEndian(cc7::U32(key_data.size()));
+            concatenated_secrets.append(MakeRange(size));
+            concatenated_secrets.append(key_data);
         }
-        return algorithms().v4.kdf().derive(concatenated, "shared-secret/" + _algorithm, MakeRange(v4::PA_VERSION_STRING));
+        auto fixed_info = utils::ByteUtils_ConcatWithSizes({
+            "shared-secret/" + _algorithm,
+            v4::PA_VERSION_STRING
+        });
+        auto X = cc7::ConcatByteRanges({
+            MakeRange(ToBigEndian((U32)1)),
+            concatenated_secrets,
+            fixed_info
+        });
+        // KMAC-256(key: salt, message: X, size: 32, S: "KDF")
+        // - Note that size is already set in v4.kmac256() algorithm configuration.
+        return algorithms().v4.kmac256().token(salt, X, {
+            { crypto::MAC_PARAM_CUSTOM_STRING, crypto::Parameter::ref("KDF") }
+        });
     }
 };
 
@@ -266,7 +286,7 @@ ISharedSecretPtr ISharedSecret::getInstance(PowerAuthSpec::Algorithm algorithm)
                     { algs.key_MLKEM_1024,             algs.kencap_MLKEM_1024 }
                 });
             case PowerAuthSpec::LEGACY_P256:
-                throw Exception(EC_InternalError, "ISharedSecret interface not available");
+                throw Exception(EC_InternalError, "ISharedSecret is unavailable for LEGACY_P256");
                 
             default:
                 break;
@@ -307,6 +327,7 @@ cc7::json::JsonValue SharedSecretResponse::toJson() const
         keys.pushBack(json::JsonValue(keyData));
     }
     return json::JsonValue::object({
+        { "salt", json::JsonValue(salt) },
         { "encapsulatedKeys", keys }
     });
 }
@@ -314,10 +335,13 @@ cc7::json::JsonValue SharedSecretResponse::toJson() const
 SharedSecretResponse SharedSecretResponse::fromJson(const cc7::json::JsonValue& value)
 {
     std::vector<std::string> keys;
-    for (const auto& key : value.arrayAtPath("encapsulatedKeys")) {
+    for (const auto& key : value["encapsulatedKeys"].asArray()) {
         keys.push_back(key.asString());
     }
-    return { keys };
+    return {
+        value["salt"].asString(),
+        keys
+    };
 }
 
 } // powerAuth

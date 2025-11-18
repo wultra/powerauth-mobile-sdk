@@ -47,6 +47,9 @@ struct SharedSecretRequest
 /// The `SharedSecretResponse` structure contains response data generated on the server side.
 struct SharedSecretResponse
 {
+    /// Salt in Base64 format.
+    std::string salt;
+    
     /// List with encapsulated keys, in Base64 format.
     std::vector<std::string> encapsulatedKeys;
     

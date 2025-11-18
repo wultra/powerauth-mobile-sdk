@@ -76,9 +76,11 @@ public:
             // response
             auto server_res_json = server_response.toJson();
             ccstAssertEqual(server_res_json["encapsulatedKeys"].asArray()[0].asString(), server_response.encapsulatedKeys[0]);
-            ccstAssertEqual(1, server_res_json.asObject().size());
+            ccstAssertEqual(server_res_json["salt"].asString(), server_response.salt);
+            ccstAssertEqual(2, server_res_json.asObject().size());
             auto client_res_json = SharedSecretResponse::fromJson(server_res_json);
             ccstAssertEqual(server_response.encapsulatedKeys, client_res_json.encapsulatedKeys);
+            ccstAssertEqual(server_response.salt, client_res_json.salt);
         }
     }
             
@@ -121,9 +123,11 @@ public:
             auto server_res_json = server_response.toJson();
             ccstAssertEqual(server_res_json["encapsulatedKeys"].asArray()[0].asString(), server_response.encapsulatedKeys[0]);
             ccstAssertEqual(server_res_json["encapsulatedKeys"].asArray()[1].asString(), server_response.encapsulatedKeys[1]);
-            ccstAssertEqual(1, server_res_json.asObject().size());
+            ccstAssertEqual(server_res_json["salt"].asString(), server_response.salt);
+            ccstAssertEqual(2, server_res_json.asObject().size());
             auto client_res_json = SharedSecretResponse::fromJson(server_res_json);
             ccstAssertEqual(server_response.encapsulatedKeys, client_res_json.encapsulatedKeys);
+            ccstAssertEqual(server_response.salt, client_res_json.salt);
         }
     }
     
@@ -197,10 +201,6 @@ public:
         
         fprintf(stdout, "\n%s\n", out.c_str());
         fflush(stdout);
-    }
-    
-    void generateTestVectors()
-    {
     }
 };
 

@@ -63,7 +63,7 @@ public:
     {
         const auto& aead = algorithms().v4.aead();
         auto key = cc7::crypto::SymmetricKey::getInstance("AES-256");
-        auto root = JSON_ParseFile(g_pa2Files, "pa2/v4-aead.json");
+        auto root = JSON_ParseFile(g_pa2Files, "pa2/aead-v4.json");
         auto&& data = root.arrayAtPath("data");
         for (const auto & item : data) {
             auto key_data       = item.dataFromBase64StringAtPath("input.key");
@@ -71,7 +71,7 @@ public:
             auto nonce          = item.dataFromBase64StringAtPath("input.nonce");
             auto aad            = item.dataFromBase64StringAtPath("input.associatedData");
             auto expected_pt    = item.dataFromBase64StringAtPath("input.plaintext");
-            auto expected_ct    = item.dataFromBase64StringAtPath("output.ciphertext");
+            auto expected_ct    = item.dataFromBase64StringAtPath("output.pqcCiphertext");
             key->setKeyData(key_data);
             key->setKeyContext(key_ctx);
             

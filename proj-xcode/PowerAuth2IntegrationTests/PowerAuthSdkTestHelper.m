@@ -533,8 +533,22 @@ static NSString * PA_Ver_Current = @"4.0";
     }];
     shouldFinish ? XCTAssertNotNil(result) : XCTAssertNil(result);
     
-    if (_sdk.currentAlgorithm > PowerAuthAlgorithm_LEGACY_P256) {
+    if (shouldFinish && (_sdk.currentAlgorithm > PowerAuthAlgorithm_LEGACY_P256)) {
         _testServerApi.clientProtocolVersion = PATS_P40;
+        if (!result.activationStatusFetchRequired) {
+            // Upgrade finished completely...
+            // Fetch status from the server, whether the activation version has been upgraded and activation fingerprint match.
+            PATSActivationStatus * statusOnServer = [_testServerApi getActivationStatus:_sdk.activationIdentifier];
+            XCTAssertEqualObjects(_sdk.activationFingerprint, statusOnServer.devicePublicKeyFingerprint);
+            XCTAssertEqual(4, statusOnServer.protocolVersion);
+            // Validate password
+            BOOL valid = [self checkForCorePassword:self.authPossessionWithKnowledge.password];
+            XCTAssertTrue(valid);
+        } else {
+            // Confirm not completed, so password validation should fail
+            BOOL valid = [self checkForCorePassword:self.authPossessionWithKnowledge.password];
+            XCTAssertFalse(valid);
+        }
     }
 
     return result;

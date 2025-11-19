@@ -2549,7 +2549,13 @@
                                                         online:YES
                                                        cripple:0];
     XCTAssertTrue(authenticationValid);
-    
+
+    if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+        // try-again
+        result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:YES];
+        XCTAssertNotNil(result);
+    }
+        
     [_helper cleanup];
 }
 

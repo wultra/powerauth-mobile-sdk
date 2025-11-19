@@ -287,6 +287,7 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
             // to notify core layer about this failure.
             [self setCoreRequestFinished:coreRequest isFailed:YES urlTask:nil];
         }
+        PA2WrapError(localError, error);
         return nil;
     }
     NSData* requestBody = coreRequest.requestBody;

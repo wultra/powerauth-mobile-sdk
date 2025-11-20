@@ -413,7 +413,11 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
     NSString * signatureFormat = compact ? @"JWS_COMPACT" : @"JWS_JSON";
     NSArray * params = @[ activationId, dataB64, signatureFormat, signatureType ? signatureType : [NSNull null] ];
     NSDictionary * response = [_rest request:@"CreateJwtSignature" params:params];
-    return [response[@"signedData"] stringValue];
+    id signedData = response[@"signedData"];
+    if ([signedData isKindOfClass:[NSString class]]) {
+        return signedData;
+    }
+    return nil;
 }
 
 - (BOOL) verifyJwtSignature:(NSString*)activationId

@@ -31,8 +31,7 @@ namespace v4 {
 #define LOCK_GUARD() std::lock_guard<std::recursive_mutex> _lock_guard(*_lock)
 
 AuthenticationServiceV4::AuthenticationServiceV4(const ContextPtr& context) :
-    Service("AuthenticationServiceV4", context->getSharedMutexPtr()),
-    _weak_context(context),
+    ServiceWithContext("AuthenticationServiceV4", context, context->getSharedMutexPtr()),
     _configuration(context->getConfigurationPtr()),
     _session_data(context->getSessionDataPtr()),
     _key_provider(context->getKeyProviderPtr())
@@ -53,8 +52,8 @@ HttpHeader AuthenticationServiceV4::calculateOnlineAuthenticationHeader(const Cr
     if (is_pending_registration && !auth_data.allowedInPendingRegistration) {
         throw Exception(EC_WrongActivationState, "Authentication header calculation is not allowed during activation registration");
     }
-    if (_session_data->hasUpgradeData() && !auth_data.allowedInUpgrade) {
-        throw Exception(EC_WrongActivationState, "Authentication header calculation is not allowed during pending protocol upgrade");
+    if (lockContext()->hasProtocolUpgradePending() && !auth_data.allowedInUpgrade) {
+        throw Exception(EC_PendingProtocolUpgrade, "Authentication header calculation is not allowed during pending protocol upgrade");
     }
     auto nonce = GetRandomData(v4::ONLINE_AUTH_CODE_NONCE_LENGTH);
     AuthenticationHeaderData header_data {
@@ -105,8 +104,8 @@ std::string AuthenticationServiceV4::calculateOfflineAuthenticationCode(const Cr
     if (_session_data->hasRegistrationData()) {
         throw Exception(EC_WrongActivationState, "Offline authentication code calculation is not allowed during activation registration");
     }
-    if (_session_data->hasUpgradeData()) {
-        throw Exception(EC_WrongActivationState, "Offline authentication code calculation is not allowed during protocol upgrade");
+    if (lockContext()->hasProtocolUpgradePending()) {
+        throw Exception(EC_PendingProtocolUpgrade, "Offline authentication code calculation is not allowed during protocol upgrade");
     }
     auto normalized_data = common::NormalizeDataForAuthCodeCalculation("POST",
                                                                        auth_data.uriIdentifier,
@@ -128,13 +127,11 @@ std::string AuthenticationServiceV4::calculateOfflineAuthenticationCode(const Cr
 
 RequestPtr AuthenticationServiceV4::verifyCredentials(const CredentialsPtr& credentials, const cc7::json::JsonValue& body)
 {
-    if (auto context = _weak_context.lock()) {
-        return RequestBuilder(*context, v4::Endpoint_ValidateCredentials)
-            .withJson(body)
-            .withAuthentication(credentials)
-            .build();
-    }
-    throw Exception(EC_MissingActivation, "Session object is destroyed");
+    auto context = lockContext();
+    return RequestBuilder(*context, v4::Endpoint_ValidateCredentials)
+        .withJson(body)
+        .withAuthentication(credentials)
+        .build();
 }
 
 std::vector<ByteRange> AuthenticationServiceV4::prepareFactorKeys(ISecretKeys &secrets, AuthFactors factors)

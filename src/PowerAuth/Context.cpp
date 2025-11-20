@@ -263,9 +263,8 @@ Context::Context(const Context& primary_context) :
 
 std::shared_ptr<Context> Context::createTargetAlgorithmContext()
 {
-    auto spec = PowerAuthSpec::specForAlgorithm(_configuration->algorithm());
     _target_context = std::make_shared<Context>(*this);
-    _target_context->createServices(false, spec);
+    _target_context->createServices(false, _session_data->getTargetSpecification());
     return _target_context;
 }
 
@@ -358,6 +357,11 @@ void Context::updateAfterProtocolVersionChange()
 {
     destroyServices();
     createServices(false, _session_data->getCurrentSpecification());
+}
+
+bool Context::hasProtocolUpgradePending() const noexcept
+{
+    return _session_data->hasUpgradeData() || _session_data->hasUpgradePendingFlag();
 }
 
 } // namespace powerAuth

@@ -100,10 +100,13 @@ public:
     /// Contains information whether the protocol upgrade is available for activation.
     bool isProtocolUpgradeAvailable() const noexcept;
     
-    /// Contains information whether the protocol upgrade is possible. The information depends on
-    /// the maximum supported protocol version configured in the SDK.
-    /// - Parameter max_supported_version: Specify maximum supported version in this SDK.
-    bool isProtocolUpgradePossible(ProtocolVersion max_supported_version) const noexcept;
+    /// Determines whether a protocol upgrade is possible when compared against the current
+    /// protocol version and maximum supported protocol version configured in the SDK
+    /// - Parameters:
+    ///   - current_version: Current local version of this SDK.
+    ///   - max_supported_version: Specify maximum supported version in this SDK.
+    bool isProtocolUpgradePossible(ProtocolVersion current_version,
+                                   ProtocolVersion max_supported_version) const noexcept;
     
     /// Contains information whether the server expects protocol upgrade confirmation.
     bool isPendingUpgradeConfirm() const noexcept;
@@ -189,6 +192,7 @@ private:
     
     cc7::byte _fail_count;
     cc7::byte _max_fail_count;
+    cc7::byte _upgrade_version;
     bool _is_pending_activation_confirm;
     bool _is_pending_upgrade_confirm;
     bool _is_protocol_upgrade_available;

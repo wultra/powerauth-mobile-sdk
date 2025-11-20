@@ -25,6 +25,7 @@
 #import "PowerAuthAuthentication+Private.h"
 #import "PowerAuthUserInfo+Private.h"
 #import "PowerAuthActivationResult+Private.h"
+#import "PowerAuthProtocolUpgradeResult+Private.h"
 
 @import PowerAuthCore;
 

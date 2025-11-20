@@ -2400,4 +2400,488 @@
     [_helper cleanup];
 }
 
+#pragma mark - Tests of protocol upgrade V3 -> V4
+
+- (void) testProtocolUpgrade
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // Test successful upgrade from V3 to V4 protocol.
+    //
+    const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
+    
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
+    
+    XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
+    
+    if (self.powerAuthAlgorithm > PowerAuthAlgorithm_LEGACY_P256) {
+        XCTAssertFalse(result.activationStatusFetchRequired);
+        XCTAssertNotNil(result.activationFingerprint);
+    }
+    
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    
+    [_helper cleanup];
+}
+
+- (void) testProtocolUpgradeWithBiometry
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // Test successful upgrade from V3 to V4 protocol.
+    // In this case the activation has also biometry
+    // factor enabled and so the test also covers
+    // the upgrade to longer biometry KEK.
+    //
+    const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
+    
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithFakeBiometry];
+    XCTAssertTrue(_sdk.hasBiometryFactor);
+
+    // Start protocol upgrade with custom new biometry KEK.
+    PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:32];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
+    
+    XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertTrue(_sdk.hasBiometryFactor);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    
+    PowerAuthAuthentication * biometryAuth;
+    if (self.powerAuthAlgorithm > PowerAuthAlgorithm_LEGACY_P256) {
+        XCTAssertFalse(result.activationStatusFetchRequired);
+        XCTAssertNotNil(result.activationFingerprint);
+        biometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+    } else {
+        biometryAuth = _helper.currentActivation.biometryCredentials;
+    }
+    
+    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+    BOOL authenticationValid = [_helper validateAuthentication:biometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertTrue(authenticationValid);
+    
+    [_helper cleanup];
+}
+
+- (void) testProtocolUpgrade_fetchStatusFailure
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // Test unsuccessful upgrade from V3 to V4 protocol. In this case
+    // there is a simulated network error when fetching the activation
+    // status. Meaning the upgrade procedure cannot actually start.
+    // Upgrade task should fail, the system state must remain unchanged.
+    //
+    const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
+    
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithFakeBiometry];
+    
+    // Activation status fetch fails for this test.
+    [self simulateNetworkErrorOnSend:@"/pa/v3/activation/status"];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:NO];
+    
+    // Assert protocol version did not change.
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+    XCTAssertNil(result);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+
+    // Activation status is still active and upgrade is available.
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertEqual(_sdk.hasProtocolUpgradeAvailable, targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256);
+    
+    // Assert the old biometry factor key still works.
+    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
+    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+    BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertTrue(authenticationValid);
+    
+    [_helper cleanup];
+}
+
+- (void) testProtocolUpgrade_upgradeStartResponseFailure
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // Test unsuccessful upgrade from V3 to V4 protocol. In this case
+    // there is a simulated response failure when starting the upgrade.
+    // Upgrade task should fail, the system state must remain unchanged.
+    //
+    const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
+    
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithFakeBiometry];
+    
+    [self simulateNextResponseFailure:@"/pa/v4/upgrade/start" statusCode:500];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:NO];
+    
+    // Protocol version did not change.
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+    XCTAssertNil(result);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+
+    // Activation status is still active and upgrade is available.
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertEqual(_sdk.hasProtocolUpgradeAvailable, targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256);
+    
+    // Assert the old biometry factor key still works.
+    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
+    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+    BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertTrue(authenticationValid);
+
+    if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+        // try-again
+        result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:YES];
+        XCTAssertNotNil(result);
+    }
+        
+    [_helper cleanup];
+}
+
+- (void) testProtocolUpgrade_upgradeConfirmResponseFailure
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // Test successful upgrade from V3 to V4 protocol. In this case
+    // there is a simulated response failure when confirming the upgrade.
+    // Even though the upgrade confirm response was not received, server
+    // has processed the confirm request, and so the following activation
+    // status shows the upgrade is completed.
+    //
+    const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
+    
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithFakeBiometry];
+    
+    // Simulate response failure of the upgrade confirm.
+    [self simulateNextResponseFailure:@"/pa/v4/upgrade/confirm" statusCode:500];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
+    
+    if (self.powerAuthAlgorithm <= PowerAuthAlgorithm_LEGACY_P256) {
+        XCTAssertNil(result);
+        XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+        return;
+    }
+    
+    // Protocol version upgraded locally.
+    XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
+    // Upgrade is not confirmed, still in progress.
+    XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
+    
+    // Result of the protocol upgrade shows that activation status should be fetched.
+    XCTAssertTrue(result.activationStatusFetchRequired);
+    XCTAssertNil(result.activationFingerprint);
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+
+    // The activation status shows upgrade is completed.
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    
+    // Check that the old biometry factor does not work anymore.
+    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
+    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+    BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertFalse(authenticationValid);
+
+    [_helper cleanup];
+}
+
+- (void) testProtocolUpgrade_upgradeConfirmRequestFailure
+{
+    CHECK_TEST_CONFIG();
+    CHECK_BIOMETRY();
+    
+    //
+    // Test successful upgrade from V3 to V4 protocol. In this case
+    // there is a simulated network error 3 times in the row when
+    // sending the upgrade confirm request. Meaning that the task
+    // completes while the server still awaits the upgrade confirm.
+    // To finish the protocol upgrade, activation status fetch is
+    // required to confirm the protocol upgrade in the background.
+    //
+    const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
+    PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:32];
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithBiometry];
+    
+    // Set 3 failures in a row, as there are 3 confirm attempts in the task.
+    [self simulateNetworkErrorOnSend:@"/pa/v4/upgrade/confirm" repeatCount:3];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
+    
+    if (self.powerAuthAlgorithm <= PowerAuthAlgorithm_LEGACY_P256) {
+        XCTAssertNil(result);
+        XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+        return;
+    }
+    
+    // Protocol version is upgraded.
+    XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
+    
+    // Simulate application restart before testing authentication.
+    _sdk = [_helper reCreateSdkInstance];
+    
+    // Check biometry factor not possible during upgrade.
+    PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+    
+    // Authentication header calculation not allowed when protocol upgrade pending.
+    NSError * authCalcError;
+    [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:newBiometryAuth method:@"POST" uriId:@"/hello/there" body:randomData error:&authCalcError];
+    XCTAssertEqual(PowerAuthErrorCode_PendingProtocolUpgrade, authCalcError.powerAuthErrorCode);
+    // Same applies to offline.
+    [_sdk offlineAuthenticationCodeWithAuthentication:newBiometryAuth uriId:@"/hello/there" body:randomData nonce:@"trustmeitisarandomstring" callback:^(NSString * authenticationCode, NSError * error){
+        XCTAssertEqual(PowerAuthErrorCode_PendingProtocolUpgrade, error.powerAuthErrorCode);
+    }];
+    
+    BOOL authenticationValid = [_helper validateAuthentication:newBiometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertFalse(authenticationValid);
+    
+    // Result of the protocol upgrade shows that activation status should be fetched.
+    XCTAssertTrue(result.activationStatusFetchRequired);
+    XCTAssertNil(result.activationFingerprint);
+    
+    // Make the background confirm request fail too.
+    [self simulateNetworkErrorOnSend:@"/pa/v4/upgrade/confirm"];
+    NSError * error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status,NSError * error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    // Fetch failed, because the background confirm failed.
+    XCTAssertNotNil(error);
+    XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    
+    // Simulate application restart before testing authentication.
+    _sdk = [_helper reCreateSdkInstance];
+    authenticationValid = [_helper validateAuthentication:newBiometryAuth
+                                                     data:randomData
+                                                   method:@"POST"
+                                                    uriId:@"/hello/there"
+                                                   online:YES
+                                                  cripple:0];
+    XCTAssertTrue(authenticationValid);
+    
+
+    [_helper cleanup];
+}
+
+- (void) testProtocolUpgrade_upgradeConfirmRequestAndStatusResponseFailure
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // Test successful upgrade from V3 to V4 protocol. In this case
+    // there is a simulated network error when sending the upgrade
+    // confirm request followed by activation status response failure.
+    // Meaning that the task completes without multiple attempts, while
+    // the server still awaits the upgrade confirm. To finish the
+    // protocol upgrade, activation status fetch is required to confirm
+    // the protocol upgrade in the background.
+    //
+    const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
+    
+    // Fail the upgrade confirm, and the following status to fail without trying more attempts.
+    [self simulateNetworkErrorOnSend:@"/pa/v4/upgrade/confirm"];
+    [self simulateNextResponseFailure:@"/pa/v4/activation/status" statusCode:500];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
+    
+    if (self.powerAuthAlgorithm <= PowerAuthAlgorithm_LEGACY_P256) {
+        XCTAssertNil(result);
+        XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+        return;
+    }
+    
+    // Protocol version is upgraded.
+    XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
+    
+    // Result of the protocol upgrade shows that activation status should be fetched.
+    XCTAssertTrue(result.activationStatusFetchRequired);
+    XCTAssertNil(result.activationFingerprint);
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    
+    [_helper cleanup];
+}
+
+- (void) testProtocolUpgrade_newBiometryKekWithoutBiometryFactorSet
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // Test successful upgrade from V3 to V4 protocol. In this case
+    // a new biometry KEK is passed to the protocol upgrade task,
+    // even though the biometry factor is not set for the V3.
+    //
+    const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
+    
+    PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:32];
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
+    
+    if (self.powerAuthAlgorithm <= PowerAuthAlgorithm_LEGACY_P256) {
+        XCTAssertNil(result);
+        XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+        return;
+    }
+    
+    // Protocol version is upgraded.
+    XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertFalse(result.activationStatusFetchRequired);
+    XCTAssertNotNil(result.activationFingerprint);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    
+    // Check biometry factor not set.
+    XCTAssertFalse(_sdk.hasBiometryFactor);
+    PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+    BOOL authenticationValid = [_helper validateAuthentication:newBiometryAuth
+                                                          data:randomData
+                                                        method:@"POST"
+                                                         uriId:@"/hello/there"
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertFalse(authenticationValid);
+    
+    [_helper cleanup];
+}
+
+- (void) testProtocolUpgrade_withRestarts
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // Test upgrade from V3 to V4 protocol. In this case
+    // there are simulated errors and restarts of the application.
+    //
+    if (self.powerAuthAlgorithm <= PowerAuthAlgorithm_LEGACY_P256) {
+        PowerAuthLog(@"Test case '%@' is irrelevant for PowerAuthAlgorithm_LEGACY_P256", self);
+        return;
+    }
+    
+    const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
+    _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
+    
+    PowerAuthProtocolUpgradeResult * result;
+    PowerAuthActivationStatus * status;
+    
+    /// The upgrade start request fails, keeping the application state as it was
+    /// before the upgrade attempt. Even after restart of the application.
+    [self simulateNetworkErrorOnSend:@"/pa/v4/upgrade/start"];
+    result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:NO];
+    XCTAssertNil(result);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
+    _sdk = [_helper reCreateSdkInstance];
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    status = [_helper fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
+    
+    /// The upgrade start response fails, keeping the application state as it was
+    /// before the upgrade attempt. Even after restart of the application.
+    [self simulateNextResponseFailure:@"/pa/v4/upgrade/start" statusCode:500];
+    result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:NO];
+    XCTAssertNil(result);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
+    _sdk = [_helper reCreateSdkInstance];
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    status = [_helper fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertTrue(_sdk.hasProtocolUpgradeAvailable);
+
+    /// The upgrade has started, but confirm request fails and status cannot be fetched.
+    /// SDK protocol was upgraded locally, but the confirm is still pending. The pending
+    /// upgrade state should be preserved despite application restart.
+    [self simulateNetworkErrorOnSend:@"/pa/v4/upgrade/confirm"];
+    [self simulateNextResponseFailure:@"/pa/v4/activation/status" statusCode:500];
+    result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:YES];
+    XCTAssertNotNil(result);
+    XCTAssertTrue(result.activationStatusFetchRequired);
+    XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    _sdk = [_helper reCreateSdkInstance];
+    XCTAssertEqual(self.powerAuthAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    
+    /// After application restart, the status could not be fetched, meaning the upgrade
+    /// confirm cannot be requested. After another application restart, the protocol
+    /// upgrade process is still pending.
+    [self simulateNextResponseFailure:@"/pa/v4/activation/status" statusCode:500];
+    NSError * error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status,NSError * error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    XCTAssertNotNil(error);
+    XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    _sdk = [_helper reCreateSdkInstance];
+    XCTAssertEqual(self.powerAuthAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    
+    /// Activation status fetch is now success. After application restart
+    /// the protocol upgrade should be already confirmed.
+    [_helper fetchActivationStatus];
+    _sdk = [_helper reCreateSdkInstance];
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    
+    /// Final activation status fetch shows the protocol upgrade is completed.
+    status = [_helper fetchActivationStatus];
+    XCTAssertTrue(status.state == PowerAuthActivationState_Active);
+    XCTAssertEqual(self.powerAuthAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
+    XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
+    
+    [_helper cleanup];
+}
+
 @end

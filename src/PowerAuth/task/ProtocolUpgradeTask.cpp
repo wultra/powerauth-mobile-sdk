@@ -41,11 +41,11 @@ void ProtocolUpgradeTask::onRequestSuccess(const Request &request)
 {
     switch (request.getParentTaskTag()) {
         case START_UPGRADE:
-            processResponseStartProtocolUpgrade(request.getResponseJson());
             confirmProtocolUpgrade();
             break;
             
         case CONFIRM_UPGRADE:
+            _session_data->persistentData().v4().flags.pendingProtocolUpgrade = 0;
             break;
             
         case FETCH_ACTIVATION_STATUS:
@@ -99,8 +99,12 @@ void ProtocolUpgradeTask::startProtocolUpgrade()
     
     auto upgrade_context = current_context->createTargetAlgorithmContext();
     
+    auto self = std::dynamic_pointer_cast<ProtocolUpgradeTask>(Task::shared_from_this());
     auto request = RequestBuilder(*upgrade_context, v4::Endpoint_ProtocolUpgradeStart)
         .withJson(prepareRequestStartProtocolUpgrade(upgrade_context))
+        .withResponseCallback([self](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            return self->processResponseStartProtocolUpgrade(body);
+        })
         .withAuthenticator(current_context->getAuthenticationServicePtr())
         .withAuthentication(Credentials::knowledge(_password->passwordData()))
         .build();
@@ -127,7 +131,7 @@ cc7::json::JsonValue ProtocolUpgradeTask::prepareRequestStartProtocolUpgrade(con
     });
 }
 
-void ProtocolUpgradeTask::processResponseStartProtocolUpgrade(const cc7::json::JsonValue& response)
+ProtocolUpgradeResultPtr ProtocolUpgradeTask::processResponseStartProtocolUpgrade(const cc7::json::JsonValue& response)
 {
     LOCK_GUARD();
     auto current_context = lockContext();
@@ -152,17 +156,27 @@ void ProtocolUpgradeTask::processResponseStartProtocolUpgrade(const cc7::json::J
     ud.sharedSecretContext = nullptr;
     ud.sharedSecretAlgorithm = nullptr;
     
+    const auto credentials = _session_data->persistentData().hasBiometricFactorKey()
+        ? *InitialCredentials::credentials(_password->passwordData(), _new_biometry_kek)
+        : *InitialCredentials::credentials(_password->passwordData());
+    
     auto& keyProvider = upgrade_context->keyProvider();
-    auto secrets = keyProvider.unlockInitialSecretKeys(*InitialCredentials::credentials(_password->passwordData(), _new_biometry_kek), ud.calculatedSharedSecret);
+    auto secrets = keyProvider.unlockInitialSecretKeys(credentials, ud.calculatedSharedSecret);
     keyProvider.lockSecretKeys(secrets);
     
     if (!_session_data->hasPersistentData(Version_V4)) {
         throw Exception(EC_InternalError, "PersistentData V4 not created after lock");
     }
     
+    // V4 persistent data were created, set flag protocol upgrade still pending.
+    _session_data->persistentData().v4().flags.pendingProtocolUpgrade = 1;
+    
     // Switch primary context to V4
+    _session_data->resetUpgradeData();
     current_context->destroyTargetAlgorithmContext();
     current_context->updateAfterProtocolVersionChange();
+    
+    return ProtocolUpgradeResult::upgradeConfirmPending();
 }
 
 void ProtocolUpgradeTask::confirmProtocolUpgrade()
@@ -171,10 +185,14 @@ void ProtocolUpgradeTask::confirmProtocolUpgrade()
     auto context = lockContext();
     
     auto request = RequestBuilder(*context, v4::Endpoint_ProtocolUpgradeConfirm)
+        .withResponseCallback([context](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
+            auto activation_fingerprint = context->activationService().calculateActivationFingerprint();
+            return ProtocolUpgradeResult::upgradeConfirmed(activation_fingerprint);
+        })
         .withAuthentication(Credentials::possession())
         .build();
     
-    setNextRequest(request, CONFIRM_UPGRADE, RF_IGNORE_FAILURE);
+    setNextRequest(request, CONFIRM_UPGRADE, RF_PRIMARY | RF_IGNORE_FAILURE);
 }
 
 void ProtocolUpgradeTask::fetchActivationStatus(RequestFlags flags)
@@ -186,13 +204,20 @@ void ProtocolUpgradeTask::fetchActivationStatus(RequestFlags flags)
 void ProtocolUpgradeTask::processActivationStatus(const ActivationStatus &status)
 {
     switch (_session_data->getCurrentProtocolVersion()) {
-        case Version_V3:
-            // SDK runs on V3, start the protocol upgrade, if available.
-            if (status.isProtocolUpgradeAvailable()) {
-                startProtocolUpgrade();
+        case Version_V3: {
+            // SDK runs on V3, start the protocol upgrade if possible.
+            if (!status.isProtocolUpgradeAvailable()) {
+                throw Exception(EC_NotAllowed, "Protocol upgrade is not available");
             }
+            
+            auto max_supported_version = _session_data->getTargetSpecification()->protocolVersion();
+            if (!status.isProtocolUpgradePossible(Version_V3, max_supported_version)) {
+                throw Exception(EC_NotAllowed, "Protocol upgrade is not possible with current configuration");
+            }
+            
+            startProtocolUpgrade();
             break;
-
+        }
         case Version_V4:
             // SDK runs on V4, confirm may still be necessary.
             if (status.protocolVersion() == Version_V4 && status.isPendingUpgradeConfirm()) {

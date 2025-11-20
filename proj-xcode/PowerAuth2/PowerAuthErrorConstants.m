@@ -90,6 +90,9 @@ NSError * PA2WrapError(NSError * error, NSError** out_error)
             case PowerAuthCoreError_Canceled:
                 errorCode = PowerAuthErrorCode_OperationCancelled;
                 break;
+            case PowerAuthCoreError_PendingProtocolUpgrade:
+                errorCode = PowerAuthErrorCode_PendingProtocolUpgrade;
+                break;
             default:
                 errorCode = PowerAuthErrorCode_CoreError;
                 break;

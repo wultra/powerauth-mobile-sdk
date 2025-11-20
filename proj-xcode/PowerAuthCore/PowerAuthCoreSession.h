@@ -227,6 +227,19 @@
 /// - Returns: Core task for getting activation status.
 - (nullable PowerAuthCoreTask*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error;
 
+/// Start protocol upgrade procedure.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - password: User's password for protocol upgrade start authentication, if `nil` the task is only allowed to confirm the protocol upgrade.
+///   - biometryKek: Biometric factor KEK. Should be set if the session already have a biometry configured.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core task for protocol upgrade procedure.
+- (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePassword*)password
+                                                 withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
+                                               error: (NSError*_Nullable*_Nullable)error;
+
 /// Confirm activation and complete the activation process with user's password.
 ///
 /// This function changes the session's state, so write access must be guaranteed.

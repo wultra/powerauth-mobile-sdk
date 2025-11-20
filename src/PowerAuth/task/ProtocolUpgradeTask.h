@@ -17,6 +17,7 @@
 #pragma once
 
 #include <PowerAuth/Task.h>
+#include <PowerAuth/ProtocolUpgradeResult.h>
 #include "../Context.h"
 
 namespace powerAuth {
@@ -47,7 +48,7 @@ private:
     cc7::json::JsonValue prepareRequestStartProtocolUpgrade(const ContextPtr& upgrade_context);
     /// Process the start protocol upgrade response.
     /// On success, switch the protocol version to V4.
-    void processResponseStartProtocolUpgrade(const cc7::json::JsonValue& response);
+    ProtocolUpgradeResultPtr processResponseStartProtocolUpgrade(const cc7::json::JsonValue& response);
     
     /// Send the confirm protocol upgrade request to the server.
     void confirmProtocolUpgrade();

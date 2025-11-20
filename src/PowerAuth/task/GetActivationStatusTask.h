@@ -34,7 +34,8 @@ protected:
     enum RequestId
     {
         FETCH_STATUS = 1,
-        SYNC_COUNTER
+        SYNC_COUNTER,
+        PROTOCOL_UPGRADE_CONFIRM
     };
     
 private:
@@ -42,6 +43,9 @@ private:
     /// Process activation status received from the server.
     /// - Parameter status: Received status.
     void processActivationStatus(const ActivationStatus& status);
+    
+    /// Send protocol upgrade confirm request.
+    void confirmProtocolUpgrade();
     
     IActivationServicePtr _activation_service;
     IAuthenticationServicePtr _authentication_service;

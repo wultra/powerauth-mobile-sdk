@@ -31,11 +31,13 @@ typedef NS_ENUM(NSInteger, PowerAuthCoreError) {
     PowerAuthCoreError_WrongParameter,
     PowerAuthCoreError_BiometryNotAllowed,
     PowerAuthCoreError_NotAllowed,
+    PowerAuthCoreError_TimeNotSynchronized,
     PowerAuthCoreError_InvalidData,
     PowerAuthCoreError_InvalidResponse,
     PowerAuthCoreError_InternalError,
     PowerAuthCoreError_Cryptography,
     PowerAuthCoreError_Canceled,
+    PowerAuthCoreError_PendingProtocolUpgrade,
     PowerAuthCoreError_Other
 };
 

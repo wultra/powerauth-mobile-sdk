@@ -57,6 +57,16 @@
 ///                   test setup.
 - (void) simulateNetworkErrorOnSend:(NSString*)relativePath;
 
+/// Simulate multiple consecutive HTTP request failure on network error, before data is sent to server.
+/// - Parameters:
+///   - relativePath: Use `nil` or `"*"` to simulate failure for any next request.
+///                   If path starts with `"/pa"` then use the path as is. If not,
+///                   then function prepends the protocol version depending on the current
+///                   test setup.
+///   - count: Number of consecutive HTTP requests that should fail.
+- (void) simulateNetworkErrorOnSend:(NSString*)relativePath
+                        repeatCount:(NSInteger)count;
+
 /// Simulate the next HTTP request failure on network error, after data is successfully sent
 /// to the server.
 /// - Parameters:

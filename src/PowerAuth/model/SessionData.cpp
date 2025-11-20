@@ -79,6 +79,7 @@ void SessionData::setRegistrationData(RegistrationDataPtr &ptr)
 {
     _modified = _pd != nullptr;
     _rd = std::move(ptr);
+    _ud = nullptr;
     _pd = nullptr;
     _user_info = cc7::json::JsonValue();
 }
@@ -95,15 +96,29 @@ void SessionData::setPersistentData(PersistentDataPtr &ptr)
     _pd = std::move(ptr);
 }
 
+void SessionData::setUpgradeData(UpgradeDataPtr &ptr)
+{
+    _ud = std::move(ptr);
+}
+
 bool SessionData::hasPersistentData() const noexcept
 {
     return _pd != nullptr;
 }
 
+bool SessionData::hasPersistentData(ProtocolVersion version) const noexcept
+{
+    return _pd != nullptr && _pd->hasDataForVersion(version);
+}
+
 bool SessionData::hasUpgradeData() const noexcept
 {
-    // TODO: protocol upgrade
-    return false;
+    return _ud != nullptr;
+}
+
+bool SessionData::hasUpgradePendingFlag() const noexcept
+{
+    return hasPersistentData(Version_V4) && _pd->v4().flags.pendingProtocolUpgrade;
 }
 
 void SessionData::resetSessionData()
@@ -112,6 +127,13 @@ void SessionData::resetSessionData()
     _rd = nullptr;
     _pd = nullptr;
     _user_info = cc7::json::JsonValue();
+    _activation_status = nullptr;
+    _ud = nullptr;
+}
+
+void SessionData::resetUpgradeData()
+{
+    _ud = nullptr;
 }
 
 const RegistrationData& SessionData::registrationData() const
@@ -144,6 +166,22 @@ PersistentData& SessionData::persistentData()
         throw Exception(EC_InternalError, "PersistentData not available");
     }
     return *_pd;
+}
+
+const UpgradeData& SessionData::upgradeData() const
+{
+    if (!_ud) {
+        throw Exception(EC_InternalError, "UpgradeData not available");
+    }
+    return *_ud;
+}
+
+UpgradeData& SessionData::upgradeData()
+{
+    if (!_ud) {
+        throw Exception(EC_InternalError, "UpgradeData not available");
+    }
+    return *_ud;
 }
 
 // Serialization
@@ -197,6 +235,16 @@ const cc7::json::JsonValue& SessionData::getUserInfo() const
 void SessionData::setUserInfo(const cc7::json::JsonValue& userInfo)
 {
     _user_info = userInfo;
+}
+
+const ActivationStatusPtr& SessionData::getActivationStatusPtr() const noexcept
+{
+    return _activation_status;
+}
+
+void SessionData::setActivationStatus(ActivationStatusPtr& ptr)
+{
+    _activation_status = ptr;
 }
 
 } // namespace powerAuth

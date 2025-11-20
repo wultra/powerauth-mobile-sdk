@@ -53,7 +53,7 @@ cc7::ByteArray PowerAuthAEAD::seal(const cc7::ByteRange &key, const cc7::ByteRan
     if (!params.getBytes(PARAM_KEY_CONTEXT, param_ctx, key_context)) {
         throw std::invalid_argument("PARAM_KEY_CONTEXT is missing");
     }
-    if (params.getTypedObject<NonceGenerator>(AEAD_NONCE_GENERATOR, param_ctx, nonce_generator)) {
+    if (params.getTypedObject<NonceGenerator>(AEAD_PARAM_NONCE_GENERATOR, param_ctx, nonce_generator)) {
         nonce = nonce_generator->getNonce();
     }
     params.endParameterProcessing(param_ctx);

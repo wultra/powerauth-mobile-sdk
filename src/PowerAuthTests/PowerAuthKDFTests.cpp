@@ -40,7 +40,7 @@ public:
     void testKDF()
     {
         const auto& kdf = algorithms().v4.kdf();
-        auto root = JSON_ParseFile(g_pa2Files, "pa2/v4-kdf.json");
+        auto root = JSON_ParseFile(g_pa2Files, "pa2/kdf-v4.json");
         auto&& data = root.arrayAtPath("data");
         for (const auto & item : data) {
             auto key        = item.dataFromBase64StringAtPath("input.key");
@@ -56,7 +56,7 @@ public:
     void testPBKDF()
     {
         const auto& kdf = algorithms().v4.pbkdf();
-        auto root = JSON_ParseFile(g_pa2Files, "pa2/v4-pbkdf.json");
+        auto root = JSON_ParseFile(g_pa2Files, "pa2/pbkdf-v4.json");
         auto&& data = root.arrayAtPath("data");
         for (const auto & item : data) {
             auto key        = item.stringAtPath("input.password");

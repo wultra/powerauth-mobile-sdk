@@ -76,8 +76,6 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     
     /// Current pending status task.
     PA2GetActivationStatusTask * _getActivationStatusTask;
-    PowerAuthActivationStatus * _lastFetchedActivationStatus;
-    // Current pending system status task
 }
 
 #pragma mark - Private methods
@@ -877,9 +875,6 @@ static PowerAuthSDK * s_inst;
     // So, we can freely mutate objects in this instance.
     if (_getActivationStatusTask == task) {
         _getActivationStatusTask = nil;
-        if (status) {
-            _lastFetchedActivationStatus = status;
-        }
         // This is the reference to task which is going to finish its execution soon.
         // The ivar no longer holds the reference to the task, but we should keep that reference
         // for a little bit longer, to guarantee, that we don't destroy that object during its
@@ -895,10 +890,82 @@ static PowerAuthSDK * s_inst;
 
 - (PowerAuthActivationStatus*) lastFetchedActivationStatus
 {
-    [_lock lock];
-    PowerAuthActivationStatus * status = _lastFetchedActivationStatus;
-    [_lock unlock];
-    return status;
+    PowerAuthCoreActivationStatus * coreStatus = [_sessionInterface readTaskWithSession:^PowerAuthCoreActivationStatus*(PowerAuthCoreSession *session, NSError **error) {
+        return [session lastActivationStatus];
+    } error:nil];
+    
+    if (!coreStatus) {
+        return nil;
+    }
+    
+    return [[PowerAuthActivationStatus alloc] initWithCoreStatus:coreStatus];
+}
+
+#pragma mark - Protocol upgrade
+
+- (id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(PowerAuthCorePassword*)password
+                                                  customBiometryKek:(PowerAuthCoreData*)customBiometryKek
+                                                           callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
+{
+    NSError* localError = nil;
+    PowerAuthCoreData * biometryKek = nil;
+    
+    if (self.hasBiometryFactor) {
+        if (customBiometryKek) {
+            biometryKek = customBiometryKek;
+        } else {
+            biometryKek = [_sessionInterface readTaskWithSession:^PowerAuthCoreData* _Nullable(PowerAuthCoreSession* session, NSError** error) {
+                return [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V4 error:error];
+            } error:&localError];
+        }
+    }
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    
+    id<PowerAuthOperationTask> task = [_sessionInterface writeTaskWithSession:^PowerAuthCoreTask*(PowerAuthCoreSession * session, NSError ** error) {
+            return [session startProtocolUpgradeWithPassword:password
+                                             withBiometryKek:biometryKek
+                                                       error:error];
+    } error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    
+    return [_client postCoreTask:task completion:^(PowerAuthCoreTask * _Nonnull task, PowerAuthProtocolUpgradeResult *  _Nullable result, NSError * _Nullable error) {
+        if (!error && biometryKek) {
+            [_biometryOnlyKeychain updateValue:biometryKek.sensitiveData
+                                        forKey:_biometryKeyIdentifier];
+        }
+        callback(result, error);
+    }];
+}
+
+- (id<PowerAuthOperationTask>) startProtocolUpgradeWithPassword:(NSString*)password
+                                              customBiometryKek:(PowerAuthCoreData*)customBiometryKek
+                                                       callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
+{
+    return [self startProtocolUpgradeWithCorePassword:[PowerAuthCorePassword passwordWithString:password]
+                                    customBiometryKek:customBiometryKek
+                                             callback:callback];
+}
+
+- (id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(PowerAuthCorePassword*)password
+                                                           callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
+{
+    return [self startProtocolUpgradeWithCorePassword:password
+                                    customBiometryKek:nil
+                                             callback:callback];
+}
+
+- (id<PowerAuthOperationTask>) startProtocolUpgradeWithPassword:(NSString*)password
+                                                       callback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
+{
+    return [self startProtocolUpgradeWithCorePassword:[PowerAuthCorePassword passwordWithString:password]
+                                    customBiometryKek:nil
+                                             callback:callback];
 }
 
 #pragma mark Removing an activation
@@ -948,9 +1015,6 @@ static PowerAuthSDK * s_inst;
  */
 - (void) clearCachedData
 {
-    [_lock lock];
-    _lastFetchedActivationStatus = nil;
-    [_lock unlock];
 }
 
 #pragma mark - Authentication codes

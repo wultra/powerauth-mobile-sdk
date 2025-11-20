@@ -20,6 +20,7 @@
 #include <PowerAuth/Configuration.h>
 #include "PersistentData.h"
 #include "RegistrationData.h"
+#include "UpgradeData.h"
 
 namespace powerAuth {
 
@@ -55,11 +56,17 @@ public:
     /// Return `true` if session data contains persistent data (e.g. activation is created).
     bool hasPersistentData() const noexcept;
     
+    /// Return `true` if session data contains persistent data for the specified protocol version.
+    bool hasPersistentData(ProtocolVersion version) const noexcept;
+    
     /// Returns `true` if session data contains registration data (e.g. activation is in progress).
     bool hasRegistrationData() const noexcept;
     
     /// Returns `true` if session data contains upgrade data (e.g. activation upgrade is in progress).
     bool hasUpgradeData() const noexcept;
+    
+    /// Returns `true` if session data contains upgrade flag.
+    bool hasUpgradePendingFlag() const noexcept;
     
     /// Returns `true` if session data is modified and needs to be serialized.
     bool isModified() const noexcept;
@@ -81,8 +88,14 @@ public:
     /// - Parameter ptr: New persistent data.
     void setPersistentData(PersistentDataPtr& ptr);
     
+    /// Set new upgrade data.
+    void setUpgradeData(UpgradeDataPtr& ptr);
+    
     /// Reset session data and remove any instance of registration or persistent data.
     void resetSessionData();
+    
+    /// Reset upgrade data.
+    void resetUpgradeData();
     
     /// Get reference to registration data.
     /// - Returns: Reference to registration data.
@@ -104,6 +117,16 @@ public:
     /// - Throws: `Exception` with `EC_InternalError` if no persistent data is set in object.
     PersistentData& persistentData();
     
+    /// Get reference to upgrade data.
+    /// - Returns: Reference to upgrade data.
+    /// - Throws: `Exception` with `EC_InternalError` if no persistent data is set in object.
+    const UpgradeData& upgradeData() const;
+    
+    /// Get reference to upgrade data.
+    /// - Returns: Reference to upgrade data.
+    /// - Throws: `Exception` with `EC_InternalError` if no persistent data is set in object.
+    UpgradeData& upgradeData();
+    
     /// Serialize session data.
     /// - Returns: Array of bytes with serialized state of session data.
     /// - Throws: `Exception` with `EC_InternalError` if persistent data contains invalid values.
@@ -122,13 +145,24 @@ public:
     /// - Parameter userInfo: User Info claims.
     void setUserInfo(const cc7::json::JsonValue& userInfo);
     
+    /// Get activation status object pointer
+    /// - Returns: Activation status object pointer.
+    const ActivationStatusPtr& getActivationStatusPtr() const noexcept;
+    
+    /// Set activation status object.
+    /// - Parameter ptr: Pointer to activation status object.
+    void setActivationStatus(ActivationStatusPtr& ptr);
+    
 private:
     ConstPowerAuthSpecPtr _target_specification;
     RegistrationDataPtr _rd;
     PersistentDataPtr _pd;
+    UpgradeDataPtr _ud;
     bool _modified;
     
+    // Cached data
     cc7::json::JsonValue _user_info;
+    ActivationStatusPtr _activation_status;
 };
 
 CC7_SHARED_PTR(SessionData)

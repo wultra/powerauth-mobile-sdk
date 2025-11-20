@@ -92,6 +92,8 @@ public:
 protected:
     enum RequestFlags
     {
+        /// A request flag representing no flag is set.
+        RF_NONE                 = 0,
         /// If set, then the request is primary request. Task will keep its result
         /// object in case of success.
         RF_PRIMARY              = 1<<0,

@@ -34,7 +34,6 @@ KeyProviderV4::KeyProviderV4(const ContextPtr& context) :
     _sec_key_created(false),
     _sec_key_token(1)
 {
-    restoreSensitiveData();
 }
 
 IServicePtr KeyProviderV4::asService()
@@ -59,7 +58,7 @@ void KeyProviderV4::clearSensitiveData()
 void KeyProviderV4::restoreSensitiveData()
 {
     Service::restoreSensitiveData();
-    if (_session_data->hasPersistentData()) {
+    if (_session_data->hasPersistentData(Version_V4)) {
         updateKeyLocalData(nullptr);
     }
 }
@@ -244,6 +243,15 @@ std::unique_ptr<SecretKeysV4> KeyProviderV4::createSecretKeys()
 }
 
 std::unique_ptr<PersistentData> KeyProviderV4::createPDFromSecretKeys(SecretKeysV4& secret_keys)
+{   
+    if (_session_data->hasUpgradeData()) {
+        return fromUpgradeData(secret_keys);
+    }
+    
+    return fromRegistrationData(secret_keys);
+}
+
+std::unique_ptr<PersistentData> KeyProviderV4::fromRegistrationData(SecretKeysV4& secret_keys)
 {
     auto spec = PowerAuthSpec::specForAlgorithm(_configuration->algorithm());
     const auto& rd = _session_data->registrationData().v4();
@@ -270,6 +278,39 @@ std::unique_ptr<PersistentData> KeyProviderV4::createPDFromSecretKeys(SecretKeys
     updateKeyLocalData(&secret_keys);
     pd->cServerPublicKey = encryptPublicKey(*rd.serverPublicKey, KC_SERVER_PUBLIC_KEY, rd.activationId);
     pd->cDevicePublicKey = encryptPublicKey(rd.deviceKeyPair->getPublicKey(), KC_DEVICE_PUBLIC_KEY, rd.activationId);
+    pd->cDevicePrivateKey = secret_keys.ckeyDevicePrivate();
+    
+    return PersistentData::create(pd);
+}
+
+std::unique_ptr<PersistentData> KeyProviderV4::fromUpgradeData(SecretKeysV4& secret_keys)
+{
+    auto spec = PowerAuthSpec::specForAlgorithm(_configuration->algorithm());
+    const auto& ud = _session_data->upgradeData().v4();
+    const auto& pd_v3 = _session_data->persistentData().v3();
+    
+    // create new V4 persistent data
+    auto pd = std::make_unique<PersistentData::V4>();
+    
+    pd->algorithmId = spec->algorithmId();
+    pd->activationId = pd_v3.activationId;
+    pd->authCodeCounterByte = pd_v3.authCodeCounterByte;
+    pd->authCodeCounterData = ud.authCodeCounterData;
+    pd->passwordSalt = secret_keys.getInputData(SecretKeysV4::IN_PASSWORD_SALT);
+    
+    // factor keys
+    pd->cPossessionKey = secret_keys.ckeyAuthenticationCodePossession();
+    pd->cKnowledgeKey = secret_keys.ckeyAuthenticationCodeKnowledge();
+    pd->cBiometryKey = secret_keys.ckeyAuthenticationCodeBiometry();
+    
+    // auxiliary keys
+    pd->cKdkUtility = secret_keys.ckdkUtility();
+    pd->cKdkEncryption = secret_keys.ckdkEncryption();
+
+    // public and private keys
+    updateKeyLocalData(&secret_keys);
+    pd->cServerPublicKey = encryptPublicKey(*ud.serverPublicKey, KC_SERVER_PUBLIC_KEY, pd_v3.activationId);
+    pd->cDevicePublicKey = encryptPublicKey(ud.deviceKeyPair->getPublicKey(), KC_DEVICE_PUBLIC_KEY, pd_v3.activationId);
     pd->cDevicePrivateKey = secret_keys.ckeyDevicePrivate();
     
     return PersistentData::create(pd);

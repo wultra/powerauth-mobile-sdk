@@ -116,6 +116,9 @@ const size_t TOKEN_SECRET_SIZE = 32;
 /// Size of calculated token digest.
 const size_t TOKEN_DIGEST_SIZE = 32;
 
+/// Size of salt in SharedSecretResponse object.
+const size_t SHARED_SECRET_SALT_SIZE = 32;
+
 } // namespace v4
 
 

@@ -52,7 +52,9 @@ typedef NS_ENUM(NSInteger, PowerAuthCoreError) {
     PowerAuthCoreError_Cryptography,
     /// Operation was canceled from elsewhere.
     PowerAuthCoreError_Canceled,
-    /// Other, unspecified type of error.
+    /// Operation is not allowed due to pending protocol upgrade. Try again later.
+    PowerAuthCoreError_PendingProtocolUpgrade,
+	/// Other, unspecified type of error.
     PowerAuthCoreError_Other
 };
 

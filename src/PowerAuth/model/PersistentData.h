@@ -108,6 +108,15 @@ public:
         cc7::ByteArray  cDevicePublicKey;
         /// Encrypted device's private key.
         cc7::ByteArray  cDevicePrivateKey;
+        
+        struct _Flags {
+            /// True if the session is currently in a protocol upgrade process.
+            cc7::U32 pendingProtocolUpgrade : 1;
+        };
+        union {
+            _Flags      flags;
+            cc7::U32    flagsU32;
+        };
     };
     
     /// Returns activation identifier.
@@ -121,6 +130,9 @@ public:
     
     /// Return information whether the structure has been modified.
     bool isModified() const noexcept;
+    
+    /// Return information whether Persistent Data for a specific version are available.
+    bool hasDataForVersion(ProtocolVersion version) const noexcept;
     
     V3& v3();
     const V3& v3() const;

@@ -282,7 +282,9 @@ ResponseObjectPtr ActivationServiceV4::processResponseActivationStatus(Context &
         local_state = ActivationState::Deadlock;
     }
     // Check counter synchronization
-    return std::make_shared<ActivationStatus>(Version_V4, local_state, counter_state, binary_data, custom_object);
+    auto activation_status = std::make_shared<ActivationStatus>(Version_V4, local_state, counter_state, binary_data, custom_object);
+    _session_data->setActivationStatus(activation_status);
+    return activation_status;
 }
 
 int ActivationServiceV4::calculateHashCounterDistance(cc7::ByteArray& local_ctr_data,

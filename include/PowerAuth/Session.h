@@ -138,6 +138,12 @@ public:
     /// Get information whether the session contains valid activation data.
     bool hasValidActivationData() const noexcept;
     
+    /// Get information whether the session has a protocol upgrade available.
+    bool hasProtocolUpgradeAvailable() const noexcept;
+    
+    /// Get information whether the session is currently in a protocol upgrade process.
+    bool hasPendingProtocolUpgrade() const noexcept;
+    
     /// Get activation identifier.
     /// - Returns: Activation identifier or empty string if there's no activation.
     std::string activationId() const noexcept;
@@ -153,6 +159,16 @@ public:
     /// - Throws:
     ///   - `Exception` in case of failure.
     TaskPtr fetchActivationStatus();
+    
+    /// Start upgrade from protocol V3 to V4.
+    ///
+    /// - Parameters:
+    ///   - password: Current password for authenticated request.
+    ///   - new_biometry_kek: New KEK protecting biometric factor in V4.
+    /// - Returns: Task that starts the protocol upgrade procedure.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    TaskPtr startProtocolUpgrade(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek = cc7::ByteRange());
     
     /// Remove activation status.
     ///
@@ -223,6 +239,11 @@ public:
     ///
     /// - Returns: Most recently fetched User Info.
     cc7::json::JsonValue lastUserInfo() const noexcept;
+    
+    /// Retrieve the most recently fetched Activation Status stored in the Session Data.
+    ///
+    /// - Returns: Most recently fetched Activation Status.
+    ActivationStatusPtr lastActivationStatus() const noexcept;
 
 private:
     

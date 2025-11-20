@@ -21,6 +21,7 @@
 #import <PowerAuthCore/PowerAuthCoreTimeService.h>
 #import <PowerAuthCore/PowerAuthCoreEncryptorFactory.h>
 #import <PowerAuthCore/PowerAuthCoreCredentials.h>
+#import <PowerAuthCore/PowerAuthCoreActivationStatus.h>
 
 
 /// The `PowerAuthCoreSessionDelegate` provide interface required for interaction
@@ -153,7 +154,14 @@
  This property accesses user info cached in the session, so read access must be guaranteed.
  */
 @property (nonatomic, strong, readonly, nullable) NSDictionary<NSString*, NSObject*>* lastUserInfo;
-
+/**
+ Contains last activation status received from the server.
+ This property provides the most recent activation status and does not trigger any server communication.
+ If no such information has been received yet, nil is returned.
+ 
+ This property accesses activation status cached in the session, so read access must be guaranteed.
+ */
+@property (nonatomic, strong, readonly, nullable) PowerAuthCoreActivationStatus * lastActivationStatus;
 
 #pragma mark - Serialization
 
@@ -218,6 +226,19 @@
 /// - Parameter error: Pointer where error is stored in case of failure.
 /// - Returns: Core task for getting activation status.
 - (nullable PowerAuthCoreTask*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error;
+
+/// Start protocol upgrade procedure.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - password: User's password for protocol upgrade start authentication, if `nil` the task is only allowed to confirm the protocol upgrade.
+///   - biometryKek: Biometric factor KEK. Should be set if the session already have a biometry configured.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core task for protocol upgrade procedure.
+- (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePassword*)password
+                                                 withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
+                                               error: (NSError*_Nullable*_Nullable)error;
 
 /// Confirm activation and complete the activation process with user's password.
 ///

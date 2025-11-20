@@ -1,0 +1,1004 @@
+{
+  "description" : "Test vectors for common KMAC-256 based KDF function used in protocol V4",
+  "data" : [ {
+    "input" : {
+      "custom" : "wh5ZpwIIFe8Wga/wrGUXrZRDYhmafFu6KwjR/Gij40RNwBkHSSG6h3D0jDRSM2tsRp7jRA9jB2FB8PjKg6/NuXTEjFZY00WCmu62ueJr/2M=",
+      "label" : "vault",
+      "outSize" : "64",
+      "key" : "g2qk3IWZ5sUe2eOc6pbBIA=="
+    },
+    "output" : {
+      "derivedKey" : "4cyg/jjeALIfURfEqJLOdxCfRtXhmuzy1HHo+Abbf7ytUCo0Nr1uIuVytJlWIYrK4NcNDcTwjLnih8RlxTPskg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "ydpGd8XNT86uJcshqOqVYfXQg88rMJkOv/o859Ue3crAkEOtZNK8X+Dv+xMWetDZlpTyQHlgAEAgDB2JysiC6kae7JZzdSc=",
+      "label" : "auth/knowledge",
+      "outSize" : "16",
+      "key" : "vUenaCBibHPSlY/GrECEpA=="
+    },
+    "output" : {
+      "derivedKey" : "t7sVbW/vQ58A0AT0//7wRg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "sxmDOVXmsfovovslNyI=",
+      "label" : "a#j9YewGmOwS+G",
+      "outSize" : "48",
+      "key" : "3Xr5OYa9B9/16BveGNeWVw=="
+    },
+    "output" : {
+      "derivedKey" : "zcXpOejd2p0JmM9si++p0TSSTEkZM4KOWi66S7aBAvoCAjc9/RyGfhB3Zx+ikWyw"
+    }
+  }, {
+    "input" : {
+      "custom" : "kwvErTN5Ep/62qzPfRQtMiPb3q4eKHOrLP/9K4lCpPnlwTN15T5LDdigNbGV2Tn528soAnA=",
+      "label" : "util/mac/ctr-data",
+      "outSize" : "64",
+      "key" : "l/ZLDq26tev/0GxRcaPMyBUdVrp3hK977TeZZ0pfFGnO0mIry/xbA3y8AFqqrQCf"
+    },
+    "output" : {
+      "derivedKey" : "IjKTBO4/68sLfR0BqRSAhGq7sIOMk2ABYOqCFhCtOwmjLM5YGHHARaeV1ASxn6b3c0cIQkNmvyEX6o7RCWi6xA=="
+    }
+  }, {
+    "input" : {
+      "custom" : "V7DuiHBhz6BmbJb+p0++maXg5JBWK7JDZH/s8y+Tt2dTOGnprU9MWJ4764FFTOs9uGAM/Br/g26HNsVkHubS2KXdxqrvF0q18uz41Ff6",
+      "label" : "w (wgwHtt'mux8wJde-C",
+      "outSize" : "16",
+      "key" : "fHCBR4tVqIK2g9vUvdH13atiPNXcFnM3eNOhUb3eiGSGa86Zh4qZc8JFDUb9Job4+uAs7I/46+O7IuElsAgw/g=="
+    },
+    "output" : {
+      "derivedKey" : "ExMX9nfzTVyVZZgSlRzQKw=="
+    }
+  }, {
+    "input" : {
+      "custom" : "wRCgZxCDg5ziOmsiMzsuQwDcm3PG2NUB5ok/uzRs1shJaasucpQXPHbXAZt8Orv2HEZlmYtPfcaKHONkqJI3EkUNFU4tarKvLb2QmYT3Fc5t9lvF0wKM5MILYA==",
+      "label" : "aead/mac",
+      "outSize" : "48",
+      "key" : "lxwlFRMooMpX7tighzWt+w=="
+    },
+    "output" : {
+      "derivedKey" : "DMxjlcqKOJXIvQ8Nx/F4uGIf/RFTvZdc9xu2F54o2L3oWM2PtAKNxnO/+ivFHyUD"
+    }
+  }, {
+    "input" : {
+      "custom" : "9rbT",
+      "label" : "util/key-e2ee-sh2",
+      "outSize" : "16",
+      "key" : "XXHIqyeqc62dMpJF34luLw=="
+    },
+    "output" : {
+      "derivedKey" : "9EyTn84Y4PK81jnTe/phZQ=="
+    }
+  }, {
+    "input" : {
+      "custom" : "iKtKxyn5ZlM18S6Uu5LekJj/HjBlUgFaNgpkNhMC4HTd50OFmcFFsImJ/2godbwj4ikDQIeNdH4Q/WVtk4Tf1j2F6NGnQ/Ttaz7f7iEDYc1a1+VFovd1IfVAEAw=",
+      "label" : "vault",
+      "outSize" : "64",
+      "key" : "BGCczukA2M3XMwfBX2z6B5QEZu6MCdR2Y3GPFowiNB4yZzjiaNvNvGzZHA+kcyrs"
+    },
+    "output" : {
+      "derivedKey" : "ccUYFgZYMnh22oPBYNek8TKTMpj/1EQkdWHb99GnSez3m0A0Ts8xMEXxKBWIt2TAxrQnCLT8dKVkpILF267FDg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "RV+gaBseCfNzSw==",
+      "label" : "JpsFsDjVkob6J",
+      "outSize" : "48",
+      "key" : "k7mbLb4jW5ZJDoWdAqplDHMHlTmEQic1FsnkhC25bR1zR/pWCO9iR7vaW8l+8ARt4yF5TJ6bjZqseV4Q9u94cQ=="
+    },
+    "output" : {
+      "derivedKey" : "rp3N66NoRPegKFqQkSv4y4vo33oX+h0xbi1w8KMwvxhMBzkv2TwiUuQlrfmCCZZZ"
+    }
+  }, {
+    "input" : {
+      "custom" : "Tt5crimbmmjbRI+PE5a7945islXxXATQ7BQXP7kOKonc3NQW/Jbf22CNZKExyt3Ukjkgqg==",
+      "label" : "util/mac/get-act-temp-key",
+      "outSize" : "64",
+      "key" : "Yd6tEtW3iSsfm2Ek8riZfEoRyf6lpNBBkmYXJz66oZW2rmxspZqtUZJNz3eCnoGc"
+    },
+    "output" : {
+      "derivedKey" : "hLWBLLxkF5sLJ7yDaynOFyq4s9GvPY1lO4/oIDG4Xu7tZsIC4ArsWJYh6vqJVx8mgbwrGGDsflXE10jT/OxEZw=="
+    }
+  }, {
+    "input" : {
+      "custom" : "xt88XygMYiD3Wqd/Gxcwv6UEsmoRqg==",
+      "label" : "hdnh70cgd9KFd",
+      "outSize" : "64",
+      "key" : "/M2e+VZxSiO0Um1iM3xWnA=="
+    },
+    "output" : {
+      "derivedKey" : "Oi/AHKrdhwLzIsekOe29sBG/aPB12au3dlrUhdXeF3wOLEUPXMZGGXZPQYtuT2TcE3R6hfzKBdwmwVI+BFUNpw=="
+    }
+  }, {
+    "input" : {
+      "custom" : "3oFPxkNyPLr9frBOqLnOvhMohIWTNOOAmAiKBa7u0OuOhnqL6iSv0pwgGlhq1JKvbet3",
+      "label" : "vault/kdk-app-vault-2fa",
+      "outSize" : "16",
+      "key" : "UWimxpaaiZo5TWSjPiGyJKNX5QfcCqF/2lMn8CKt5OWXR6YbIny+rx3i5kkai0o339oI00n0Ojud0vmtSFDdxw=="
+    },
+    "output" : {
+      "derivedKey" : "9uRkQ4nV1C5ia4ynak3Keg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "dWL743541DRFsq1PmNLVcttXemeDMuLaoGwLIbtn5upvt/8U4pL2GCcnXmEfJC7JyAF5VI69yQuL1LczQQZCK0p+gLZIS2G8mA==",
+      "label" : "util/mac/personalized-data",
+      "outSize" : "48",
+      "key" : "dltptoa2HehHSyuWo8PBGoTQG7bulmQ86DwseBepvfbBLeH+BLc1NK2DFPZEpgzE"
+    },
+    "output" : {
+      "derivedKey" : "g7KmLF3Tw+UHc3ryy2TziiMpiR1b+DEtK3HaQIiw/w/gN1gPFHCJoG1D92Wiskbh"
+    }
+  }, {
+    "input" : {
+      "custom" : "NsQIuYhhS65hiJ0WJYFojMxeKRGafwfPageAWQm95efvR0D4n1CoF9jjb3hhtmh8P/5VMgpViKf7ZRT+U7EAgSwgGtkkUTx+8mLW+sT6XznER7zPIyoCoaMM7YM=",
+      "label" : "mLQwoCZkPhKiUDu",
+      "outSize" : "48",
+      "key" : "7SZFHE0AAYX7QAq9629F/9mjtpRxbhM7av91ExFmdT9VdZ9U9wpS+ijG2JH+aETx"
+    },
+    "output" : {
+      "derivedKey" : "KScv0XZJ0lLa2mOSXoro+4XSuZXSDe8NZ/NXlM+sNbovGhlinp4lpj5t0u65gv28"
+    }
+  }, {
+    "input" : {
+      "custom" : "CVKLQ+ZRpc58aqVXRjejpbqlB4Dw0nvBvNOPW+k5GZW0T/Rr9054grSKVXMIxJ5KED9Uy+6ZldZN7mx49mjZDN6VZrbHFQ==",
+      "label" : "vault/kek-device-private",
+      "outSize" : "16",
+      "key" : "M6pxU4dEFjDoh4naKQpl9qUxvAwxVJY0tMRj2W+sKPrQszHaLJZvFwFkB2YSVT1X7URhZ6UwlAUOwygdgBeHhw=="
+    },
+    "output" : {
+      "derivedKey" : "hSk6IgMyCnQcDVNU0nc2pA=="
+    }
+  }, {
+    "input" : {
+      "custom" : "URobcpHJ2xdS+eWdYrkzaIqIv5YmS8xVpo8=",
+      "label" : "auth/biometry",
+      "outSize" : "48",
+      "key" : "mXZOvyb0kznqdP9lo4D1diIQX5T5NjDgPwJgCAR5fry3fffwZqcyxrWvWaZlFm1t"
+    },
+    "output" : {
+      "derivedKey" : "HrIVfPncW7oZJ+5lvI3kCubS08TtOmsEtlf3kIocpyc2EAybGMiu74rC9UMiqChC"
+    }
+  }, {
+    "input" : {
+      "custom" : "5qj3OquA7+3VjjN4z0W5+ZFlHYyL3rAQ13yso+F3i7uN/e30flUSKHGIUXVC5T2pJow2K/4=",
+      "label" : "util/mac/ctr-data",
+      "outSize" : "32",
+      "key" : "AMVBPyNsKJMkzsGAYMnakabm2gi3r/KMCgCdL0JUXWE="
+    },
+    "output" : {
+      "derivedKey" : "XQE3mQ250NohBmbgY7APZiVlwSWhjaNOCD17MryPGaA="
+    }
+  }, {
+    "input" : {
+      "custom" : "G8Gf1mbAIIeQmXWOH1/ISKNTcUosyQy7sZgwDcqUbQ==",
+      "label" : "0KqZGo6avmc)/.1qnH",
+      "outSize" : "64",
+      "key" : "EKMOo3WJoUlOXb/IXJFtmQ=="
+    },
+    "output" : {
+      "derivedKey" : "45m5zczbe/nMCyjPRm3EayMw7AxbsoWcFk/Bb6q6AqL0EFhClGix2poaLvQE4qM6WW13GjbUTw8/H3jckOg6sw=="
+    }
+  }, {
+    "input" : {
+      "custom" : "mxp427MnlsqFU43KzvBLjE8Tky9oajUbk91ZNoAE6Iz2u8X0bUyAoo/VkQlyQSs=",
+      "label" : "aead/enc",
+      "outSize" : "48",
+      "key" : "dyMB1VgUr9rqpd9j1DAFHtPYwTTeXohXnWLO/GcDuMObpAoIMzRNOqVcVIZ0bID9"
+    },
+    "output" : {
+      "derivedKey" : "EctoqA8NxBN3x9e2X2y+aw1UiXGCZYEyz31XTEE/3MnbD7TliHKQRLHpAt974wK0"
+    }
+  }, {
+    "input" : {
+      "custom" : "scG3VuP/a20ZMWsF68xqKP8krm3ETSp3PePcGy8N3MzR3NNdhFqWJjYtvOdeFWJ89wKMmCKqM5e6S99b8FJDo6l0bhLO13i60p4N7JQdg/4=",
+      "label" : "P cLdWLHpCeSM7l",
+      "outSize" : "16",
+      "key" : "pBwd5bIO4rmDnIDECMKPHA=="
+    },
+    "output" : {
+      "derivedKey" : "x89VsJg6oMYELCYJO5Ozxw=="
+    }
+  }, {
+    "input" : {
+      "custom" : "BXL74Yc=",
+      "label" : "vault",
+      "outSize" : "16",
+      "key" : "4T4psemKq4HFeJt8VgopdcARJ4gLDeC0lA9ogxKqOTc="
+    },
+    "output" : {
+      "derivedKey" : "f22WCAplKmUwpCjvrEjFkg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "xtqWB0sI9C+t2eSBfixI+FzNtf8z3g==",
+      "label" : "util/mac/get-act-temp-key",
+      "outSize" : "48",
+      "key" : "eKNYpeaL8qEii7swqBNmU30ZdjkiQ8AeXteiS8IlG0Muz6Hyfa06sp3/CvC0g19zetFlvS+Rf1fiQZmMOz3Hpg=="
+    },
+    "output" : {
+      "derivedKey" : "8AVIl7sl2I5kpRdubulOSdTUIX7mVJkOTnYyJUSwxI5ABRrbFpds3xfuNxHktdBU"
+    }
+  }, {
+    "input" : {
+      "custom" : "XGzaik2fSVcD1A2mtI39zjC4rnHjuMazg4LpBO0l1QvYVSQ0PFs1Rxb0nooPuwe6cg==",
+      "label" : "auth",
+      "outSize" : "16",
+      "key" : "f3FWWk/9TRiQPwqIerZeoEkXoe71nFjn/CKLYdKEEVYyuGUQcln8IuMhkIn+PLn3"
+    },
+    "output" : {
+      "derivedKey" : "pfkWylCJ9M6YQIQ7XFmcIA=="
+    }
+  }, {
+    "input" : {
+      "custom" : "bKvb3aayXHQ9moJQpQ==",
+      "label" : "auth/knowledge",
+      "outSize" : "48",
+      "key" : "I3dRKBkUXCeBsUTynL0DZfVh9B0aK20myHctkdQIWeEr73mkOD9+E8WJP8HC4krit4H4SDzBhr7Tyhr0F2CSOw=="
+    },
+    "output" : {
+      "derivedKey" : "62VQB/kq+Uj5zQfTWy0dtYi6JrDZ44+EXz63Xao+mpqnlke92QmBcOWT84XTUozF"
+    }
+  }, {
+    "input" : {
+      "custom" : "7KQv9glmfb8QuQazByEDrWhx1/l7hOe7DP5H4I4RMhYY6czV0E7ZhDdT3nhqDOt+hFie4BDXGgwl9gMc",
+      "label" : ")NQMsb)aTXkS)Jl8zQ3",
+      "outSize" : "32",
+      "key" : "9MZilETZSYyjTgSMBnEwHg=="
+    },
+    "output" : {
+      "derivedKey" : "6QkIV1YGg2TLdmLSh7Sfw4ApZo6MTZUtnzyhdBQvyk8="
+    }
+  }, {
+    "input" : {
+      "custom" : "NsbYH54CDHrk8XHM54Ndh9rAj8aklEAXZrvkHHU=",
+      "label" : "util/mac/status",
+      "outSize" : "48",
+      "key" : "sWnLKgsloKGSdGHoJmeWUXInFf9iam6AbA+y17+Xp22otk3iC4QyOW31edyZXH3PMq3a1gKCqHh21MWYaAD7tQ=="
+    },
+    "output" : {
+      "derivedKey" : "7mruBKbF1+jRi4IloqosyCP1dV26J4z2Mmgmfe4ezz1/PDmf8+uP5G3z42IiD4O7"
+    }
+  }, {
+    "input" : {
+      "custom" : "krFtQEM8wjwoSe65w/y2ODv07jo1tiNjmdpuGTIvfZ3bKTWoYbFbeb7tiXZHii5KV0Pxn9J2yjsPAnycOv+Uaa30FWQ=",
+      "label" : "1dfg& N3lp/Oxii8-i",
+      "outSize" : "32",
+      "key" : "/NGpuqgYLdeG3XMyY1ZFTVKa2yJYNQLkZySBAnIhjEOD7ZgetUsbguEq3NJJTRbq"
+    },
+    "output" : {
+      "derivedKey" : "qJk7Zd/UOlskdcGJM1Je3jYmmaZUAsLzb2mbkUOsCeI="
+    }
+  }, {
+    "input" : {
+      "custom" : "B2zuEYpshq0GdudXUjiJNja+pks52UcTDkV8uMDayxeAnhQ1JtRYDkhb/YLTO7zdnxsbSj4yY+YO",
+      "label" : "aead/enc",
+      "outSize" : "64",
+      "key" : "i2ibcA46GSSPshVJtmbZ3QITthIBKg7+lBC352yccqQm6dId0kq/XXUJ+LH80EP/"
+    },
+    "output" : {
+      "derivedKey" : "cUy0T5+9N6GCe6bYlzF9XTEjWTSH0rrzmOtscdYDoa51Hp60M5b3olF/UzsSn+W9eq+6wi/VbEdNWhBdXaJ3cw=="
+    }
+  }, {
+    "input" : {
+      "custom" : "dG6bCChOMEc+VHSnxTPMmI8tDalnf8nUz+OWe8ZEuRC0u/pVHNdA",
+      "label" : "i7-TjCW9HYhA4UBL",
+      "outSize" : "64",
+      "key" : "Fm3vLWhnUVRQdT5kkOZBqciTqofXKeVwRqS6Qzl3nmk="
+    },
+    "output" : {
+      "derivedKey" : "QX+oW8PNN3+jx3V0+Rmh90IAPavYAFMCP3FuQgNaxSfURCYqH/ePsrGNoC2mCo1971AwjJPETjws+MWJ1ZJ7zg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "dcCSKcpGAuzDm3QCxtXcEwDDAAmR7VreGXd3yHZK",
+      "label" : "util",
+      "outSize" : "64",
+      "key" : "LztD8no48uUAh6Mkp2acIQRHUsbL4W+e5yS/AFtDwc8pK4YlvPxGu55gQ+bdXEMtM2/AhSzatJ8ek41NjfR1HA=="
+    },
+    "output" : {
+      "derivedKey" : "Ew6gMkU1nGHYgu/X3znH50ziZ/uQnhT4aE9fP9Qh4ReJtpZO2x7BnMTekPH0b8jmV9tCilwMsHGf7eAviOhseg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "S3D4gVI=",
+      "label" : "aead/enc",
+      "outSize" : "64",
+      "key" : "jEL8OwR6uYGeQj9jFBs39x8Q+onmY2JDr9fuP+8W6bP5YJEH33jwZl/xhWCD4DPtLMtiiB4Ns4Ah6oEYOEy/qA=="
+    },
+    "output" : {
+      "derivedKey" : "AMWECs6KgLAQwwMqziritvlYwv/3Ugas8gJhfOp7tL39oz8NH+LoLUCgKaUyVI6ZRY0eJBgbxRpJUtT1YWE3DQ=="
+    }
+  }, {
+    "input" : {
+      "custom" : "66ZjGDqrpRfRTCKbsJFBU5kj9IrSWDDiwb+MJ1X5RaZYAoNPHXrfrd76U1rOXxCneM6Jibm7dnF8kWGpWwrpBt+gLvuPFBykgleCjtV9ZK7zibU=",
+      "label" : "7KJocr-SZ+vXyYh'(oE.",
+      "outSize" : "64",
+      "key" : "VHW1g66Xm+lVcJpfPCMZ8TJumXi/asZjgwku6Lf1zvWetdLY6RrzYEc0IrjEHfUCvJUbrElHK4+8Le2IF/JNtQ=="
+    },
+    "output" : {
+      "derivedKey" : "b479+aJM+8uJkQnpxnPCoSNdGEJI/o4rqB/4CXH9/DIYQOsvQm9b68CzbiSH94tAjj5L/WKrER0bePO+lyJdEg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "xdjM7bFqPHPHHkeydy2LZsOvBeraDUYmwY6OcJUgV2E=",
+      "label" : "util",
+      "outSize" : "48",
+      "key" : "U6SK462cKxeorVk0qzK5b0B3VOBWedsENtTKc+AsM6uWc/iIppkatSwWhd/64tPant5Yft/uCpYo69sKNUru4g=="
+    },
+    "output" : {
+      "derivedKey" : "Gyhhk6Megu18grQqDYnX38YrYHjmduWXZ/m1a13E/ocayULeGPzmC1NAhOlGARsD"
+    }
+  }, {
+    "input" : {
+      "custom" : "oRsrSOSnSatW1Rt2T5HsnuFtoQ5mbYbyF7aaHdu5V9i7",
+      "label" : "ej/&I8X0xVUeZf9'",
+      "outSize" : "64",
+      "key" : "81UQLnTWse2Si9ENNQZhHFCxpG3J2rLzuny4kgBwEvNzoi7YmfUirQ3WqYRSwojV"
+    },
+    "output" : {
+      "derivedKey" : "NyM/3EyVYzlVKKMNcF0M17ab3O2dj2asKODLkKewxQZzDdrjRaqQb8Nhi4NnUij4euDOBFUdPn+QFarrUdk2jg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "7xhY0cTWJhlw9SDhYDpj2Uk/sYIXwKGtpTqByyhq2VY7vJjB6fnBx1pjz80pOtZTdoN3Fvapuz10uhnWlW3JEGFhbw==",
+      "label" : "aead/enc",
+      "outSize" : "64",
+      "key" : "wc1/FDgHSN+7FCf8T+qPLw=="
+    },
+    "output" : {
+      "derivedKey" : "FObMENgIN5Dkrv5gR5mdUwiSDx1bwspnlW83raVjfiWHhjrz9NI199DHP3JW9wdT2ql/qyVHXK+LVu8NuPy58w=="
+    }
+  }, {
+    "input" : {
+      "custom" : "UpmnmsH8gvlEVyYGZdyOgXd3neOKHufuI735Q2l2Dk38IlJytT3dOAJytFbyGAadDWQLNgmsnIgrnJV5CFtd+L5szOccDSz5t1E=",
+      "label" : "l)wk+gc)gKDLDM#2I3i",
+      "outSize" : "48",
+      "key" : "HDSm847RSTaZH+ZSsqBBLTiPdtM+jqjPzGjlpLGazWw="
+    },
+    "output" : {
+      "derivedKey" : "6fvR9PDvaxkMAQt8mWYWc2/3tRSJKoXrCq9B/mxAoqh9TCxLnzbU8fEofrbXtk0b"
+    }
+  }, {
+    "input" : {
+      "custom" : "DA6vpg==",
+      "label" : "util/mac/get-app-temp-key",
+      "outSize" : "64",
+      "key" : "GV40IfYO7TZ+pRSbMm5Xn+rBpHHZDD+hQR1YnuJq/oHXQR5zB5gaOcI6OtMUVXecIJA19s0Dou1EoUmXJA7QyA=="
+    },
+    "output" : {
+      "derivedKey" : "765HecaMM43/NK56Jm3wbRf53A1O3cAK6jpb05lGmTtyuw2gq+NJZqZWLCrigeap3twwhtfSA5xq6Kor0ornNg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "aSpyGVgQ5pF0If5gkVlNeggab9Woz4fxTDAUxMfkuyCU0mz+bUajVwCJ3tqP/b1i85+y5tdyBpipUNFf0oT1nCHJ0C0awJs=",
+      "label" : "util/mac/status",
+      "outSize" : "16",
+      "key" : "wRiHlQK7Tb4ENsVO9RF5v9h0Q1dn2k/CvpBz2QaUDxk="
+    },
+    "output" : {
+      "derivedKey" : "2SyVqGyOMgYYvyaQ1ZSm0g=="
+    }
+  }, {
+    "input" : {
+      "custom" : "uvlV9e5WeJzbxA6DFkzgvwlUXoYqJFEW+bDKu3bGhbY=",
+      "label" : "util",
+      "outSize" : "16",
+      "key" : "Sw/w16bncPBzVBUiESiv81l8m1G8vzk6WGzHeCGsv44="
+    },
+    "output" : {
+      "derivedKey" : "ZU/smrLK/jbTSp6IO8hn9g=="
+    }
+  }, {
+    "input" : {
+      "custom" : "JiSF4cYWyYD7ZAfGer6r2l68XPLXZtjNGC4/X2bqcC/R9OunsiAgxhOVNDfqINbF3ODb",
+      "label" : "#XIih'F8kbwB9uUB",
+      "outSize" : "16",
+      "key" : "WZN4dc+G22elwXIwZoT1oRAGqegRsHrH6WsedtHf9Oxwv0Kk+vXYwMFy/YaLZdxN"
+    },
+    "output" : {
+      "derivedKey" : "uh3jV196jPTIlMa3dft+aQ=="
+    }
+  }, {
+    "input" : {
+      "custom" : "lUJnR2cG",
+      "label" : "U9Vi5xWq&ODDu7Ci",
+      "outSize" : "16",
+      "key" : "b4wjj3ibPG3IGdMlvZHvOglOAhzNMoR+AoeNOJ7N8nU="
+    },
+    "output" : {
+      "derivedKey" : "abGFE9ZBqZ3ETSO1AG7lCw=="
+    }
+  }, {
+    "input" : {
+      "custom" : "rn/WGJZpv8onG5gdhckM4u1vFVHw19+zFshLyMvYj4M14xOI8K6FSvpg2uaNJOuE3RNNaM7JCFrbRzXPcXI8lL3jZdYKMdFl8XVqJi2xbmc=",
+      "label" : "ZU/hgqN.8hfEUd+Y",
+      "outSize" : "64",
+      "key" : "Jptgs5ar0Txq/lZeQMYDRumuy+4zBJXuRw6Ynz0Dxhu+RizCtVhZ4g/soZ2CAFN8"
+    },
+    "output" : {
+      "derivedKey" : "9OB5/ftkiiaOETjGYRDHrh5g8PDSVvgMKkJzozXNDQhDT0a+3yUcBeimQG2HFXuEiHT1mK+z6V6LnG484B5ryg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "vn1Pn9i0VFdPKndCxaptHC54I5xm9+j4p60wuQvGMGFxMQdEmnujOOx3thB4p+cGS9lJ8G5+K2Y=",
+      "label" : "vault",
+      "outSize" : "32",
+      "key" : "Hcb6EYqeDtXvycUMrbOJzS5q+ssmj76dU1oEYv/Fcnyqx+aftKI+x/hferPy30hC"
+    },
+    "output" : {
+      "derivedKey" : "Z2XSbbpDh92GX7o9yOn/M4EO2cfsox1hSBrK2bbd1iE="
+    }
+  }, {
+    "input" : {
+      "custom" : "Od3l4q7T2UDZZoVkTRKcRHikL7WnzMZaw9xziOtUagLQKwzvvhtcem9VafL18vQDD1ld8DO1pJT3fNcmLlYS6pR5Qam+Ue7OXZz4hxeob0SXbqiauA==",
+      "label" : "auth",
+      "outSize" : "32",
+      "key" : "WfUvJ3bgfprc1sYUTSybCA=="
+    },
+    "output" : {
+      "derivedKey" : "zPxcrOIGlp1JHCUM64MM6dOcBXhrf3gkOe1bzPPQKUs="
+    }
+  }, {
+    "input" : {
+      "custom" : "6eWXFxinLZVLBzfj3aULuhsmqTmp39fMACzyKO+3pRXzHpW80Nuc",
+      "label" : "uFsIGi-2e1dL-#alacUl",
+      "outSize" : "48",
+      "key" : "guc0rvXLRacVpeBedPy3WQ=="
+    },
+    "output" : {
+      "derivedKey" : "HbaU01tXlSg0ZHf+W0e03Qvig6T7+64I66d0lm8Kqp8JH8dh2tX0hPmD7Xw1Hv0+"
+    }
+  }, {
+    "input" : {
+      "custom" : "K0wJlw9ViA==",
+      "label" : "aead/mac",
+      "outSize" : "64",
+      "key" : "69EYrYtIJCRhlg59m86mqfiPI+9AaUzLltUE1QLIdZAVulORgMRBAjrjypz++3az"
+    },
+    "output" : {
+      "derivedKey" : "34qVXz3VuwWZa+46Ek1S7JPGoe3H/1mD0iLwv37gPzJhU+TOz3r1JO6H/guRdllrSI978Uk8xZI8dLtRGZgS/g=="
+    }
+  }, {
+    "input" : {
+      "custom" : "I7tcykB/El0mN9VYwmTKtC2liKR1TvCxqH/2hOOjZR6QyCWX3/zTGgPyIYlvjHk/fWAGe28=",
+      "label" : "auth/possession",
+      "outSize" : "48",
+      "key" : "xrl0HBSdqjRXpWLXPqugs6OmTfDPcu9Rfys802k03RM="
+    },
+    "output" : {
+      "derivedKey" : "zbt18PT41p/SLVASwVBSC5xfPQFgHB/Vx/KU2nKmj2dBfwIuyaPVBdW3RM9QIbmo"
+    }
+  }, {
+    "input" : {
+      "custom" : "O7mqe+iZzEOHzLprc5Q7NhYMiCCS+/XG+KLZdmTS01z7KNMyz4eC9J8+9EKHDpihgngt",
+      "label" : "aead/mac",
+      "outSize" : "48",
+      "key" : "2PqVZfIKhWB78q6XxZlYgA=="
+    },
+    "output" : {
+      "derivedKey" : "YT7B8Bm/3qmIw86lVO9mIwd7VZjKsIHvVXnyi3oxfi0hmjSh5dSay9XAGzQl8z54"
+    }
+  }, {
+    "input" : {
+      "custom" : "+rfd2f4nQCMmOVvlSogRr9KhsAGz5T7v/7/caSbfXAXQ814G0AXYInVdY8hxqnHOv8t/7yqt4Ia5erfOkbyyZxM4Y7oKgZI0IbO6S0HYak15jxTmdyhrQk8YN3u5",
+      "label" : "vault/kdk-app-vault-2fa",
+      "outSize" : "16",
+      "key" : "8BizJy/nIt+eULSZoj1bDg=="
+    },
+    "output" : {
+      "derivedKey" : "J/Ge3oOU7jhI4VASh5reDQ=="
+    }
+  }, {
+    "input" : {
+      "custom" : "BMzAjuKenuRXrd3zIwwKebW/CITr9yWua0XK3w==",
+      "label" : "'nR( qEOjtz3Zxf",
+      "outSize" : "48",
+      "key" : "Gzd3YngQCQWVRrE5cGF90MKY6rHHDdQOn25+On/nDnA="
+    },
+    "output" : {
+      "derivedKey" : "fY4o4ROk8cy41t/iqgttYnvHN3/yF2vBCnumg4x2/XUh7P2K9pGVNWN5Wf31eTao"
+    }
+  }, {
+    "input" : {
+      "custom" : "7F7EM+Sp7MTKNCmHi0sRDz5i955n4SNYh6T7aIEgBmSpt5NCBATIa5Z8ihZ8DuCB6iuw/iVW4iuHhgU8QQqaqBHuzhtB7fM53AwJ0+YqUHWuCdU=",
+      "label" : "AAf6Uvt ww9tJ(dAd",
+      "outSize" : "16",
+      "key" : "2fFocrF0yHG6IWV5Ve2Zxg=="
+    },
+    "output" : {
+      "derivedKey" : "oAt9dWuastYdV2wILAuffA=="
+    }
+  }, {
+    "input" : {
+      "custom" : "v3uEtl0L0rj2HKYoSXl4fuQiBLVE5Jl19EzTKU/QY6Jg3SKyGezmuwemfcAlBeeZ3AoN5XzF6Z/Q3g==",
+      "label" : "7 &SG#4)geUILizce",
+      "outSize" : "48",
+      "key" : "MAltvdaP+WK+14ZOCe0Guw=="
+    },
+    "output" : {
+      "derivedKey" : "9kWyN249kJDtvvVI2Ld8EOnPG9MphP+tL8IDEGvhwVgfn8rDFHxxMTfxIFR8c4YG"
+    }
+  }, {
+    "input" : {
+      "custom" : "FYdo+01h/3nUrTsxv+CrTECCH/Eg7EP+zZwH0irSda6+WKwJh2KjXxpaV9t79pAc2bndpu8GQuLmfThto/j/79YohJquS21KKVoecQ==",
+      "label" : "vault",
+      "outSize" : "16",
+      "key" : "Uz/EyvphjxndGhPEadalgA=="
+    },
+    "output" : {
+      "derivedKey" : "4+/PD8kZbfinXoknmVqJGQ=="
+    }
+  }, {
+    "input" : {
+      "custom" : "IBquKrljWEt9m4OdXpRUIBxue5plPuDHNAZiWhurY/bkWYC8/6Bc988ybl4kLGYwnJBo4SAAiAXJJnvhRTEdBHPXQNjkY0m0jjq5WgaDLpE=",
+      "label" : "util",
+      "outSize" : "64",
+      "key" : "20fZjNE2NCrPVs7sqwcm0h4wmMCo2aNfYN5fzKOc2Zk="
+    },
+    "output" : {
+      "derivedKey" : "bLn3sW6ARsTX/shoSs5kNz7t2drmR+tjKPmmsx9eOjWHyR/SMdgnoA3nrXtqsPat6WJbKlGdPjLp/F5Q5sTi4g=="
+    }
+  }, {
+    "input" : {
+      "custom" : "P45Rr7MaRCoO/9nXGMwq+S2FxI7TEhSrs2Bi1ongC/4XrSstkwLdr8TEL+3FHg76Wk1PydK6+F4EnCpSQ5P9ZPHPpkUWUdMBRiRxpKtSoozx",
+      "label" : "auth/possession",
+      "outSize" : "64",
+      "key" : "SHwarmYmk9T/7xapjKQhFViEr6y3V3onsCNWg8bq/i0="
+    },
+    "output" : {
+      "derivedKey" : "R6kYRsLaxQ09GlMnfDbIOoM4jguWh07NBvmEaNzOC3nCcyGRcRMk0VQzg+mCMNP5fRZyTSFMaXzO2GJD0C0xSQ=="
+    }
+  }, {
+    "input" : {
+      "custom" : "EILNL6XAmr1DPhrnoP6ZV0l8G3NN3r9TM52ShvAT4lXrn72Vpfm2eA==",
+      "label" : "tL9+88X1XuX2LqTZl5",
+      "outSize" : "32",
+      "key" : "k10fAud5z3WoJxm2ltARjA=="
+    },
+    "output" : {
+      "derivedKey" : "BjcmfxRJMN6EWIgEYfVx33JNHiW+BSnK2XIOvZNBe9I="
+    }
+  }, {
+    "input" : {
+      "custom" : "3KvNNvw2Xw0kWqwNsWKXLxFBuSBB9oyczr1X1Mw6cEwN+/c=",
+      "label" : "GLo&AjNWN(4 /If",
+      "outSize" : "48",
+      "key" : "gu+MiQlPdr7ehzNA3svtoMqxdnZn4/gdc+QIDkF9m8I="
+    },
+    "output" : {
+      "derivedKey" : "WK8cvS+ONjhLEVGjMk7QGB84t0j5ntUq4gNnwZMYXJzclbAbVU4Ww0wh5JsbgmFm"
+    }
+  }, {
+    "input" : {
+      "custom" : "8Q==",
+      "label" : "vault/kek-device-private",
+      "outSize" : "32",
+      "key" : "XR0zxKy9CQ7UZ7BwsOoKke9YdepeBR6K541SjqfJl3Y="
+    },
+    "output" : {
+      "derivedKey" : "WNAROvG1VyLeZhAqwAjg4S/MyHrhy1hiReTzJKqFwyk="
+    }
+  }, {
+    "input" : {
+      "custom" : "2jV61/8z/G0XM/yg4nByN/Z846hdFmAJRfOciHwNAOxvpoxkjqH4E6GAPj+Ik1U99UnJmG+LT/pR5Q8H5FoU0jRrjXjq2R9WqLssXt39JLc=",
+      "label" : "tz)NCKI+sV&Awoytn.x",
+      "outSize" : "16",
+      "key" : "KSJwaktTT7zPHQ24eCPWaIG/CtPslmvlzfWC5Qq5/Yk="
+    },
+    "output" : {
+      "derivedKey" : "W06UOIk/rvQjO/MIDdK9MQ=="
+    }
+  }, {
+    "input" : {
+      "custom" : "5Qfdl+amWli9MZ4Kw7kanxTL+yjeQBzJ9NBl787GmaLRXSNi4bWhJnzp7a0sdNP7XMfQFj8OMXc+9PD/p6gh+hErqIHtZD1d0p4=",
+      "label" : "t(seFSidmq(XL/8oZO",
+      "outSize" : "64",
+      "key" : "Kotpgk0F/BJ7esd4XSUNcA=="
+    },
+    "output" : {
+      "derivedKey" : "HoOn1m9oq2evjFRDKSSv9eRgZNblYpjWmRCvtYQ+LqZ8nzyj8Xx7uRLOx7WBC3t8izhz6LCcdMDb2sH0cnlU+A=="
+    }
+  }, {
+    "input" : {
+      "custom" : "r69LtPNEVt2mbujk4nqLBk7y//jyfceQHlDxA006KK+/8LHsO+Gbwod8qi98ScoOPK3XZQdIxiq4/eu0Po+ylOWsYzl99hZ6RU2zqw==",
+      "label" : "vault/kek-device-private",
+      "outSize" : "64",
+      "key" : "otsTlbW3R1XJJFb56v6hDkP8d87tDJ7fcgCpSzpXyYM="
+    },
+    "output" : {
+      "derivedKey" : "Kpu+fe2Dsp74RirWOFK2aWfcWniLKY0NYOnxqT18RIn/ifnS/7EvubJHX/kJWSdi9yeM8P4N30+xqSixAeL6YQ=="
+    }
+  }, {
+    "input" : {
+      "custom" : "glfTVgjRhvKOW1hCoJAyow==",
+      "label" : "PetH+Nj6Lwg.')(",
+      "outSize" : "32",
+      "key" : "GrIQQF2612oHJwcblpT1gAWbcUftB+yWD+K1i5TbGqc="
+    },
+    "output" : {
+      "derivedKey" : "x6+4vJ/bEGt+hCRDkd5d5nLJkYSB3EuN0QdXPIktGS0="
+    }
+  }, {
+    "input" : {
+      "custom" : "jjYFCRUgG1vqQalH+mG6ysLjNP9ZpJvFPE2v/buM0drPDQ==",
+      "label" : "util",
+      "outSize" : "32",
+      "key" : "2AnSbcwTaQgT7Wt9Kp8BH1YmSBEqO8ASvodnU3+bcw5aK9JbSkR7FH6101WpfFSC"
+    },
+    "output" : {
+      "derivedKey" : "LrpiZqtLClcDG2gdT0gxPHn8TyEitqZCXq+3pNxzEuY="
+    }
+  }, {
+    "input" : {
+      "custom" : "3Z79zLKQe0IcvAXXH2QgkmsPpPfO9iH9",
+      "label" : "auth/knowledge",
+      "outSize" : "32",
+      "key" : "H9ZEBJM39D+xkuHAK9ryWUUIQ7mxZhi+aNjnoj3KiGtt5qg1UBjCLxI9894Gls7G"
+    },
+    "output" : {
+      "derivedKey" : "VErv6w4Mrt6FX33z0qQ6523//xOnR/NiEHg0Q/3a8jA="
+    }
+  }, {
+    "input" : {
+      "custom" : "1C3GXL76dqM6Sv0wR6wBmr4cpraCTRL5fE8z3z0QdHAxfwStOggDIbCelzoINMS5Npa/4/o3oThFbcNI2Og4M8ui9CWiFXWNALokcwUeRg==",
+      "label" : "SeVpgMaH/9NAR",
+      "outSize" : "48",
+      "key" : "kybG7IhZZEc8TzdKJDiioO1ICt5D4criA1jATzm0/pBiuF8eFQsqpYcaoJT/nOEz"
+    },
+    "output" : {
+      "derivedKey" : "M/QVvxl1o5CQ8pJODTnvaYOpOOJiXynCGrjrBAA6wKobLDag4Oi5b3QqoiNJ1J53"
+    }
+  }, {
+    "input" : {
+      "custom" : "ZDtF89IepPnvEtrtKk4CU49wXO5f7JH4Vt8mbTAsVfM2TZ8hVJTNxYnLwGEZizh9knWuRAsC3lv65m34qackQRMJEsC6JrbKJl874OOZL7z+PHKJhyB5",
+      "label" : "/7UA)I3MCjoB5Hwnpw",
+      "outSize" : "32",
+      "key" : "50uyhm/vVDIOuLK+6af0ZsQ/Url7VttXFBHzy3GoXBGO1MVjMBvqNyC6fqi+j9/otr3rCg0PdaukeqJeN5eVTA=="
+    },
+    "output" : {
+      "derivedKey" : "WLfRzcjaR7EPOxeFngz2unGs0Kt6UNwhRdWDPVtV3UQ="
+    }
+  }, {
+    "input" : {
+      "custom" : "LILF0Mo6IAE/6k3u2iCtmGE/GMa87SABRHD9ZjFRgz9HvfW2wuGhmbKFjNvBtO3rqnODIMQbYSYIWg==",
+      "label" : "auth/possession",
+      "outSize" : "32",
+      "key" : "hagSQJ2eQr6SeMCnbzdPhA=="
+    },
+    "output" : {
+      "derivedKey" : "3BOJib7mDkcDy1D5ctImVoUd56OuQ/Wc9HIAKDlc0YY="
+    }
+  }, {
+    "input" : {
+      "custom" : "YTfmeHdQ74IYE4zYaqxtHtQvGozPj1hsrh1/9PD5H9cTQ7ztfQ4qMNI=",
+      "label" : "-zA!#Iz8YOoukqF",
+      "outSize" : "16",
+      "key" : "PCiBz5unBCnytWUPxdFeug3LoTyO7ojGLEwFZf6smkTZAiRnP/gG0DxBpleYcWHPINlbJf9dSxXlSfARGRuv0A=="
+    },
+    "output" : {
+      "derivedKey" : "CTZBWG0lNf+SoP19v4NjXA=="
+    }
+  }, {
+    "input" : {
+      "custom" : "8PQyTddRbkIXog/GS/syxZK8gZMP",
+      "label" : "vault",
+      "outSize" : "16",
+      "key" : "OaT6995574BCg2xK+L9XHc5JuAb5maFrkFYw8Lxq57c="
+    },
+    "output" : {
+      "derivedKey" : "KshC1dQE1q3CpzfiJo4IAg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "ON7K2rXEdmcI/ZYD",
+      "label" : "vault/kdk-app-vault-2fa",
+      "outSize" : "32",
+      "key" : "t3nJRvqqvhrfmTPog24vBihAozRGIMXmd0JwRTVHdFOaL4mAJxJGh+p3HntPiEbaMgYQyPsCRpp7D87Pcp3ClQ=="
+    },
+    "output" : {
+      "derivedKey" : "mb/Q46sPL2JnrrsCQoDNKA0DdzGbuC8AiQDSzgdpkGQ="
+    }
+  }, {
+    "input" : {
+      "custom" : "k4sTWzfSUAUTkXmS78zu9ubMk70I/0sYzLnf8f5vW2HooK74T6uzpPk=",
+      "label" : "auth/knowledge",
+      "outSize" : "64",
+      "key" : "Ier2++NjyJ3D3ZXCEM6NasnRkkutjAlYTf3GZZBnwn6sT7TWOuICS7UqLYe9gisa"
+    },
+    "output" : {
+      "derivedKey" : "P+O1o8D3zAWT6frCuLXsFR9jOvsaMVqmC6Ih7Njca7/Dr2+vzoK8Lp4HPAh4mIBZ5OBztOrqkcMKb22VWU7eKg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "CIHE2KEj1+bfXVJ8VWWA3YPpNyd3iBLwSabexKgczrBQ5ej438Cc1ezBZRl1M5VJgt1SDLCUWSGWFQ==",
+      "label" : "o'!s2RmnC59c'7",
+      "outSize" : "64",
+      "key" : "inIOeWWsRCaJCwGW2GCgo+3ot6psSgpP84SPw4FZu0o="
+    },
+    "output" : {
+      "derivedKey" : "0x1jehymHweaoqjjeKJCW6EcENxv3ovbnh8B+f8hHZ8a5qoDafM9l01o2yHYRRt3YMdMnJy578IopzJv5JU9Lg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "Uui/VhZPwk1MtJexPa76f1OKoPM=",
+      "label" : "vault/kdk-app-vault-2fa",
+      "outSize" : "48",
+      "key" : "e8W7BAS+nyRRSSenZHTcrRI49PR3bXSkmWpMqKR3Exdvun+Bv3QFXZyOs5jycpFN2EHIBXD9lVOqT2IsPRoSVg=="
+    },
+    "output" : {
+      "derivedKey" : "C1kHOrRiamsLnN7zrfFvP2F0wwPhIJRWgNZ/O7T8gZegX2vKXPhIic+rEHtjdjuZ"
+    }
+  }, {
+    "input" : {
+      "custom" : "0UlA2mGawExDFHj7jXF9n+IZmi361zuydYhgJSZu6Mz1dQJmQxG2sH/2Np6hV7LvydYExRGX+ZAtcH4U1WMbr0A=",
+      "label" : "util",
+      "outSize" : "48",
+      "key" : "pLxXZjIjo18F4gaZUxy9oDQ8AFQyPvUH9+G/bKruqTjtzG64R/nr9Bf0p3/8NXnM"
+    },
+    "output" : {
+      "derivedKey" : "91VkaFav2BqaVhvPUB/xLvMkceLOFy9Er4C5vvhVWuDycCLh27StB7YN6WLZHCnA"
+    }
+  }, {
+    "input" : {
+      "custom" : "tFD51pHEcFcj",
+      "label" : "auth/possession",
+      "outSize" : "16",
+      "key" : "CMjX0rtB8mCKQZ9dRkmRiSYxfYPVZrHP5KsNp58m3vc="
+    },
+    "output" : {
+      "derivedKey" : "DZW4JhiYA5l3paqFwxDzQA=="
+    }
+  }, {
+    "input" : {
+      "custom" : "eEtkNdIcrj3Jiqzq9PQiwIbCoxcavp97BjgCg6UEC3+R7CLp5p80ZAPUoao7Mf9IR5QTwMxswlrg0IQvFzkrzZNElzXQ08Lc1GlXvnW/Rg0=",
+      "label" : "j&2K25q#twKuG3gwWE",
+      "outSize" : "64",
+      "key" : "VQ0U8NLdJ1uQj6b2rsBSpXGLFROBaHOvoGaAYpUUh4d0XAklz78gpGPPln7yxtcx"
+    },
+    "output" : {
+      "derivedKey" : "aN+z76byY9DD2JjDviryHVFWoelR1iPtzewwJqiBO4l36yQYChpva/g4OD7KCCkKm1x3erqZXNTb49ktuIQf8g=="
+    }
+  }, {
+    "input" : {
+      "custom" : "Cy0DZU4Ly9yVWIVGTvSos6OE4Ye6OtE7G03iOO465qnF1PB8gRtqFj0zjJuImdeelSvCIcP4sehTgraEpRoQghKtNOm6tLk=",
+      "label" : "jB& hb7LtU'k9xQHn",
+      "outSize" : "32",
+      "key" : "hhqjNoBulL0t7GJzjLlBhN0NiPfEnW4fojGUYZ40VWk="
+    },
+    "output" : {
+      "derivedKey" : "Uw52Ul2juk8q7LIJ7RhQp+gh8f1lahkUo85QZmBemII="
+    }
+  }, {
+    "input" : {
+      "custom" : "0V5iqeeWPo0895JRkAO5+muCzWQMJVjjz6nsjrFNefv7ZwA5ZcuLg4y0WqSoDoTCMXa46MbPiDyO",
+      "label" : "auth/possession",
+      "outSize" : "32",
+      "key" : "j60MZxJuTJ1zezLFza+0EgCnMiBndLk2X790mpnBwgr9CCcjpa7tiHt+EobtdiTYvGdc7wyQHfIXkmNtxFeCmQ=="
+    },
+    "output" : {
+      "derivedKey" : "aR4PnNsL68nZkEgelcLgNZn7/d+zvjbCz+NE8zfR7Nw="
+    }
+  }, {
+    "input" : {
+      "custom" : "2AOYtMae+6u63SKIOo2SvX091S52R+303MnI",
+      "label" : "1!pL8q9YR+AJ2nXfeA",
+      "outSize" : "48",
+      "key" : "QAnSymeXFeersi//cHSLRQPALKZQK2J47ChxR32TvuqSwd8WtJeIcJEbbcJV6c8TrLqJi2VfXbR8MhGK2/X8ow=="
+    },
+    "output" : {
+      "derivedKey" : "G8Ukor94DSsy+GHfOKtyHVCW5NxDQiP7NzdLzMVFbODSaCSwGzgogObh3e2T7Avd"
+    }
+  }, {
+    "input" : {
+      "custom" : "5Q==",
+      "label" : "fss7L8zl&7&Oy6x#q",
+      "outSize" : "48",
+      "key" : "T3nUVn0sss9uWFM7b6felmiQgVLnRHusdbiQjMLCjlM="
+    },
+    "output" : {
+      "derivedKey" : "0p4LY/vY7aXjEf9+nnK2NSRgpLdd1kwrStZeG87VAtwBPJIgwrcrrOVwD/kf5bue"
+    }
+  }, {
+    "input" : {
+      "custom" : "4QuY2RLUwEMd2lm6oAT9b2LvI13J5+7Cvxf7aogZM8qJkl0/6dbhcbrbxlRmxGAF6Oq8G/jLpQOEuaq9gRH1STveJKW1jbSp+aSjzUJ9icndmuKrwgwAl43+Hd0rEw==",
+      "label" : "vault/kek-device-private",
+      "outSize" : "32",
+      "key" : "wqFwUgpn7gxme7RERXFV5yoxouS2D06CuiX/bnYqUFY="
+    },
+    "output" : {
+      "derivedKey" : "Tnbi4hihb1KzlMnpSqqfemNL9U4TNx3nnXUIsf07hps="
+    }
+  }, {
+    "input" : {
+      "custom" : "+KS71B0nM/yQZabCYVdlSPswPsslRZVgajNIKt7BnNqTSTVSgIBFyuZoo1wYxom5j8KeUxFgUFvQYNlpkbn4hlZvWQ==",
+      "label" : "DK)d)ksd1g6JC8h",
+      "outSize" : "16",
+      "key" : "mNDBbcXPzUV00PXy0/VDKDdRAbjy490Tj7gePs+ap8o="
+    },
+    "output" : {
+      "derivedKey" : "iqVgOIoXf/YMjn8iyA94Rw=="
+    }
+  }, {
+    "input" : {
+      "custom" : "Ctp7tMgSKt2fanM2EqS0UV28EkcisKoFxdR8wL1zcmWc9EJa3K8+hc+RzXlGL9xGkn7N",
+      "label" : "vault/kek-device-private",
+      "outSize" : "48",
+      "key" : "Jx1UHKsddEH4lWshByyRnBXz/rMY7cZ/lUxgqKx/EnCjCA1vQGWvH4eSVjieNkPiDVUBvjs3B+sByDE8bdr5Pg=="
+    },
+    "output" : {
+      "derivedKey" : "PYnfRZzki6xRqwquceVRoxA8IdMPyv9v/tEhq3QSA2Z+dD+frjWULm0FRdfJKeJa"
+    }
+  }, {
+    "input" : {
+      "custom" : "M4wUXSzjYay+hggXSIG+vlrrua4+aOhaxcNctYRElF3ssa9kqjXlnXdObH7qKRrD2oHpfGnyGIjPwbS/KLiYa9NXtcWyVKhP6MXMkEB7vL+21X8AHg==",
+      "label" : "util/mac/personalized-data",
+      "outSize" : "48",
+      "key" : "4RTkPg2gJJFeqaEZvKV6czZA3z8X0MCpIKt9lxKofty81CXQ8CVkmc4pTSBSglMS"
+    },
+    "output" : {
+      "derivedKey" : "iwxNPrdddQwj/KiDkApRxCUFPtdMqmNAPZICpGOgXu41a52PSBCxwrCLUWjFh5w7"
+    }
+  }, {
+    "input" : {
+      "custom" : "t4LsgSSVku811vuYEL8Mj4+yBQRxzUH1pwTmZieK+mDSJ0wY40P080XemQrhSHBNxidmX3IeNuIVn7BO0p7ATtqUdHiMVXPsn9QSriRLXB420PQcJPziKR4=",
+      "label" : "JSfYRwwojxZpoFvh",
+      "outSize" : "48",
+      "key" : "fhuSQDL0M6ql/u2BY04iL/VlD8ML9FlL/MRYfqJhCR3nIsgPE4vpJaoL20s+vLVU"
+    },
+    "output" : {
+      "derivedKey" : "hfQuYyTjpOeoJdJPTRBV0DTqov3m9JG9cpZ+BzCAk80whvO9uBuufZK8EcD7yxPx"
+    }
+  }, {
+    "input" : {
+      "custom" : "pYYck+OrfF7jkVW90g3MaFCUlo7ykJOSFPXEPKax75kjtPqEvViY6PRfaX6fz3WSTEGdx7LDk/tbEc03PNQmD/4Mll+pvRyJaUX+PoK/ABGUTkTEjjYPdniNKR8=",
+      "label" : "Ie-eekdsNMl3q",
+      "outSize" : "64",
+      "key" : "X5+TCeYRMcKQpOJvFMJ9Ku1ppCEK8di+P+Q47BjpKnu7wmRy+8b4WJbp9SV9liDL"
+    },
+    "output" : {
+      "derivedKey" : "WnQPaJq8acki1xJHv0rKqgGwKqI725nmOrjHe79R/JS+MWGLxoz1iHAfyNB9NUI9hag4Ban/XsE/zjfe/UkzNA=="
+    }
+  }, {
+    "input" : {
+      "custom" : "+YYobk8yiEOBVsJLlju3s2KWFBfPGEO9XuZqYotuuqKoiuwrHCDF+WfVH8SGakKWIb0DnEXU4S87oxpZBAenisii7kU=",
+      "label" : "vault",
+      "outSize" : "32",
+      "key" : "2orsTiit0WAw9rRgIP7sgHQEC25v8ySI60FM+Mvnp0A="
+    },
+    "output" : {
+      "derivedKey" : "toMGTkYDMX+hW0tWIgtn4qN9FZ/HgXOgFroGi6cMukI="
+    }
+  }, {
+    "input" : {
+      "custom" : "UvTPlnCSO1zwSG+3rhB1I4yWbymNJvHK9yimmzfp3X3Tn0ZiGcQbgX2px0J8uQtJAvx1R2UkKB7BTq0/JiXSqPUrUtUsbPDrZyTU55KQfm1On8nyNhncmdfruOqy",
+      "label" : "14BPqXbpy!rdVSXJ/",
+      "outSize" : "32",
+      "key" : "eg+uxdd+qEHCWwNTNIR6rI/JMB/dMmes/DGk4BcBNtInsw9EWJW13iGsdJomenY2"
+    },
+    "output" : {
+      "derivedKey" : "SpLCrD8VyNwVcQRv4hObHODzFsUwuY2fmpAKlElxgtU="
+    }
+  }, {
+    "input" : {
+      "custom" : "nHGchwESc23Bf2wPLJIwAjOLv7EDcIAP6a0/zt7ZJGQSfkCGjDOFEDosCemUnsP2HQ==",
+      "label" : "v6OsqV9qy.P13h4Mz#",
+      "outSize" : "64",
+      "key" : "ISLJYTSIoc8bZM/HpI0wxQ=="
+    },
+    "output" : {
+      "derivedKey" : "SGRERcPLu7mRRInmeGGqOYm5cE/ftYBEvo+BeHzYh4sQAKwlnPGmk/2RbpKm4/T5FnGgYq52Tgjj1JZ6VmwHeQ=="
+    }
+  }, {
+    "input" : {
+      "custom" : "SmkBmlMiKey7QlnDj+4=",
+      "label" : "util/mac/status",
+      "outSize" : "64",
+      "key" : "rVNmUKJ1YZS9grptZfRQL0kFGIinBxutjAI5/SdyeyQ="
+    },
+    "output" : {
+      "derivedKey" : "gD5CDlTZp51X2xGF/KR9CTdwgCRhXZ4ojxvJdM6DjxKJ/VShLbadmAeTS5pgdpCPyU1OqErofBSvYFc6YsgrFw=="
+    }
+  }, {
+    "input" : {
+      "custom" : "d1cgiLijXlceOBnzYyUxbw==",
+      "label" : "aead/mac",
+      "outSize" : "32",
+      "key" : "nwc5v0EJ84305daz6nK9Aw=="
+    },
+    "output" : {
+      "derivedKey" : "RNruWyFbPnJCKsWARimp7jhpnJTt0UqdyV1gb6L/BaU="
+    }
+  }, {
+    "input" : {
+      "custom" : "jSPYyKmBSAaCgwxvLEHQsmnQmlOFHyr455DE7veHFMnWaXY9dCr2V0YQduHBeZu+zba/IgBr8kaXalELXizdeCLWcqZPANwY3VUciis=",
+      "label" : "t2N#19OS3LZ+CS!-6F",
+      "outSize" : "64",
+      "key" : "tkQXulwq6q/EJKhf5JXpggvHKD7lqNRu2ZgEZ2Xc6foksCAS2Mb8kgGYjJqqihuKMwBgOaCRxIXwgBlZJhJcUg=="
+    },
+    "output" : {
+      "derivedKey" : "sgSDgJqZkv9CldJodZYUURRuxy4nHXweEB6nZ+aSN2WMnRNuKklVGgTBafOUSEJ7eYr20hBKfuxuNdiMg0MsVg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "zxob0fiwdQ+RMNjHnb0ydr4Cq0kZ379Vo+5/XXkKS1QeG58Q4SgIScM3ItkUl7Ywkm2n0EoXLnjJkvzs9vM0Y5r3",
+      "label" : "vault/kdk-app-vault-2fa",
+      "outSize" : "48",
+      "key" : "cgJvdewkFL4++5wjKjA5Ng=="
+    },
+    "output" : {
+      "derivedKey" : "YW3JCc3cdsWXWLbKiwqMSVnkdPah2qq5hiDQj7bhjQMX4X5O/E83uoYeNvaz4KfF"
+    }
+  }, {
+    "input" : {
+      "custom" : "/BT5V4WR0OAHNVzyYOw1KsuEL2/XFwEsGH3H/TSIauz77eZmMhJhh3zzN2Doz2/QDeOuqA==",
+      "label" : "util/mac/personalized-data",
+      "outSize" : "48",
+      "key" : "vcWMuGZUaKqnjI0zaw/ipg=="
+    },
+    "output" : {
+      "derivedKey" : "durxDFPV/d/7VsH0r16ZMCMBO7VEz4XP7mCMyWDzCQZXD/c0cea6BDZlHuR7Cxx/"
+    }
+  }, {
+    "input" : {
+      "custom" : "5A9/DcoUqlmzChPqKqcATsM7GlpH",
+      "label" : "auth/biometry",
+      "outSize" : "32",
+      "key" : "oiCfImsAoMKjpSgZQXMpNDV2KnRnQ45LYNufjL47cbZ1bHdUhDmkBYrYz4p9Lx/rosEopHC6I+/nONVfGXFL8w=="
+    },
+    "output" : {
+      "derivedKey" : "Un+7nzB7JAui/so5Gxg1qSv8tquQEZ9mborq7F3FZ7w="
+    }
+  }, {
+    "input" : {
+      "custom" : "i0DACh0bjvYPqANuI/eq",
+      "label" : "util/key-e2ee-sh2",
+      "outSize" : "64",
+      "key" : "4hGS9iSqCGbNcx2oXqwZbdQjHHsjV9eczOujz/KHRrHRPpe9vCnbV3S9ZrzTE+Sc"
+    },
+    "output" : {
+      "derivedKey" : "tFhWb7IZHjkskogMjWVG6LbeXO3qMJdje2qv5bvxn2TP1h2VNMqK26W16qwybUvXfjKZ9TadTj6rp0o+Y0xvMg=="
+    }
+  }, {
+    "input" : {
+      "custom" : "8hmyT8Cyandw6Zk/nbESPkvwDp0=",
+      "label" : "util/mac/status",
+      "outSize" : "16",
+      "key" : "7JIDbSDRn55NxCL6fMJrSziTvAuwC0d3AmsE+6V9B62HyEjJf0xG+HPRs56gy1Bnc6klzhVJYMCtvitIdPoyJg=="
+    },
+    "output" : {
+      "derivedKey" : "f/Ms9CwIMgnM1msS7eSp1g=="
+    }
+  }, {
+    "input" : {
+      "custom" : "HIA86XYFLpSObT8i33lHdCwzwt80CN8iIIUS1W3OVLj1",
+      "label" : "/)6A-Em05zeix&(A87",
+      "outSize" : "16",
+      "key" : "W5FZhYf8kazp8ObcNbu0Mg=="
+    },
+    "output" : {
+      "derivedKey" : "EheSMZ0A0zcs2eqYbihIWw=="
+    }
+  }, {
+    "input" : {
+      "custom" : "9Yyw6UHZ7EHPgqAtqoJY0ESouyFsnrbisELe43sSg1CQulY1KF4i4srvOfZmt/9+eWjqBdMlKyCK1XCz12vnaW0HxEHj/kCIe6MblPy5Ah4=",
+      "label" : "vault",
+      "outSize" : "16",
+      "key" : "NYCswTMI02Slo7f8MeHLF4dw5Ofw3LRl+Ca8p5mCHZQ5ahX77ytBVGtlqX9h0fd3"
+    },
+    "output" : {
+      "derivedKey" : "By7wfYaJHMAKKM4YzbXJHA=="
+    }
+  }, {
+    "input" : {
+      "custom" : "UChS+UIxwMGnQDhDy6GlPwIEMlbkF+pjakZxhOCJy3pepflidTjauyAWHAU1s6u2F9R+nagpIGr8BwLrarQ2Xxx8",
+      "label" : "&pYWUt&Y)R#0GMn",
+      "outSize" : "16",
+      "key" : "KkXzBg3N9ui9r67vvN/Eywf0p9CNWSUs80Cza9pKZgcrERnQBqYKFlFMHAZfHO017lg1eVQaJJiTxwnNkAHy6g=="
+    },
+    "output" : {
+      "derivedKey" : "TspRQcOn4ijBSnQGIX2awQ=="
+    }
+  } ]
+}

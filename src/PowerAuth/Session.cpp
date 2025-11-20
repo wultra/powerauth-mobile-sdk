@@ -16,6 +16,7 @@
 
 #include <PowerAuth/Session.h>
 #include "task/GetActivationStatusTask.h"
+#include "task/ProtocolUpgradeTask.h"
 
 namespace powerAuth {
 
@@ -144,6 +145,21 @@ bool Session::hasValidActivationData() const noexcept
     return sessionData().hasPersistentData();
 }
 
+bool Session::hasProtocolUpgradeAvailable() const noexcept
+{
+    LOCK_GUARD();
+    auto last_activation_status = _context->sessionData().getActivationStatusPtr();
+    return last_activation_status
+        && last_activation_status->isProtocolUpgradeAvailable()
+        && last_activation_status->isProtocolUpgradePossible(getProtocolVersion(), sessionData().getTargetSpecification()->protocolVersion());
+}
+
+bool Session::hasPendingProtocolUpgrade() const noexcept
+{
+    LOCK_GUARD();
+    return _context->hasProtocolUpgradePending();
+}
+
 std::string Session::activationId() const noexcept
 {
     LOCK_GUARD();
@@ -173,6 +189,13 @@ TaskPtr Session::fetchActivationStatus()
     LOCK_GUARD();
     checkActivationData();
     return std::make_shared<GetActivationStatusTask>(_context);
+}
+
+TaskPtr Session::startProtocolUpgrade(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek)
+{
+    LOCK_GUARD();
+    checkActivationData();
+    return std::make_shared<ProtocolUpgradeTask>(_context, password, new_biometry_kek);
 }
 
 RequestPtr Session::removeActivation(const CredentialsPtr& credentials)
@@ -237,6 +260,12 @@ cc7::json::JsonValue Session::lastUserInfo() const noexcept
 {
     LOCK_GUARD();
     return _context->sessionData().getUserInfo();
+}
+
+ActivationStatusPtr Session::lastActivationStatus() const noexcept
+{
+    LOCK_GUARD();
+    return _context->sessionData().getActivationStatusPtr();
 }
 
 void Session::checkActivationData() const

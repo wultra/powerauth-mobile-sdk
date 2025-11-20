@@ -96,6 +96,9 @@ NSError * PA2WrapError(NSError * error, NSError** out_error)
             case PowerAuthCoreError_TimeNotSynchronized:
                 errorCode = PowerAuthErrorCode_TimeSynchronization;
                 break;
+            case PowerAuthCoreError_PendingProtocolUpgrade:
+                errorCode = PowerAuthErrorCode_PendingProtocolUpgrade;
+                break;
             default:
                 errorCode = PowerAuthErrorCode_CoreError;
                 break;

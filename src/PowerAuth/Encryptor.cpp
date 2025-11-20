@@ -53,7 +53,7 @@ static const EncryptorSpec spec_ACTIVATION_LAYER_2 {
 
 static const EncryptorSpec spec_UPGRADE_START {
     EncryptorId::UPGRADE_START,
-    EncryptorScope::ACTIVATION,
+    EncryptorScope::APPLICATION,
     "UPGRADE_START",
     "/pa/upgrade/start",
     FL_PROTO_V4

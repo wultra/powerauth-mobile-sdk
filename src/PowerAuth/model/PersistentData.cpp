@@ -68,6 +68,20 @@ bool PersistentData::hasBiometricFactorKey() const noexcept
     return !factor_key.empty();
 }
 
+bool PersistentData::hasDataForVersion(ProtocolVersion version) const noexcept
+{
+    switch (version) {
+        case Version_V4:
+            return _v4 != nullptr;
+            
+        case Version_V3:
+            return _v3 != nullptr;
+            
+        default:
+            return false;
+    }
+}
+
 PersistentData::V3& PersistentData::v3()
 {
     if (_v3 == nullptr) {
@@ -183,7 +197,7 @@ void PersistentData::serializeV4(cc7::utils::DataWriter& writer, const V4& v4) c
     writer.writeByte    (v4.authCodeCounterByte);
     writer.writeData    (v4.authCodeCounterData);
 
-    // Fctor keys
+    // Factor keys
     writer.writeData    (v4.cPossessionKey);
     writer.writeData    (v4.cKnowledgeKey);
     writer.writeData    (v4.cBiometryKey);
@@ -198,6 +212,9 @@ void PersistentData::serializeV4(cc7::utils::DataWriter& writer, const V4& v4) c
     writer.writeData    (v4.cServerPublicKey);
     writer.writeData    (v4.cDevicePublicKey);
     writer.writeData    (v4.cDevicePrivateKey);
+    
+    // flags
+    writer.writeU32     (v4.flagsU32);
     
     writer.closeVersion();
 }
@@ -228,6 +245,9 @@ bool PersistentData::deserializeV4(cc7::utils::DataReader &reader, V4 &v4)
     result = result && reader.readData      (v4.cDevicePublicKey);
     result = result && reader.readData      (v4.cDevicePrivateKey);
 
+    // flags
+    result = result && reader.readU32       (v4.flagsU32);
+    
     return result &&
             reader.closeVersion() &&
             validateV4(v4);

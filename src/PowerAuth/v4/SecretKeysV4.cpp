@@ -64,7 +64,7 @@ SecretKeysV4::~SecretKeysV4()
 
 void SecretKeysV4::loadSessionData(const SessionData& session_data)
 {
-    setupCreationMode(session_data.hasPersistentData() ? CM_ACTIVE : CM_BASIC);
+    setupCreationMode(session_data.hasPersistentData(Version_V4) ? CM_ACTIVE : CM_BASIC);
     setupSessionData(session_data);
 }
 
@@ -73,10 +73,10 @@ void SecretKeysV4::loadInitialCredentials(const SessionData& session_data,
                                           const ByteRange& shared_secret)
 {
     credentials.validate(Version_V4);
-    if (session_data.hasPersistentData()) {
+    if (session_data.hasPersistentData(Version_V4)) {
         throw Exception(EC_WrongActivationState, "Persistent data already created");
     }
-    if (!session_data.hasRegistrationData()) {
+    if (!session_data.hasRegistrationData() && !session_data.hasUpgradeData()) {
         throw Exception(EC_WrongActivationState, "Cannot load initial credentials due to missing pending activation");
     }
     
@@ -149,7 +149,24 @@ void SecretKeysV4::setupSessionData(const SessionData &session_data)
     _pool.setKey(IN_APP_SECRET, input_16, configuration.applicationSecretBytes());
     _pool.setKey(IN_DEVICE_SPECIFIC_DATA, any_input, configuration.deviceSpecificData());
 
-    if ((_has_activation = session_data.hasPersistentData())) {
+    if (session_data.hasUpgradeData()) {
+        //
+        // Pending protocol upgrade
+        //
+        const auto& ud = session_data.upgradeData().v4();
+        
+        if (!ud.calculatedSharedSecret.empty() && !_pool.isSet(KEY_SHARED_SECRET)) {
+            _pool.setKey(KEY_SHARED_SECRET, default_input, ud.calculatedSharedSecret);
+        }
+        
+        // Use generated device private key
+        if (ud.deviceKeyPair) {
+            _device_private = ud.deviceKeyPair->getPrivateKeyPtr();
+        }
+        
+        // other data
+        _pool.setKey(IN_ACTIVATION_ID, any_input, MakeRange(session_data.getActivationId()));
+    } else if ((_has_activation = session_data.hasPersistentData())) {
         //
         // Registration complete
         //

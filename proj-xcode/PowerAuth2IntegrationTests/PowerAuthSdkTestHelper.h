@@ -92,6 +92,11 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
                                  keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
                                    clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration;
 
+/**
+ Re-instantiate PowerAuthSDK instance, while keeping configuration from current PowerAuthSDK.
+ */
+- (PowerAuthSDK*) reCreateSdkInstance;
+
 // Activation
 
 /**
@@ -148,6 +153,27 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 - (PowerAuthSdkActivation*) assignCustomActivationData:(PATSInitActivationResponse*)activationData
                                       activationResult:(PowerAuthActivationResult*)activationResult
                                            credentials:(PowerAuthAuthentication*)credentials;
+
+/**
+ Creates a new activation using the protocol version defined by the base test,
+ and configures it to support an upgrade to the specified target algorithm.
+ 
+ @param targetAlgorithm Algorithm to which the activation is expected to be upgraded.
+ @param flags Test activation flags to create the activation with.
+ @return A `PowerAuthSDK` instance with a activation preconfigured for a protocol upgrade scenario.
+ */
+- (PowerAuthSDK*) prepareActivationForUpgradeTest:(PowerAuthAlgorithm)targetAlgorithm
+                                        withFlags:(TestActivationFlags)flags;
+
+/**
+ Start the protocol upgrade task.
+
+ @param customBiometryKek An optional biometry KEK to be used after the upgrade.
+ @param shouldFinish Boolean flag indicating whether the call should finish successfully or not.
+ @return Result of the protocol upgrade task if completed sucessully, nil on an error.
+ */
+- (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)customBiometryKek
+                                                                 shouldFinish:(BOOL)shouldFinish;
 
 /**
  Returns an activation status object. May return nil if status is not available yet, which is also valid operation.

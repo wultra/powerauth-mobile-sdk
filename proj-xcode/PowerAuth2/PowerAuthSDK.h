@@ -17,6 +17,7 @@
 #import <PowerAuth2/PowerAuthActivation.h>
 #import <PowerAuth2/PowerAuthActivationResult.h>
 #import <PowerAuth2/PowerAuthActivationStatus.h>
+#import <PowerAuth2/PowerAuthProtocolUpgradeResult.h>
 #import <PowerAuth2/PowerAuthAuthentication.h>
 #import <PowerAuth2/PowerAuthConfiguration.h>
 #import <PowerAuth2/PowerAuthClientConfiguration.h>
@@ -350,6 +351,59 @@
  */
 @property (nonatomic, strong, nullable, readonly) PowerAuthActivationStatus * lastFetchedActivationStatus;
 
+/**
+ Start the protocol upgrade process.
+ 
+ @param password Required core password instance used to authenticate the protocol upgrade start.
+ @param customBiometryKek Optional parameter. If a biometry factor is configured in the current protocol version
+ and no new biometry KEK is provided, one will be automatically generated for the upgraded protocol.
+ @param callback A callback called when the upgrade task finishes.
+ @return Protocol upgrade task instance.
+ */
+- (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(nonnull PowerAuthCorePassword*)password
+                                                           customBiometryKek:(nullable PowerAuthCoreData*)customBiometryKek
+                                                                    callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(startProtocolUpgrade(password:customBiometryKek:callback:));
+
+/**
+ Start the protocol upgrade process.
+ 
+ @param password Required password used to authenticate the protocol upgrade start.
+ @param customBiometryKek Optional parameter. If a biometry factor is configured in the current protocol version
+ and no new biometry KEK is provided, one will be automatically generated for the upgraded protocol.
+ @param callback A callback called when the upgrade task finishes.
+ @return Protocol upgrade task instance.
+ */
+- (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithPassword:(nonnull NSString*)password
+                                                       customBiometryKek:(nullable PowerAuthCoreData*)customBiometryKek
+                                                                callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(startProtocolUpgrade(password:customBiometryKek:callback:));
+
+/**
+ Start the protocol upgrade process without specifying a new biometry KEK.
+ If a biometry factor is configured in the current protocol version,
+ a new biometry KEK  will be automatically generated for the upgraded protocol.
+ 
+ @param password Required core password instance used to authenticate the protocol upgrade start.
+ @param callback A callback called when the upgrade task finishes.
+ @return Protocol upgrade task instance.
+ */
+- (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(nonnull PowerAuthCorePassword*)password
+                                                                    callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(startProtocolUpgrade(password:callback:));
+
+/**
+ Start the protocol upgrade process without specifying a new biometry KEK.
+ If a biometry factor is configured in the current protocol version,
+ a new biometry KEK  will be automatically generated for the upgraded protocol.
+ 
+ @param password Required password used to authenticate the protocol upgrade start.
+ @param callback A callback called when the upgrade task finishes.
+ @return Protocol upgrade task instance.
+ */
+- (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithPassword:(nonnull NSString*)password
+                                                                callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(startProtocolUpgrade(password:callback:));
 
 /** Remove current activation by calling a PowerAuth Standard RESTful API endpoint '/pa/activation/remove'.
  

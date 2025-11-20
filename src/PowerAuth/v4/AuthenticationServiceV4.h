@@ -24,7 +24,7 @@ namespace powerAuth {
 namespace v4 {
 
 class AuthenticationServiceV4 :
-    public Service,
+    public ServiceWithContext,
     public IAuthenticationService,
     public std::enable_shared_from_this<AuthenticationServiceV4>
 {
@@ -47,7 +47,6 @@ public:
 
 private:
     
-    const ContextWeakPtr _weak_context;
     const ConfigurationPtr _configuration;
     const SessionDataPtr _session_data;
     const IKeyProviderPtr _key_provider;

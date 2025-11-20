@@ -105,11 +105,6 @@ public:
             return *pointers.key_MLKEM_768;
         }
         
-        const cc7::crypto::KeyAgreement& ecdhWithNullKdf() const
-        {
-            return *pointers.kagree_ECDH_NULLKDF;
-        }
-        
         const cc7::crypto::MessageDigest& sha3_256() const
         {
             return *pointers.hash_SHA3_256;
@@ -151,9 +146,9 @@ public:
             cc7::crypto::KeyPairFactoryPtr key_P384;
             cc7::crypto::KeyPairFactoryPtr key_MLKEM_768;
             cc7::crypto::KeyPairFactoryPtr key_MLKEM_1024;
+            cc7::crypto::KeyPairFactoryPtr key_DHKEM_P384_HKDF_SHA384;
             cc7::crypto::KeyPairFactoryPtr key_MLDSA_65;
             cc7::crypto::KeyPairFactoryPtr key_MLDSA_87;
-            
             
             cc7::crypto::SignaturePtr sign_ECDSA_SHA2_256;
             cc7::crypto::SignaturePtr sign_ECDSA_SHA2_384;
@@ -163,7 +158,7 @@ public:
             
             cc7::crypto::KeyEncapsulationPtr kencap_MLKEM_768;
             cc7::crypto::KeyEncapsulationPtr kencap_MLKEM_1024;
-            cc7::crypto::KeyAgreementPtr kagree_ECDH_NULLKDF;
+            cc7::crypto::KeyEncapsulationPtr kencap_DHKEM_P384_HKDF_SHA384;
             
             cc7::crypto::MessageDigestPtr hash_SHA3_256;
             cc7::crypto::MACPtr mac_KMAC_256;

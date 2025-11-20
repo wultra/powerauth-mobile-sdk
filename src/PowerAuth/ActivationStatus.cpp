@@ -40,6 +40,7 @@ ActivationStatus::ActivationStatus(ProtocolVersion version,
     _server_state(static_cast<ActivationStatus::ServerState>(data.state)),
     _fail_count(data.failCount),
     _max_fail_count(data.maxFailCount),
+    _upgrade_version(data.upgradeVersion),
     _is_protocol_upgrade_available(data.currentVersion < data.upgradeVersion),
     _is_pending_activation_confirm(data.statusFlags & STATUS_FLAG_ACTIVATION_CONFIRM),
     _is_pending_upgrade_confirm(data.statusFlags & STATUS_FLAG_UPGRADE_CONFIRM),
@@ -73,6 +74,17 @@ ActivationStatus::ServerState ActivationStatus::serverState() const noexcept
 bool ActivationStatus::isProtocolUpgradeAvailable() const noexcept
 {
     return _is_protocol_upgrade_available;
+}
+
+bool ActivationStatus::isProtocolUpgradePossible(ProtocolVersion current_version, ProtocolVersion max_supported_version) const noexcept
+{
+    return _upgrade_version > current_version
+        && _upgrade_version <= max_supported_version;
+}
+
+bool ActivationStatus::isPendingUpgradeConfirm() const noexcept
+{
+    return _is_pending_upgrade_confirm;
 }
 
 bool ActivationStatus::isCounterSynchronizationRecommended() const noexcept
@@ -146,7 +158,9 @@ ActivationStatus::BinaryData ActivationStatus::parseStatusBlobV4(const cc7::Byte
 bool ActivationStatus::validateStatusBlobV4(const BinaryData &data) noexcept
 {
     return data.state >= ServerState_Created && data.state <= ServerState_Removed &&
-           data.currentVersion == Version_V4 &&
+           (data.currentVersion == Version_V4 ||
+            (data.currentVersion == Version_V3 && data.statusFlags & STATUS_FLAG_UPGRADE_CONFIRM)
+           ) &&
            data.upgradeVersion >= Version_V4 &&
            data.failCount <= data.maxFailCount &&
            data.lookAheadCount > 0 && data.lookAheadCount <= v4::LOOK_AHEAD_MAX;

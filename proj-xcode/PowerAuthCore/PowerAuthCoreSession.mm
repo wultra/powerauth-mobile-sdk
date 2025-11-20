@@ -175,15 +175,13 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 - (BOOL) hasProtocolUpgradeAvailable
 {
     [self requireReadAccess:nil];
-    // TODO: missing impl.
-    return NO;
+    return _session->hasProtocolUpgradeAvailable();
 }
 
 - (BOOL) hasPendingProtocolUpgrade
 {
     [self requireReadAccess:nil];
-    // TODO: missing impl.
-    return NO;
+    return _session->hasPendingProtocolUpgrade();
 }
 
 - (PowerAuthCoreProtocolVersion) protocolVersion
@@ -196,6 +194,18 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 {
     [self requireReadAccess:nil];
     return cc7::objc::JsonValueToObjC(_session->lastUserInfo());
+}
+
+- (nullable PowerAuthCoreActivationStatus*) lastActivationStatus
+{
+    [self requireReadAccess:nil];
+    
+    const auto status = _session->lastActivationStatus();
+    if (!status) {
+        return nil;
+    }
+    
+    return [[PowerAuthCoreActivationStatus alloc] initWithActivationStatus:status];
 }
 
 #pragma mark - Serialization
@@ -326,6 +336,32 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
             }
             return [[PowerAuthCoreActivationStatus alloc] initWithActivationStatus:status];
         }];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
+
+- (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePassword*)password
+                                                 withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
+                                               error: (NSError*_Nullable*_Nullable)error;
+{
+    if (![self requireWriteAccess:error]) {
+        return nil;
+    }
+    try {
+        auto task = _session->startProtocolUpgrade(password ? password.passObjRef : nil, biometryKek ? biometryKek.byteArrayRef : cc7::ByteRange());
+        return [[PowerAuthCoreTask alloc] initWithTask:task withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto result = std::dynamic_pointer_cast<powerAuth::ProtocolUpgradeResult>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No ProtocolUpgradeResult object created");
+            }
+            
+            return [[PowerAuthCoreProtocolUpgradeResult alloc] initWithProtocolUpgradeResult:*result];
+        }];
+        
     } catch (...) {
         if (error) {
             *error = BuildNSErrorFromException();

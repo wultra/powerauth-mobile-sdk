@@ -86,7 +86,8 @@
 /// happens while sending the request, so no data is received on the server.
 /// - Parameters:
 ///   - relativePath: Relative path. If you use `nil` or `"*"`, then any request will fail.
-+ (void) setNextRequestNetworkFailureOnSend:(nullable NSString*)relativePath;
++ (void) setNextRequestNetworkFailureOnSend:(nullable NSString*)relativePath
+                                repeatCount:(NSInteger)count;
 
 /// Set the next HTTP request with given relative path as failed on network error. The failure
 /// happens while receiving the response, so server successfully received the request.

@@ -39,15 +39,12 @@ static std::vector<cc7::ByteArray> CalculateAuthenticationCodeComponents(const s
     // Reserve components
     std::vector<ByteArray> components;
     components.reserve(factor_keys.size());
-    for (auto i = 0; i < factor_keys.size(); i++) {
-        auto key_derived = kmac.token(factor_keys[0], counter, kmac_params);
-        // ... compute authentication code key using more than one keys, at most 2 extra keys
-        // ... this skips the key with index 0 when i == 0
-        for (auto j = 0; j < i; j++) {
-            auto key_derived_current = kmac.token(factor_keys[j + 1], counter, kmac_params);
-            key_derived = kmac.token(key_derived_current, key_derived, kmac_params);
+    for (auto i = 1; i <= factor_keys.size(); i++) {
+        auto key_derived = ByteArray();
+        for (int j = 1; j <= i; j++) {
+            auto intermediate_data = cc7::ConcatByteRanges({counter, key_derived});
+            key_derived = kmac.token(factor_keys[j - 1], intermediate_data, kmac_params);
         }
-        // ... sign the data
         components.push_back(kmac.token(key_derived, data, kmac_params));
     }
     return components;

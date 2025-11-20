@@ -297,7 +297,7 @@ void Context::createServices(bool initial_setup, ConstPowerAuthSpecPtr specifica
     _signing_keys_factory = _specification->getSigningKeyPairFactory();
     if (version == Version_V4) {
         // V4
-        _shared_secret = SharedSecret::getInstance(_specification->sharedSecret());
+        _shared_secret = ISharedSecret::getInstance(_specification->algorithm());
         _key_provider = std::make_shared<v4::KeyProviderV4>(self);
         _key_provider->asService()->restoreSensitiveData();
         _vault_service = std::make_shared<VaultService>(self, version);

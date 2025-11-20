@@ -20,7 +20,7 @@
 #include <PowerAuth/ByteUtils.h>
 #include <cc7/utils/DataReader.h>
 #include <cc7/utils/DataWriter.h>
-
+#include "model/Constants.h"
 #include "v4/PowerAuthKDF.h"
 
 using namespace cc7;
@@ -28,423 +28,319 @@ using namespace cc7::crypto;
 
 namespace powerAuth {
 
-// MARK: - ECDHE
+// MARK: - Common SharedSecret implementation
 
-class SharedSecretEc : public ISharedSecret
+class SharedSecret : public ISharedSecret
 {
 public:
     
-    std::pair<SharedSecretRequest, SharedSecretContextPtr> generateRequestCryptogram() const override
+    struct KFWithKEM
     {
-        auto ephemeral_key_pair = _ec_key_factory->generateKeyPair();
-        SharedSecretRequest request = {
-            _spec->algorithm,
-            ephemeral_key_pair->getPublicKey().exportKeyToBase64(KEY_FORMAT_X963),
-            ""
-        };
-        return std::make_pair(request, ephemeral_key_pair->getPrivateKeyPtr());
-    }
-    
-    std::pair<SharedSecretResponse, ByteArray> generateResponseCryptogram(const SharedSecretRequest & request) const override
-    {
-        if (_spec->algorithm != request.algorithm) {
-            throw std::invalid_argument("Unsupported algorithm in request");
-        }
-        if (request.ecdhe.empty()) {
-            throw std::invalid_argument("Missing ecdhe public key");
-        }
-        auto peer_key = _ec_key_factory->newPublicKey(FromBase64String(request.ecdhe), KEY_FORMAT_X963);
-        auto ephemeral_key_pair = _ec_key_factory->generateKeyPair();
-        auto shared_secret = calculateSharedSecret(ephemeral_key_pair->getPrivateKey(), *peer_key);
-        SharedSecretResponse response = {
-            ephemeral_key_pair->getPublicKey().exportKeyToBase64(KEY_FORMAT_X963),
-            ""
-        };
-        return std::make_pair(response, shared_secret);
-    }
-    
-    ByteArray computeSharedSecret(const SharedSecretContextPtr & context, const SharedSecretResponse &response) const override
-    {
-        if (response.ecdhe.empty()) {
-            throw std::invalid_argument("Missing ecdhe public key");
-        }
-        const auto& private_key = checkContext(context);
-        auto peer_key = _ec_key_factory->newPublicKey(FromBase64String(response.ecdhe), KEY_FORMAT_X963);
-        return calculateSharedSecret(private_key, *peer_key);
-    }
-    
-    ByteArray serializeContext(const SharedSecretContextPtr &context) const override
-    {
-        const auto& private_key = checkContext(context);
-        cc7::utils::DataWriter writer;
-        writer.writeString(_spec->algorithm);
-        writer.writeData(private_key.exportKey(KEY_FORMAT_RAW));
-        return writer.serializedData();
-    }
-    
-    SharedSecretContextPtr deserializeContext(const ByteRange &context_data) const override
-    {
-        cc7::utils::DataReader reader(context_data, false);
-        std::string alg;
-        ByteRange key_data;
-        
-        if (!(reader.readString(alg) &&
-              reader.readRange(key_data))) {
-            throw std::invalid_argument("Wrong serialized data");
-        }
-        if (alg != _spec->algorithm) {
-            throw std::invalid_argument("Wrong context algorithm");
-        }
-        return _ec_key_factory->newPrivateKey(key_data, KEY_FORMAT_RAW);
-    }
-    
-    SharedSecretContextPtr importContextForTest(const std::map<std::string, std::string> &test_data) const override
-    {
-#ifdef DEBUG
-        auto key_data = test_data.find("ecdhe_client_private_key");
-        if (key_data == test_data.end()) {
-            throw std::invalid_argument("Missing ecdhe_client_private_key");
-        }
-        return _ec_key_factory->newPrivateKey(FromBase64String(key_data->second), KEY_FORMAT_RAW);
-#else
-        throw Exception(EC_InternalError, "Not implemented in RELEASE build");
-#endif
-    }
-    
-    std::map<std::string, std::string> exportContextForTest(const SharedSecretContextPtr &context) const override
-    {
-#ifdef DEBUG
-        const auto& private_key = checkContext(context);
-        return {
-            { "ecdhe_client_private_key",  private_key.exportKeyToBase64(KEY_FORMAT_RAW) }
-        };
-#else
-        throw Exception(EC_InternalError, "Not implemented in RELEASE build");
-#endif
-    }
-    
-    SharedSecretEc(SharedSecretSpecPtr spec,
-                   const KeyPairFactoryPtr & ec_key_factory,
-                   const KeyAgreementPtr & ecdh) :
-        _spec(spec),
-        _ec_key_factory(ec_key_factory),
-        _ecdh(ecdh)
-    {
-    }
-
-private:
-    
-    const PrivateKey& checkContext(const SharedSecretContextPtr & ctx) const
-    {
-        const auto private_key = std::dynamic_pointer_cast<PrivateKey>(ctx);
-        if (private_key == nullptr || private_key->getKeyType() != _ec_key_factory->getAlgorithmName()) {
-            throw std::invalid_argument("Wrong SharedSecretContext object provided");
-        }
-        return *private_key;
-    }
-    
-    ByteArray calculateSharedSecret(const PrivateKey & private_key, const PublicKey & peer_key) const
-    {
-        auto raw_key = _ecdh->phase(private_key, peer_key);
-        return algorithms().v4.kdf().derive(raw_key->getKeyData(), _spec->derivationLabel);
-    }
-    
-    SharedSecretSpecPtr _spec;
-    const KeyPairFactoryPtr _ec_key_factory;
-    const KeyAgreementPtr _ecdh;
-};
-
-// MARK: - Hybrid, ECDHE + KEM
-
-class SharedSecretEcKem : public ISharedSecret
-{
-public:
-    
-    std::pair<SharedSecretRequest, SharedSecretContextPtr> generateRequestCryptogram() const override
-    {
-        auto ec_key_pair = _ec_key_factory->generateKeyPair();
-        auto kem_key_pair = _kem_key_factory->generateKeyPair();
-        auto context = std::make_shared<HybridContext>(_spec->algorithm,
-                                                       ec_key_pair->getPrivateKeyPtr(),
-                                                       kem_key_pair->getPrivateKeyPtr());
-        SharedSecretRequest request {
-            _spec->algorithm,
-            ec_key_pair->getPublicKey().exportKeyToBase64(KEY_FORMAT_X963),
-            kem_key_pair->getPublicKey().exportKeyToBase64(KEY_FORMAT_SPKI)
-        };
-        return std::make_pair(request, context);
-    }
-    
-    std::pair<SharedSecretResponse, ByteArray> generateResponseCryptogram(const SharedSecretRequest &request) const override
-    {
-        if (_spec->algorithm != request.algorithm) {
-            throw std::invalid_argument("Unsupported algorithm in request");
-        }
-        if (request.ecdhe.empty()) {
-            throw std::invalid_argument("Missing ecdhe public key");
-        }
-        if (request.mlkem.empty()) {
-            throw std::invalid_argument("Missing mlkem encapsulation key");
-        }
-        // Decode keys
-        auto ec_peer_key = _ec_key_factory->newPublicKey(FromBase64String(request.ecdhe), KEY_FORMAT_X963);
-        auto encap_key   = _kem_key_factory->newPublicKey(FromBase64String(request.mlkem), KEY_FORMAT_SPKI);
-        // Generate response and shared secret
-        auto ec_ephemeral_key = _ec_key_factory->generateKeyPair();
-        auto s1 = _ecdh->phase(ec_ephemeral_key->getPrivateKey(), *ec_peer_key);
-        auto wrapped_with_secret = _kem->encapsulate(*encap_key);
-        SharedSecretResponse response {
-            ec_ephemeral_key->getPublicKey().exportKeyToBase64(KEY_FORMAT_X963),
-            wrapped_with_secret.first.base64String()
-        };
-        return std::make_pair(response, calculateSharedSecret(*s1, *wrapped_with_secret.second));
-    }
-    
-    ByteArray computeSharedSecret(const SharedSecretContextPtr &context, const SharedSecretResponse &response) const override
-    {
-        if (response.ecdhe.empty()) {
-            throw std::invalid_argument("Missing ecdhe public key");
-        }
-        if (response.mlkem.empty()) {
-            throw std::invalid_argument("Missing mlkem wrapped key");
-        }
-        const auto& ctx = checkContext(context);
-        // Decode keys
-        auto ec_peer_key = _ec_key_factory->newPublicKey(FromBase64String(response.ecdhe), KEY_FORMAT_X963);
-        auto wrapped_key = FromBase64String(response.mlkem);
-        // Generate shared secret
-        auto s1 = _ecdh->phase(*ctx.ec_private_key, *ec_peer_key);
-        auto s2 = _kem->decapsulate(*ctx.kem_private_key, wrapped_key);
-        return calculateSharedSecret(*s1, *s2);
-    }
-    
-    ByteArray serializeContext(const SharedSecretContextPtr &context) const override
-    {
-        const auto& ctx = checkContext(context);
-        cc7::utils::DataWriter writer;
-        writer.writeString(_spec->algorithm);
-        writer.writeData(ctx.ec_private_key->exportKey(KEY_FORMAT_RAW));
-        writer.writeData(ctx.kem_private_key->exportKey(KEY_FORMAT_RAW));
-        return writer.serializedData();
-    }
-    
-    SharedSecretContextPtr deserializeContext(const ByteRange &context_data) const override
-    {
-        cc7::utils::DataReader reader(context_data, false);
-        
-        std::string alg;
-        ByteRange ec_key, kem_key;
-        if (!(reader.readString(alg) &&
-              reader.readRange(ec_key) &&
-              reader.readRange(kem_key))) {
-            throw std::invalid_argument("Wrong context data");
-        }
-        if (alg != _spec->algorithm) {
-            throw std::invalid_argument("Wrong context algorithm");
-        }
-        return std::make_shared<HybridContext>(_spec->algorithm,
-                                               _ec_key_factory->newPrivateKey(ec_key, KEY_FORMAT_RAW),
-                                               _kem_key_factory->newPrivateKey(kem_key, KEY_FORMAT_RAW));
-    }
-    
-    SharedSecretContextPtr importContextForTest(const std::map<std::string, std::string> &test_data) const override
-    {
-#ifdef DEBUG
-        auto ec_key_data = test_data.find("ecdhe_client_private_key");
-        auto kem_key_data = test_data.find("kem_client_private_key");
-        if (ec_key_data == test_data.end() || kem_key_data == test_data.end()) {
-            throw std::invalid_argument("Missing ecdhe_client_private_key or kem_client_private_key parameter");
-        }
-        return std::make_shared<HybridContext>(_spec->algorithm,
-                                               _ec_key_factory->newPrivateKey(FromBase64String(ec_key_data->second), KEY_FORMAT_RAW),
-                                               _kem_key_factory->newPrivateKey(FromBase64String(kem_key_data->second), KEY_FORMAT_PKCS8));
-#else
-        throw Exception(EC_InternalError, "Not implemented in RELEASE build");
-#endif
-    }
-    
-    std::map<std::string, std::string> exportContextForTest(const SharedSecretContextPtr &context) const override
-    {
-#ifdef DEBUG
-        const auto& ctx = checkContext(context);
-        return {
-            { "ecdhe_client_private_key", ctx.ec_private_key->exportKeyToBase64(KEY_FORMAT_RAW) },
-            { "kem_client_private_key",   ctx.kem_private_key->exportKeyToBase64(KEY_FORMAT_PKCS8) }
-        };
-#else
-        throw Exception(EC_InternalError, "Not implemented in RELEASE build");
-#endif
-    }
-    
-    SharedSecretEcKem(SharedSecretSpecPtr spec,
-                      const KeyPairFactoryPtr & ec_key_factory,
-                      const KeyPairFactoryPtr & kem_key_factory,
-                      const KeyAgreementPtr & ecdh,
-                      const KeyEncapsulationPtr & kem) :
-        _spec(spec),
-        _ec_key_factory(ec_key_factory),
-        _kem_key_factory(kem_key_factory),
-        _ecdh(ecdh),
-        _kem(kem)
-    {
-    }
-    
-private:
-    friend class SharedSecretTests;
-    
-    class HybridContext : public cc7::BaseObject
-    {
-    public:
-        HybridContext(const std::string & alg, PrivateKeyPtr ec_private, PrivateKeyPtr kem_private) :
-            algorithm(alg),
-            ec_private_key(ec_private),
-            kem_private_key(kem_private)
-        {
-        }
-        const std::string algorithm;
-        const PrivateKeyPtr ec_private_key;
-        const PrivateKeyPtr kem_private_key;
+        KeyPairFactoryPtr factory;
+        KeyEncapsulationPtr kem;
     };
-
-    const HybridContext& checkContext(const SharedSecretContextPtr & context) const
+    
+    typedef ConstPowerAuthSpecPtr SPEC;
+    typedef std::vector<KFWithKEM> KEMs;
+    
+    SharedSecret(SPEC spec, const KEMs& kems) :
+        _kems(kems),
+        _algorithm(spec->algorithmName())
+    {}
+    
+    struct SSContext : public cc7::BaseObject
     {
-        const auto ctx = std::dynamic_pointer_cast<HybridContext>(context);
-        if (ctx == nullptr || ctx->algorithm != _spec->algorithm) {
-            throw std::invalid_argument("Wrong SharedSecretContext object provided");
+        std::string algorithm;
+        std::vector<PrivateKeyPtr> decapsulationKeys;
+        
+        SSContext(const std::string& algorithm, const std::vector<PrivateKeyPtr>& decapsulation_keys) :
+            algorithm(algorithm),
+            decapsulationKeys(decapsulation_keys)
+        {}
+    };
+    
+    std::pair<SharedSecretRequest, SharedSecretContextPtr> generateRequestCryptogram() const override
+    {
+        std::vector<cc7::crypto::PrivateKeyPtr> decapsulation_keys;
+        std::vector<std::string> encapsulation_keys;
+        encapsulation_keys.reserve(_kems.size());
+        for (auto& kem : _kems) {
+            auto key_pair = kem.kem->generate();
+            decapsulation_keys.push_back(key_pair->getPrivateKeyPtr());
+            encapsulation_keys.push_back(key_pair->getPublicKey().exportKeyToBase64(KEY_FORMAT_DEFAULT));
         }
-        return *ctx;
+        return std::make_pair(SharedSecretRequest { _algorithm, encapsulation_keys },
+                              std::make_shared<SSContext>(_algorithm, decapsulation_keys));
     }
     
-    ByteArray calculateSharedSecret(const SymmetricKey & s1, const SymmetricKey & s2) const
+    std::pair<SharedSecretResponse, cc7::ByteArray> generateResponseCryptogram(const SharedSecretRequest &request) const override
     {
-        auto hybrid_secret = cc7::ConcatByteRanges({ s1.getKeyData(), s2.getKeyData() });
-        return algorithms().v4.kdf().derive(hybrid_secret, _spec->derivationLabel);
-    }
+        if (request.algorithm != _algorithm) {
+            throw Exception(EC_InvalidData, "Unsupported algorithm in request");
+        }
+        if (request.encapsulationKeys.size() != _kems.size()) {
+            throw Exception(EC_InvalidData, "Wrong number of encapsulation keys in request");
+        }
         
-    SharedSecretSpecPtr _spec;
-    const KeyPairFactoryPtr _ec_key_factory;
-    const KeyPairFactoryPtr _kem_key_factory;
-    const KeyAgreementPtr _ecdh;
-    const KeyEncapsulationPtr _kem;
+        std::vector<std::string> encapsulated_keys;
+        encapsulated_keys.reserve(_kems.size());
+        
+        std::vector<SymmetricKeyPtr> secret_keys;
+        secret_keys.reserve(_kems.size());
+
+        for (size_t i = 0; i < _kems.size(); ++i) {
+            const auto& kem = _kems[i];
+            PublicKeyPtr encapsulation_key;
+            try {
+                encapsulation_key = kem.factory->newPublicKey(request.encapsulationKeys[i], KEY_FORMAT_DEFAULT);
+            } catch (...) {
+                Exception::reThrowWrapped(EC_InvalidData, "Failed to import encapsulation key #" + std::to_string(i));
+            }
+            try {
+                auto encapsulated_with_secret = kem.kem->encapsulate(*encapsulation_key);
+                secret_keys.push_back(encapsulated_with_secret.second);
+                encapsulated_keys.push_back(encapsulated_with_secret.first.base64());
+            } catch (...) {
+                Exception::reThrowWrapped(EC_Cryptography, "Failed to encapsulate key #" + std::to_string(i));
+            }
+        }
+        auto salt = GetRandomData(v4::SHARED_SECRET_SALT_SIZE);
+        return std::make_pair(SharedSecretResponse { salt.base64(), encapsulated_keys },
+                              calculateSharedSecret(secret_keys, salt));
+    }
+    
+    cc7::ByteArray computeSharedSecret(const SharedSecretContextPtr &context, const SharedSecretResponse &response) const override
+    {
+        const auto& ctx = checkContext(context);
+        
+        if (response.encapsulatedKeys.size() != _kems.size()) {
+            throw Exception(EC_InvalidData, "Wrong number of encapsulated keys in response");
+        }
+        auto salt = Base64::decode(response.salt);
+        if (salt.size() != v4::SHARED_SECRET_SALT_SIZE) {
+            throw Exception(EC_InvalidData, "Wrong size of salt in response");
+        }
+        std::vector<SymmetricKeyPtr> secret_keys;
+        secret_keys.reserve(_kems.size());
+        
+        for (size_t i = 0; i < _kems.size(); ++i) {
+            const auto& kem = _kems[i];
+            try {
+                auto secret = kem.kem->decapsulate(*ctx.decapsulationKeys[i], Base64::decode(response.encapsulatedKeys[i]));
+                secret_keys.push_back(secret);
+            } catch (...) {
+                Exception::reThrowWrapped(EC_Cryptography, "Failed to decapsulate key #" + std::to_string(i));
+            }
+        }
+        return calculateSharedSecret(secret_keys, salt);
+    }
+    
+    cc7::ByteArray serializeContext(const SharedSecretContextPtr &context) const override
+    {
+        const auto& ctx = checkContext(context);
+        cc7::utils::DataWriter writer;
+        writer.writeString(_algorithm);
+        writer.writeCount(_kems.size());
+        for (const auto& key : ctx.decapsulationKeys) {
+            writer.writeData(key->exportKey());
+        }
+        return writer.serializedData();
+    }
+    
+    SharedSecretContextPtr deserializeContext(const cc7::ByteRange &context_data) const override
+    {
+        cc7::utils::DataReader reader(context_data, false);
+        
+        std::string algorithm;
+        size_t count = 0;
+        if (!(reader.readString(algorithm) && reader.readCount(count))) {
+            throw Exception(EC_InvalidData, "Wrong SharedSecret context data");
+        }
+        if (algorithm != _algorithm) {
+            throw Exception(EC_InvalidData, "Unsupported algorithm in SharedSecret context data");
+        }
+        if (count != _kems.size()) {
+            throw Exception(EC_InvalidData, "Unexpected number of decapsulation keys in SharedSecret context data");
+        }
+        
+        std::vector<PrivateKeyPtr> decapsulation_keys;
+        decapsulation_keys.reserve(count);
+        
+        for (const auto& kem : _kems) {
+            ByteRange key_data;
+            if (reader.readRange(key_data)) {
+                decapsulation_keys.push_back(kem.factory->newPrivateKey(key_data));
+            } else {
+                throw Exception(EC_InvalidData, "Failed to read key data");
+            }
+        }
+        return std::make_shared<SSContext>(algorithm, decapsulation_keys);
+    }
+    
+        SharedSecretContextPtr importContextForTest(const std::map<std::string, std::string> &test_data) const override
+        {
+    #ifdef DEBUG
+            std::vector<PrivateKeyPtr> decapsulation_keys;
+            for (size_t i = 0; i < _kems.size(); i++) {
+                auto key_name = std::to_string(i);
+                auto key_data = test_data.find(key_name);
+                if (key_data == test_data.end()) {
+                    throw std::invalid_argument("Missing key #" + key_name);
+                }
+                decapsulation_keys.push_back(_kems[i].factory->newPrivateKey(Base64::decode(key_data->second)));
+            }
+            return std::make_shared<SSContext>(_algorithm, decapsulation_keys);
+    #else
+            throw Exception(EC_InternalError, "Not implemented in RELEASE build");
+    #endif
+        }
+    
+        std::map<std::string, std::string> exportContextForTest(const SharedSecretContextPtr &context) const override
+        {
+    #ifdef DEBUG
+            const auto& ctx = checkContext(context);
+            std::map<std::string, std::string> out;
+            for (size_t i = 0; i < _kems.size(); i++) {
+                auto key_name = std::to_string(i);
+                out.insert({ key_name, ctx.decapsulationKeys[i]->exportKeyToBase64() });
+            }
+            return out;
+    #else
+            throw Exception(EC_InternalError, "Not implemented in RELEASE build");
+    #endif
+        }
+    
+private:
+    
+    const KEMs _kems;
+    const std::string _algorithm;
+    
+    const SSContext& checkContext(const SharedSecretContextPtr& context) const
+    {
+        auto typed = std::dynamic_pointer_cast<SSContext>(context);
+        if (!typed) {
+            throw Exception(EC_WrongParameter, "Invalid SharedSecret context");
+        }
+        if (typed->algorithm != _algorithm) {
+            throw Exception(EC_WrongParameter, "Unsupported algorithm in SharedSecret context");
+        }
+        if (typed->decapsulationKeys.size() != _kems.size()) {
+            throw Exception(EC_InternalError, "Unexpected number of decapsulation keys in SharedSecret context");
+        }
+        return *typed;
+    }
+    
+    ByteArray calculateSharedSecret(const std::vector<SymmetricKeyPtr>& secret_keys, const ByteRange& salt) const
+    {
+        ByteArray concatenated_secrets;
+        concatenated_secrets.reserve(64 * secret_keys.size());
+        for (auto& key : secret_keys) {
+            const auto& key_data = key->getKeyData();
+            auto size = ToBigEndian(cc7::U32(key_data.size()));
+            concatenated_secrets.append(MakeRange(size));
+            concatenated_secrets.append(key_data);
+        }
+        auto fixed_info = utils::ByteUtils_ConcatWithSizes({
+            "shared-secret/" + _algorithm,
+            v4::PA_VERSION_STRING
+        });
+        auto X = cc7::ConcatByteRanges({
+            MakeRange(ToBigEndian((U32)1)),
+            concatenated_secrets,
+            fixed_info
+        });
+        // KMAC-256(key: salt, message: X, size: 32, S: "KDF")
+        // - Note that size is already set in v4.kmac256() algorithm configuration.
+        return algorithms().v4.kmac256().token(salt, X, {
+            { crypto::MAC_PARAM_CUSTOM_STRING, crypto::Parameter::ref("KDF") }
+        });
+    }
 };
 
-
-
-// MARK: - SharedSecret implementation
-
-static const SharedSecret::Specification spec_EC_P384 {
-    SharedSecret::EC_P384, 
-    "EC_P384",
-    "shared-secret/ec-p384"
-};
-static const SharedSecret::Specification spec_EC_P384_ML_L3 {
-    SharedSecret::EC_P384_ML_L3,
-    "EC_P384_ML_L3",
-    "shared-secret/ec-p384-ml-l3"
-};
-static const SharedSecret::Specification spec_EC_P384_ML_L5 {
-    SharedSecret::EC_P384_ML_L5,
-    "EC_P384_ML_L5",
-    "shared-secret/ec-p384-ml-l5"
-};
-
-cc7::byte SharedSecret::Specification::numericIdentifier() const noexcept
+ISharedSecretPtr ISharedSecret::getInstance(PowerAuthSpec::Algorithm algorithm)
 {
-    return static_cast<cc7::byte>(identifier);
-}
-
-SharedSecretSpecPtr SharedSecret::specForAlgorithm(Algorithm algorithm)
-{
-    switch (algorithm) {
-        case EC_P384:           return &spec_EC_P384;
-        case EC_P384_ML_L3:     return &spec_EC_P384_ML_L3;
-        case EC_P384_ML_L5:     return &spec_EC_P384_ML_L5;
-        default:                return nullptr;
-    }
-}
-
-SharedSecretSpecPtr SharedSecret::specForAlgorithm(const std::string &algorithm)
-{
-    if (algorithm == spec_EC_P384.algorithm) {
-        return &spec_EC_P384;
-    }
-    if (algorithm == spec_EC_P384_ML_L3.algorithm) {
-        return &spec_EC_P384_ML_L3;
-    }
-    if (algorithm == spec_EC_P384_ML_L5.algorithm) {
-        return &spec_EC_P384_ML_L5;
-    }
-    return nullptr;
-}
-
-SharedSecretSpecPtr SharedSecret::specForAlgorithmId(cc7::byte algorithm_id)
-{
-    switch (algorithm_id) {
-        case EC_P384:           return &spec_EC_P384;
-        case EC_P384_ML_L3:     return &spec_EC_P384_ML_L3;
-        case EC_P384_ML_L5:     return &spec_EC_P384_ML_L5;
-        default:                return nullptr;
-    }
-}
-
-ISharedSecretPtr SharedSecret::getInstance(Algorithm algorithm)
-{
-    auto spec = specForAlgorithm(algorithm);
+    auto spec = PowerAuthSpec::specForAlgorithm(algorithm);
     if (spec) {
         const auto& algs = algorithms().v4.pointers;
         switch (algorithm) {
-            case EC_P384:
-                return std::make_shared<SharedSecretEc>(spec, algs.key_P384, algs.kagree_ECDH_NULLKDF);
-            case EC_P384_ML_L3:
-                return std::make_shared<SharedSecretEcKem>(spec, algs.key_P384, algs.key_MLKEM_768, algs.kagree_ECDH_NULLKDF, algs.kencap_MLKEM_768);
-            case EC_P384_ML_L5:
-                return std::make_shared<SharedSecretEcKem>(spec, algs.key_P384, algs.key_MLKEM_1024, algs.kagree_ECDH_NULLKDF, algs.kencap_MLKEM_1024);
+            case PowerAuthSpec::EC_P384:
+                return std::make_shared<SharedSecret>(spec, SharedSecret::KEMs {
+                    { algs.key_DHKEM_P384_HKDF_SHA384, algs.kencap_DHKEM_P384_HKDF_SHA384 }
+                });
+            case PowerAuthSpec::EC_P384_ML_L3:
+                return std::make_shared<SharedSecret>(spec, SharedSecret::KEMs {
+                    { algs.key_DHKEM_P384_HKDF_SHA384, algs.kencap_DHKEM_P384_HKDF_SHA384 },
+                    { algs.key_MLKEM_768,              algs.kencap_MLKEM_768 }
+                });
+            case PowerAuthSpec::EC_P384_ML_L5:
+                return std::make_shared<SharedSecret>(spec, SharedSecret::KEMs {
+                    { algs.key_DHKEM_P384_HKDF_SHA384, algs.kencap_DHKEM_P384_HKDF_SHA384 },
+                    { algs.key_MLKEM_1024,             algs.kencap_MLKEM_1024 }
+                });
+            case PowerAuthSpec::ML_L3:
+                return std::make_shared<SharedSecret>(spec, SharedSecret::KEMs {
+                    { algs.key_MLKEM_768,              algs.kencap_MLKEM_768 }
+                });
+            case PowerAuthSpec::ML_L5:
+                return std::make_shared<SharedSecret>(spec, SharedSecret::KEMs {
+                    { algs.key_MLKEM_1024,             algs.kencap_MLKEM_1024 }
+                });
+            case PowerAuthSpec::LEGACY_P256:
+                throw Exception(EC_InternalError, "ISharedSecret is unavailable for LEGACY_P256");
+                
             default:
                 break;
         }
     }
-    throw std::logic_error("Unsupported algorithm");
+    throw Exception(EC_InternalError, "Unknown PowerAuth algorithm");
 }
 
 // MARK: - SharedSecretRequest
 
 cc7::json::JsonValue SharedSecretRequest::toJson() const
 {
+    auto keys = json::JsonValue::array();
+    for (const auto& keyData : encapsulationKeys) {
+        keys.pushBack(json::JsonValue(keyData));
+    }
     auto object = json::JsonValue::object();
     object.insert("algorithm", json::JsonValue(algorithm));
-    object.insert("ecdhe", json::JsonValue(ecdhe));
-    if (!mlkem.empty()) {
-        object.insert("mlkem", json::JsonValue(mlkem));
-    }
+    object.insert("encapsulationKeys", keys);
     return object;
 }
 
 SharedSecretRequest SharedSecretRequest::fromJson(const cc7::json::JsonValue& value)
 {
-    return {
-        value["algorithm"].asString(),
-        value["ecdhe"].asString(),
-        value.containsValueAtPath("mlkem") ? value["mlkem"].asString() : std::string()
-    };
+    std::vector<std::string> keys;
+    for (const auto& key : value.arrayAtPath("encapsulationKeys")) {
+        keys.push_back(key.asString());
+    }
+    return { value["algorithm"].asString(), keys };
 }
 
 // MARK: - SharedSecretResponse
 
 cc7::json::JsonValue SharedSecretResponse::toJson() const
 {
-    auto object = json::JsonValue::object();
-    object.insert("ecdhe", json::JsonValue(ecdhe));
-    if (!mlkem.empty()) {
-        object.insert("mlkem", json::JsonValue(mlkem));
+    auto keys = json::JsonValue::array();
+    for (const auto& keyData : encapsulatedKeys) {
+        keys.pushBack(json::JsonValue(keyData));
     }
-    return object;
+    return json::JsonValue::object({
+        { "salt", json::JsonValue(salt) },
+        { "encapsulatedKeys", keys }
+    });
 }
 
 SharedSecretResponse SharedSecretResponse::fromJson(const cc7::json::JsonValue& value)
 {
+    std::vector<std::string> keys;
+    for (const auto& key : value["encapsulatedKeys"].asArray()) {
+        keys.push_back(key.asString());
+    }
     return {
-        value["ecdhe"].asString(),
-        value.containsValueAtPath("mlkem", cc7::json::JsonValue::String) ? value["mlkem"].asString() : std::string()
+        value["salt"].asString(),
+        keys
     };
 }
 

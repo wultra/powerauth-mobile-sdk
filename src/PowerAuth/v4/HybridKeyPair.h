@@ -17,7 +17,6 @@
 #pragma once
 
 #include <PowerAuth/PowerAuthSpec.h>
-#include <PowerAuth/SharedSecret.h>
 #include <cc7/crypto/KeyPair.h>
 
 namespace powerAuth {

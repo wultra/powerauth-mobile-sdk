@@ -812,7 +812,8 @@
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: Array of `PowerAuthDevicePublicKeyData` objects or `nil` in case of failure.
 - (nullable NSArray<PowerAuthDevicePublicKeyData*>*) exportDevicePublicKeysToFormat:(PowerAuthDevicePublicKeyFormat)format
-                                                                              error:(NSError*_Nullable*_Nullable)error;
+                                                                              error:(NSError*_Nullable*_Nullable)error
+                                        NS_SWIFT_NAME(exportDevicePublicKeys(format:));
 
 /// Verifies a digital signature for the given data using the key specified by its identifier.
 ///

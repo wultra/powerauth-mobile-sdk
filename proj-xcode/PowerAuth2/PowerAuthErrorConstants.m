@@ -74,7 +74,7 @@ NSError * PA2WrapError(NSError * error, NSError** out_error)
         wrapped = error;
         errorCode = PowerAuthErrorCode_NA;
     } else if ([domain isEqualToString:PowerAuthCoreErrorDomain]) {
-        switch ([error powerAuthCoreError]) {
+        switch ([error powerAuthCoreErrorCode]) {
             case PowerAuthCoreError_MissingActivation:
                 errorCode = PowerAuthErrorCode_MissingActivation;
                 break;

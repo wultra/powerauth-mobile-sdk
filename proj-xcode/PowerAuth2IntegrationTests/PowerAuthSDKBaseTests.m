@@ -1189,6 +1189,7 @@
     NSArray<PowerAuthDevicePublicKeyData*>* keys = [_sdk exportDevicePublicKeysToFormat:PowerAuthDevicePublicKeyFormat_Der error:&error];
     XCTAssertNil(keys);
     XCTAssertNotNil(error);
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
     error = nil;
     keys = [_sdk exportDevicePublicKeysToFormat:PowerAuthDevicePublicKeyFormat_Raw error:&error];
     XCTAssertNil(keys);

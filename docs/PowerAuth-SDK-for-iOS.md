@@ -24,8 +24,9 @@
 - [Digital Signatures](#digital-signatures)
   - [Asymmetric Private Key Signature](#asymmetric-private-key-signature)
   - [Producing Signed JWT with Provided Claims](#producing-signed-jwt-with-provided-claims)
-
   - [Verify Server-Signed Data](#verify-server-signed-data)
+  - [Verify JSON Web Signature](#verify-json-web-signature)
+  - [Getting Device Public Keys](#getting-device-public-keys)
 - [Password Change](#password-change)
 - [Working with passwords securely](#working-with-passwords-securely)
 - [Working with sensitive data](#working-with-sensitive-data)
@@ -876,6 +877,30 @@ Explanation of `verifyJwsSignature` function parameters:
 <!-- begin box warning -->
 The compact (JWT) format encodes only a single signature, so it is recommended to specify the exact key type (EC, ML-DSA, etc.) for verification. If a generic key identifier is provided (such as `.server`), the function may fail when the current algorithm results in multiple key selections. You can relax this behavior by setting the `strict` parameter to `false`, but this is generally not recommended. In non-strict mode, an attacker could potentially remove or replace a stronger PQC signature with a weaker one without detection.
 <!-- end box -->
+
+### Getting Device Public Keys
+
+Use the following code to retrieve device public keys associated with the activation:
+
+```swift
+let allKeys = try powerAuthSDK.exportDevicePublicKeys(format: .der)
+if let publicKey = allKeys.first(where: { $0.keyType == .EC }) {
+    print("EC key algorithm: \(publicKey.keyAlgorithm)")
+    print("  X.509 key data: \(publicKey.keyData.base64EncodedString())")
+}
+if let publicKey = allKeys.first(where: { $0.keyType == .ML_DSA }) {
+    print("ML-DSA key algorithm: \(publicKey.keyAlgorithm)")
+    print("      X.509 key data: \(publicKey.keyData.base64EncodedString())")
+}
+```
+
+Available format specifiers:
+
+- `.der` - The public key is exported in binary X.509 (DER) format.
+- `.raw` - The raw key format depends on the key type:
+  - **EC keys**: The output is ASN.1 encoded, as defined in **ANSI X9.63**.
+  - **ML-DSA keys**: The output contains the raw public key obtained via OpenSSL’s `EVP_PKEY_get_raw_public_key()`.
+
 
 ## Password Change
 

@@ -359,6 +359,9 @@ static DevicePublicKeyData _BuildDevicePublicKeyData(const cc7::crypto::PublicKe
 std::vector<DevicePublicKeyData> Session::exportDevicePublicKeys(cc7::crypto::KeyFormat key_format) const
 {
     LOCK_GUARD();
+    if (!_context->sessionData().hasActivationId()) {
+        throw Exception(EC_MissingActivation);
+    }
     const auto& public_key = _context->keyProvider().devicePublicKey();
     auto spec = _context->specification();
     std::vector<DevicePublicKeyData> result;

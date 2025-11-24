@@ -62,7 +62,7 @@ typedef NS_ENUM(NSInteger, PowerAuthCoreError) {
 
 /// Contains `PowerAuthCoreError` in case that NSError object has `PowerAuthCoreErrorDomain`. If error object
 /// has different domain, then property contains `PowerAuthCoreError_NA`.
-@property (nonatomic, readonly) PowerAuthCoreError powerAuthCoreError;
+@property (nonatomic, readonly) PowerAuthCoreError powerAuthCoreErrorCode;
 
 /// Contains array with strings containing additional error messages, in case that more than one error message
 /// was created with the failure.

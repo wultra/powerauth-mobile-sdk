@@ -25,7 +25,7 @@ NSString * const PowerAuthCoreErrorInfoKey_AdditionalErrors = @"PowerAuthCoreErr
 
 @implementation NSError (PowerAuthCoreError)
 
-- (PowerAuthCoreError) powerAuthCoreError
+- (PowerAuthCoreError) powerAuthCoreErrorCode
 {
     if ([self.domain isEqualToString:PowerAuthCoreErrorDomain]) {
         return static_cast<PowerAuthCoreError>(self.code);

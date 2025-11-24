@@ -247,6 +247,10 @@ bool Configuration::Builder::validatePublicKeysPresence() const noexcept
             return p256 && p384 && mldsa65;
         case PowerAuthSpec::EC_P384_ML_L5:
             return p256 && p384 && mldsa87;
+        case PowerAuthSpec::ML_L3:
+            return p256 && mldsa65;
+        case PowerAuthSpec::ML_L5:
+            return p256 && mldsa87;
         default:
             return false;
     }

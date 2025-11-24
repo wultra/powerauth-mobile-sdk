@@ -39,6 +39,13 @@ public:
         CC7_REGISTER_TEST_METHOD(test_EC_P384_Bio)
         CC7_REGISTER_TEST_METHOD(test_EC_P384_ML_L3)
         CC7_REGISTER_TEST_METHOD(test_EC_P384_ML_L3_Bio)
+        CC7_REGISTER_TEST_METHOD(test_EC_P384_ML_L5)
+        CC7_REGISTER_TEST_METHOD(test_EC_P384_ML_L5_Bio)
+        CC7_REGISTER_TEST_METHOD(test_ML_L3)
+        CC7_REGISTER_TEST_METHOD(test_ML_L3_Bio)
+        CC7_REGISTER_TEST_METHOD(test_ML_L5)
+        CC7_REGISTER_TEST_METHOD(test_ML_L5_Bio)
+
     }
 
     std::unique_ptr<ConfigurationGenerator> configGenerator;
@@ -166,7 +173,43 @@ public:
         setUp(PowerAuthSpec::EC_P384_ML_L3, false);
         testKeyProvider();
     }
+    
+    void test_EC_P384_ML_L5_Bio()
+    {
+        setUp(PowerAuthSpec::EC_P384_ML_L5, true);
+        testKeyProvider();
+    }
+    
+    void test_EC_P384_ML_L5()
+    {
+        setUp(PowerAuthSpec::EC_P384_ML_L5, false);
+        testKeyProvider();
+    }
+    
+    void test_ML_L3_Bio()
+    {
+        setUp(PowerAuthSpec::ML_L3, true);
+        testKeyProvider();
+    }
+    
+    void test_ML_L3()
+    {
+        setUp(PowerAuthSpec::ML_L3, false);
+        testKeyProvider();
+    }
 
+    void test_ML_L5_Bio()
+    {
+        setUp(PowerAuthSpec::ML_L5, true);
+        testKeyProvider();
+    }
+    
+    void test_ML_L5()
+    {
+        setUp(PowerAuthSpec::ML_L5, false);
+        testKeyProvider();
+    }
+    
     void testKeyProvider()
     {
         testPublicKeys();
@@ -215,11 +258,11 @@ public:
         const auto& key = keyProvider().masterServerPublicKey();
         auto key1 = std::dynamic_pointer_cast<cc7::crypto::PublicKey>(key.getKeyParameter(v4::KEY_PARAM_HYBRID_KEY_1).asObject());
         auto signer1 = cc7::crypto::Signature::getInstance(spec()->getSignatureAlgorithms().first);
-        testSigning(*signer1, *key1, configGenerator->ecdsaMasterKeyPair->getPrivateKey());
+        testSigning(*signer1, *key1, configGenerator->masterKeyPairs.first->getPrivateKey());
         if (spec()->isHybrid()) {
             auto key2 = std::dynamic_pointer_cast<cc7::crypto::PublicKey>(key.getKeyParameter(v4::KEY_PARAM_HYBRID_KEY_2).asObject());
             auto signer2 = cc7::crypto::Signature::getInstance(spec()->getSignatureAlgorithms().second);
-            testSigning(*signer2, *key2, configGenerator->mldsaMasterKeyPair->getPrivateKey());
+            testSigning(*signer2, *key2, configGenerator->masterKeyPairs.second->getPrivateKey());
         }
         if (!hasActivation() && !hasPendingActivation()) {
             ccstMustThrow(powerAuth::Exception, keyProvider().getDevicePublicKeyPtr());

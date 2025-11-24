@@ -116,7 +116,9 @@ Notable changes on iOS:
 - The following methods or properties are now deprecated or changed:
   - `PowerAuthSDK` class:
     - class constructor taking only `PowerAuthConfiguration` object in parameter now **throws error**.
-    - `unsafeChangePassword(from:to:)` - use asynchronous `changePassword(from:to:callback:)` as a replacement.
+    - `unsafeChangePassword(from:to:)` - use new two-step API for password change `beginPasswordChange(oldPassword:callback:)` as a replacement.
+    - `changePassword(from:to:callback:)` - use new two-step API for password change `beginPasswordChange(oldPassword:callback:)` as a replacement.
+    - `validatePassword(password:callback:)` - method has no direct replacement. If your application requires password validation here, that indicates a deeper architectural issue that may introduce security vulnerabilities.
     - `persistActivation(with:)` - use asynchronous `persistActivation(with:callback:)` as a replacement.
     - `persistActivation(withPassword:)` - use asynchronous `persistActivation(withPassword:callback:)` as a replacement.
     - `removeBiometryFactor()` - use asynchronous `removeBiometryFactor(callback:)` as a replacement.

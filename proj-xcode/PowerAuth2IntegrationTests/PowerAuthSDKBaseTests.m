@@ -134,7 +134,92 @@
     
     PowerAuthCorePassword * newPassword = [PowerAuthCorePassword passwordWithString:@"nbusr321"];
     
-    // 1) At first, change password
+    // 1) Change password in two steps
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task1 = [_sdk beginPasswordChangeWithCorePassword:auth.password callback:^(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error) {
+            XCTAssertNil(error);
+            if (!error) {
+                // Now change password
+                id<PowerAuthOperationTask> task2 = [_sdk finishPasswordChangeWithNewCorePassword:newPassword changeData:changeData callback:^(NSError * _Nullable error) {
+                    [waiting reportCompletion:@(error == nil)];
+                }];
+                // Returned task should be present for non-legacy algorithms
+                if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+                    // In Legacy mode, password is changed locally
+                    XCTAssertNotNil(task2);
+                }
+            } else {
+                // failure in step 1
+                [waiting reportCompletion:@NO];
+            }
+        }];
+        XCTAssertNotNil(task1);
+    }] boolValue];
+    XCTAssertTrue(result);
+    
+    // 2) Now validate that new password
+    result = [_helper checkForCorePassword:newPassword];
+    XCTAssertTrue(result);
+    
+    // Now use string version instead of core password
+    
+    NSString * oldStringPassword = newPassword.extractedPassword;
+    NSString * newStringPassword = auth.password.extractedPassword;
+    
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task1 = [_sdk beginPasswordChangeWithPassword:oldStringPassword callback:^(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error) {
+            XCTAssertNil(error);
+            if (!error) {
+                // Now change password
+                id<PowerAuthOperationTask> task2 = [_sdk finishPasswordChangeWithNewPassword:newStringPassword changeData:changeData callback:^(NSError * _Nullable error) {
+                    [waiting reportCompletion:@(error == nil)];
+                }];
+                // Returned task should be present for non-legacy algorithms
+                if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+                    // In Legacy mode, password is changed locally
+                    XCTAssertNotNil(task2);
+                }
+            } else {
+                // failure in step 1
+                [waiting reportCompletion:@NO];
+            }
+        }];
+        XCTAssertNotNil(task1);
+    }] boolValue];
+    XCTAssertTrue(result);
+    
+    // 2) Now validate that new password
+    result = [_helper checkForPassword:newStringPassword];
+    XCTAssertTrue(result);
+}
+
+// PA2_DEPRECATED(2.0.0)
+- (void) testChangePasswordDeprecated
+{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
+    CHECK_TEST_CONFIG();
+    
+    BOOL result;
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    PowerAuthAuthentication * auth = activation.credentials;
+    
+    PowerAuthCorePassword * newPassword = [PowerAuthCorePassword passwordWithString:@"nbusr321"];
+    
+    // 1) At first, validate password with using deprecated function
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+        XCTAssertNotNil(task);
+    }] boolValue];
+    XCTAssertTrue(result);
+    
+    // 2) Now change password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         id<PowerAuthOperationTask> task = [_sdk changeCorePasswordFrom:auth.password to:newPassword callback:^(NSError * _Nullable error) {
             [waiting reportCompletion:@(error == nil)];
@@ -147,7 +232,7 @@
     }] boolValue];
     XCTAssertTrue(result);
     
-    // 2) Now validate that new password
+    // 3) And finally check the new password
     result = [_helper checkForCorePassword:newPassword];
     XCTAssertTrue(result);
     
@@ -155,7 +240,14 @@
     
     NSString * oldStringPassword = newPassword.extractedPassword;
     NSString * newStringPassword = auth.password.extractedPassword;
-    // 1) At first, change password
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk validatePassword:oldStringPassword callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+        XCTAssertNotNil(task);
+    }] boolValue];
+    XCTAssertTrue(result);
+    
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         id<PowerAuthOperationTask> task = [_sdk changePasswordFrom:oldStringPassword to:newStringPassword callback:^(NSError * _Nullable error) {
             [waiting reportCompletion:@(error == nil)];
@@ -171,8 +263,9 @@
     // 2) Now validate that new password
     result = [_helper checkForPassword:newStringPassword];
     XCTAssertTrue(result);
+    
+#pragma clang diagnostic pop
 }
-
 
 
 - (void) testAuthentication
@@ -227,7 +320,7 @@
     // Do more valid signatures. Count is important, due to fact that we have 8-bit local counter since V3.1
     for (int i = 1; i < 264; i++) {
         result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-            id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * error) {
+            id<PowerAuthOperationTask> task = [_sdk testCorePassword:auth.password callback:^(NSError * error) {
                 [waiting reportCompletion:@(error == nil)];
             }];
             XCTAssertNotNil(task);
@@ -708,7 +801,7 @@
     
     // 2) At first, use invalid password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validatePassword:@"MustBeWrong" callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk testPassword:@"MustBeWrong" callback:^(NSError * error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -717,7 +810,7 @@
     
     // 3) Now use a valid password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk testCorePassword:auth.password callback:^(NSError * error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -730,7 +823,7 @@
     
     // 5) Test password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk testCorePassword:auth.password callback:^(NSError * error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -934,11 +1027,11 @@
         return;
     }
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk validateCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
+        [_sdk testCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
             XCTAssertNil(error);
             [waiting reportCompletion:nil];
         }];
-        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
+        id<PowerAuthOperationTask> task = [_sdk testCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
             XCTFail();
         }];
         [task cancel];
@@ -2409,7 +2502,7 @@
     }
     // Validate password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk validatePassword:@"1234" callback:^(NSError * _Nullable error) {
+        [_sdk testPassword:@"1234" callback:^(NSError * _Nullable error) {
             [waiting reportCompletion:@(error == nil)];
         }];
     }] boolValue];

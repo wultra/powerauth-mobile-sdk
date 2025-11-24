@@ -157,14 +157,14 @@
                         }];
                     } else {
                         completionCount += 2;
-                        [self.sdk validateCorePassword:credentials.password callback:^(NSError * error) {
+                        [self.sdk testCorePassword:credentials.password callback:^(NSError * error) {
                             XCTAssertNil(error);
                             [waiting extendWaitingTime];
                             if (!--completionCount) {
                                 [waiting reportCompletion:nil];
                             }
                         }];
-                        id<PowerAuthOperationTask> paTask = [self.sdk validateCorePassword:credentials.password callback:^(NSError * error) {
+                        id<PowerAuthOperationTask> paTask = [self.sdk testCorePassword:credentials.password callback:^(NSError * error) {
                             XCTAssertNil(error);
                             [_waitForQueuesTask extendWaitingTime];
                             if (!--completionCount) {
@@ -198,14 +198,14 @@
                         }];
                     } else {
                         completionCount += 2;
-                        [self.sdk validateCorePassword:credentials.password callback:^(NSError * error) {
+                        [self.sdk testCorePassword:credentials.password callback:^(NSError * error) {
                             XCTAssertNil(error);
                             [waiting extendWaitingTime];
                             if (!--completionCount) {
                                 [waiting reportCompletion:nil];
                             }
                         }];
-                        [self.sdk validateCorePassword:credentials.password callback:^(NSError * error) {
+                        [self.sdk testCorePassword:credentials.password callback:^(NSError * error) {
                             XCTAssertNil(error);
                             [_waitForQueuesTask extendWaitingTime];
                             if (!--completionCount) {

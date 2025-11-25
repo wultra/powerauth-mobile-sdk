@@ -3,6 +3,7 @@
 PowerAuth Mobile SDK in version `2.0.0` provides the following improvements:
 
 - PowerAuth protocol version 4.0 introduces major cryptographic upgrades to strengthen long-term security and add post-quantum protection. Signature and key agreement mechanisms now use larger elliptic curves (P-384) and optionally operate in hybrid mode with quantum-resistant ML-DSA and ML-KEM algorithms. The end-to-end encryption scheme transitions from ECIES with AES-128/CBC and HMAC-SHA-256 to an AEAD design using AES-256/CTR with KMAC-256, providing stronger integrity and confidentiality guarantees. Overall, version 4.0 modernizes the protocol to align with emerging cryptographic standards and resist future quantum attacks.
+- Existing activations can be upgraded to the new PowerAuth protocol version 4.0 using the authenticated protocol upgrade procedure.
 - You can select a level of security that suits your business needs. See the `PowerAuthConfiguration` documentation for more details.
 - PowerAuth Mobile SDK can optionally operate in a mode fully compatible with legacy PowerAuth protocol version 3.3.
 - A new `PowerAuthBiometricConfiguration` class simplifies biometric configuration of the `PowerAuthSDK` class.
@@ -180,6 +181,9 @@ Notable changes on iOS:
   - `authenticateUsingBiometry(withContext:callback:)`
 
 - Removed all interfaces deprecated in release `1.9.x`
+
+- To support authenticated protocol upgrade, following method was added to the `PowerAuthSDK`:
+  - `startProtocolUpgrade(password:callback:)`
 
 ### Other changes
 

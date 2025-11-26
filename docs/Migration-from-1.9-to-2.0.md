@@ -7,7 +7,7 @@ PowerAuth Mobile SDK in version `2.0.0` provides the following improvements:
 - You can select a level of security that suits your business needs. See the `PowerAuthConfiguration` documentation for more details.
 - PowerAuth Mobile SDK can optionally operate in a mode fully compatible with legacy PowerAuth protocol version 3.3.
 - A new `PowerAuthBiometricConfiguration` class simplifies biometric configuration of the `PowerAuthSDK` class.
-- A new `PowerAuthVaultEncryptionKey` class provides better flexibility for Secure Vault operations.
+- A new `PowerAuthSecureVaultKey` class provides better flexibility for Secure Vault operations.
 - PowerAuth Mobile SDK now ensures sensitive keys are not retained in memory.
 - Activation using a recovery code is no longer supported.
 - External encryption key feature is discontinued and will be removed in the next SDK release.
@@ -132,7 +132,7 @@ Notable changes on iOS:
     - `signJwt(withDevicePrivateKey:claims:callback:)` - use `calculateJwsSignature(authentication:forData:dataType:compact:withKey:callback:)` method where you can specify the key for signing and format of token.
     - `eciesEncryptorForApplicationScope(callback:)` - method has been removed, use `encryptorForApplicationScope(callback:)` as replacement.
     - `eciesEncryptorForActivationScope(callback:)` - method has been removed, use `encryptorForActivationScope(callback:)` as replacement.
-    - `fetchEncryptionKey(_:index:callback:)` - method is effective only if PowerAuthSDK is running at protocol 3.3 and will be removed once we drop support for this legacy protocol. Meanwhile you can migrate to the new `fetchVaultEncryptionKey(authentication:keyIdentifier:callback:)` method providing a better flexibility for secure vault operations.
+    - `fetchEncryptionKey(_:index:callback:)` - method is effective only if PowerAuthSDK is running at protocol 3.3 and will be removed once we drop support for this legacy protocol. Meanwhile you can migrate to the new `fetchSecureVaultKey(authentication:keyIdentifier:callback:)` method providing a better flexibility for secure vault operations.
 
   - `PowerAuthConfiguration` class:
     - `offlineSignatureComponentLength` property is now replaced with `offlineAuthenticationCodeComponentLength`

@@ -72,7 +72,25 @@ public class BiometricKeystore implements IBiometricKeystore {
             return false;
         }
         try {
-            return mKeyStore.containsAlias(getKeystoreAlias(keyId));
+            final String alias = getKeystoreAlias(keyId);
+            if (!mKeyStore.containsAlias(alias)) {
+                return false;
+            }
+            // Validate the key by attempting to initialize a cipher in decryption mode
+            final IBiometricKeyEncryptor encryptor = getBiometricKeyEncryptor(keyId);
+            if (encryptor == null) {
+                // Failed to get encryptor, remove the key
+                removeBiometricKeyEncryptor(keyId);
+                return false;
+            }
+            // Try to initialize cipher in decryption mode
+            if (encryptor.initializeCipher(false) == null) {
+                // Failed to initialize cipher, key is invalid - remove it
+                removeBiometricKeyEncryptor(keyId);
+                return false;
+            }
+            // Key is valid
+            return true;
         } catch (KeyStoreException e) {
             PowerAuthLog.e("BiometricKeystore.containsBiometricKeyEncryptor failed: " + e.getMessage());
             return false;

@@ -80,12 +80,14 @@ public class BiometricKeystore implements IBiometricKeystore {
             final IBiometricKeyEncryptor encryptor = getBiometricKeyEncryptor(keyId);
             if (encryptor == null) {
                 // Failed to get encryptor, remove the key
+                PowerAuthLog.w("BiometricKeystore.containsBiometricKeyEncryptor: Failed to get encryptor for key, removing invalid key");
                 removeBiometricKeyEncryptor(keyId);
                 return false;
             }
             // Try to initialize cipher in decryption mode
             if (encryptor.initializeCipher(false) == null) {
                 // Failed to initialize cipher, key is invalid - remove it
+                PowerAuthLog.w("BiometricKeystore.containsBiometricKeyEncryptor: Failed to initialize cipher, removing invalid key");
                 removeBiometricKeyEncryptor(keyId);
                 return false;
             }

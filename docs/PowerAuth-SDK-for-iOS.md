@@ -1783,11 +1783,9 @@ available after a successful activation status fetch. This method is not
 required to be called prior to starting the protocol upgrade.
 
 A protocol upgrade is an authenticated operation. User must provide valid
-knowledge authentication factor (e.g. password or PIN). If biometric
-authentication is enabled for the activation, the user must also authenticate
-with the biometric factor.
+knowledge authentication factor (e.g. password or PIN). To start the protocol
+upgrade, call:
 
-To start the protocol upgrade, call:
 ```swift
 powerAuthSDK.startProtocolUpgrade(password: "1234") { (result, error) in
     if let result {

@@ -81,14 +81,14 @@ public class BiometricKeystore implements IBiometricKeystore {
             if (encryptor == null) {
                 // Failed to get encryptor, remove the key
                 PowerAuthLog.w("BiometricKeystore.containsBiometricKeyEncryptor: Failed to get encryptor for key, removing invalid key");
-                removeKeystoreEntry(alias);
+                mKeyStore.deleteEntry(alias);
                 return false;
             }
             // Try to initialize cipher in decryption mode
             if (encryptor.initializeCipher(false) == null) {
                 // Failed to initialize cipher, key is invalid - remove it
                 PowerAuthLog.w("BiometricKeystore.containsBiometricKeyEncryptor: Failed to initialize cipher, removing invalid key");
-                removeKeystoreEntry(alias);
+                mKeyStore.deleteEntry(alias);
                 return false;
             }
             // Key is valid
@@ -115,22 +115,10 @@ public class BiometricKeystore implements IBiometricKeystore {
         try {
             final String alias = getKeystoreAlias(keyId);
             if (mKeyStore.containsAlias(alias)) {
-                removeKeystoreEntry(alias);
+                mKeyStore.deleteEntry(alias);
             }
         } catch (KeyStoreException e) {
             PowerAuthLog.e("BiometricKeystore.removeBiometricKeyEncryptor failed: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Remove entry from keystore by alias.
-     * @param alias Keystore alias to remove.
-     */
-    private void removeKeystoreEntry(@NonNull String alias) {
-        try {
-            mKeyStore.deleteEntry(alias);
-        } catch (KeyStoreException e) {
-            PowerAuthLog.e("BiometricKeystore.removeKeystoreEntry failed: " + e.getMessage());
         }
     }
 

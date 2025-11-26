@@ -36,6 +36,7 @@
 - [End-To-End Encryption](#end-to-end-encryption)
 - [Secure Vault](#secure-vault)
 - [Token-Based Authentication](#token-based-authentication)
+- [Authenticated Protocol Upgrade](#authenticated-protocol-upgrade)
 - [Apple Watch Support](#apple-watch-support)
   - [Prepare Watch Connectivity](#prepare-watch-connectivity)
   - [WCSession Activation Sequence](#wcsession-activation-sequence)
@@ -144,7 +145,6 @@ The `PowerAuthConfiguration` has the following additional properties:
 - `algorithm` - Alters [algorithm](#algorithms-for-communication) used for the communication with the PowerAuth Server.
 - `offlineaAthenticationCodeComponentLength` - Alters the default component length for the [offline authentication code](#symmetric-offline-multi-factor-authentication-code). The values between 4 and 8 are allowed. The default value is 8.
 - `externalEncryptionKey` - See [External Encryption Key](#external-encryption-key) chapter for more details.
-- `disableAutomaticProtocolUpgrade` - If set to `true`, then automatic protocol upgrade is disabled. This option should be used only for the debugging purposes.
 - `keychainKey_Biometry` - Specifies the 'key' used to store the `PowerAuthSDK` instance’s biometry-related key in the biometry keychain. If not set, the `instanceId` is applied. Do not alter this configuration unless you have a valid reason to do so.
 
 ### Biometric configuration
@@ -531,8 +531,6 @@ if powerAuthSDK.hasValidActivation() {
 }
 ```
 
-Note that the status fetch may fail at an unrecoverable error `PowerAuthErrorCode.protocolUpgrade`, meaning that it's not possible to upgrade the PowerAuth protocol to a newer version. In this case, it's recommended to [remove the activation locally](#activation-removal).
-
 ### Activation states
 
 This chapter explains activation states in detail. To get more information about activation lifecycle, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
@@ -541,7 +539,7 @@ This chapter explains activation states in detail. To get more information about
 
 The activation record is created using an external channel, such as the Internet banking, but the key exchange between the client and server did not happen yet. This state is never reported to the mobile client.
 
-#### `PowerAuthActivationState.pendingCommig`
+#### `PowerAuthActivationState.pendingCommit`
 
 The activation record is created, and the key exchange between the client and server has already taken place, but the activation record on the server requires additional approval before it can be used. This approval is typically performed through an internet banking platform by the client or handled by an authorized representative in a back office system.
 
@@ -1741,7 +1739,65 @@ Note that by removing tokens locally, you will lose control of the tokens stored
 
 ## Authenticated Protocol Upgrade
 
-- TBA
+The authenticated protocol upgrade procedure enables an existing activation to
+migrate to a newer algorithm for communication with the PowerAuth Server.
+Following conditions must be satisfied before the upgrade can proceed:
+
+- The PowerAuth Server version must be **2.0 or later**.
+- The PowerAuth SDK instance must be configured with support for at least
+`EC_P384` algorithm for communication with the PowerAuth Server.
+
+An application can check whether a protocol upgrade is available for the current
+activation by invoking:
+
+```swift
+let upgradeAvailable = powerAuthSDK.hasProtocolUpgradeAvailable()
+```
+
+Note that the availability information is derived from the activation status
+obtained from the PowerAuth Server. Consequently, an upgrade may become
+available after a successful activation status fetch. This method is not
+required to be called prior to starting the protocol upgrade.
+
+A protocol upgrade is an authenticated operation. User must provide valid
+knowledge authentication factor (e.g. password or PIN). If biometric
+authentication is enabled for the activation, the user must also authenticate
+with the biometric factor.
+
+To start the protocol upgrade, call:
+```swift
+powerAuthSDK.startProtocolUpgrade(password: "1234") { (result, error) in
+    if let result {
+        if result.activationStatusFetchRequired {
+            // Activation status fetch is required to complete the protocol upgrade
+        } else {
+            // Protocol upgrade is completed
+        }
+    } else {
+        // Error occured
+    }
+}
+```
+
+If the call succeeds, the application must inspect the
+`activationStatusFetchRequired` field of the result object. If set to `true`,
+activation status fetch must be performed to complete the protocol upgrade. Only
+after successfull activation status fetch is the protocol upgrade considered
+completed. If the `activationStatusFetchRequired` field of the result object is
+set to `false`, the protocol upgrade is considered completed without any further
+action and the result object also contains new `activationFingerprint`. If an
+error occurs, the PowerAuth SDK will revert to the previous activation state,
+and the upgrade can be safely retried later.
+
+Until the protocol upgrade is fully completed, the PowerAuth SDK restricts
+certain functionality, such as PowerAuth authentication code calculation. To
+verify whether the activation is still in the middle of an upgrade, call:
+
+```swift
+let upgradePending = powerAuthSDK.hasPendingProtocolUpgrade()
+```
+
+If this call returns true, the application must perform an activation status fetch to complete the upgrade.
 
 ## Apple Watch Support
 
@@ -2229,8 +2285,7 @@ Here's the list of important error codes, which the application should properly 
 
 - `PowerAuthErrorCode.biometryCancel` is reported when the user cancels the biometric authentication dialog
 - `PowerAuthErrorCode.biometryFallback` is reported when the user cancels the biometric authentication dialog with a fallback button
-- `PowerAuthErrorCode.protocolUpgrade` is reported when SDK fails to upgrade itself to a newer protocol version. The code may be reported from `PowerAuthSDK.fetchActivationStatus()`. This is an unrecoverable error resulting in the broken activation on the device, so the best situation is to inform the user about the situation and remove the activation locally.
-- `PowerAuthErrorCode.pendingProtocolUpgrade` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The code is typically reported in situations when SDK is performing protocol upgrade in the background (as a part of activation status fetch), and the application wants to calculate the PowerAuth authentication code in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
+- `PowerAuthErrorCode.pendingProtocolUpgrade` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The error code is typically reported in situations when SDK is performing protocol upgrade and the application wants to calculate the PowerAuth authentication code in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
 - `PowerAuthErrorCode.externalPendingOperation` is reported when the requested operation collides with the same operation type already started in the external application.
 
 ### Working with Invalid SSL Certificates

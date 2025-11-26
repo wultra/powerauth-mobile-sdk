@@ -30,12 +30,12 @@
 @required
 /// Called when session require read access to the activation data.
 /// The implementation must validate whether the read access is granted.
-/// If access is not granted, then return NO.
+/// If access is not granted, then return `false`.
 - (BOOL) requireReadAccess;
 
 /// Called when session require write access to the activation data.
 /// The implementation must validate whether the write access is granted.
-/// If access is not granted, then return NO.
+/// If access is not granted, then return `false`.
 - (BOOL) requireWriteAccess;
 
 @end
@@ -107,33 +107,33 @@
 #pragma mark - Session state
 
 /**
- Contains YES if the session is in state where it's possible to create a new activation.
+ Contains `true` if the session is in state where it's possible to create a new activation.
  
  This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL canCreateActivation;
 /**
- Contains YES if the session has pending activation create.
+ Contains `true` if the session has pending activation create.
  
  This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL hasPendingCreateActivation;
 /**
- Contains YES if the session has valid activation and the shared secret between the client and
+ Contains `true` if the session has valid activation and the shared secret between the client and
  the server has been established. You can sign data in this state.
  
  This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL hasValidActivationData;
 /**
- Checks if there's a valid activation that requires a protocol upgrade. Contains NO once the upgrade
+ Checks if there's a valid activation that requires a protocol upgrade. Contains `false` once the upgrade
  process is started. The application should fetch the activation's status to do the upgrade.
  
  This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL hasProtocolUpgradeAvailable;
 /**
- Contains YES if the session has pending upgrade to newer protocol version.
+ Contains `true` if the session has pending upgrade to newer protocol version.
  Some operations may be temporarily blocked during the upgrade process.
  
  This property access the session's state, so read access must be guaranteed.
@@ -177,14 +177,14 @@
 /// Loads state of session from previously saved sequence of bytes. If the serialized state is
 /// invalid then the session ends in empty, uninitialized state.
 ///
-/// Returns YES if operation succeeds. In case of failure, you can determine the failure reason from
+/// Returns `true` if operation succeeds. In case of failure, you can determine the failure reason from
 /// DEBUG log.
 ///
 /// This function changes the session's state, so write access must be guaranteed.
 ///
 /// - Parameter state: Previously saved state.
 /// - Parameter error: Pointer where error is stored in case of failure.
-/// - Returns: YES in case of success.
+/// - Returns: `true` in case of success.
 - (BOOL) deserializeState:(nonnull NSData *)state
                     error:(NSError*_Nullable*_Nullable)error;
 
@@ -303,7 +303,7 @@
                                        toPassword:(nonnull PowerAuthCorePassword*)newPassword
                                             error:(NSError*_Nullable*_Nullable)error;
 
-/// Returns `YES` in case the biometric factor is set.
+/// Returns `true` in case the biometric factor is set.
 ///
 /// This function doesn't change the session's state, so read access must be guaranteed.
 - (BOOL) hasBiometryFactor;
@@ -415,7 +415,7 @@
 
 #pragma mark - Vault operations
 
-/// Fetch vault key from the server. If the requested key is `PowerAuthCoreVaultKeyType_Legacy`,
+/// Fetch vault key from the server. If the requested key is `PowerAuthCoreSecureVaultKeyId_Legacy`,
 /// then also apply key derivation with given index. In case of success, the response object
 /// contains instance of `PowerAuthCoreData` object.
 ///
@@ -428,21 +428,23 @@
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: Core request object containing all required information for accessing the key.
 - (nullable PowerAuthCoreRequest*) fetchVaultEncryptionKey:(nonnull PowerAuthCoreCredentials*)credentials
-                                                     keyId:(PowerAuthCoreVaultEncryptionKeyId)keyId
+                                                     keyId:(PowerAuthCoreSecureVaultKeyId)keyId
                                                      index:(UInt64)index
                                                      error:(NSError *_Nullable*_Nullable)error;
 
-/// Derive already existing key into new key. If the key type is `PowerAuthCoreVaultKeyType_Legacy`,
+/// Derive already existing key into new key. If the key type is `PowerAuthCoreSecureVaultKeyId_Legacy`,
 /// then return error.
 /// - Parameters:
 ///   - vaultKey: Original key.
 ///   - keyId: Identifier of current vault encryption key.
 ///   - index: Derivation index of the new key.
+///   - keySize: Size of derived key in bytes. Minimum is 16 bytes.
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: `PowerAuthCoreData` instance with derived key.
 + (nullable PowerAuthCoreData*) deriveVaultEncryptionKey:(nonnull PowerAuthCoreData*)vaultKey
-                                                   keyId:(PowerAuthCoreVaultEncryptionKeyId)keyId
+                                                   keyId:(PowerAuthCoreSecureVaultKeyId)keyId
                                                    index:(UInt64)index
+                                                 keySize:(UInt64)keySize
                                                    error:(NSError *_Nullable*_Nullable)error;
 
 #pragma mark - Digital signatures
@@ -461,8 +463,8 @@
 ///   - data: Signed data.
 ///   - keyId: Key used for signature verification. The key must support signature verification.
 ///   - error: Pointer where error is set in case of failure.
-/// - Returns: `YES` if signature is valid, otherwise `NO`. If failure is caused by invalid signature,
-///            then no error is set in the provided error pointer.
+/// - Returns: `true` if signature is valid, otherwise `false`. If failure is caused by invalid signature,
+///            then error with `PowerAuthCoreError_WrongSignature` is returned.
 - (BOOL) verifySignature:(nonnull NSData*)signature
                     data:(nonnull NSData*)data
                    keyId:(PowerAuthCoreSignatureKeyId)keyId
@@ -478,8 +480,8 @@
 ///             matches a valid signature; however, invalid or mismatched signatures still result in an error.
 ///   - keyId: Key used for signature verification. The key must support such operation.
 ///   - error: Pointer where error is set in case of failure.
-/// - Returns: `YES` if signature is valid, otherwise `NO`. If failure is caused by invalid signature,
-///            then no error is set in the provided error pointer.
+/// - Returns: `true` if signature is valid, otherwise `false`. If failure is caused by invalid signature,
+///            then error with `PowerAuthCoreError_WrongSignature` is returned
 - (BOOL) jwsVerifySignature:(nonnull NSString*)signedData
                 compactForm:(BOOL)compactForm
                      strict:(BOOL)strict
@@ -507,7 +509,7 @@
 /// - Parameters:
 ///   - data: Data to sign and embed into JWS.
 ///   - dataType: Data type set to JOSE header. Use `"JWT"` or `nil` if no type is set.
-///   - compactForm: If `YES`, the result contains a compact JWT string instead of a JWS.
+///   - compactForm: If `true`, the result contains a compact JWT string instead of a JWS.
 ///                 If used with hybrid keys, an error is reported.
 ///   - credentials: Credentials used for unlocking the device private key.
 ///   - keyId: Key used for signature calculation. The key must support such operation.
@@ -524,7 +526,7 @@
 #pragma mark - External Encryption Key
 
 /**
- Returns YES if EEK (external encryption key) is set.
+ Returns true if EEK (external encryption key) is set.
  
  This function access the session's state, so read access must be guaranteed.
  */

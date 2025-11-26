@@ -329,15 +329,18 @@ RequestPtr Session::removeAccessToken(const std::string_view &token_identifier)
 
 // MARK: - Vault key
 
-RequestPtr Session::fetchVaultEncryptionKey(const CredentialsPtr& credentials, VaultEncryptionKeyId key_id, cc7::U64 index) const
+RequestPtr Session::fetchVaultEncryptionKey(const CredentialsPtr& credentials, SecureVaultKeyId key_id, cc7::U64 index) const
 {
     LOCK_GUARD();
     return _context->vaultService().fetchVaultEncryptionKey(credentials, key_id, index);
 }
 
-cc7::ByteArray Session::deriveVaultEncryptionKey(const cc7::ByteRange& key, cc7::U64 index, VaultEncryptionKeyId key_id)
+cc7::ByteArray Session::deriveVaultEncryptionKey(const cc7::ByteRange& key,
+                                                 cc7::U64 index,
+                                                 cc7::U64 key_size,
+                                                 SecureVaultKeyId key_id)
 {
-    return VaultService::deriveVaultEncryptionKey(key, index, key_id);
+    return VaultService::deriveVaultEncryptionKey(key, index, key_size, key_id);
 }
 
 
@@ -356,6 +359,9 @@ static DevicePublicKeyData _BuildDevicePublicKeyData(const cc7::crypto::PublicKe
 std::vector<DevicePublicKeyData> Session::exportDevicePublicKeys(cc7::crypto::KeyFormat key_format) const
 {
     LOCK_GUARD();
+    if (!_context->sessionData().hasActivationId()) {
+        throw Exception(EC_MissingActivation);
+    }
     const auto& public_key = _context->keyProvider().devicePublicKey();
     auto spec = _context->specification();
     std::vector<DevicePublicKeyData> result;
@@ -372,12 +378,12 @@ std::vector<DevicePublicKeyData> Session::exportDevicePublicKeys(cc7::crypto::Ke
     return result;
 }
 
-bool Session::verifySignature(const cc7::ByteRange& signed_data,
+void Session::verifySignature(const cc7::ByteRange& signed_data,
                               const cc7::ByteRange& signature,
                               SignatureKeyId key_to_use) const
 {
     LOCK_GUARD();
-    return _context->signatureService().verifySignature(signed_data, signature, key_to_use);
+    _context->signatureService().verifySignature(signed_data, signature, key_to_use);
 }
 
 RequestPtr Session::signData(const CredentialsPtr& credentials,
@@ -388,14 +394,14 @@ RequestPtr Session::signData(const CredentialsPtr& credentials,
     return _context->signatureService().signData(credentials, data_to_sign, key_to_use);
 }
 
-bool Session::jwsVerifySignature(const std::string &signed_data,
+void Session::jwsVerifySignature(const std::string &signed_data,
                                  SignatureKeyId key_to_use,
                                  bool is_compact_form,
                                  bool strict_verify) const
 {
     LOCK_GUARD();
     cc7::jwt::JwsVerifyMode verify_mode = strict_verify ? cc7::jwt::JwsVerifyMode::VERIFY_ALL_KEYS : cc7::jwt::JwsVerifyMode::VERIFY_AT_LEAST_ONE;
-    return _context->signatureService().jwsVerifySignature(signed_data, key_to_use, is_compact_form, verify_mode);
+    _context->signatureService().jwsVerifySignature(signed_data, key_to_use, is_compact_form, verify_mode);
 }
 
 RequestPtr Session::jwsSignData(const CredentialsPtr& credentials,

@@ -26,18 +26,35 @@ POWERAUTH_EXTERN_C NSString * __nonnull const PowerAuthCoreErrorInfoKey_Addition
 /// Error codes returned for `PowerAuthCoreErrorDomain` errors.
 typedef NS_ENUM(NSInteger, PowerAuthCoreError) {
     PowerAuthCoreError_NA,
-    PowerAuthCoreError_MissingActivation,
+    /// Session has no activation but activation is required for the operation.
+    PowerAuthCoreError_MissingActivation = 1,
+    /// Activation is in wrong state for the requested operation.
     PowerAuthCoreError_WrongActivationState,
+    /// Wrong input parameter provided.
     PowerAuthCoreError_WrongParameter,
+    /// Biometry factor is not configured.
     PowerAuthCoreError_BiometryNotAllowed,
+    /// Operation is not allowed in the current object's state. For example,
+    /// if you try to already used encryptor object.
     PowerAuthCoreError_NotAllowed,
+    /// Operation require synchronized time.
     PowerAuthCoreError_TimeNotSynchronized,
+    /// Invalid data. Error is reported in situations, when configuration or
+    /// serialized data format is not valid.
     PowerAuthCoreError_InvalidData,
+    /// Invalid response received from the server.
     PowerAuthCoreError_InvalidResponse,
+    /// Digital or JWS signature is not valid.
+    PowerAuthCoreError_WrongSignature,
+    /// Internal library error.
     PowerAuthCoreError_InternalError,
+    /// Operation failed in the cryptographic provider.
     PowerAuthCoreError_Cryptography,
+    /// Operation was canceled from elsewhere.
     PowerAuthCoreError_Canceled,
+    /// Operation is not allowed due to pending protocol upgrade. Try again later.
     PowerAuthCoreError_PendingProtocolUpgrade,
+	/// Other, unspecified type of error.
     PowerAuthCoreError_Other
 };
 
@@ -45,7 +62,7 @@ typedef NS_ENUM(NSInteger, PowerAuthCoreError) {
 
 /// Contains `PowerAuthCoreError` in case that NSError object has `PowerAuthCoreErrorDomain`. If error object
 /// has different domain, then property contains `PowerAuthCoreError_NA`.
-@property (nonatomic, readonly) PowerAuthCoreError powerAuthCoreError;
+@property (nonatomic, readonly) PowerAuthCoreError powerAuthCoreErrorCode;
 
 /// Contains array with strings containing additional error messages, in case that more than one error message
 /// was created with the failure.

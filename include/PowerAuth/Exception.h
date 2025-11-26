@@ -41,13 +41,15 @@ enum ErrorCode
     EC_InvalidData,
     /// Invalid response received from the server.
     EC_InvalidResponse,
+    /// Digital or JWS signature is not valid.
+    EC_WrongSignature,
     /// Internal library error.
     EC_InternalError,
     /// Operation failed in the cryptographic provider.
     EC_Cryptography,
     /// Operation was canceled from elsewhere.
     EC_Canceled,
-    /// Operation is not available during the protocol upgrade.
+    /// Operation is not allowed due to pending protocol upgrade. Try again later.
     EC_PendingProtocolUpgrade,
     /// Other, unspecified type of error.
     EC_Other
@@ -58,8 +60,11 @@ class Exception : public cc7::BaseException
 {
 public:
     /// Construct exception with error code. The default error message is used.
-    Exception(ErrorCode error) noexcept :
-        cc7::BaseException(defaultMessage(error)),
+    /// - Parameters:
+    ///   - error: Reason of the failure.
+    ///   - cause: Original cause. If `nullptr` then there's no original cause of the failure.
+    Exception(ErrorCode error, std::exception_ptr cause = nullptr) noexcept :
+        cc7::BaseException(defaultMessage(error), cause),
         _error(error)
     {
     }
@@ -182,16 +187,6 @@ public:
 
 private:
     
-    /// The private constructor used internally by `reThrowWrapped()` methods.
-    /// - Parameters:
-    ///   - error: Error code to use.
-    ///   - cause: Original failure.
-    Exception(ErrorCode error, std::exception_ptr cause) noexcept :
-        cc7::BaseException(defaultMessage(error), cause),
-        _error(error)
-    {
-    }
-
     /// Function return string with default error message for given error code.
     /// - Parameter error: Error code.
     /// - Returns: Default error message for given code.

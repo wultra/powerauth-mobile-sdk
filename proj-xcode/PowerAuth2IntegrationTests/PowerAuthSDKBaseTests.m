@@ -134,7 +134,92 @@
     
     PowerAuthCorePassword * newPassword = [PowerAuthCorePassword passwordWithString:@"nbusr321"];
     
-    // 1) At first, change password
+    // 1) Change password in two steps
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task1 = [_sdk beginPasswordChangeWithCorePassword:auth.password callback:^(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error) {
+            XCTAssertNil(error);
+            if (!error) {
+                // Now change password
+                id<PowerAuthOperationTask> task2 = [_sdk finishPasswordChangeWithNewCorePassword:newPassword changeData:changeData callback:^(NSError * _Nullable error) {
+                    [waiting reportCompletion:@(error == nil)];
+                }];
+                // Returned task should be present for non-legacy algorithms
+                if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+                    // In Legacy mode, password is changed locally
+                    XCTAssertNotNil(task2);
+                }
+            } else {
+                // failure in step 1
+                [waiting reportCompletion:@NO];
+            }
+        }];
+        XCTAssertNotNil(task1);
+    }] boolValue];
+    XCTAssertTrue(result);
+    
+    // 2) Now validate that new password
+    result = [_helper checkForCorePassword:newPassword];
+    XCTAssertTrue(result);
+    
+    // Now use string version instead of core password
+    
+    NSString * oldStringPassword = newPassword.extractedPassword;
+    NSString * newStringPassword = auth.password.extractedPassword;
+    
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task1 = [_sdk beginPasswordChangeWithPassword:oldStringPassword callback:^(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error) {
+            XCTAssertNil(error);
+            if (!error) {
+                // Now change password
+                id<PowerAuthOperationTask> task2 = [_sdk finishPasswordChangeWithNewPassword:newStringPassword changeData:changeData callback:^(NSError * _Nullable error) {
+                    [waiting reportCompletion:@(error == nil)];
+                }];
+                // Returned task should be present for non-legacy algorithms
+                if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+                    // In Legacy mode, password is changed locally
+                    XCTAssertNotNil(task2);
+                }
+            } else {
+                // failure in step 1
+                [waiting reportCompletion:@NO];
+            }
+        }];
+        XCTAssertNotNil(task1);
+    }] boolValue];
+    XCTAssertTrue(result);
+    
+    // 2) Now validate that new password
+    result = [_helper checkForPassword:newStringPassword];
+    XCTAssertTrue(result);
+}
+
+// PA2_DEPRECATED(2.0.0)
+- (void) testChangePasswordDeprecated
+{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
+    CHECK_TEST_CONFIG();
+    
+    BOOL result;
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    PowerAuthAuthentication * auth = activation.credentials;
+    
+    PowerAuthCorePassword * newPassword = [PowerAuthCorePassword passwordWithString:@"nbusr321"];
+    
+    // 1) At first, validate password with using deprecated function
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+        XCTAssertNotNil(task);
+    }] boolValue];
+    XCTAssertTrue(result);
+    
+    // 2) Now change password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         id<PowerAuthOperationTask> task = [_sdk changeCorePasswordFrom:auth.password to:newPassword callback:^(NSError * _Nullable error) {
             [waiting reportCompletion:@(error == nil)];
@@ -147,7 +232,7 @@
     }] boolValue];
     XCTAssertTrue(result);
     
-    // 2) Now validate that new password
+    // 3) And finally check the new password
     result = [_helper checkForCorePassword:newPassword];
     XCTAssertTrue(result);
     
@@ -155,7 +240,14 @@
     
     NSString * oldStringPassword = newPassword.extractedPassword;
     NSString * newStringPassword = auth.password.extractedPassword;
-    // 1) At first, change password
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk validatePassword:oldStringPassword callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+        XCTAssertNotNil(task);
+    }] boolValue];
+    XCTAssertTrue(result);
+    
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         id<PowerAuthOperationTask> task = [_sdk changePasswordFrom:oldStringPassword to:newStringPassword callback:^(NSError * _Nullable error) {
             [waiting reportCompletion:@(error == nil)];
@@ -171,8 +263,9 @@
     // 2) Now validate that new password
     result = [_helper checkForPassword:newStringPassword];
     XCTAssertTrue(result);
+    
+#pragma clang diagnostic pop
 }
-
 
 
 - (void) testAuthentication
@@ -227,7 +320,7 @@
     // Do more valid signatures. Count is important, due to fact that we have 8-bit local counter since V3.1
     for (int i = 1; i < 264; i++) {
         result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-            id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * error) {
+            id<PowerAuthOperationTask> task = [_sdk testCorePassword:auth.password callback:^(NSError * error) {
                 [waiting reportCompletion:@(error == nil)];
             }];
             XCTAssertNotNil(task);
@@ -708,7 +801,7 @@
     
     // 2) At first, use invalid password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validatePassword:@"MustBeWrong" callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk testPassword:@"MustBeWrong" callback:^(NSError * error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -717,7 +810,7 @@
     
     // 3) Now use a valid password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk testCorePassword:auth.password callback:^(NSError * error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -730,7 +823,7 @@
     
     // 5) Test password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk testCorePassword:auth.password callback:^(NSError * error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -934,11 +1027,11 @@
         return;
     }
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk validateCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
+        [_sdk testCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
             XCTAssertNil(error);
             [waiting reportCompletion:nil];
         }];
-        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
+        id<PowerAuthOperationTask> task = [_sdk testCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
             XCTFail();
         }];
         [task cancel];
@@ -1189,6 +1282,7 @@
     NSArray<PowerAuthDevicePublicKeyData*>* keys = [_sdk exportDevicePublicKeysToFormat:PowerAuthDevicePublicKeyFormat_Der error:&error];
     XCTAssertNil(keys);
     XCTAssertNotNil(error);
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
     error = nil;
     keys = [_sdk exportDevicePublicKeysToFormat:PowerAuthDevicePublicKeyFormat_Raw error:&error];
     XCTAssertNil(keys);
@@ -1342,7 +1436,8 @@
     }
     PowerAuthAuthentication * auth = activation.credentials;
     
-    PATSOfflineSignaturePayload * payload;
+    NSError *error = nil;
+    PATSOfflineSignaturePayload *payload;
     {
         // Verify data signed with master key (non-personalized)
         NSString * dataForSigning = @"All your money are belong to us!";
@@ -1355,8 +1450,9 @@
         result = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:payload.parsedSignature options:0]
                                    signedData:signedData
                                 keyIdentifier:PowerAuthSignatureKeyId_Master_EC
-                                        error:nil];
-        XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
+                                        error:&error];
+        XCTAssertTrue(result);
+        XCTAssertNil(error);
     }
     {
         // Verify data signed with server key (personalized)
@@ -1378,11 +1474,24 @@
         XCTAssertTrue([payload.parsedSigningKey isEqualToString:expectedSigningKey]);
         
         NSData * signedData = [payload.parsedSignedData dataUsingEncoding:NSUTF8StringEncoding];
+        error = nil;
         result = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:payload.parsedSignature options:0]
                                    signedData:signedData
                                 keyIdentifier:signingKeyId
-                                        error:nil];
-        XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
+                                        error:&error];
+        XCTAssertTrue(result);
+        XCTAssertNil(error);
+        // Bad data
+        NSMutableData * badData = [signedData mutableCopy];
+        char * dataPtr = badData.mutableBytes;
+        dataPtr[0]++;
+        error = nil;
+        result = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:payload.parsedSignature options:0]
+                                   signedData:badData
+                                keyIdentifier:signingKeyId
+                                        error:&error];
+        XCTAssertFalse(result);
+        XCTAssertEqual(PowerAuthErrorCode_WrongSignature, error.powerAuthErrorCode);
     }
     
     // Well, we have a data for offline signature, so let's try to verify it.
@@ -1493,6 +1602,7 @@
         return;
     }
     NSData * dataForSigning = [@"This is a very sensitive information and must be signed." dataUsingEncoding:NSUTF8StringEncoding];
+    NSData * badSignedData  = [@"This is a very sEnsitive information and must be signed." dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary * signatures = [_helper.testServerApi createDsaSignature:_sdk.activationIdentifier data:dataForSigning];
     NSData * ecdsa = [[NSData alloc] initWithBase64EncodedString:signatures[@"ecdsa"] options:0];
     NSData * mldsa = signatures[@"mldsa"] ? [[NSData alloc] initWithBase64EncodedString:signatures[@"mldsa"] options:0] : nil;
@@ -1506,6 +1616,11 @@
             result = [_sdk verifyDigitalSignature:ecdsa signedData:dataForSigning keyIdentifier:PowerAuthSignatureKeyId_Server_EC error:&error];
             XCTAssertTrue(result);
             XCTAssertNil(error);
+            // bad data
+            error = nil;
+            result = [_sdk verifyDigitalSignature:ecdsa signedData:badSignedData keyIdentifier:PowerAuthSignatureKeyId_Server_EC error:&error];
+            XCTAssertFalse(result);
+            XCTAssertEqual(PowerAuthErrorCode_WrongSignature, error.powerAuthErrorCode);
             break;
         case PowerAuthCoreAlgorithm_EC_P384_ML_L5:
         case PowerAuthCoreAlgorithm_EC_P384_ML_L3:
@@ -1518,6 +1633,15 @@
             result = [_sdk verifyDigitalSignature:mldsa signedData:dataForSigning keyIdentifier:PowerAuthSignatureKeyId_Server_ML_DSA error:&error];
             XCTAssertTrue(result);
             XCTAssertNil(error);
+            // bad data
+            error = nil;
+            result = [_sdk verifyDigitalSignature:ecdsa signedData:badSignedData keyIdentifier:PowerAuthSignatureKeyId_Server_EC error:&error];
+            XCTAssertFalse(result);
+            XCTAssertEqual(PowerAuthErrorCode_WrongSignature, error.powerAuthErrorCode);
+            error = nil;
+            result = [_sdk verifyDigitalSignature:mldsa signedData:badSignedData keyIdentifier:PowerAuthSignatureKeyId_Server_ML_DSA error:&error];
+            XCTAssertFalse(result);
+            XCTAssertEqual(PowerAuthErrorCode_WrongSignature, error.powerAuthErrorCode);
             break;
         default:
             XCTFail(@"Unsupported algorithm");
@@ -1798,13 +1922,13 @@
 
 #pragma mark - Vault keys
 
-- (PowerAuthVaultEncryptionKey*) fetchVaultEncryptionKey:(PowerAuthVaultEncryptionKeyId)keyId
-                                             credentials:(PowerAuthAuthentication*)credentials
-                                              shouldPass:(BOOL)shouldPass
+- (PowerAuthSecureVaultKey*) fetchVaultEncryptionKey:(PowerAuthSecureVaultKeyId)keyId
+                                         credentials:(PowerAuthAuthentication*)credentials
+                                          shouldPass:(BOOL)shouldPass
 {
     __block NSError * outError = nil;
-    PowerAuthVaultEncryptionKey * vaultKey = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk fetchVaultEncryptionKey:credentials keyIdentifier:keyId callback:^(PowerAuthVaultEncryptionKey * _Nullable encryptionKey, NSError * _Nullable error) {
+    PowerAuthSecureVaultKey * vaultKey = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchSecureVaultKey:credentials keyIdentifier:keyId callback:^(PowerAuthSecureVaultKey * _Nullable encryptionKey, NSError * _Nullable error) {
             outError = error;
             [waiting reportCompletion:encryptionKey];
         }];
@@ -1851,72 +1975,59 @@
         return;
     }
     NSError * error;
-    PowerAuthVaultEncryptionKey *legacy, *any2fa, *knowledge, *other, *another;
+    PowerAuthSecureVaultKey *any2fa, *knowledge, *otherKDK;
+    PowerAuthCoreData *legacy, *other, *another;
     if ([_sdk currentAlgorithm] != PowerAuthAlgorithm_LEGACY_P256) {
         // V4
-        any2fa = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:YES];
-        XCTAssertEqual(YES, any2fa.baseKey);
-        XCTAssertEqual(0, any2fa.derivationIndex);
-        XCTAssertEqual(32, any2fa.key.sensitiveData.length);
-        other = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:YES];
-        XCTAssertEqualObjects(any2fa, other);
-        other = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_KnowledgeOrBiometry credentials:activation.biometryCredentials shouldPass:YES];
-        XCTAssertEqualObjects(any2fa, other);
+        any2fa = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:YES];
+        otherKDK = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:YES];
+        XCTAssertEqualObjects(any2fa, otherKDK);
+        otherKDK = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.biometryCredentials shouldPass:YES];
+        XCTAssertEqualObjects(any2fa, otherKDK);
 
-        knowledge = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Knowledge credentials:activation.credentials shouldPass:YES];
-        XCTAssertEqual(YES, knowledge.baseKey);
-        XCTAssertEqual(0, knowledge.derivationIndex);
-        XCTAssertEqual(32, knowledge.key.sensitiveData.length);
+        knowledge = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_Knowledge credentials:activation.credentials shouldPass:YES];
         XCTAssertNotEqualObjects(any2fa, knowledge);
-        other = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Knowledge credentials:activation.credentials shouldPass:YES];
-        XCTAssertEqualObjects(knowledge, other);
+        otherKDK = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_Knowledge credentials:activation.credentials shouldPass:YES];
+        XCTAssertEqualObjects(knowledge, otherKDK);
         
         // Derive other keys
-        other = [any2fa deriveKeyWithIndex:1000 error:&error];
+        other = [any2fa deriveKeyWithIndex:1000 keySize:32 error:&error];
         XCTAssertNotNil(other);
-        XCTAssertEqual(NO, other.baseKey);
-        XCTAssertEqual(1000, other.derivationIndex);
-        XCTAssertNotNil(other.key);
-        another = [any2fa deriveKeyWithIndex:1000 error:&error];
+        XCTAssertEqual(32, other.sensitiveData.length);
+        another = [any2fa deriveKeyWithIndex:1000 keySize:32 error:&error];
         XCTAssertEqualObjects(other, another);
         
-        other = [knowledge deriveKeyWithIndex:1000 error:&error];
+        other = [knowledge deriveKeyWithIndex:1000 keySize:32 error:&error];
         XCTAssertNotNil(other);
-        XCTAssertEqual(NO, other.baseKey);
-        XCTAssertEqual(1000, other.derivationIndex);
-        XCTAssertNotNil(other.key);
-        another = [knowledge deriveKeyWithIndex:1000 error:&error];
+        XCTAssertEqual(32, other.sensitiveData.length);
+        another = [knowledge deriveKeyWithIndex:1000 keySize:32 error:&error];
         XCTAssertEqualObjects(other, another);
         
-
+        another = [knowledge deriveKeyWithIndex:1000 keySize:16 error:&error];
+        XCTAssertNotEqualObjects(other, another);
+        
         // Following fetch operations should fail
-        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Knowledge credentials:activation.biometryCredentials shouldPass:NO];
-        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Legacy credentials:activation.credentials shouldPass:NO];
-        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Legacy credentials:activation.biometryCredentials shouldPass:NO];
+        [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_Knowledge credentials:activation.biometryCredentials shouldPass:NO];
         [self fetchLegacyVaultKey:activation.credentials derivationIndex:0 shouldPass:NO];
         [self fetchLegacyVaultKey:activation.biometryCredentials derivationIndex:0 shouldPass:NO];
         
-    } else {
-        // V3
-        legacy = [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Legacy credentials:activation.credentials shouldPass:YES];
-        XCTAssertNotNil(legacy);
-        XCTAssertEqual(PowerAuthVaultEncryptionKeyId_Legacy, legacy.keyId);
-        XCTAssertEqual(NO, legacy.baseKey);
-        XCTAssertEqual(0, legacy.derivationIndex);
-        XCTAssertEqual(16, legacy.key.sensitiveData.length);
-        // Compare to manually created key
-        PowerAuthCoreData * legacyKeyFetch = [self fetchLegacyVaultKey:activation.credentials derivationIndex:0 shouldPass:YES];
-        XCTAssertEqualObjects(legacy.key, legacyKeyFetch);
-        
-        // legacy key should not support derivation
-        PowerAuthVaultEncryptionKey * derivedKey = [legacy deriveKeyWithIndex:1000 error:&error];
-        XCTAssertNil(derivedKey);
+        // Min size is 16
+        another = [knowledge deriveKeyWithIndex:1000 keySize:8 error:&error];
+        XCTAssertNil(another);
         XCTAssertNotNil(error);
 
+    } else {
+        // V3
+        legacy = [self fetchLegacyVaultKey:activation.credentials derivationIndex:0 shouldPass:YES];
+        XCTAssertNotNil(legacy);
+        XCTAssertEqual(16, legacy.sensitiveData.length);
+        // Compare to manually created key
+        other = [self fetchLegacyVaultKey:activation.credentials derivationIndex:0 shouldPass:YES];
+        XCTAssertEqualObjects(legacy, other);
+        
         // Following fetch operations should fail
-        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Knowledge credentials:activation.credentials shouldPass:NO];
-        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:NO];
-        [self fetchVaultEncryptionKey:PowerAuthVaultEncryptionKeyId_Legacy credentials:activation.biometryCredentials shouldPass:NO];
+        [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_Knowledge credentials:activation.credentials shouldPass:NO];
+        [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:NO];
         [self fetchLegacyVaultKey:activation.biometryCredentials derivationIndex:0 shouldPass:NO];
     }
 }
@@ -2391,7 +2502,7 @@
     }
     // Validate password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk validatePassword:@"1234" callback:^(NSError * _Nullable error) {
+        [_sdk testPassword:@"1234" callback:^(NSError * _Nullable error) {
             [waiting reportCompletion:@(error == nil)];
         }];
     }] boolValue];

@@ -238,16 +238,16 @@ enum class EncryptorId
 // Vault key
 
 /// The `VaultKeyId` enumeration defines vault key identifiers.
-enum class VaultEncryptionKeyId
+enum class SecureVaultKeyId
 {
     /// This type of vault key can be provided after successful 2FA authentication
     /// on the server.
-    ANY_2FA,
+    ANY_2FA = 1,
     /// This type of vault key can be provided after authentication with the user's password.
-    KNOWLEDGE,
+    KNOWLEDGE = 2,
     /// This is a legacy key available only when PowerAuthSDK is running on a legacy
     /// protocol. The key can be provided after authentication with the user's password.
-    LEGACY
+    LEGACY = 3
 };
 
 // Authentication

@@ -25,7 +25,7 @@ NSString * const PowerAuthCoreErrorInfoKey_AdditionalErrors = @"PowerAuthCoreErr
 
 @implementation NSError (PowerAuthCoreError)
 
-- (PowerAuthCoreError) powerAuthCoreError
+- (PowerAuthCoreError) powerAuthCoreErrorCode
 {
     if ([self.domain isEqualToString:PowerAuthCoreErrorDomain]) {
         return static_cast<PowerAuthCoreError>(self.code);
@@ -58,6 +58,8 @@ NSError * BuildNSErrorFromException(std::exception_ptr ptr)
     NSString * message = nil;
     NSMutableArray * additional = [NSMutableArray array];
     powerAuth::ErrorCode error_code = powerAuth::EC_Other;
+    
+    ptr = Exception::wrapException();
     
     // Iterate over exception chain and extract debug information
     while (ptr != nullptr) {

@@ -1209,6 +1209,67 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark - Password
 
+- (nullable id<PowerAuthOperationTask>) beginPasswordChangeWithCorePassword:(nonnull PowerAuthCorePassword*)oldPassword
+                                                                   callback:(nonnull void(^)(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error))callback
+{
+    NSError * localError = nil;
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
+        return [session verifyPassword:oldPassword error:error];
+    } error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+        PowerAuthPasswordChangeData * changeData = error ? nil : [[PowerAuthPasswordChangeData alloc] initWithCorePassword:oldPassword];
+        callback(changeData, error);
+    }];
+
+}
+
+- (nullable id<PowerAuthOperationTask>) finishPasswordChangeWithNewCorePassword:(nonnull PowerAuthCorePassword*)newPassword
+                                                                     changeData:(nonnull PowerAuthPasswordChangeData*)changeData
+                                                                       callback:(nonnull void(^)(NSError * _Nullable error))callback
+{
+    PowerAuthCorePassword * oldPassword = [changeData.oldPassword copyToImmutable];
+    if (!oldPassword) {
+        callback(PA2MakeError(PowerAuthErrorCode_WrongParameter, @"PowerAuthPasswordChangeData is invalidated"));
+        return nil;
+    }
+    NSError * localError = nil;
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
+        return [session changePassword:oldPassword toPassword:newPassword error:error];
+    } error:&localError];
+    if (!request) {
+        // V3 change password is executed immediately. It's OK to exit immediately, because there's no additional asynchronous
+        // operation required. So, we can end here for both, successful and failure scenarios.
+        callback(localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+        callback(error);
+    }];
+
+}
+
+- (nullable id<PowerAuthOperationTask>) beginPasswordChangeWithPassword:(nonnull NSString*)oldPassword
+                                                               callback:(nonnull void(^)(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error))callback
+{
+    return [self beginPasswordChangeWithCorePassword:[PowerAuthCorePassword passwordWithString:oldPassword]
+                                            callback:callback];
+}
+
+- (nullable id<PowerAuthOperationTask>) finishPasswordChangeWithNewPassword:(nonnull NSString*)newPassword
+                                                                 changeData:(nonnull PowerAuthPasswordChangeData*)changeData
+                                                                   callback:(nonnull void(^)(NSError * _Nullable error))callback
+{
+    return [self finishPasswordChangeWithNewCorePassword:[PowerAuthCorePassword passwordWithString:newPassword]
+                                              changeData:changeData
+                                                callback:callback];
+}
+
+#pragma mark - Password (deprecated)
+
 // PowerAuthCorePassword versions
 
 - (BOOL) unsafeChangeCorePasswordFrom:(PowerAuthCorePassword*)oldPassword
@@ -1230,31 +1291,14 @@ static PowerAuthSDK * s_inst;
                                                    to:(PowerAuthCorePassword*)newPassword
                                              callback:(void(^)(NSError *error))callback
 {
-    NSError * localError = nil;
-    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
-        return [session changePassword:oldPassword toPassword:newPassword error:error];
-    } error:&localError];
-    if (localError || !request) {
-        // V3 change password is executed immediately, so it's OK to exit with no request and no local error.
-        callback(localError);
-        return nil;
-    }
-    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
-        callback(error);
-    }];
+    return [self finishPasswordChangeWithNewCorePassword:newPassword
+                                              changeData:[[PowerAuthPasswordChangeData alloc] initWithCorePassword:oldPassword]
+                                                callback:callback];
 }
 
 - (id<PowerAuthOperationTask>) validateCorePassword:(PowerAuthCorePassword*)password callback:(void(^)(NSError * error))callback
 {
-    NSError * localError = nil;
-    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
-        return [session verifyPassword:password error:error];
-    } error:&localError];
-    if (localError) {
-        callback(localError);
-        return nil;
-    }
-    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+    return [self beginPasswordChangeWithCorePassword:password callback:^(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error) {
         callback(error);
     }];
 }
@@ -1578,9 +1622,9 @@ static PowerAuthSDK * s_inst;
 #pragma mark - Secure vault support
 
 - (id<PowerAuthOperationTask>) fetchVaultEncryptionKey:(PowerAuthAuthentication*)authentication
-                                         keyIdentifier:(PowerAuthVaultEncryptionKeyId)keyIdentifier
+                                         keyIdentifier:(PowerAuthCoreSecureVaultKeyId)keyIdentifier
                                                  index:(UInt64)index
-                                              callback:(void(^)(PowerAuthVaultEncryptionKey *encryptionKey, NSError *error))callback
+                                              callback:(void(^)(PowerAuthCoreData *encryptionKey, NSError *error))callback
 {
     NSError* localError = nil;
     PowerAuthCoreCredentials * credentials = [self resolveCredentialsWithAuthentication:authentication error:&localError];
@@ -1590,7 +1634,7 @@ static PowerAuthSDK * s_inst;
     }
     PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError** error) {
         return [session fetchVaultEncryptionKey:credentials
-                                          keyId:(PowerAuthCoreVaultEncryptionKeyId)keyIdentifier
+                                          keyId:keyIdentifier
                                           index:index
                                           error:error];
     } error:&localError];
@@ -1599,14 +1643,7 @@ static PowerAuthSDK * s_inst;
         return nil;
     }
     return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, PowerAuthCoreData* response, NSError * error) {
-        PowerAuthVaultEncryptionKey * encryptionKey = nil;
-        if (response) {
-            encryptionKey = [[PowerAuthVaultEncryptionKey alloc] initWithCoreData:response
-                                                                            keyId:keyIdentifier
-                                                                            index:index
-                                                                             base:keyIdentifier != PowerAuthVaultEncryptionKeyId_Legacy];
-        }
-        callback(encryptionKey, error);
+        callback(response, error);
     }];
 }
 
@@ -1615,21 +1652,23 @@ static PowerAuthSDK * s_inst;
                                          callback:(void(^)(PowerAuthCoreData *encryptionKey, NSError *error))callback
 {
     return [self fetchVaultEncryptionKey:authentication
-                           keyIdentifier:PowerAuthVaultEncryptionKeyId_Legacy
+                           keyIdentifier:PowerAuthCoreSecureVaultKeyId_Legacy
                                    index:index
-                                callback:^(PowerAuthVaultEncryptionKey *encryptionKey, NSError *error) {
-        callback(encryptionKey.key, error);
+                                callback:^(PowerAuthCoreData *encryptionKey, NSError *error) {
+        callback(encryptionKey, error);
     }];
 }
 
-- (id<PowerAuthOperationTask>) fetchVaultEncryptionKey:(PowerAuthAuthentication*)authentication
-                                         keyIdentifier:(PowerAuthVaultEncryptionKeyId)keyIdentifier
-                                              callback:(void(^)(PowerAuthVaultEncryptionKey *encryptionKey, NSError *error))callback
+- (id<PowerAuthOperationTask>) fetchSecureVaultKey:(PowerAuthAuthentication*)authentication
+                                         keyIdentifier:(PowerAuthSecureVaultKeyId)keyIdentifier
+                                              callback:(void(^)(PowerAuthSecureVaultKey *encryptionKey, NSError *error))callback
 {
     return [self fetchVaultEncryptionKey:authentication
-                           keyIdentifier:keyIdentifier
+                           keyIdentifier:(PowerAuthCoreSecureVaultKeyId)keyIdentifier
                                    index:0
-                                callback:callback];
+                                callback:^(PowerAuthCoreData *encryptionKey, NSError *error) {
+        callback([[PowerAuthSecureVaultKey alloc] initWithCoreData:encryptionKey keyId:keyIdentifier], error);
+    }];
 }
 @end
 

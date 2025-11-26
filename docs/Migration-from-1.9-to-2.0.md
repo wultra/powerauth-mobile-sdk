@@ -1,14 +1,21 @@
-# Migration from 1.9.x to 1.10.x
+# Migration from 1.9.x to 2.0.x
 
-PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
+PowerAuth Mobile SDK in version `2.0.0` provides the following improvements:
 
-- PowerAuth mobile SDK no longer supports activation by the recovery code.
-- New `PowerAuthBiometricConfiguration` class that simplifies biometric configuration of `PowerAuthSDK` class.
-- PowerAuth mobile SDK now ensures sensitive keys are not retained in memory.
+- PowerAuth protocol version 4.0 introduces major cryptographic upgrades to strengthen long-term security and add post-quantum protection. Signature and key agreement mechanisms now use larger elliptic curves (P-384) and optionally operate in hybrid mode with quantum-resistant ML-DSA and ML-KEM algorithms. The end-to-end encryption scheme transitions from ECIES with AES-128/CBC and HMAC-SHA-256 to an AEAD design using AES-256/CTR with KMAC-256, providing stronger integrity and confidentiality guarantees. Overall, version 4.0 modernizes the protocol to align with emerging cryptographic standards and resist future quantum attacks.
+- Existing activations can be upgraded to the new PowerAuth protocol version 4.0 using the authenticated protocol upgrade procedure.
+- You can select a level of security that suits your business needs. See the `PowerAuthConfiguration` documentation for more details.
+- PowerAuth Mobile SDK can optionally operate in a mode fully compatible with legacy PowerAuth protocol version 3.3.
+- A new `PowerAuthBiometricConfiguration` class simplifies biometric configuration of the `PowerAuthSDK` class.
+- A new `PowerAuthVaultEncryptionKey` class provides better flexibility for Secure Vault operations.
+- PowerAuth Mobile SDK now ensures sensitive keys are not retained in memory.
+- Activation using a recovery code is no longer supported.
+- External encryption key feature is discontinued and will be removed in the next SDK release.
 
 ### Compatibility with PowerAuth Server
 
-- This release is fully compatible with PowerAuth Server version `1.9.0` and newer.
+- This release is fully compatible with PowerAuth Server version `2.0.0` and later.
+- If you configure `PowerAuthSDK` to operate with the legacy PowerAuth protocol 3.3, it requires PowerAuth Server version `1.9.0` or later.
 
 ## Android
 
@@ -109,8 +116,10 @@ Notable changes on iOS:
 
 - The following methods or properties are now deprecated or changed:
   - `PowerAuthSDK` class:
-    - class constructor taking only `PowerAuthConfiguration` object in parameter now throws error.
-    - `unsafeChangePassword(from:to:)` - use asynchronous `changePassword(from:to:callback:)` as a replacement.
+    - class constructor taking only `PowerAuthConfiguration` object in parameter now **throws error**.
+    - `unsafeChangePassword(from:to:)` - use new two-step API for password change `beginPasswordChange(oldPassword:callback:)` as a replacement.
+    - `changePassword(from:to:callback:)` - use new two-step API for password change `beginPasswordChange(oldPassword:callback:)` as a replacement.
+    - `validatePassword(password:callback:)` - method has no direct replacement. If your application requires password validation here, that indicates a deeper architectural issue that may introduce security vulnerabilities.
     - `persistActivation(with:)` - use asynchronous `persistActivation(with:callback:)` as a replacement.
     - `persistActivation(withPassword:)` - use asynchronous `persistActivation(withPassword:callback:)` as a replacement.
     - `removeBiometryFactor()` - use asynchronous `removeBiometryFactor(callback:)` as a replacement.
@@ -118,6 +127,13 @@ Notable changes on iOS:
     - `requestSignature(with:method:uriId:body:)` - use `authenticationHeaderForRequestWithBody(with:method:uriId:body:)` method instead.
     - `requestGetSignature(with:uriId:params:)` - use `authenticationHeaderForRequestWithParams(with:method:uriId:params:)` method with `"GET"` as method parameter.
     - `offlineSignature(with:uriId:body:nonce:)` - use asynchronous `offlineAuthenticationCode(with:uriId:body:nonce:callback:)` method that handle the biometric authentication properly.
+    - `verifyServerSignedData(_:signature:masterKey:)` - use `verifyDigitalSignature(signature:forData:withKey:)` method where you can specify the key for verification.
+    - `signData(withDevicePrivateKey:data:callback:)` - use `calculateDigitalSignature(authentication:forData:withKey:callback:)` method where you can specify the key for signing.
+    - `signJwt(withDevicePrivateKey:claims:callback:)` - use `calculateJwsSignature(authentication:forData:dataType:compact:withKey:callback:)` method where you can specify the key for signing and format of token.
+    - `eciesEncryptorForApplicationScope(callback:)` - method has been removed, use `encryptorForApplicationScope(callback:)` as replacement.
+    - `eciesEncryptorForActivationScope(callback:)` - method has been removed, use `encryptorForActivationScope(callback:)` as replacement.
+    - `fetchEncryptionKey(_:index:callback:)` - method is effective only if PowerAuthSDK is running at protocol 3.3 and will be removed once we drop support for this legacy protocol. Meanwhile you can migrate to the new `fetchVaultEncryptionKey(authentication:keyIdentifier:callback:)` method providing a better flexibility for secure vault operations.
+
   - `PowerAuthConfiguration` class:
     - `offlineSignatureComponentLength` property is now replaced with `offlineAuthenticationCodeComponentLength`
   - `PowerAuthTokenStore` protocol:
@@ -134,6 +150,8 @@ Notable changes on iOS:
   - `allowBiometricAuthenticationFallbackToDevicePasscode` - use new `PowerAuthBiometricConfiguration.allowFallbackToDevicePasscode` instead, with the same meaning.
   - `invalidateLocalAuthenticationContextAfterUse` - use new `PowerAuthBiometricConfiguration.invalidateLocalAuthenticationContextAfterUse` instead, with the same meaning.
   - Be aware that if you provide both, `PowerAuthBiometricConfiguration` and  `PowerAuthKeychainConfiguration` objects to initialize `PowerAuthSDK`, then the values from the biometric configuration takes precedence.
+
+- `PowerAuthCoreEciesEncryptor` class has been removed and replaced by `PowerAuthCoreEncryptor`. The new class doesn't allow you to reuse its instance, so you have to create new encryptor for each encrypted request.
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:
@@ -165,6 +183,9 @@ Notable changes on iOS:
   - `authenticateUsingBiometry(withContext:callback:)`
 
 - Removed all interfaces deprecated in release `1.9.x`
+
+- To support authenticated protocol upgrade, following method was added to the `PowerAuthSDK`:
+  - `startProtocolUpgrade(password:callback:)`
 
 ### Other changes
 

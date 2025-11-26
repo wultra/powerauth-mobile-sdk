@@ -14,29 +14,33 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthSignatureTypes.h>
+#import "PowerAuthPasswordChangeData+Private.h"
 
 @import PowerAuthCore;
 
-@implementation PowerAuthDevicePublicKeyData
+@implementation PowerAuthPasswordChangeData
+{
+    PowerAuthCorePassword * _oldPassword;
+}
 
-- (instancetype) initWithCoreDevicePublicKeyData:(PowerAuthCoreDevicePublicKeyData*)keyData
+- (instancetype) initWithCorePassword:(PowerAuthCorePassword*)password
 {
     self = [super init];
     if (self) {
-        _keyType = (PowerAuthSignatureKeyType) keyData.keyType;
-        _keyAlgorithm = keyData.keyAlgorithm;
-        _keyData = keyData.keyData;
+        _oldPassword = password;
     }
     return self;
 }
 
-#if DEBUG
-- (NSString*) description
+- (PowerAuthCorePassword*) oldPassword
 {
-    NSString * keyType = _keyType == PowerAuthSignatureKeyType_EC ? @"EC" : @"ML-DSA";
-    return [NSString stringWithFormat:@"<PowerAuthDevicePublicKeyData type=\"%@\", algorithm=\"%@\">", keyType, _keyAlgorithm];
+    return _oldPassword;
 }
-#endif
+
+- (void) secureClear
+{
+    [_oldPassword secureClear];
+    _oldPassword = nil;
+}
 
 @end

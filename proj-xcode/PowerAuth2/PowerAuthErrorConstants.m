@@ -74,7 +74,7 @@ NSError * PA2WrapError(NSError * error, NSError** out_error)
         wrapped = error;
         errorCode = PowerAuthErrorCode_NA;
     } else if ([domain isEqualToString:PowerAuthCoreErrorDomain]) {
-        switch ([error powerAuthCoreError]) {
+        switch ([error powerAuthCoreErrorCode]) {
             case PowerAuthCoreError_MissingActivation:
                 errorCode = PowerAuthErrorCode_MissingActivation;
                 break;
@@ -87,8 +87,14 @@ NSError * PA2WrapError(NSError * error, NSError** out_error)
             case PowerAuthCoreError_BiometryNotAllowed:
                 errorCode = PowerAuthErrorCode_BiometryNotAvailable;
                 break;
+            case PowerAuthCoreError_WrongSignature:
+                errorCode = PowerAuthErrorCode_WrongSignature;
+                break;
             case PowerAuthCoreError_Canceled:
                 errorCode = PowerAuthErrorCode_OperationCancelled;
+                break;
+            case PowerAuthCoreError_TimeNotSynchronized:
+                errorCode = PowerAuthErrorCode_TimeSynchronization;
                 break;
             case PowerAuthCoreError_PendingProtocolUpgrade:
                 errorCode = PowerAuthErrorCode_PendingProtocolUpgrade;

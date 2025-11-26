@@ -323,15 +323,19 @@ public:
     ///   - key_id: Vault encryption key identifier.
     ///   - index: Derivation index for legacy key.
     /// - Returns: HTTP request object.
-    RequestPtr fetchVaultEncryptionKey(const CredentialsPtr& credentials, VaultEncryptionKeyId key_id, cc7::U64 index) const;
+    RequestPtr fetchVaultEncryptionKey(const CredentialsPtr& credentials, SecureVaultKeyId key_id, cc7::U64 index) const;
     
     /// Derive existing vault encryption key into another key.
     /// - Parameters:
     ///   - key: Key material to derive.
     ///   - index: Derivation index.
+    ///   - key_size: Size of derived key in bytes. Minimum is 16 bytes.
     ///   - key_id: Identifier of the current vault encryption key.
     /// - Returns: Derived key.
-    static cc7::ByteArray deriveVaultEncryptionKey(const cc7::ByteRange& key, cc7::U64 index, VaultEncryptionKeyId key_id);
+    static cc7::ByteArray deriveVaultEncryptionKey(const cc7::ByteRange& key,
+                                                   cc7::U64 index,
+                                                   cc7::U64 key_size,
+                                                   SecureVaultKeyId key_id);
         
     // --------------------------------------------------------------------------------------------
     // Digital signatures
@@ -351,7 +355,7 @@ public:
     ///   - signature: Signature calculated from signed data.
     ///   - key_to_use: Key used for signature verification. The key
     ///                 must support signature verification.
-    bool verifySignature(const cc7::ByteRange& signed_data,
+    void verifySignature(const cc7::ByteRange& signed_data,
                          const cc7::ByteRange& signature,
                          SignatureKeyId key_to_use) const;
     
@@ -378,8 +382,7 @@ public:
     ///                    If `false`, verification succeeds when at least one provided key
     ///                    matches a valid signature; however, invalid or mismatched signatures
     ///                    still result in an error.
-    /// - Returns: `true` if the signature is valid; otherwise, `false`.
-    bool jwsVerifySignature(const std::string &signed_data,
+    void jwsVerifySignature(const std::string &signed_data,
                             SignatureKeyId key_to_use,
                             bool is_compact_form,
                             bool strict_verify) const;

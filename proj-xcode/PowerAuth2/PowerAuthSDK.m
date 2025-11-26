@@ -1209,6 +1209,67 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark - Password
 
+- (nullable id<PowerAuthOperationTask>) beginPasswordChangeWithCorePassword:(nonnull PowerAuthCorePassword*)oldPassword
+                                                                   callback:(nonnull void(^)(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error))callback
+{
+    NSError * localError = nil;
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
+        return [session verifyPassword:oldPassword error:error];
+    } error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+        PowerAuthPasswordChangeData * changeData = error ? nil : [[PowerAuthPasswordChangeData alloc] initWithCorePassword:oldPassword];
+        callback(changeData, error);
+    }];
+
+}
+
+- (nullable id<PowerAuthOperationTask>) finishPasswordChangeWithNewCorePassword:(nonnull PowerAuthCorePassword*)newPassword
+                                                                     changeData:(nonnull PowerAuthPasswordChangeData*)changeData
+                                                                       callback:(nonnull void(^)(NSError * _Nullable error))callback
+{
+    PowerAuthCorePassword * oldPassword = [changeData.oldPassword copyToImmutable];
+    if (!oldPassword) {
+        callback(PA2MakeError(PowerAuthErrorCode_WrongParameter, @"PowerAuthPasswordChangeData is invalidated"));
+        return nil;
+    }
+    NSError * localError = nil;
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
+        return [session changePassword:oldPassword toPassword:newPassword error:error];
+    } error:&localError];
+    if (!request) {
+        // V3 change password is executed immediately. It's OK to exit immediately, because there's no additional asynchronous
+        // operation required. So, we can end here for both, successful and failure scenarios.
+        callback(localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+        callback(error);
+    }];
+
+}
+
+- (nullable id<PowerAuthOperationTask>) beginPasswordChangeWithPassword:(nonnull NSString*)oldPassword
+                                                               callback:(nonnull void(^)(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error))callback
+{
+    return [self beginPasswordChangeWithCorePassword:[PowerAuthCorePassword passwordWithString:oldPassword]
+                                            callback:callback];
+}
+
+- (nullable id<PowerAuthOperationTask>) finishPasswordChangeWithNewPassword:(nonnull NSString*)newPassword
+                                                                 changeData:(nonnull PowerAuthPasswordChangeData*)changeData
+                                                                   callback:(nonnull void(^)(NSError * _Nullable error))callback
+{
+    return [self finishPasswordChangeWithNewCorePassword:[PowerAuthCorePassword passwordWithString:newPassword]
+                                              changeData:changeData
+                                                callback:callback];
+}
+
+#pragma mark - Password (deprecated)
+
 // PowerAuthCorePassword versions
 
 - (BOOL) unsafeChangeCorePasswordFrom:(PowerAuthCorePassword*)oldPassword
@@ -1230,32 +1291,14 @@ static PowerAuthSDK * s_inst;
                                                    to:(PowerAuthCorePassword*)newPassword
                                              callback:(void(^)(NSError *error))callback
 {
-    NSError * localError = nil;
-    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
-        return [session changePassword:oldPassword toPassword:newPassword error:error];
-    } error:&localError];
-    if (!request) {
-        // V3 change password is executed immediately. It's OK to exit immediately, because there's no additional asynchronous
-        // operation required. So, we can end here for both, successful and failure scenarios.
-        callback(localError);
-        return nil;
-    }
-    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
-        callback(error);
-    }];
+    return [self finishPasswordChangeWithNewCorePassword:newPassword
+                                              changeData:[[PowerAuthPasswordChangeData alloc] initWithCorePassword:oldPassword]
+                                                callback:callback];
 }
 
 - (id<PowerAuthOperationTask>) validateCorePassword:(PowerAuthCorePassword*)password callback:(void(^)(NSError * error))callback
 {
-    NSError * localError = nil;
-    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
-        return [session verifyPassword:password error:error];
-    } error:&localError];
-    if (localError) {
-        callback(localError);
-        return nil;
-    }
-    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+    return [self beginPasswordChangeWithCorePassword:password callback:^(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error) {
         callback(error);
     }];
 }

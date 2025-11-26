@@ -283,3 +283,14 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 - (PowerAuthAuthentication*) copyCrippledForSigning;
 
 @end
+
+
+@interface PowerAuthSDK (IntegrationTests)
+
+/// Test password on the server. The method suppose to be used only in integration tests.
+- (id<PowerAuthOperationTask>) testPassword:(NSString*)password callback:(void (^)(NSError *))callback;
+
+/// Test password on the server. The method suppose to be used only in integration tests.
+- (id<PowerAuthOperationTask>) testCorePassword:(PowerAuthCorePassword*)password callback:(void (^)(NSError *))callback;
+
+@end

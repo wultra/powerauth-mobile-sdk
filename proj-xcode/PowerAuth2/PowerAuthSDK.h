@@ -33,6 +33,7 @@
 #import <PowerAuth2/PowerAuthServerStatus.h>
 #import <PowerAuth2/PowerAuthSecureVaultKey.h>
 #import <PowerAuth2/PowerAuthSignatureTypes.h>
+#import <PowerAuth2/PowerAuthPasswordChangeData.h>
 
 // Deprecated
 #import <PowerAuth2/PowerAuthDeprecated.h>
@@ -113,7 +114,6 @@
  @param error Pointer where initialization error is set.
  
  @return Initialized instance.
- @exception NSException thrown in case configuration is not valid.
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
                          biometricConfiguration:(nullable PowerAuthBiometricConfiguration *)biometricConfiguration
@@ -130,7 +130,6 @@
  @param error Pointer where initialization error is set.
  
  @return Initialized instance.
- @exception NSException thrown in case configuration is not valid.
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
                          biometricConfiguration:(nullable PowerAuthBiometricConfiguration *)biometricConfiguration
@@ -143,7 +142,6 @@
  @param configuration to be used for initialization.
  @param error Pointer where initialization error is set.
  @return Initialized instance.
- @exception NSException thrown in case configuration is not valid.
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
                                           error:(NSError*_Nullable*_Nullable)error;
@@ -157,7 +155,6 @@
  @param clientConfiguration to be used for HTTP client configuration. If nil is provided, then the default configuration is used.
  
  @return Initialized instance.
- @exception NSException thrown in case configuration is not valid.
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
                           keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
@@ -205,7 +202,6 @@
  @param activation A PowerAuthActivation object containg all information required for the activation creation.
  @param callback A callback called when the process finishes - it contains an activation fingerprint in case of success and error in case of failure.
  @return PowerAuthOperationTask associated with the running request.
- @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) createActivation:(nonnull PowerAuthActivation*)activation
                                                 callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
@@ -217,7 +213,6 @@
  @param activationCode Activation code, obtained either via QR code scanning or by manual entry.
  @param callback A callback called when the process finishes - it contains an activation fingerprint in case of success and error in case of failure.
  @return PowerAuthOperationTask associated with the running request.
- @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) createActivationWithName:(nullable NSString*)name
                                                   activationCode:(nonnull NSString*)activationCode
@@ -231,7 +226,6 @@
  @param extras Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system).
  @param callback A callback called when the process finishes - it contains an activation fingerprint in case of success and error in case of failure.
  @return PowerAuthOperationTask associated with the running request.
- @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) createActivationWithName:(nullable NSString*)name
                                                   activationCode:(nonnull NSString*)activationCode
@@ -245,7 +239,6 @@
  @param extras Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system).
  @param callback A callback called when the process finishes - it contains an activation fingerprint in case of success and error in case of failure.
  @return PowerAuthOperationTask associated with the running request.
- @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) createActivationWithName:(nullable NSString*)name
                                               identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
@@ -258,7 +251,6 @@
  
  @param authentication An authentication instance specifying what factors should be stored.
  @param callback A callback called when the process finishes - it contains an error in case of failure.
- @exception NSException thrown in case configuration is not present.
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) persistActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
@@ -269,7 +261,6 @@
   
  @param password Password to be used for the knowledge related authentication factor.
  @param callback A callback called when the process finishes - it contains an error in case of failure.
- @exception NSException thrown in case configuration is not present.
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) persistActivationWithPassword:(nonnull NSString*)password
@@ -281,7 +272,6 @@
   
  @param password Password to be used for the knowledge related authentication factor.
  @param callback A callback called when the process finishes - it contains an error in case of failure.
- @exception NSException thrown in case configuration is not present.
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) persistActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
@@ -294,7 +284,6 @@
  The method is deprecated, please use asynchronous variant of this method as a replacement.
  @param authentication An authentication instance specifying what factors should be stored.
  @param error Error reference in case some error occurs.
- @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) persistActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                        error:(NSError * _Nullable * _Nullable)error
@@ -308,7 +297,6 @@
  
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
- @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) persistActivationWithPassword:(nonnull NSString*)password
                                  error:(NSError * _Nullable * _Nullable)error
@@ -323,7 +311,6 @@
  
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
- @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) persistActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
                                      error:(NSError * _Nullable * _Nullable)error
@@ -339,7 +326,6 @@
  
  @param callback A callback with activation status result - it contains status information in case of success and error in case of failure.
  @return PowerAuthOperationTask associated with the running request.
- @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) getActivationStatusWithCallback:(nonnull void(^)(PowerAuthActivationStatus * _Nullable status, NSError * _Nullable error))callback
     NS_SWIFT_NAME(fetchActivationStatus(callback:));
@@ -410,7 +396,6 @@
  @param authentication An authentication instance specifying what factors should be used to sign the request.
  @param callback A callback with activation removal result - in case of an error, an error instance is not 'nil'.
  @return PowerAuthOperationTask associated with the running request.
- @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) removeActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                                   callback:(nonnull void(^)(NSError * _Nullable error))callback;
@@ -420,8 +405,6 @@
  This method removes the activation session state and biometry factor key. Cached possession related key remains intact.
  Unlike the `removeActivationWithAuthentication`, this method doesn't inform server about activation removal. In this case
  user has to remove the activation by using another channel (typically internet banking, or similar web management console)
-
- @exception NSException thrown in case configuration is not present.
  */
 - (void) removeActivationLocal;
 
@@ -442,7 +425,6 @@
  @param body The HTTP request body.
  @param error A reference to an error object in case an error occurs.
  @return The HTTP header containing the PowerAuth authentication code. In case of an error, this method returns `nil`.
- @exception NSException Thrown if the configuration is not present.
  */
 - (nullable PowerAuthHttpHeader*) authenticationHeaderForRequestWithBodyWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                                                     method:(nonnull NSString*)method
@@ -464,7 +446,6 @@
  @param params The HTTP query params.
  @param error A reference to an error object in case an error occurs.
  @return The HTTP header containing the PowerAuth authentication code. In case of an error, this method returns `nil`.
- @exception NSException Thrown if the configuration is not present.
  */
 - (nullable PowerAuthHttpHeader*) authenticationHeaderForRequestWithParamsWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                                                       method:(nonnull NSString*)method
@@ -504,7 +485,6 @@
  @param params HTTP query params.
  @param error Error reference in case some error occurs.
  @return HTTP header with PowerAuth authentication code. In case of error, this method return 'nil'.
- @exception NSException thrown in case configuration is not present.
  */
 - (nullable PowerAuthHttpHeader*) requestGetSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                                   uriId:(nonnull NSString*)uriId
@@ -524,7 +504,6 @@
  @param body HTTP request body.
  @param error Error reference in case some error occurs.
  @return HTTP header with PowerAuth authentication code. In case of error, this method return 'nil'.
- @exception NSException thrown in case configuration is not present.
  */
 - (nullable PowerAuthHttpHeader*) requestSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                               method:(nonnull NSString*)method
@@ -545,7 +524,6 @@
  @param nonce NONCE in Base64 format.
  @param error Error reference in case some error occurs.
  @return String representing a calculated authentication code for all involved factors. In case of error, this method return 'nil'.
- @exception NSException thrown in case configuration is not present.
  */
 - (nullable NSString*) offlineSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                     uriId:(nonnull NSString*)uriId
@@ -554,18 +532,83 @@
                                                     error:(NSError * _Nullable * _Nullable)error
                                                         PA2_DEPRECATED(2.0.0);
 
+// Password management
+
+/// Initiates the first step of a two-step password change operation by validating the user's current password.
+///
+/// The provided password is used to compute the appropriate authentication header required for password verification.
+/// If the verification succeeds, the callback receives a `PowerAuthPasswordChangeData` object required to complete
+/// the second step.
+///
+/// - Parameters:
+///   - oldPassword: The user's current (old) password.
+///   - callback: A block invoked when the operation completes. The block provides either the
+///               password-change data needed for the next step, or an error if verification fails.
+/// - Returns: A `PowerAuthOperationTask` associated with the running request, or `nil` if the request cannot be started.
+- (nullable id<PowerAuthOperationTask>) beginPasswordChangeWithPassword:(nonnull NSString*)oldPassword
+                                                               callback:(nonnull void(^)(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(beginPasswordChange(oldPassword:callback:));
+
+/// Initiates the first step of a two-step password change operation by validating the user's current password.
+///
+/// The provided password is used to compute the appropriate authentication header required for password verification.
+/// If the verification succeeds, the callback receives a `PowerAuthPasswordChangeData` object required to complete
+/// the second step.
+///
+/// - Parameters:
+///   - oldPassword: The user's current (old) password.
+///   - callback: A block invoked when the operation completes. The block provides either the
+///               password-change data needed for the next step, or an error if verification fails.
+/// - Returns: A `PowerAuthOperationTask` associated with the running request, or `nil` if the request cannot be started.
+- (nullable id<PowerAuthOperationTask>) beginPasswordChangeWithCorePassword:(nonnull PowerAuthCorePassword*)oldPassword
+                                                                   callback:(nonnull void(^)(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(beginPasswordChange(oldPassword:callback:));
+
+/// Completes the second step of a two-step password change operation by submitting a new password.
+///
+/// The SDK uses the `PowerAuthPasswordChangeData` object obtained in the first step to calculate the necessary
+/// authentication header for finalizing the password change.
+///
+/// - Parameters:
+///   - newPassword: The new password to be set for the user.
+///   - changeData: The password-change data obtained from the first step (`beginPasswordChange()`).
+///   - callback: A block invoked when the operation completes. The block provides an error if the operation fails,
+///               or `nil` on success.
+/// - Returns: A `PowerAuthOperationTask` associated with the running request, or `nil` if the request cannot be started.
+- (nullable id<PowerAuthOperationTask>) finishPasswordChangeWithNewPassword:(nonnull NSString*)newPassword
+                                                                 changeData:(nonnull PowerAuthPasswordChangeData*)changeData
+                                                                   callback:(nonnull void(^)(NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(finishPasswordChange(newPassword:changeData:callback:));
+
+/// Completes the second step of a two-step password change operation by submitting a new password.
+///
+/// The SDK uses the `PowerAuthPasswordChangeData` object obtained in the first step to calculate the necessary
+/// authentication header for finalizing the password change.
+///
+/// - Parameters:
+///   - newPassword: The new password to be set for the user.
+///   - changeData: The password-change data obtained from the first step (`beginPasswordChange()`).
+///   - callback: A block invoked when the operation completes. The block provides an error if the operation fails,
+///               or `nil` on success.
+/// - Returns: A `PowerAuthOperationTask` associated with the running request, or `nil` if the request cannot be started.
+- (nullable id<PowerAuthOperationTask>) finishPasswordChangeWithNewCorePassword:(nonnull PowerAuthCorePassword*)newPassword
+                                                                     changeData:(nonnull PowerAuthPasswordChangeData*)changeData
+                                                                       callback:(nonnull void(^)(NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(finishPasswordChange(newPassword:changeData:callback:));
+
+// Password management (deprecated)
+
 /** Change the password using local re-encryption, do not validate old password by calling any endpoint.
  
  You are responsible for validating the old password against some server endpoint yourself before using it in this method.
  If you do not validate the old password to make sure it is correct, calling this method will corrupt the local data, since
  existing data will be decrypted using invalid PIN code and re-encrypted with a new one.
  
- Method is deprecated and you should use `changePassword(from:to:callback:)` as a replacement.
+ Method is deprecated and you should use new `beginPasswordChange()` and `finishPasswordChange()` functions instead.
  
  @param oldPassword Old password, currently set to store the data.
  @param newPassword New password, to be set in case authentication with old password passes.
  @return Returns YES in case password was changed without error, NO otherwise.
- @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) unsafeChangePasswordFrom:(nonnull NSString*)oldPassword
                                to:(nonnull NSString*)newPassword
@@ -574,7 +617,7 @@
 
 /** Change the password using local re-encryption, do not validate old password by calling any endpoint.
  
- Method is deprecated and you should use `changePassword(from:to:callback:)` as a replacement.
+ Method is deprecated and you should use new `beginPasswordChange()` and `finishPasswordChange()` functions instead.
  
  You are responsible for validating the old password against some server endpoint yourself before using it in this method.
  If you do not validate the old password to make sure it is correct, calling this method will corrupt the local data, since
@@ -583,42 +626,46 @@
  @param oldPassword Old password, currently set to store the data.
  @param newPassword New password, to be set in case authentication with old password passes.
  @return Returns YES in case password was changed without error, NO otherwise.
- @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) unsafeChangeCorePasswordFrom:(nonnull PowerAuthCorePassword*)oldPassword
                                    to:(nonnull PowerAuthCorePassword*)newPassword
                         NS_SWIFT_NAME(unsafeChangePassword(from:to:))
                         PA2_DEPRECATED(2.0.0);
 
-/** Change the password, validate old password by calling a PowerAuth Standard RESTful API endpoint '/pa/signature/validate'.
+/** Change the password.
+ 
+ Method is deprecated and you should use new `beginPasswordChange()` and `finishPasswordChange()` functions instead.
  
  @param oldPassword Old password, currently set to store the data.
  @param newPassword New password, to be set in case authentication with old password passes.
  @param callback The callback method with the password change result.
  @return PowerAuthOperationTask associated with the running request.
- @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) changePasswordFrom:(nonnull NSString*)oldPassword
                                                         to:(nonnull NSString*)newPassword
                                                   callback:(nonnull void(^)(NSError * _Nullable error))callback
-                            NS_SWIFT_NAME(changePassword(from:to:callback:));
+                            NS_SWIFT_NAME(changePassword(from:to:callback:))
+                            PA2_DEPRECATED(2.0.0);
 
-/** Change the password, validate old password by calling a PowerAuth Standard RESTful API endpoint '/pa/signature/validate'.
+/** Change the password.
+ 
+ Method is deprecated and you should use new `beginPasswordChange()` and `finishPasswordChange()` functions instead.
  
  @param oldPassword Old password, currently set to store the data.
  @param newPassword New password, to be set in case authentication with old password passes.
  @param callback The callback method with the password change result.
  @return PowerAuthOperationTask associated with the running request.
- @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) changeCorePasswordFrom:(nonnull PowerAuthCorePassword*)oldPassword
                                                             to:(nonnull PowerAuthCorePassword*)newPassword
                                                       callback:(nonnull void(^)(NSError * _Nullable error))callback
-                            NS_SWIFT_NAME(changePassword(from:to:callback:));
+                            NS_SWIFT_NAME(changePassword(from:to:callback:))
+                            PA2_DEPRECATED(2.0.0);
 
 /** Validate a user password.
  
- This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the authentication code value.
+ Method is deprecated and has no direct replacement. If your application requires password validation here, that indicates a deeper
+ architectural issue that may introduce security vulnerabilities.
  
  @param password Password to be verified.
  @param callback The callback method with error associated with the password validation.
@@ -626,11 +673,13 @@
  */
 - (nullable id<PowerAuthOperationTask>) validateCorePassword:(nonnull PowerAuthCorePassword*)password
                                                     callback:(nonnull void(^)(NSError * _Nullable error))callback
-                            NS_SWIFT_NAME(validatePassword(password:callback:));
+                            NS_SWIFT_NAME(validatePassword(password:callback:))
+                            PA2_DEPRECATED(2.0.0);
 
 /** Validate a user password.
  
- This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the authentication code value.
+ Method is deprecated and has no direct replacement. If your application requires password validation here, that indicates a deeper
+ architectural issue that may introduce security vulnerabilities.
  
  @param password Password to be verified.
  @param callback The callback method with error associated with the password validation.
@@ -638,7 +687,10 @@
  */
 - (nullable id<PowerAuthOperationTask>) validatePassword:(nonnull NSString*)password
                                                 callback:(nonnull void(^)(NSError * _Nullable error))callback
-                            NS_SWIFT_NAME(validatePassword(password:callback:));
+                            NS_SWIFT_NAME(validatePassword(password:callback:))
+                            PA2_DEPRECATED(2.0.0);
+
+// Biometry key management
 
 /** Regenerate a biometry related factor key.
  

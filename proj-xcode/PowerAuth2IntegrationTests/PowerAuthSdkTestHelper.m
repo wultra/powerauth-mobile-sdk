@@ -656,7 +656,7 @@ static NSString * PA_Ver_Current = @"4.0";
 - (BOOL) checkForPassword:(NSString*)password
 {
     BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validatePassword:password callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk testPassword:password callback:^(NSError * error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -670,7 +670,7 @@ static NSString * PA_Ver_Current = @"4.0";
 - (BOOL) checkForCorePassword:(PowerAuthCorePassword*)password
 {
     BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:password callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk testCorePassword:password callback:^(NSError * _Nullable error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -951,6 +951,35 @@ static NSString * PA_Ver_Current = @"4.0";
     } else {
         return [PowerAuthAuthentication possessionWithPassword:@"alwaysBadPassword"];
     }
+}
+
+@end
+
+
+@implementation PowerAuthSDK (IntegrationTests)
+
+- (id<PowerAuthOperationTask>) testPassword:(NSString*)password callback:(void (^)(NSError *))callback
+{
+    // For integration testing only.
+    //
+    // Do NOT use `beginPasswordChange` as a general password-validation mechanism.
+    // If your design requires password validation here, that indicates a deeper
+    // architectural issue that may introduce security vulnerabilities.
+    return [self beginPasswordChangeWithPassword:password callback:^(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error) {
+        callback(error);
+    }];
+}
+
+- (id<PowerAuthOperationTask>) testCorePassword:(PowerAuthCorePassword*)password callback:(void (^)(NSError *))callback
+{
+    // For integration testing only.
+    //
+    // Do NOT use `beginPasswordChange` as a general password-validation mechanism.
+    // If your design requires password validation here, that indicates a deeper
+    // architectural issue that may introduce security vulnerabilities.
+    return [self beginPasswordChangeWithCorePassword:password callback:^(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error) {
+        callback(error);
+    }];
 }
 
 @end

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 #import <PowerAuth2/PowerAuthMacros.h>
 
-/// The `PowerAuthServerStatus` contains information about the server, such as
-/// time on the server.
-@interface PowerAuthServerStatus : NSObject
+/// Object representing an opaque data for the password change operation.
+@interface PowerAuthPasswordChangeData : NSObject
 
 /// Default initialization is unavailable.
 - (nonnull instancetype) init NS_UNAVAILABLE;
 
-/// Time on the server.
-@property (nonatomic, readonly, strong, nonnull) NSDate * serverTime;
+/// Clear sensitive data stored in the object.
+- (void) secureClear;
 
 @end

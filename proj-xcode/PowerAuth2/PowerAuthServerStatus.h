@@ -20,7 +20,10 @@
 /// time on the server.
 @interface PowerAuthServerStatus : NSObject
 
+/// Default initialization is unavailable.
+- (nonnull instancetype) init NS_UNAVAILABLE;
+
 /// Time on the server.
-@property (nonatomic, readonly, nonnull) NSDate * serverTime;
+@property (nonatomic, readonly, strong, nonnull) NSDate * serverTime;
 
 @end

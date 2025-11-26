@@ -1,0 +1,11 @@
+{
+    "path": "/rest/v4/jwt/verify",
+    "parameters": [
+        "activationId",
+        "signedData",
+        "signatureFormat"
+    ],
+    "response": {
+        "class": "dictionary"
+    }
+}

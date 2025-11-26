@@ -157,6 +157,9 @@
 
 - (BOOL) replaceCancelableOperation:(id<PowerAuthOperationTask>)cancelable
 {
+    if (!cancelable) {
+        return NO;
+    }
     [_lock lock];
     //
     BOOL result = !_finished;

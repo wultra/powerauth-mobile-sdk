@@ -48,3 +48,8 @@ POWERAUTH_EXTERN_C void PowerAuthCoreLogSetEnabled(BOOL enabled);
  Note that when library is compiled in RELEASE configuration, then always returns NO.
  */
 POWERAUTH_EXTERN_C BOOL PowerAuthCoreLogIsEnabled(void);
+
+/// Contain s YES if PowerAuthCore module was compiled with a debug features. It is highly recommended
+/// to check this flag and force application to crash if the production, final application
+/// is running against the debug featured library.
+POWERAUTH_EXTERN_C BOOL PowerAuthCoreHasDebugFeatures(void);

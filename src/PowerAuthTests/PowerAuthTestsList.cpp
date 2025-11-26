@@ -18,47 +18,47 @@
 
 using namespace cc7;
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuthTests
-{
-    cc7::tests::UnitTestCreationInfoList GetPowerAuthTestCreationInfoList()
-    {
-        cc7::tests::UnitTestCreationInfoList list;
-        
-        // High level objects
-        CC7_ADD_UNIT_TEST(pa2SessionTests, list);
-        CC7_ADD_UNIT_TEST(pa2SessionSetupTests, list);
-        CC7_ADD_UNIT_TEST(pa2PasswordTests, list);
-        CC7_ADD_UNIT_TEST(pa2OtpUtilTests, list);
-        CC7_ADD_UNIT_TEST(pa2ECIESTests, list);
-        
-        // Crypto tests
-        CC7_ADD_UNIT_TEST(pa2CryptoAESTests, list);
-        CC7_ADD_UNIT_TEST(pa2CryptoHMACTests, list);
-        CC7_ADD_UNIT_TEST(pa2CryptoECDHKDFTests, list);
-        CC7_ADD_UNIT_TEST(pa2CryptoECCTests, list);
-        CC7_ADD_UNIT_TEST(pa2CryptoECDSATests, list);
-        
-        // Protocol tests
-        CC7_ADD_UNIT_TEST(pa2ProtocolUtilsTests, list);
-        CC7_ADD_UNIT_TEST(pa2URLEncodingTests, list);
-        CC7_ADD_UNIT_TEST(pa2SignatureKeysDerivationTest, list);
-        CC7_ADD_UNIT_TEST(pa2MasterSecretKeyComputation, list);
-        CC7_ADD_UNIT_TEST(pa2SignatureCalculationTests, list);
-        CC7_ADD_UNIT_TEST(pa2PublicKeyFingerprintTests, list);
-        CC7_ADD_UNIT_TEST(pa2ActivationStatusBlobTests, list);
-        
-        // Utils
-        CC7_ADD_UNIT_TEST(pa2DataWriterReaderTests, list);
-        CC7_ADD_UNIT_TEST(pa2ByteUtilsTests, list);
-        CC7_ADD_UNIT_TEST(pa2CRC16Tests, list);
+namespace powerAuthTests {
 
-        return list;
-    }
+cc7::tests::UnitTestCreationInfoList GetPowerAuthTestCreationInfoList()
+{
+    cc7::tests::UnitTestCreationInfoList list;
     
-} // io::getlime::powerAuthTests
-} // io::getlime
-} // io
+    // High level objects
+    CC7_ADD_UNIT_TEST(ConfigurationTests, list);
+    CC7_ADD_UNIT_TEST(PasswordTests, list);
+    CC7_ADD_UNIT_TEST(CredentialsTests, list);
+    CC7_ADD_UNIT_TEST(TimeServiceTests, list);
+    CC7_ADD_UNIT_TEST(pa2OtpUtilTests, list);
+    
+    // Internal objets
+    CC7_ADD_UNIT_TEST(RequestBuilderTests, list);
+    
+    // Crypto tests
+    // v4
+    CC7_ADD_UNIT_TEST(PowerAuthKDFTests, list);
+    CC7_ADD_UNIT_TEST(PowerAuthAEADTests, list);
+    CC7_ADD_UNIT_TEST(SharedSecretTests, list);
+    CC7_ADD_UNIT_TEST(HybridKeyPairTests, list);
+    CC7_ADD_UNIT_TEST(KeyProviderV4Tests, list);
+    CC7_ADD_UNIT_TEST(AuthCodeV4, list);
+    // v3
+    CC7_ADD_UNIT_TEST(KeyProviderV3Tests, list);
+    
+    // legacy
+    CC7_ADD_UNIT_TEST(pa2CryptoAESTests, list);
+    CC7_ADD_UNIT_TEST(pa2CryptoHMACTests, list);
+    CC7_ADD_UNIT_TEST(pa2CryptoECDHKDFTests, list);
+    CC7_ADD_UNIT_TEST(pa2CryptoECCTests, list);
+    
+    // Protocol tests
+    CC7_ADD_UNIT_TEST(ClientEncryptorTests, list);
+    
+    // Utils
+    CC7_ADD_UNIT_TEST(pa2ByteUtilsTests, list);
+    CC7_ADD_UNIT_TEST(pa2CRC16Tests, list);
+
+    return list;
+}
+    
+} // namespace powerAuthTests

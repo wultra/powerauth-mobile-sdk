@@ -58,7 +58,7 @@
 /**
  Macro for making an implementation for previously declared deprecated class.
  For example: PA2_DEPRECATED_CLASS_IMPL(1.6.0, OldClass, NewClass).
- To ingore deprecated warnings, you can use the following pragma declaration:
+ To ignore deprecated warnings, you can use the following pragma declaration:
  
  #pragma clang diagnostic push
  #pragma clang diagnostic ignored "-Wdeprecated-implementations"

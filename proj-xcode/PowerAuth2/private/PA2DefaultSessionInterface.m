@@ -30,25 +30,41 @@
     PowerAuthCoreSession * _session;
     PA2SessionDataProvider * _dataProvider;
     NSData * _stateBefore;
+    
+    // Services
+    PA2KeystoreService * _keystoreService;
+    PA2TimeSynchronizationService * _timeService;
 }
 
-#define READ_ACCESS_LOCK()      [self lockImpl:NO]
-#define READ_ACCESS_UNLOCK()    [self unlockImpl:NO]
-#define WRITE_ACCESS_LOCK()     [self lockImpl:YES]
-#define WRITE_ACCESS_UNLOCK()   [self unlockImpl:YES]
+#define READ_ACCESS_LOCK()                      \
+    [self lockImpl:NO];
+
+#define READ_ACCESS_UNLOCK(err, lerr)           \
+if (![self unlockImpl:&lerr] || lerr) {         \
+        PA2WrapError(lerr, err);                \
+    }
+
+#define WRITE_ACCESS_LOCK()                     \
+    [self lockImpl:YES];
+
+#define WRITE_ACCESS_UNLOCK(err, lerr)          \
+    if (![self unlockImpl:&lerr] || lerr) {     \
+        PA2WrapError(lerr, err);                \
+    }
+
 
 - (instancetype) initWithSession:(PowerAuthCoreSession*)session
                     dataProvider:(PA2SessionDataProvider*)dataProvider
+                           error:(NSError**)error;
 {
     self = [super init];
     if (self) {
         _lock = [[NSRecursiveLock alloc] init];
         _session = session;
         _dataProvider = dataProvider;
-#if DEBUG
-        _session.debugMonitor = self;
-#endif
-        [self loadState];
+        if (![self loadState:error]) {
+            return nil;
+        }
     }
     return self;
 }
@@ -56,7 +72,7 @@
 
 #pragma mark - Private
 
-- (void) loadState
+- (BOOL) loadState:(NSError**)error
 {
     // We don't need to acquire access lock, because the object is still
     // in its initialization phase. We need to just temporarily simulate
@@ -66,15 +82,17 @@
     
     NSData * statusData = [_dataProvider sessionData];
     if (statusData) {
-        [_session deserializeState:statusData];
+        [_session deserializeState:statusData error:error];
     } else {
-        [_session resetSession:NO];
+        [_session resetSession];
     }
-    _stateBefore = [_session serializedState];
+    _stateBefore = [_session serializedState:error];
     
     // Set counters to initial state
     _readWriteAccessCount = 0;
     _saveOnUnlock = NO;
+    
+    return _stateBefore != nil;
 }
 
 - (void) lockImpl:(BOOL)write
@@ -86,81 +104,85 @@
     }
 }
 
-- (void) unlockImpl:(BOOL)write
+- (BOOL) unlockImpl:(NSError**)error
 {
+    BOOL result = YES;
     if (_readWriteAccessCount == 1 && _saveOnUnlock) {
-        NSData * stateAfter = [_session serializedState];
-        if (![_stateBefore isEqualToData:stateAfter]) {
-            [_dataProvider saveSessionData:stateAfter];
-            _stateBefore = stateAfter;
+        if (!(error && *error)) {
+            // No error
+            NSData * stateAfter = [_session serializedState:error];
+            if (stateAfter) {
+                if (![_stateBefore isEqualToData:stateAfter]) {
+                    [_dataProvider saveSessionData:stateAfter];
+                    _stateBefore = stateAfter;
+                }
+                _saveOnUnlock = NO;
+            } else {
+                result = NO;
+            }
+        } else {
+            // there's already error. skip save and set result to NO
+            result = NO;
         }
-        _saveOnUnlock = NO;
     }
     _readWriteAccessCount--;
     [_lock unlock];
+    return result;
 }
 
-#pragma mark - PA2SessionProvider
+#pragma mark - PowerAuthCoreSessionProvider
 
 - (NSString*) activationIdentifier
 {
-    READ_ACCESS_LOCK();
+    [self lockImpl:NO];
     NSString * result = _session.activationIdentifier;
-    READ_ACCESS_UNLOCK();
+    [self unlockImpl:nil];
     return result;
 }
 
-- (id) readTaskWithSession:(id (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
+- (id) readTaskWithSession:(nonnull NS_NOESCAPE PowerAuthCoreSessionTaskBlock)taskBlock error:(NSError**)error
 {
     READ_ACCESS_LOCK();
-    id result = taskBlock(_session);
-    READ_ACCESS_UNLOCK();
+    NSError * localError = nil;
+    id result = taskBlock(_session, &localError);
+    READ_ACCESS_UNLOCK(error, localError);
     return result;
 }
 
-- (BOOL) readBoolTaskWithSession:(BOOL (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
+- (BOOL) readBoolTaskWithSession:(nonnull NS_NOESCAPE PowerAuthCoreSessionTaskBoolBlock)taskBlock error:(NSError**)error
 {
     READ_ACCESS_LOCK();
-    BOOL result = taskBlock(_session);
-    READ_ACCESS_UNLOCK();
+    NSError * localError = nil;
+    BOOL result = taskBlock(_session, &localError);
+    READ_ACCESS_UNLOCK(error, localError);
     return result;
 }
 
-- (void) readVoidTaskWithSession:(void (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
-{
-    READ_ACCESS_LOCK();
-    taskBlock(_session);
-    READ_ACCESS_UNLOCK();
-}
-
-- (id) writeTaskWithSession:(id (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
+- (id) writeTaskWithSession:(nonnull NS_NOESCAPE PowerAuthCoreSessionTaskBlock)taskBlock error:(NSError**)error
 {
     WRITE_ACCESS_LOCK();
-    id result = taskBlock(_session);
-    WRITE_ACCESS_UNLOCK();
+    NSError * localError = nil;
+    id result = taskBlock(_session, &localError);
+    WRITE_ACCESS_UNLOCK(error, localError);
     return result;
 }
 
-- (BOOL) writeBoolTaskWithSession:(BOOL (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
+- (BOOL) writeBoolTaskWithSession:(nonnull NS_NOESCAPE PowerAuthCoreSessionTaskBoolBlock)taskBlock error:(NSError**)error
 {
     WRITE_ACCESS_LOCK();
-    BOOL result = taskBlock(_session);
-    WRITE_ACCESS_UNLOCK();
-    return result;
+    NSError * localError = nil;
+    BOOL result = taskBlock(_session, &localError);
+    WRITE_ACCESS_UNLOCK(error, localError);
+    return result && !localError;
 }
 
-- (void) writeVoidTaskWithSession:(void (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
+- (BOOL) resetSession:(NSError**)error
 {
     WRITE_ACCESS_LOCK();
-    taskBlock(_session);
-    WRITE_ACCESS_UNLOCK();
-}
-
-- (void) resetSession
-{
-    WRITE_ACCESS_LOCK();
-    [_session resetSession:NO];
-    WRITE_ACCESS_UNLOCK();
+    [_session resetSession];
+    NSError * localError = nil;
+    WRITE_ACCESS_UNLOCK(error, localError);
+    return !localError;
 }
 
 - (void) executeOutsideOfTask:(void (^)(void))block queue:(dispatch_queue_t)queue
@@ -184,15 +206,19 @@
 
 #pragma mark - PA2TokenDataLock protocol
 
-- (BOOL) lockTokenStore
+- (BOOL) lockTokenStore:(BOOL*)dirty error:(NSError**)error
 {
     WRITE_ACCESS_LOCK();
-    return NO;
+    if (error) *error = nil;
+    if (dirty) *dirty = NO;
+    return YES;
 }
 
-- (void) unlockTokenStore:(BOOL)contentModified
+- (BOOL) unlockTokenStore:(BOOL)contentModified error:(NSError **)error
 {
-    WRITE_ACCESS_UNLOCK();
+    NSError * localError = nil;
+    WRITE_ACCESS_UNLOCK(error, localError);
+    return !localError;
 }
 
 #pragma mark - PA2SessionInterface protocol
@@ -202,9 +228,10 @@
     return nil;
 }
 
-- (NSError*) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation
+- (BOOL) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation error:(NSError **)error
 {
-    return nil;
+    if (error) *error = nil;
+    return YES;
 }
 
 - (void) addOperation:(NSOperation *)operation toSharedQueue:(NSOperationQueue *)queue
@@ -219,59 +246,95 @@
     [queue addOperation:operation];
 }
 
+// services
+
+static void _ThrowInternalInitFail(void)
+{
+    extern NSString *const PowerAuthExceptionMissingConfig;
+    [NSException raise:PowerAuthExceptionMissingConfig format:@"Broken PowerAuthSDK services initialization sequence"];
+}
+
+
+- (PA2KeystoreService*) keystoreService
+{
+    if (!_keystoreService) {
+        _ThrowInternalInitFail();
+    }
+    return _keystoreService;
+}
+
+- (PA2TimeSynchronizationService*) timeSynchronizationService
+{
+    if (!_timeService) {
+        _ThrowInternalInitFail();
+    }
+    return _timeService;
+}
+
+- (void) connectWithKeystoreService:(nonnull PA2KeystoreService*)keystoreService
+                        timeService:(nonnull PA2TimeSynchronizationService*)timeService
+{
+    if (_timeService || _keystoreService) {
+        _ThrowInternalInitFail();
+    }
+    _keystoreService = keystoreService;
+    _timeService = timeService;
+}
+
+
 #pragma mark - PowerAuthSessionStatusProvider
 
-/**
- Macro that executes PowerAuthCoreSession methodName returning BOOL while task is acquired.
- */
-#define READ_BOOL_WRAPPER(methodName)                   \
-- (BOOL) methodName {                                   \
-    READ_ACCESS_LOCK();                                 \
-    BOOL result = [_session methodName];                \
-    READ_ACCESS_UNLOCK();                               \
-    return result;                                      \
-}
-
-READ_BOOL_WRAPPER(hasValidActivation)
-READ_BOOL_WRAPPER(canStartActivation)
-READ_BOOL_WRAPPER(hasPendingActivation)
-READ_BOOL_WRAPPER(hasPendingProtocolUpgrade)
-READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
-
-
-#if DEBUG
-#pragma mark - PowerAuthCoreDebugMonitor
-
-- (void) reportErrorCode:(PowerAuthCoreErrorCode)errorCode forOperation:(nullable NSString *)operationName
+- (BOOL) hasValidActivation
 {
-    NSString * errorCodeStr;
-    switch (errorCode) {
-        case PowerAuthCoreErrorCode_Ok: return;
-        case PowerAuthCoreErrorCode_WrongParam: errorCodeStr = @"Wrong Param"; break;
-        case PowerAuthCoreErrorCode_Encryption: errorCodeStr = @"Encryption failure"; break;
-        case PowerAuthCoreErrorCode_WrongState: errorCodeStr = @"Wrong State"; break;
-        default: errorCodeStr = [NSString stringWithFormat:@"Code %@", @(errorCode)]; break;
-    }
-    PowerAuthLog(@"ERROR: PowerAuthCoreSession operation failed with error %@", errorCodeStr);
+    return [self readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
+        return [session hasValidActivationData];
+    } error:nil];
 }
 
-- (void) requireReadAccess
+- (BOOL) canStartActivation
 {
-    [_lock lock];
-    if (_readWriteAccessCount == 0) {
-        PowerAuthLog(@"ERROR: Read access to PowerAuthCoreSession is not granted.");
-    }
-    [_lock unlock];
+    return [self readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
+        return [session canCreateActivation];
+    } error:nil];
 }
 
-- (void) requireWriteAccess
+- (BOOL) hasPendingActivation
+{
+    return [self readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
+        return [session hasPendingCreateActivation];
+    } error:nil];
+}
+
+- (BOOL) hasPendingProtocolUpgrade
+{
+    return [self readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
+        return [session hasPendingProtocolUpgrade];
+    } error:nil];
+}
+
+- (BOOL) hasProtocolUpgradeAvailable
+{
+    return [self readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
+        return [session hasProtocolUpgradeAvailable];
+    } error:nil];
+}
+
+#pragma mark - PowerAuthCoreSessionDelegate
+
+- (BOOL) requireReadAccess
 {
     [_lock lock];
-    if (_readWriteAccessCount == 0 || _saveOnUnlock == NO) {
-        PowerAuthLog(@"ERROR: Write access to PowerAuthCoreSession is not granted.");
-    }
+    BOOL accessGranted = _readWriteAccessCount > 0;
     [_lock unlock];
+    return accessGranted;
 }
-#endif // DEBUG
+
+- (BOOL) requireWriteAccess
+{
+    [_lock lock];
+    BOOL accessGranted = _readWriteAccessCount > 0 && _saveOnUnlock;
+    [_lock unlock];
+    return accessGranted;
+}
 
 @end

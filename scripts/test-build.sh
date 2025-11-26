@@ -24,6 +24,7 @@ function USAGE
     echo ""
     echo "  lint                Use 'pod lib lint' to test iOS targets."
     echo "  script              Use custom scripts for iOS targets."
+    echo "  core                Use custom scripts for iOS core module only."
     echo "  android             Test android build only."
     echo "  all                 Run all methods to test the build."
     echo ""
@@ -42,6 +43,7 @@ SCRIPT_VERBOSE=
 DO_LINT=0
 DO_SCRIPT=0
 DO_ANDROID=0
+DO_CORE=0
 
 ###############################################################################
 # Script's main execution starts here...
@@ -64,6 +66,9 @@ do
         lint)
             DO_LINT=1
             ;;
+        core)
+            DO_CORE=1
+            ;;
         android)
             DO_ANDROID=1
             ;;
@@ -79,7 +84,7 @@ do
     shift
 done
 
-[[ x$DO_LINT$DO_SCRIPT$DO_ANDROID == x000 ]] && FAILURE "Please specify buld mode: lint, script, android or all."
+[[ x$DO_LINT$DO_SCRIPT$DO_ANDROID$DO_CORE == x0000 ]] && FAILURE "Please specify buld mode: lint, script, android or all."
 
 REQUIRE_COMMAND pod
 
@@ -113,6 +118,13 @@ if [ x$DO_LINT == x1 ]; then
     LOG "Validating build for Apple platforms (lint mode)..."
     LOG_LINE
     pod $POD_VERBOSE lib lint PowerAuth2.podspec --include-podspecs=PowerAuthCore.podspec
+fi
+
+if [ x$DO_CORE == x1 ]; then       
+    LOG_LINE -a
+    LOG "Validating build for Apple platforms (core module mode)..."
+    LOG_LINE
+    "${TOP}/ios-build-sdk.sh" $SCRIPT_VERBOSE buildCore
 fi
 
 if [ x$DO_ANDROID == x1 ]; then

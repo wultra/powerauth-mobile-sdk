@@ -92,6 +92,6 @@
  
  @return Shared instance of a client configuration.
  */
-+ (nonnull instancetype) sharedInstance PA2_DEPRECATED(1.10.0);
++ (nonnull instancetype) sharedInstance PA2_DEPRECATED(2.0.0);
 
 @end

@@ -23,14 +23,15 @@
 @implementation PowerAuthCorePassword
 {
 @protected
-    io::getlime::powerAuth::Password _password;
+    powerAuth::PasswordPtr _password;
 }
 
 - (instancetype) initWithString:(NSString *)string
 {
     self = [super init];
     if (self) {
-        _password.initAsImmutable(cc7::MakeRange(string.UTF8String));
+        _password = std::make_shared<powerAuth::Password>();
+        _password->initAsImmutable(cc7::MakeRange(string.UTF8String));
     }
     return self;
 }
@@ -39,7 +40,8 @@
 {
     self = [super init];
     if (self) {
-        _password.initAsImmutable(cc7::ByteRange(data.bytes, data.length));
+        _password = std::make_shared<powerAuth::Password>();
+        _password->initAsImmutable(cc7::ByteRange(data.bytes, data.length));
     }
     return self;
 }
@@ -48,7 +50,8 @@
 {
     self = [super init];
     if (self) {
-        _password.initAsImmutable(other->_password.passwordData());
+        _password = std::make_shared<powerAuth::Password>();
+        _password->initAsImmutable(other->_password->passwordData());
     }
     return self;
 }
@@ -57,7 +60,8 @@
 {
     self = [super init];
     if (self) {
-        _password.initAsMutable();
+        _password = std::make_shared<powerAuth::Password>();
+        _password->initAsMutable();
     }
     return self;
 }
@@ -74,7 +78,7 @@
 
 - (NSUInteger) length
 {
-    return _password.length();
+    return _password->length();
 }
 
 - (BOOL) isEqualToPassword:(PowerAuthCorePassword *)password
@@ -84,7 +88,7 @@
     } else if (!password) {
         return NO;
     }
-    return _password.isEqualToPassword(password->_password);
+    return _password->isEqualToPassword(*password->_password);
 }
 
 - (BOOL) isEqual:(id)object
@@ -100,7 +104,7 @@
 
 - (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^)(const char* passphrase, NSInteger length))validationBlock
 {
-    auto plaintext = _password.passwordData();
+    auto plaintext = _password->passwordData();
     auto size = plaintext.size();
     // Append null terminator in case that consumer would like to use the pointer
     // in functions that accept c-style strings. The validation block still gets
@@ -111,7 +115,7 @@
 
 - (void) secureClear
 {
-    _password.secureClear();
+    _password->secureClear();
 }
 
 - (PowerAuthCorePassword*) copyToImmutable
@@ -127,7 +131,7 @@
 
 @implementation PowerAuthCorePassword (Private)
 
-- (io::getlime::powerAuth::Password &) passObjRef
+- (const powerAuth::PasswordPtr &) passObjRef
 {
     return _password;
 }
@@ -153,27 +157,27 @@
 
 - (void) clear
 {
-    _password.clear();
+    _password->clear();
 }
 
 - (BOOL) addCharacter:(UInt32)character
 {
-    return _password.addCharacter(character);
+    return _password->addCharacter(character);
 }
 
 - (BOOL) insertCharacter:(UInt32)character atIndex:(NSUInteger)index
 {
-    return _password.insertCharacter(character, index);
+    return _password->insertCharacter(character, index);
 }
 
 - (BOOL) removeLastCharacter
 {
-    return _password.removeLastCharacter();
+    return _password->removeLastCharacter();
 }
 
 - (BOOL) removeCharacterAtIndex:(NSUInteger)index
 {
-    return _password.removeCharacter(index);
+    return _password->removeCharacter(index);
 }
 
 @end

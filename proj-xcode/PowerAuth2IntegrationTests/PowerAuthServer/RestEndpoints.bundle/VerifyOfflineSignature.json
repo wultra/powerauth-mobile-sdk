@@ -4,7 +4,8 @@
         "activationId",
         "data",
         "signature",
-        "allowBiometry"
+        "allowBiometry",
+        "componentLength"
     ],
     "response": {
         "class": "PATSVerifySignatureResponse",

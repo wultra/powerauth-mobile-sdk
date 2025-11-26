@@ -1,0 +1,22 @@
+{
+    "path": "/rest/v4/activation/init",
+    "parameters": [
+        "userId",
+        "applicationId",
+        "activationOtpValidation",
+        "activationOtp"
+    ],
+    "response": {
+        "class": "PATSInitActivationResponse",
+        "properties": {
+            "activationId":               { "class" : "string" },
+            "activationCode":             { "class" : "string" },
+            "activationSignature":        { "class" : "string" },
+            "activationSignatureMldsa65": { "class" : "string" },
+            "activationSignatureMldsa87": { "class" : "string" },
+            "activationSignatureEcdsa":   { "class" : "string" },
+            "userId":                     { "class" : "string" },
+            "applicationId":              { "class" : "string" }
+        }
+    }
+}

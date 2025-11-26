@@ -15,21 +15,32 @@
  */
 
 #import <PowerAuth2/PowerAuthTimeSynchronizationService.h>
-
-#import "PA2GetSystemStatusTask.h"
+#import <PowerAuth2/PowerAuthServerStatus.h>
 
 @import PowerAuthCore;
 
+@class PA2GetSystemStatusTask, PA2CoreHttpClient;
+
+/// The `PA2GetSystemStatusTaskDelegate` protocol allows class that create `PA2GetSystemStatusTask` object
+/// monitor the task completion.
+@protocol PA2GetSystemStatusTaskDelegate <NSObject>
+@required
+/// Called when the get activation task complete its execution.
+- (void) getSystemStatusTask:(PA2GetSystemStatusTask*)task didFinishedWithStatus:(PowerAuthServerStatus*)status error:(NSError*)error;
+@end
+
+
 /// The `PA2TimeSynchronizationService` class provides functionality to synchronize time with the server.
 /// The class implements both `PowerAuthTimeSynchronizationService` and `PowerAuthCoreTimeService` protocols.
-@interface PA2TimeSynchronizationService : NSObject<PowerAuthTimeSynchronizationService, PowerAuthCoreTimeService>
+@interface PA2TimeSynchronizationService : NSObject<PowerAuthTimeSynchronizationService, PA2GetSystemStatusTaskDelegate>
 
 /// Initialize time synchronization service.
 /// - Parameters:
-///   - statusProvider: Object providing system status from the server.
+///   - coreService: Low level time synchronization service.
 ///   - sharedLock: Shared lock with recursive locking capability.
-- (instancetype) initWithStatusProvider:(id<PA2SystemStatusProvider>)statusProvider
-                             sharedLock:(id<NSLocking>)sharedLock;
+- (instancetype) initWithCoreService:(PowerAuthCoreTimeService*)coreService
+                          httpClient:(PA2CoreHttpClient*)httpClient
+                          sharedLock:(id<NSLocking>)sharedLock;
 
 /// Subscribe for the system notifications. The service is using UIApplicationWillEnterForegroundNotification to
 /// reset synchronization with the server.
@@ -38,10 +49,14 @@
 /// Unsubscribe from previously subscribed system notifications.
 - (void) unsubscribeForSystemNotifications;
 
-#ifdef DEBUG
-/// Configure internal time provider to a custom function for testing purposes.
-/// - Parameter timeProviderFunc: Time provider or nil to set back to default.
-- (void) setTestTimeProvider:(NSTimeInterval (*)(void))timeProviderFunc;
-#endif
+/// Fetch status from the server.
+/// - Parameter callback: Callback called once the status is received.
+/// - Parameter callbackQueue: Queue where callback will be reported.
+/// - Returns: Task representing asynchronous operation.
+- (id<PowerAuthOperationTask>) fetchServerStatus:(void(^)(PowerAuthServerStatus * status, NSError * error))callback
+                                   callbackQueue:(dispatch_queue_t)callbackQueue;
+
+/// Cancels all pending operations.
+- (void) cancelAllPendingRequests;
 
 @end

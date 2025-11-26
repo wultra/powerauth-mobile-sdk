@@ -20,560 +20,158 @@
 #import <PowerAuthCore/PowerAuthCoreOtpUtil.h>
 #import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
 
-#pragma mark - Session setup & Error -
 
-/**
- The PowerAuthCoreSessionSetup object defines unique constants required during the lifetime
- of the Session class.
- */
-@interface PowerAuthCoreSessionSetup : NSObject
-
-/**
- Validate session's configuration.
- */
-+ (BOOL) validateConfiguration:(nonnull NSString*)configuration;
-
-/**
- Build configuration string from partial parameters. The method is useful for other projects,
- such as React-Native wrapper, to temporarily support old way of SDK configuration.
- */
-+ (nonnull NSString*) buildConfiguration:(nonnull NSString*)appKey
-                               appSecret:(nonnull NSString*)appSecret
-                               publicKey:(nonnull NSString*)publicKey
-            NS_SWIFT_NAME(buildConfiguration(appKey:appSecret:publicKey:));
-
-/**
- Init object with the cryptographic configuration.
- */
-- (nullable instancetype) initWithConfiguration:(nonnull NSString*)configuration;
-/**
- String with complete cryptographic configuration.
- */
-@property (nonatomic, strong, readonly, nonnull) NSString * configuration;
-/**
- Application key extracted from the cryptographic configuration.
- */
-@property (nonatomic, strong, readonly, nonnull) NSString * applicationKey;
-
-/**
- Optional external encryption key. If the data object size is equal to 16 bytes,
- then the key is considered as valid and will be used during the cryptographic operations.
- 
- The additional encryption key is useful in  multibanking applications, where it allows the
- application to create chain of trusted PowerAuth activations. If the key is set, then the session will
- perform additional encryption / decryption operations when the signature keys are being used.
- 
- The session implements a couple of simple protections against misuse of this feature and therefore
- once the session is activated with the EEK, then you have to use that EEK for all future cryptographic
- operations. The key is NOT serialized in the session's state and thus it's up to the application,
- how it manages the chain of multiple PowerAuth sessions.
- */
-@property (nonatomic, strong, nullable) PowerAuthCoreData * externalEncryptionKey;
-
-@end
-
-
-/**
- The PowerAuthCoreErrorCode enumeration defines all possible error codes
- produced by PowerAuthCoreSession and other objects. You normally need 
- to check only if operation ended with EC_Ok or not. All other codes are
- only hints and should be used only for debugging purposes.
- 
- For example, if the operation fails at PowerAuthCoreErrorCode_WrongState or PowerAuthCoreErrorCode_WrongParam,
- then it's usualy your fault and you're using the session in wrong way.
- */
-typedef NS_ENUM(int, PowerAuthCoreErrorCode) {
-    /**
-     Everything is OK.
-     You can go out with your friends and enjoy the rest of the day :)
-     */
-    PowerAuthCoreErrorCode_Ok           = 0,
-    /**
-     The method failed on an encryption. Whatever that means it's
-     usually very wrong and the UI response depends on what
-     method did you call. Typically, you have to perform retry
-     or restart for the whole process.
-     
-     This error code is also returned when decoding of important
-     parameter failed. For example, if BASE64 encoded value
-     is in wrong format, then this is considered as an attack
-     attempt.
-     */
-    PowerAuthCoreErrorCode_Encryption   = 1,
-    /**
-     You have called method in wrong session's state. Usually that
-     means that you're using session in a  wrong way. This kind
-     of error should not be propagated to the UI. It's your
-     responsibility to handle session states correctly.
-     */
-    PowerAuthCoreErrorCode_WrongState   = 2,
-    /**
-     You have called method with wrong or missing parameters.
-     Usually this error code means that you're using Session
-     in wrong way and you did not provide all required data.
-     This kind of error should not be propagated to UI. It's
-     your responsibility to handle all user's inputs
-     and validate all responses from the server before you
-     ask session for processing.
-     */
-    PowerAuthCoreErrorCode_WrongParam   = 3,
-};
-
-
-/**
- The PowerAuthCoreProtocolVersion enum defines PowerAuth protocol version. The main difference
- between V2 & V3 is that V3 is using hash-based counter instead of linear one,
- and all E2EE tasks are now implemented by ECIES.
- 
- This version of SDK is supporting V2 protol in very limited scope, where only
- the V2 authorization code calculations are supported. Basically, you cannot connect
- to V2 servers with V3 SDK.
- */
+/// The `PowerAuthCoreProtocolVersion` enum defines PowerAuth protocol versions.
 typedef NS_ENUM(int, PowerAuthCoreProtocolVersion) {
-    /**
-     Protocol version is not specified, or cannot be determined.
-     */
+    /// Protocol version is not specified, or cannot be determined.
     PowerAuthCoreProtocolVersion_NA = 0,
-    /**
-     Protocol version 2
-     */
+    /// Protocol version 2. This version is discontinued and is no longer supported in SDK.
     PowerAuthCoreProtocolVersion_V2 = 2,
-    /**
-     Protocol version 3
-     */
+    /// Protocol version 3. This is the legacy version of the protocol, supported in SDK.
     PowerAuthCoreProtocolVersion_V3 = 3,
+    /// Protocol version 4. This is the latest version of protocol supported in SDK.
+    PowerAuthCoreProtocolVersion_V4 = 4,
 };
 
+/// The `PowerAuthCoreHttpHeader` object represents HTTP header with its name and value.
+@interface PowerAuthCoreHttpHeader : NSObject
 
-#pragma mark - Signatures -
+/// Default construction is unavailable
+- (nonnull instancetype) init NS_UNAVAILABLE;
 
-/**
- The PowerAuthCoreSignatureFactor constants defines factors involved in the signature
- computation. The factor types are tightly coupled with the PASignatureUnlockKeys
- object.
- */
-typedef NS_ENUM(int, PowerAuthCoreSignatureFactor) {
-    PowerAuthCoreSignatureFactor_Possession                     = 0x0001,
-    PowerAuthCoreSignatureFactor_Knowledge                      = 0x0010,
-    PowerAuthCoreSignatureFactor_Biometry                       = 0x0100,
-    PowerAuthCoreSignatureFactor_Possession_Knowledge           = 0x0011,
-    PowerAuthCoreSignatureFactor_Possession_Biometry            = 0x0101,
-    PowerAuthCoreSignatureFactor_Possession_Knowledge_Biometry  = 0x0111
+/// Contains HTTP header name
+@property (nonatomic, strong, readonly, nonnull) NSString * headerName;
+/// Contains HTTP header value
+@property (nonatomic, strong, readonly, nonnull) NSString * headerValue;
+
+@end
+
+/// The `PowerAuthDevicePublicKeyFormat` enumeration defines the output format
+/// of exported the device public key.
+typedef NS_ENUM(int, PowerAuthCoreDevicePublicKeyFormat) {
+    /// SPKI (X.509) encoded DER format.
+    PowerAuthCoreDevicePublicKeyFormat_SPKI,
+    /// RAW key format. The output format depends on the key type:
+    /// - For "EC" based keys, the output data is ASN.1 encoded, as specified in ANSI X9.63.
+    /// - For "ML-DSA" based keys, the output data is the result of OpenSSL `EVP_PKEY_get_raw_public_key()`
+    ///   function.
+    PowerAuthCoreDevicePublicKeyFormat_RAW,
 };
 
-/**
- The PowerAuthCoreSignatureUnlockKeys object contains all keys, required for signature computation.
- You have to provide all keys involved into the signature computation, for selected combination
- of factors. For example, if you're going to compute signature for Possession + Biometry
- factor, then this object must contain valid possessionUnlockKey and biometryUnlockKey.
- 
- Discussion
-
- Internally, the underlying Session keeps keys for signature computation always encrypted
- and doesn't expose these from the outside of the class. This very strict approach is
- a prevention against accidental sensitive information leakage. Your application has
- control only over the keys, which actually encrypts and decrypts this sensitive information.
- 
- At first read, it looks like that this additional protection layer has no cryptographic benefit
- at all. Yes, this is basically true :) The purpose of this layer is just to simplify the Session's
- interface. In this approach, the exact state of the session is always fully serializable and the
- only application's responsibility is to provide the lock / unlock keys in the right time, 
- when these are really required. 
- 
- As you can see, you still need to take care about how you're working with these unlock keys.
- Check the details below, each key type has its own rules how to construct the key or
- */
-@interface PowerAuthCoreSignatureUnlockKeys : NSObject
-
-/**
- The key required for signatures with "possession" factor.
- You have to provide a key based on the unique properties of the device.
- For example, WI-FI MAC address or UDID are a good sources for this
- key. You can use PowerAuthCoreSession::normalizeSignatureUnlockKeyFromData method
- to convert arbitrary data into normalized key.
- 
- It is recommended to calculate this key for once, when the application starts
- and store in the volatile memory. You should never save this key to the
- permanent storage, like file system or keychain.
- 
- You cannot use data object filled with zeros as a key.
- */
-@property (nonatomic, strong, nullable) PowerAuthCoreData * possessionUnlockKey;
-/**
- The key required for signatures with "biometry" factor. You should not
- use this key and factor, if device has no biometric engine available.
- You can use PowerAuthCoreSession::generateSignatureUnlockKey for new key creation.
- 
- You should store this key only to the storage, which can protect the
- key with using the biometry engine. For example, on iOS9+, you can use
- a keychain record, created with kSecAccessControlTouchID* flags.
- 
- You cannot use data object filled with zeros as a key.
- */
-@property (nonatomic, strong, nullable) PowerAuthCoreData * biometryUnlockKey;
-/**
- The password required for signatures with "knowledge" factor. The complexity
- of the password depends on the rules, defined by the application. You should 
- never store the password to the permanent storage (like file system, or keychain)
- 
- The PowerAuthCoreSession validates only the minimum lenght of the password (check private
- Constants.h and MINIMAL_PASSWORD_LENGTH constant for details)
- */
-@property (nonatomic, strong, nullable) PowerAuthCorePassword * userPassword;
-
-@end
-
-
-/**
- The PowerAuthCoreHTTPRequestData object contains all data required for calculating signature from
- HTTP request. You have to provide values at least non-empty strings to `method` and `uri` 
- members, to pass a data validation.
- */
-@interface PowerAuthCoreHTTPRequestData : NSObject
-
-/**
- A whole POST body or data blob prepared in 'Session::prepareKeyValueMapForDataSigning'
- method. You can also calculate signature for an empty request with no body or without
- any GET parameters. In this case the member may be empty.
- */
-@property (nonatomic, strong, nullable) NSData * body;
-/**
- HTTP method ("POST", "GET", "HEAD", "PUT", "DELETE" value is expected)
- */
-@property (nonatomic, strong, nonnull) NSString * method;
-/**
- Relative URI of the request.
- */
-@property (nonatomic, strong, nonnull) NSString * uri;
-/**
- Optional, contains NONCE generated externally. The value should be used for offline data
- signing purposes only. The Base64 string is expected.
- */
-@property (nonatomic, strong, nullable) NSString * offlineNonce;
-
-/**
- Length of offline signature component. The values between 4 and 8 are allowed.
- The default value is 8.
- */
-@property (nonatomic, assign) NSUInteger offlineSignatureSize;
-
-@end
-
-
-/**
- The PowerAuthCoreHTTPRequestDataSignature object contains result from HTTP request data signing
- operation.
- */
-@interface PowerAuthCoreHTTPRequestDataSignature : NSObject
-
-/**
- Version of PowerAuth protocol.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * version;
-/**
- Activation identifier received during the activation process.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * activationId;
-/**
- Application key copied from Session.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * applicationKey;
-/**
- NONCE used for the offline authorization code calculation.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * nonce;
-/**
- String representation of signature factor or combination of factors.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * factor;
-/**
- Calculated signature
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * signature;
-/**
- Contains a complete value for "X-PowerAuth-Authorization" HTTP header.
- */
-@property (nonatomic, strong, nonnull, readonly) NSString * authHeaderValue;
-
-@end
-
-/**
- The PowerAuthCoreSigningDataKey enumeration defines key type used for signature calculation.
- */
-typedef NS_ENUM(int, PowerAuthCoreSigningDataKey) {
-    /**
-     `KEY_SERVER_MASTER_PRIVATE` key was used for signature calculation
-     */
-    PowerAuthCoreSigningDataKey_ECDSA_MasterServerKey = 0,
-    /**
-     `KEY_SERVER_PRIVATE` key was used for signature calculation
-     */
-    PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey = 1,
-    /**
-     `APP_SECRET` key is used for HMAC-SHA256 signature calculation.
-     */
-    PowerAuthCoreSigningDataKey_HMAC_Application = 2,
-    /**
-     `KEY_TRANSPORT` key is used for HMAC-SHA256 signature calculation.
-     */
-    PowerAuthCoreSigningDataKey_HMAC_Activation = 3
+/// The `PowerAuthCoreSignatureKeyType` enumeration defines types of keys
+/// used for sign or verify operations.
+typedef NS_ENUM(int, PowerAuthCoreSignatureKeyType) {
+    /// Elliptic Curve based key.
+    PowerAuthCoreSignatureKeyType_EC,
+    /// ML-DSA based key.
+    PowerAuthCoreSignatureKeyType_ML_DSA,
 };
 
-/**
- The `PowerAuthCoreSignatureFormat` enumeration defines signature type expected at input, or produced
- at output.
- */
-typedef NS_ENUM(int, PowerAuthCoreSignatureFormat) {
-    /**
-     If used, then `PowerAuthCoreSignatureFormat_ECDSA_DER` is used for ECDSA signature.
-     For the HMAC signature, the raw bytes is always used.
-     */
-    PowerAuthCoreSignatureFormat_Default = 0,
-    /**
-     ECDSA signature in DER format is expected at input, or produced at output:
-     ```
-     // ASN.1 notation:
-     ECDSASignature ::= SEQUENCE {
-         r   INTEGER,
-         s   INTEGER
-     }
-     ```
-     */
-    PowerAuthCoreSignatureFormat_ECDSA_DER = 1,
-    /**
-     ECDSA signature in JOSE format is epxpected at input, or produced at output.
-     */
-    PowerAuthCoreSignatureFormat_ECDSA_JOSE = 2
+/// The `PowerAuthCoreDevicePublicKeyData` object contains containing exported
+/// device public key.
+@interface PowerAuthCoreDevicePublicKeyData : NSObject
+
+/// Default construction is unavailable
+- (nonnull instancetype) init NS_UNAVAILABLE;
+
+/// Type of public key.
+@property (nonatomic, readonly) PowerAuthCoreSignatureKeyType keyType;
+/// Contains information about key algorithm ("P-256", "P-384", "ML-DSA-65", etc.)
+@property (nonatomic, strong, readonly, nonnull) NSString * keyAlgorithm;
+/// Public key data.
+@property (nonatomic, strong, readonly, nonnull) NSData * keyData;
+
+@end
+
+/// The `PowerAuthCoreSignatureKeyId` enumeration defines keys available for
+/// signature calculation or verification.
+///
+/// Note that some keys are available only for signing or only for verification.
+/// The operation may end with exception if you use a wrong key identifier.
+typedef NS_ENUM(int, PowerAuthCoreSignatureKeyId) {
+    /// Use all available "master" keys for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_MASTER_P256_PUBLIC` for protocol V3
+    /// - `KEY_MASTER_ECDSA_P384_PUBLIC`, `KEY_MASTER_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_MASTER = 0x00,
+
+    /// Use only the "EC"-based "master" key for signature verification.
+    /// Depending on availability, the following will be used:
+    /// - `KEY_MASTER_P256_PUBLIC` for protocol V3
+    /// - `KEY_MASTER_ECDSA_P384_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_MASTER_EC,
+
+    /// Use only the "ML-DSA"-based "master" key for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_MASTER_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_MASTER_ML_DSA,
+
+    /// Use all available "server" keys for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_SERVER_P256_PUBLIC` for protocol V3
+    /// - `KEY_SERVER_ECDSA_P384_PUBLIC`, `KEY_SERVER_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_SERVER = 0x10,
+    /// Use only the "EC"-based "server" key for signature verification.
+    /// Depending on availability, the following will be used:
+    /// - `KEY_SERVER_P256_PUBLIC` for protocol V3
+    /// - `KEY_SERVER_ECDSA_P384_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_SERVER_EC,
+    /// Use only the "ML-DSA"-based "server" key for signature verification.
+    /// Depending on key availability, the following will be used:
+    /// - `KEY_MASTER_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_SERVER_ML_DSA,
+    
+    /// Use all available "device" keys for signature computation or verification.
+    /// Depending on key availability, the following will be used for signing:
+    /// - `KEY_DEVICE_P256_PRIVATE` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PRIVATE`, `KEY_DEVICE_MLDSA65_PRIVATE` for protocol V4
+    /// For the signature verification, the following will be used:
+    /// - `KEY_DEVICE_P256_PUBLIC` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PUBLIC`, `KEY_DEVICE_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_DEVICE = 0x20,
+    /// Use only the "EC"-based "server" key for signature computation or verification.
+    /// Depending on key availability, the following will be used for signing:
+    /// - `KEY_DEVICE_P256_PRIVATE` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PRIVATE` for protocol V4
+    /// For the signature verification, the following will be used:
+    /// - `KEY_DEVICE_P256_PUBLIC` for protocol V3
+    /// - `KEY_DEVICE_ECDSA_P384_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_DEVICE_EC,
+    /// Use only the "ML-DSA"-based "server" key for signature computation or verification.
+    /// Depending on key availability, the following will be used for signing:
+    /// - `KEY_DEVICE_MLDSA65_PRIVATE` for protocol V4
+    /// For the signature verification, the following will be used:
+    /// - `KEY_DEVICE_MLDSA65_PUBLIC` for protocol V4
+    PowerAuthCoreSignatureKeyId_DEVICE_ML_DSA,
+    
+    /// Use "KMAC"-based symmetric key for signature verification. The following key will be used:
+    /// - `KEY_MAC_PERSONALIZED_DATA` for protocol V4
+    /// Note that the key is not supported in JWS routines.
+    PowerAuthCoreSignatureKeyId_MAC_PERSONALIZED = 0x30,
 };
 
-/**
- The PowerAuthCoreSignedData object contains data and signature calculated from data.
- */
-@interface PowerAuthCoreSignedData : NSObject
-/**
- A signing key to use.
- */
-@property (nonatomic, assign) PowerAuthCoreSigningDataKey signingDataKey;
-/**
- A format of signature expected at input or produced at output.
- */
-@property (nonatomic, assign) PowerAuthCoreSignatureFormat signatureFormat;
-/**
- A data protected with signature
- */
-@property (nonatomic, strong, nonnull) NSData * data;
-/**
- A signagure calculated for data
- */
-@property (nonatomic, strong, nonnull) NSData * signature;
-/**
- A data protected with signature in Base64 format. The value is
- mapped to the `data` property.
- */
-@property (nonatomic, strong, nonnull) NSString * dataBase64;
-/**
- A signagure calculated for data in Base64 format. The value is
- mapped to the `signature` property.
- */
-@property (nonatomic, strong, nonnull) NSString * signatureBase64;
-
-@end
-
-
-#pragma mark - Activation steps -
-
-/**
- The PowerAuthCoreActivationStep1Param object contains parameters for first step of device activation.
- */
-@interface PowerAuthCoreActivationStep1Param : NSObject
-
-/**
- Full, parsed activation code. The parameter is optional and may be nil
- in case of custom activation.
- */
-@property (nonatomic, strong, nullable) PowerAuthCoreOtp * activationCode;
-
-@end
-
-
-/**
- The PowerAuthCoreActivationStep1Result object represents result from first
- step of the device activation.
- */
-@interface PowerAuthCoreActivationStep1Result : NSObject
-
-/**
- Device's public key, in Base64 format
- */
-@property (nonatomic, strong, nonnull) NSString * devicePublicKey;
-
-@end
-
-
-/**
- The PowerAuthCoreActivationStep2Param contains parameters for second step of
- device activation
- */
-@interface PowerAuthCoreActivationStep2Param : NSObject
-
-/**
- Real Activation ID received from server.
- */
-@property (nonatomic, strong, nonnull) NSString * activationId;
-/**
- Server's public key, in Base64 format.
- */
-@property (nonatomic, strong, nonnull) NSString * serverPublicKey;
-/**
- Initial value for hash-based counter.
- */
-@property (nonatomic, strong, nonnull) NSString * ctrData;
-
-@end
-
-
-/**
- The PowerAuthCoreActivationStep2Result object represent result from 2nd
- step of activation.
- */
-@interface PowerAuthCoreActivationStep2Result : NSObject
-
-/**
- Short, human readable string, calculated from device's public key.
- You can display this code to the UI and user can confirm visually
- if the code is the same on both, server & client sides. This feature
- must be supported on the server's side of the activation flow.
- */
-@property (nonatomic, strong, nonnull) NSString * activationFingerprint;
-
-@end
-
-#pragma mark - Activation status -
-
-/**
- The PowerAuthCoreActivationState enum defines all possible states of activation.
- The state is a part of information received together with the rest
- of the PowerAuthCoreActivationStatus object.
- */
-typedef NS_ENUM(int, PowerAuthCoreActivationState) {
-    /**
-     The activation is just created.
-     */
-    PowerAuthCoreActivationState_Created  = 1,
-    /**
-     The activation is not completed yet on the server.
-     */
-    PowerAuthCoreActivationState_PendingCommit = 2,
-    /**
-     The shared secure context is valid and active.
-     */
-    PowerAuthCoreActivationState_Active   = 3,
-    /**
-     The activation is blocked.
-     */
-    PowerAuthCoreActivationState_Blocked  = 4,
-    /**
-     The activation doesn't exist anymore.
-     */
-    PowerAuthCoreActivationState_Removed  = 5,
-    /**
-     The activation is technically blocked. You cannot use it anymore
-     for the authorization code calculations.
-     */
-    PowerAuthCoreActivationState_Deadlock   = 128,
+/// The `PowerAuthCoreVaultEncryptionKeyId` enumeration defines the types of vault keys
+/// supported in the PowerAuth Mobile SDK.
+typedef NS_ENUM(int, PowerAuthCoreSecureVaultKeyId) {
+    /// This type of vault key can be provided after successful 2FA authentication
+    /// on the server.
+    PowerAuthCoreSecureVaultKeyId_2FA = 1,
+    /// This type of vault key can be provided after authentication with the user's password.
+    PowerAuthCoreSecureVaultKeyId_Knowledge = 2,
+    /// This is a legacy key available only when PowerAuthSDK is running on a legacy
+    /// protocol. The key can be provided after authentication with the user's password.
+    PowerAuthCoreSecureVaultKeyId_Legacy = 3,
 };
 
-/**
- The PowerAuthCoreEncryptedActivationStatus object contains encrypted status
- data and parameters required for the data decryption.
- */
-@interface PowerAuthCoreEncryptedActivationStatus : NSObject
-
-/**
- The challenge value sent to the server. 16 bytes encoded to Base64 is expected.
- */
-@property (nonatomic, strong, nullable) NSString * challenge;
-/**
- Contains encrypted status data. The Base64 encoded string is expected.
- */
-@property (nonatomic, strong, nullable) NSString * encryptedStatusBlob;
-/**
- Contains nonce returned from the server. 16 bytes encoded to Base64 is expected.
- */
-@property (nonatomic, strong, nullable) NSString * nonce;
-
-@end
-
-/**
- The PowerAuthCoreActivationStatus object represents complete status of the activation.
- The status is typically received as an encrypted blob and you can use module
- to decode that blob into this object.
- */
-@interface PowerAuthCoreActivationStatus : NSObject
-
-/**
- State of the activation
- */
-@property (nonatomic, assign, readonly) PowerAuthCoreActivationState state;
-/**
- Number of failed authentication attempts in a row.
- */
-@property (nonatomic, assign, readonly) UInt32 failCount;
-/**
- Maximum number of allowed failed authentication attempts in a row.
- */
-@property (nonatomic, assign, readonly) UInt32 maxFailCount;
-/**
- Contains (maxFailCount - failCount) if state is `PowerAuthCoreActivationState_Active`,
- otherwise 0.
- */
-@property (nonatomic, assign, readonly) UInt32 remainingAttempts;
-
-// SDK-private (application should not use such interface)
-
-/**
- Contains current version of activation
- */
-@property (nonatomic, assign, readonly) UInt8 currentActivationVersion;
-/**
- Contains version of activation available for upgrade.
- */
-@property (nonatomic, assign, readonly) UInt8 upgradeActivationVersion;
-/**
- Contains YES if upgrade to a newer protocol version is available.
- */
-@property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
-/**
- Returns true if dummy authorization code calculation is recommended to prevent
- the counter's de-synchronization.
- */
-@property (nonatomic, assign, readonly) BOOL isSignatureCalculationRecommended;
-/**
- Returns true if session's state should be serialized after the successful
- activation status decryption.
- */
-@property (nonatomic, assign, readonly) BOOL needsSerializeSessionState;
-
-@end
-
-#pragma mark - End to End Encryption -
-
-// Forward declaration for ECIES encryptor
-@class PowerAuthCoreEciesEncryptor;
-
-/**
- The `PowerAuthCoreEciesEncryptorScope` enumeration defines how `PowerAuthCoreEciesEncryptor` encryptor is configured
- in `PowerAuthCoreSession.getEciesEncryptor()` method.
- */
-typedef NS_ENUM(int, PowerAuthCoreEciesEncryptorScope) {
-    /**
-     An application scope means that encryptor can be constructed also when
-     the session has no valid activation.
-     */
-    PowerAuthCoreEciesEncryptorScope_Application  = 0,
-    /**
-     An activation scope means that the encryptor can be constructed only when
-     the session has a valid activation.
-     */
-    PowerAuthCoreEciesEncryptorScope_Activation  = 1,
+/// The `PowerAuthCoreEncryptorScope` enumeration defines how `PowerAuthCoreEncryptor` encryptor
+/// is configured.
+typedef NS_ENUM(int, PowerAuthCoreEncryptorScope) {
+    /// No encryptor is specified in core request.
+    PowerAuthCoreEncryptorScope_None = 0,
+    /// An application scope means that encryptor can be constructed also when
+    /// the session has no valid activation.
+    PowerAuthCoreEncryptorScope_Application = 1,
+    /// An activation scope means that the encryptor can be constructed only when
+    /// the session has a valid activation.
+    PowerAuthCoreEncryptorScope_Activation = 2,
 };

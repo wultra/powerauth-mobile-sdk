@@ -21,7 +21,85 @@
  whenever you need include everything from PA2 library at once.
  */
 
-#include <PowerAuth/Session.h>
-#include <PowerAuth/ECIES.h>
+#include <PowerAuth/Password.h>
+#include <PowerAuth/Configuration.h>
+
+#include <PowerAuth/TimeService.h>
 #include <PowerAuth/ByteUtils.h>
 #include <PowerAuth/Debug.h>
+
+#include <PowerAuth/Credentials.h>
+#include <PowerAuth/Encryptor.h>
+#include <PowerAuth/ActivationStatus.h>
+
+#include <PowerAuth/PowerAuthSpec.h>
+#include <PowerAuth/Algorithms.h>
+
+namespace powerAuth {
+
+// Forward declarations of internal classes
+
+class Context;
+class SessionData;
+class IKeyProvider;
+
+class Session :
+    private std::enable_shared_from_this<Session>
+{
+public:
+    
+    // --------------------------------------------------------------------------------------------
+    // Object construction
+    //
+    
+    static std::shared_ptr<Session> createInstance(ConfigurationPtr configuration);
+    
+    // --------------------------------------------------------------------------------------------
+    // Version and state
+    //
+    
+    ProtocolVersion getProtocolVersion() const noexcept;
+    const ConfigurationPtr& getConfiguration() const noexcept;
+    
+    void loadState(const cc7::ByteRange& serialized_state);
+    cc7::ByteArray saveState() const;
+    void resetState();
+        
+public:
+    // --------------------------------------------------------------------------------------------
+    // Activation
+    //
+    bool canCreateActivation() const noexcept;
+    RequestPtr createActivation(cc7::json::JsonValue L1_data, cc7::json::JsonValue L2_data);
+    RequestPtr confirmActivation(InitialCredentialsPtr credentials);
+    
+private:
+    cc7::json::JsonValue prepareRequestActivationData(cc7::json::JsonValue L1_data, cc7::json::JsonValue L2_data);
+    ResponseObjectPtr processResponseActivationData(const cc7::json::JsonValue& L1_data);
+    ResponseObjectPtr processResponseActivationConfirm(InitialCredentialsPtr credentials);
+    
+    
+public:
+    // --------------------------------------------------------------------------------------------
+    // Services
+    //
+    const TimeServicePtr& getTimeService() const noexcept;
+    const IEncryptorFactoryPtr& getEncryptorFactory() const noexcept;
+
+private:
+    
+    Session(std::shared_ptr<Context> context);
+
+    SharedMutexPtr _lock;
+    std::shared_ptr<Context> _context;
+
+    SessionData& sessionData() noexcept;
+    const SessionData& sessionData() const noexcept;
+    
+    IKeyProvider& keyProvider() noexcept;
+    IEncryptorFactory& encryptorFactory() noexcept;
+};
+
+CC7_SHARED_PTR(Session)
+
+} // namespace powerAuth

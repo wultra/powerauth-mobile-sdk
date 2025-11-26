@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import <PowerAuth2/PowerAuthMacros.h>
 
 #pragma mark - System status
 
@@ -73,6 +73,9 @@
 @property (nonatomic, strong) NSString * activationOTP;
 @property (nonatomic, strong) NSString * activationCode;
 @property (nonatomic, strong) NSString * activationSignature;
+@property (nonatomic, strong) NSString * activationSignatureEcdsa;
+@property (nonatomic, strong) NSString * activationSignatureMldsa65;
+@property (nonatomic, strong) NSString * activationSignatureMldsa87;
 @property (nonatomic, strong) NSString * userId;
 @property (nonatomic, strong) NSString * applicationId;
 
@@ -125,6 +128,7 @@ extern NSString * PATSActivationOtpValidationEnumToString(PATSActivationOtpValid
 @property (nonatomic, strong) NSString * encryptedStatusBlob;
 @property (nonatomic, strong) NSString * encryptedStatusBlobNonce;
 @property (nonatomic, strong) NSString * devicePublicKeyFingerprint;
+@property (nonatomic, strong) NSString * activationSignature;
 @property (nonatomic, assign) NSInteger protocolVersion;
 
 @end
@@ -148,7 +152,8 @@ extern NSString * PATSActivationOtpValidationEnumToString(PATSActivationOtpValid
 @property (nonatomic, strong) NSString * activationStatus;
 @property (nonatomic, assign) PATSActivationStatusEnum activationStatusEnum;
 @property (nonatomic, assign) NSInteger remainingAttempts;
-@property (nonatomic, assign) BOOL signatureValid;
+@property (nonatomic, assign) BOOL signatureValid; // mapped to `authenticationValid`
+@property (nonatomic, assign) BOOL authenticationValid;
 
 @end
 

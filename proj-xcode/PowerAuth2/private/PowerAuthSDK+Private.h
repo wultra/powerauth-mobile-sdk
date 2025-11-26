@@ -17,19 +17,21 @@
 #import <PowerAuth2/PowerAuthSDK.h>
 #import <PowerAuth2/PowerAuthKeychain.h>
 
-#import "PA2PrivateCryptoHelper.h"
 #import "PA2GetActivationStatusTask.h"
-#import "PA2GetSystemStatusTask.h"
+#import "PA2KeystoreService.h"
+#import "PA2CoreCredentialsResolver.h"
 #import "PowerAuthActivationStatus+Private.h"
 #import "PowerAuthActivationCode+Private.h"
 #import "PowerAuthAuthentication+Private.h"
 #import "PowerAuthUserInfo+Private.h"
+#import "PowerAuthActivationResult+Private.h"
+#import "PowerAuthProtocolUpgradeResult+Private.h"
+#import "PowerAuthPasswordChangeData+Private.h"
 
 @import PowerAuthCore;
 
 // Exposing several private interfaces
-@interface PowerAuthSDK (Private) <PA2GetActivationStatusTaskDelegate, PA2SystemStatusProvider, PA2GetSystemStatusTaskDelegate>
-
+@interface PowerAuthSDK (Private) <PA2GetActivationStatusTaskDelegate, PA2CoreCredentialsResolver>
 /**
  Contains instance identifier
  */
@@ -40,27 +42,10 @@
 @property (nonatomic, strong, readonly) PA2KeystoreService * keystoreService;
 
 /**
- Returns key required for unlok the possesion factor.
- */
-- (PowerAuthCoreData*) deviceRelatedKey;
-
-/**
- Low level authorization code calculation. Unlike the high level interface, this method doesn't check
- the protocol upgrade flag. This is useful for situations, where the flag is validated elsewhere, or
- when the request can be signed during the pending protocol upgrade.
- */
-- (PowerAuthCoreHTTPRequestDataSignature*) signHttpRequestData:(PowerAuthCoreHTTPRequestData*)requestData
-                                                authentication:(PowerAuthAuthentication*)authentication
-                                                         error:(NSError**)error;
-/**
  Update last fetched user info.
  */
 - (void) setLastFetchedUserInfo:(PowerAuthUserInfo*)lastFetchedUserInfo;
 
-@end
-
-// Declaration for PA2PrivateCryptoHelper
-@interface PowerAuthSDK (CryptoHelper) <PA2PrivateCryptoHelper>
 @end
 
 // -----------------------------------------------------------------------
@@ -81,8 +66,17 @@
 
 @interface PowerAuthBiometricConfiguration (PrivateSupport)
 // Reveal private constructor that allows create PowerAuthBiometricConfiguration from PowerAuthKeychainConfiguration
-// PA2_DEPRECATED(1.10.0), remove in 2.0.0
+// PA2_DEPRECATED(2.0.0)
 - (instancetype) initWithKeychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration;
 // Reveal private readonly property that helps distinguish between "current" or "any set" biometric access.
 @property (nonatomic, readonly) PowerAuthKeychainItemAccess biometricItemAccess;
+@end
+
+@interface PowerAuthSecureVaultKey (Private)
+- (instancetype) initWithCoreData:(PowerAuthCoreData*)coreData
+                            keyId:(PowerAuthSecureVaultKeyId)keyId;
+@end
+
+@interface PowerAuthDevicePublicKeyData (Private)
+- (instancetype) initWithCoreDevicePublicKeyData:(PowerAuthCoreDevicePublicKeyData*)keyData;
 @end

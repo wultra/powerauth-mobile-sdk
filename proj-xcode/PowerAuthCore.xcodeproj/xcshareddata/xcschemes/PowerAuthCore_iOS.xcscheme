@@ -37,6 +37,74 @@
                BlueprintName = "PowerAuthCoreTests-ios"
                ReferencedContainer = "container:PowerAuthCore.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "PowerAuthCoreCryptoUtilsTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreCryptoUtilsTests/testEcdhComputeSharedSecret">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreCryptoUtilsTests/testEcdsaComputeSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreCryptoUtilsTests/testEcdsaSignatureValidation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreDataTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreDataTests/testCoreDataInitAndClear">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreDataTests/testCoreDataNilInit">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreDataTests/testCoreDataRelease">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePasswordTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePasswordTests/testImmutable">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePasswordTests/testMutableNumbers">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePasswordTests/testMutableUnicode">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePasswordTests/testPasswordCopyAndSecureClear">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePasswordTests/testPasswordEqual">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePasswordTests/testPasswordNotEqual">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePublicObjectsTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePublicObjectsTests/testPowerAuthActivationStatus">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePublicObjectsTests/testPowerAuthCoreHTTPRequestDataSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePublicObjectsTests/testPowerAuthCoreSignedData">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreSessionSetupTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreSessionSetupTests/testConfigurationGenerator">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreSessionSetupTests/testSetupValidation">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>

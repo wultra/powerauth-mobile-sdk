@@ -18,18 +18,12 @@
 
 #include <cc7tests/CC7Tests.h>
 
-namespace io
-{
-namespace getlime
-{
 namespace powerAuthTests
 {
-    /**
-     This header contains just a declaration for function, which returns 
-     all tests embedded in the PowerAuth tests library.
-     */
-    extern cc7::tests::UnitTestCreationInfoList GetPowerAuthTestCreationInfoList();
-    
-} // io::getlime::powerAuth
-} // io::getlime
-} // io
+/**
+ This header contains just a declaration for function, which returns 
+ all tests embedded in the PowerAuth tests library.
+ */
+extern cc7::tests::UnitTestCreationInfoList GetPowerAuthTestCreationInfoList();
+
+} // namespace powerAuthTests

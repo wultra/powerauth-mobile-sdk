@@ -23,6 +23,7 @@
 #import "PA2PrivateMacros.h"
 #import "PA2CreateTokenTask.h"
 #import "PA2CompositeTask.h"
+#import "PA2SessionInterface.h"
 #import "PowerAuthAuthentication+Private.h"
 
 #import <PowerAuth2/PowerAuthErrorConstants.h>
@@ -38,7 +39,8 @@
     id<PA2TokenDataLock>        _tokenDataLock;
     /// Local lock, protecting data in this process.
     id<NSLocking>               _localLock;
-    
+    /// Session interface
+    id<PA2SessionInterface>     _sessionInterface;
     // Lazy initialized data
 
     /// A prefix for all tokens stored in the keychain
@@ -53,6 +55,7 @@
 
 - (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
                     keychain:(PowerAuthKeychain*)keychain
+            sessionInterface:(id<PA2SessionInterface>)sessionInterface
               statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
               remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
                  timeService:(id<PowerAuthTimeSynchronizationService>)timeService
@@ -68,6 +71,7 @@
         _keychain = keychain;
         _tokenDataLock = dataLock;
         _localLock = localLock ? localLock : [[NSRecursiveLock alloc] init];
+        _sessionInterface = sessionInterface;
         _allowInMemoryCache = YES;
     }
     return self;
@@ -102,18 +106,26 @@
  A simple replacement for @synchronized() construct.
  This version of function returns object returned from the block.
  */
-- (id) synchronized:(id(NS_NOESCAPE ^)(BOOL * setModified))block
+- (id) synchronized:(id(NS_NOESCAPE ^)(BOOL * setModified, NSError** error))block error:(NSError**)error
 {
-    BOOL isDirty = [_tokenDataLock lockTokenStore];
-    if (_keychainKeyPrefix == nil) {
-        [self prepareInstance];
+    NSError * localError = nil;
+    BOOL isDirty = NO;
+    id result = nil;
+    if ([_tokenDataLock lockTokenStore:&isDirty error:&localError]) {
+        if (_keychainKeyPrefix == nil) {
+            [self prepareInstance];
+        }
+        if (_allowInMemoryCache && isDirty) {
+            [_database removeAllObjects];
+        }
+        BOOL modified = NO;
+        result = block(&modified, &localError);
+        [_tokenDataLock unlockTokenStore:modified error:&localError];
     }
-    if (_allowInMemoryCache && isDirty) {
-        [_database removeAllObjects];
+    if (localError) {
+        if (error) *error = localError;
+        result = nil;
     }
-    BOOL modified = NO;
-    id result = block(&modified);
-    [_tokenDataLock unlockTokenStore:modified];
     return result;
 }
 
@@ -121,18 +133,27 @@
  A simple replacement for @synchronized() construct.
  This version of function has no return value.
  */
-- (void) synchronizedVoid:(void(NS_NOESCAPE ^)(BOOL * setModified))block
+- (BOOL) synchronizedVoid:(BOOL(NS_NOESCAPE ^)(BOOL * setModified, NSError** error))block error:(NSError**)error
 {
-    BOOL isDirty = [_tokenDataLock lockTokenStore];
-    if (_keychainKeyPrefix == nil) {
-        [self prepareInstance];
+    NSError * localError = nil;
+    BOOL isDirty = NO;
+    BOOL result = NO;
+    if ([_tokenDataLock lockTokenStore:&isDirty error:&localError]) {
+        if (_keychainKeyPrefix == nil) {
+            [self prepareInstance];
+        }
+        if (_allowInMemoryCache && isDirty) {
+            [_database removeAllObjects];
+        }
+        BOOL modified = NO;
+        result = block(&modified, &localError);
+        [_tokenDataLock unlockTokenStore:modified error:&localError];
     }
-    if (_allowInMemoryCache && isDirty) {
-        [_database removeAllObjects];
+    if (localError) {
+        if (error) *error = localError;
+        result = NO;
     }
-    BOOL modified = NO;
-    block(&modified);
-    [_tokenDataLock unlockTokenStore:modified];
+    return result;
 }
 
 #pragma mark - PowerAuthPrivateTokenStore protocol
@@ -142,15 +163,17 @@
     return [_statusProvider hasValidActivation] && [_statusProvider.activationIdentifier isEqualToString:token.privateTokenData.activationIdentifier];
 }
 
-- (void) storeTokenData:(PA2PrivateTokenData*)tokenData
+- (BOOL) storeTokenData:(PA2PrivateTokenData*)tokenData error:(NSError**)error
 {
-    [self synchronizedVoid:^(BOOL *setModified) {
+    return [self synchronizedVoid:^(BOOL *setModified, NSError**error) {
         if (!self.canRequestForAccessToken) {
-            return;
+            PA2SetError(error, PowerAuthErrorCode_InvalidActivationState, @"Activation is no longer valid");
+            return NO;
         }
         [self storeTokenDataWhenLocked:tokenData isUpgrade:NO];
         *setModified = YES;
-    }];
+        return YES;
+    } error:error];
 }
 
 - (void) removeCreateTokenTask:(NSString *)tokenName
@@ -174,6 +197,15 @@
         [obj cancel];
     }];
     [_createTokenTasks removeAllObjects];
+}
+
+- (PowerAuthHttpHeader*) calculateTokenHeader:(PA2PrivateTokenData*)tokenData
+                                                     error:(NSError**)error
+{
+    return [_sessionInterface readTaskWithSession:^PowerAuthHttpHeader* (PowerAuthCoreSession * session, NSError ** error) {
+        PowerAuthCoreHttpHeader * coreHeader = [session calculateTokenHeader:tokenData.identifier tokenSecret:tokenData.secret error:error];
+        return coreHeader ? [PowerAuthHttpHeader createWithCoreHeader:coreHeader] : nil;
+    } error:error];
 }
 
 #pragma mark - PowerAuthTokenStore protocol
@@ -308,49 +340,38 @@
     }];
 }
 
-#if PA2_HAS_CORE_MODULE == 1 || TARGET_OS_WATCH == 1
-//
-// Implementation available for PowerAuth2 & PowerAuth2ForWatch modules
-//
 - (void) removeLocalTokenWithName:(NSString *)name
 {
-    [self synchronizedVoid:^(BOOL * setModified){
+    NSError * localError = nil;
+    [self synchronizedVoid:^BOOL(BOOL * setModified, NSError**error){
         if (name) {
             [self removeTokenWithIdentifier:[self identifierForTokenName:name]];
             *setModified = YES;
+            return YES;
         }
-    }];
+        PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"Invalid token name");
+        return NO;
+    } error:&localError];
+    if (localError) {
+        PowerAuthLog(@"ERROR: removeLocalTokenWithName() failed: %@", localError);
+    }
 }
 
 
 - (void) removeAllLocalTokens
 {
-    [self synchronizedVoid:^(BOOL *setModified) {
+    NSError * localError = nil;
+    [self synchronizedVoid:^BOOL(BOOL * setModified, NSError**error) {
         [[self allTokenIdentifiers] enumerateObjectsUsingBlock:^(NSString * identifier, NSUInteger idx, BOOL * stop) {
             [self removeTokenWithIdentifier:identifier];
         }];
         *setModified = YES;
-    }];
+        return YES;
+    } error:&localError];
+    if (localError) {
+        PowerAuthLog(@"ERROR: removeAllLocalTokens() failed: %@", localError);
+    }
 }
-
-#else
-//
-// Implementation available only for PowerAuth2ForExtensions
-//
-- (void) removeLocalTokenWithName:(NSString *)name
-{
-    // Issue #433: PowerAuth2ForExtensions has no remote provider, so this function is unavailable.
-    PowerAuthLog(@"ERROR: removeLocalToken() is not available for PowerAuth2ForExtensions module");
-}
-
-- (void) removeAllLocalTokens
-{
-    // Issue #433: PowerAuth2ForExtensions has no remote provider, so this function is unavailable.
-    PowerAuthLog(@"ERROR: removeAllLocalTokens() is not available for PowerAuth2ForExtensions module");
-}
-
-#endif // PA2_HAS_CORE_MODULE == 1 || TARGET_OS_WATCH == 1
-
 
 - (BOOL) hasLocalTokenWithName:(nonnull NSString*)name
 {
@@ -424,8 +445,8 @@
                                 authentication:(PowerAuthAuthentication*)authentication
                                          error:(NSError**)error
 {
-    __block NSError * localError = nil;
-    PA2PrivateTokenData * result = [self synchronized:^id(BOOL *setModified) {
+    NSError * localError = nil;
+    PA2PrivateTokenData * result = [self synchronized:^id(BOOL *setModified, NSError**error) {
         NSString * identifier = [self identifierForTokenName:name];
         PA2PrivateTokenData * tokenData = _allowInMemoryCache ? _database[identifier] : nil;
         if (!tokenData) {
@@ -459,12 +480,14 @@
         // Finally, validate whether the requested factors
         if (authentication != nil && tokenData.authenticationFactors != 0) {
             if (tokenData.authenticationFactors != authentication.signatureFactorMask) {
-                localError = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Different PowerAuthAuthentication used for the same token creation.");
+                if (error) {
+                    *error = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Different PowerAuthAuthentication used for the same token creation.");
+                }
                 tokenData = nil;
             }
         }
         return tokenData;
-    }];
+    } error:&localError];
     if (error && localError) {
         *error = localError;
     }
@@ -503,19 +526,27 @@
     [_database removeObjectForKey:identifier];
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+// PA2_DEPRECATED(2.0.0)
 - (id<PowerAuthOperationTask>) generateAuthorizationHeaderWithName:(NSString *)name
                                                         completion:(void(^)(PowerAuthAuthorizationHttpHeader * header, NSError * error))completion
+{
+    return [self generateAuthenticationHeaderWithName:name completion:completion];
+}
+#pragma clang diagnostic pop
+
+- (id<PowerAuthOperationTask>) generateAuthenticationHeaderWithName:(NSString *)name
+                                                         completion:(void(^)(PowerAuthHttpHeader * header, NSError * error))completion
 {
     // Prepare composite task and completion closure.
     PA2CompositeTask * compositeTask = [[PA2CompositeTask alloc] initWithCancelBlock:nil];
     void (^completionCallback)(PowerAuthToken *, NSError *) = ^(PowerAuthToken * token, NSError * error) {
-        PowerAuthAuthorizationHttpHeader * header;
+        PowerAuthHttpHeader * header;
         if (token) {
             // So far, so good, generate header now.
-            header = [token generateHeader];
-            if (!header) {
-                error = PA2MakeError(PowerAuthErrorCode_InvalidToken, @"Failed to generate authorization header");
-            }
+            header = [self calculateTokenHeader:token.privateTokenData error:&error];
         } else {
             header = nil;
         }

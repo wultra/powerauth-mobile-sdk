@@ -44,44 +44,22 @@
     return _status.remainingAttempts;
 }
 
+- (NSDictionary<NSString*, NSObject*>*) customObject
+{
+    return _status.customObject;
+}
+
 @end
 
 @implementation PowerAuthActivationStatus (Private)
 
 - (instancetype) initWithCoreStatus:(PowerAuthCoreActivationStatus *)status
-                       customObject:(NSDictionary<NSString *,NSObject *> *)customObject
 {
     self = [super init];
     if (self) {
         _status = status;
-        _customObject = customObject;
     }
     return self;
-}
-
-- (UInt8) currentActivationVersion
-{
-    return _status.currentActivationVersion;
-}
-
-- (UInt8) upgradeActivationVersion
-{
-    return _status.upgradeActivationVersion;
-}
-
-- (BOOL) isProtocolUpgradeAvailable
-{
-    return _status.isProtocolUpgradeAvailable;
-}
-
-- (BOOL) isSignatureCalculationRecommended
-{
-    return _status.isSignatureCalculationRecommended;
-}
-
-- (BOOL) needsSerializeSessionState
-{
-    return _status.needsSerializeSessionState;
 }
 
 @end

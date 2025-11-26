@@ -14,19 +14,28 @@
  * limitations under the License.
  */
 
-#include <PowerAuth/PublicTypes.h>
 #include <PowerAuth/Password.h>
-#include <PowerAuth/ECIES.h>
+#include <PowerAuth/Configuration.h>
+#include <PowerAuth/Credentials.h>
+#include <PowerAuth/Task.h>
+#include <PowerAuth/Encryptor.h>
+#include <PowerAuth/TimeService.h>
+#include <PowerAuth/AuthenticationService.h>
+#include <PowerAuth/TokenService.h>
+#include <PowerAuth/ActivationResult.h>
+#include <PowerAuth/ActivationStatus.h>
+#include <PowerAuth/ProtocolUpgradeResult.h>
 
 #include <cc7/crypto/Crypto.h>
 #include <cc7/objc/ObjcHelper.h>
+#include <cc7/objc/ObjcJson.h>
 
-#import <PowerAuthCore/PowerAuthCoreTypes.h>
-#import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
-#import <PowerAuthCore/PowerAuthCorePassword.h>
-#import <PowerAuthCore/PowerAuthCoreEciesEncryptor.h>
 #import <PowerAuthCore/PowerAuthCoreLog.h>
-#import <PowerAuthCore/PowerAuthCoreData.h>
+#import <PowerAuthCore/PowerAuthCoreSession.h>
+#import <PowerAuthCore/PowerAuthCoreActivationResult.h>
+#import <PowerAuthCore/PowerAuthCoreActivationStatus.h>
+#import <PowerAuthCore/PowerAuthCoreTokenData.h>
+#import <PowerAuthCore/PowerAuthCoreProtocolUpgradeResult.h>
 
 /*
  This header contains various private interfaces, internally used
@@ -34,33 +43,8 @@
  so it's not available for Objective-C or Swift codes.
  */
 
-@interface PowerAuthCoreSessionSetup (Private)
-- (io::getlime::powerAuth::SessionSetup&) sessionSetupRef;
-@end
-
 @interface PowerAuthCorePassword (Private)
-- (io::getlime::powerAuth::Password &) passObjRef;
-@end
-
-@interface PowerAuthCoreHTTPRequestDataSignature (Private)
-- (io::getlime::powerAuth::HTTPRequestDataSignature&) signatureStructRef;
-@end
-
-@interface PowerAuthCoreSignedData (Private)
-- (io::getlime::powerAuth::SignedData&) signedDataRef;
-@end
-
-@interface PowerAuthCoreEciesCryptogram (Private)
-- (io::getlime::powerAuth::ECIESCryptogram &) cryptogramRef;
-@end
-
-@interface PowerAuthCoreEciesEncryptor (Private)
-- (id) initWithObject:(const io::getlime::powerAuth::ECIESEncryptor &)objectRef timeService:(id<PowerAuthCoreTimeService>)timeService;
-- (io::getlime::powerAuth::ECIESEncryptor &) encryptorRef;
-@end
-
-@interface PowerAuthCoreEciesMetaData (Private)
-- (cc7::ByteArray) associatedData;
+- (const powerAuth::PasswordPtr &) passObjRef;
 @end
 
 @interface PowerAuthCoreData (Private)
@@ -68,55 +52,97 @@
 - (const cc7::ByteRange &) byteArrayRef;
 @end
 
-
-@protocol PowerAuthCoreProtocolUpgradeDataPrivate <PowerAuthCoreProtocolUpgradeData>
-- (void) setupStructure:(io::getlime::powerAuth::ProtocolUpgradeData &)ref;
+@interface PowerAuthCoreConfig (Private)
+- (powerAuth::ConfigurationPtr) configurationRef;
 @end
 
-/**
- Converts PowerAuthCoreSignatureUnlockKeys object into SignatureUnlockKeys C++ structure.
- */
-CC7_EXTERN_C void PowerAuthCoreSignatureUnlockKeysToStruct(PowerAuthCoreSignatureUnlockKeys * keys, io::getlime::powerAuth::SignatureUnlockKeys & cpp_keys);
-/**
-Converts PowerAuthCoreEncryptedActivationStatus object into EncryptedActivationStatus C++ structure.
- */
-CC7_EXTERN_C void PowerAuthCoreEncryptedActivationStatusToStruct(PowerAuthCoreEncryptedActivationStatus * status, io::getlime::powerAuth::EncryptedActivationStatus& cpp_status);
-/**
- Returns new instance of PowerAuthCoreActivationStatus object, with content copied from ActivationStatus C++ structure.
- */
-CC7_EXTERN_C PowerAuthCoreActivationStatus * PowerAuthCoreActivationStatusToObject(const io::getlime::powerAuth::ActivationStatus& cpp_status);
+/// Lambda for create custom objects when successful response is received.
+typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::ResponseObjectPtr& response);
 
-/**
- Converts PowerAuthCoreHTTPRequestData object into HTTPRequestData C++ structure.
- */
-CC7_EXTERN_C void PowerAuthCoreHTTPRequestDataToStruct(PowerAuthCoreHTTPRequestData * req, io::getlime::powerAuth::HTTPRequestData & cpp_req);
+@interface PowerAuthCoreRequest (Private)
+- (id) initWithRequest:(powerAuth::RequestPtr&)request;
+- (id) initWithRequest:(powerAuth::RequestPtr&)request
+           withBuilder:(PowerAuthCoreResponseBuilder)builder;
+@end
 
-/**
- Converts PowerAuthCoreActivationStep1Param object into ActivationStep1Param C++ structure.
- */
-CC7_EXTERN_C void PowerAuthCoreActivationStep1ParamToStruct(PowerAuthCoreActivationStep1Param * p1, io::getlime::powerAuth::ActivationStep1Param & cpp_p1);
-/**
- Returns new instance of PowerAuthCoreActivationStep1Result object, with content copied from ActivationStep1Result C++ structure.
- */
-CC7_EXTERN_C PowerAuthCoreActivationStep1Result * PowerAuthCoreActivationStep1ResultToObject(const io::getlime::powerAuth::ActivationStep1Result& cpp_r1);
+@interface PowerAuthCoreTask (Private)
+- (id) initWithTask:(powerAuth::TaskPtr&)task;
+- (id) initWithTask:(powerAuth::TaskPtr&)task
+        withBuilder:(PowerAuthCoreResponseBuilder)builder;
+@end
 
-/**
- Converts PowerAuthCoreActivationStep2Param object into ActivationStep2Param C++ structure.
- */
-CC7_EXTERN_C void PowerAuthCoreActivationStep2ParamToStruct(PowerAuthCoreActivationStep2Param * p2, io::getlime::powerAuth::ActivationStep2Param & cpp_p2);
-/**
- Returns new instance of PowerAuthCoreActivationStep2Result object, with content copied from ActivationStep2Result C++ structure.
- */
-CC7_EXTERN_C PowerAuthCoreActivationStep2Result * PowerAuthCoreActivationStep2ResultToObject(const io::getlime::powerAuth::ActivationStep2Result& cpp_r2);
+@interface PowerAuthCoreCredentials (Private)
+- (instancetype) initWithCredentials:(powerAuth::CredentialsPtr)credentials;
+- (const powerAuth::CredentialsPtr&) credentialsRef;
+@end
 
-#pragma mark - Debug functions
+@interface PowerAuthCoreActivationResult (Private)
+- (instancetype) initWithActivationResult:(const powerAuth::ActivationResult&)activationResult;
+@end
 
-#if defined(DEBUG)
-    CC7_EXTERN_C void PowerAuthCoreObjc_DebugDumpErrorImpl(id instance, NSString * message, io::getlime::powerAuth::ErrorCode code);
-    #define PowerAuthCoreObjc_DebugDumpError(instance, message, error_code) PowerAuthCoreObjc_DebugDumpErrorImpl(instance, message, error_code)
-#else
-    #define PowerAuthCoreObjc_DebugDumpError(instance, message, error_code)
-#endif
+@interface PowerAuthCoreActivationStatus (Private)
+- (instancetype) initWithActivationStatus:(const powerAuth::ActivationStatusPtr&)activationStatus;
+@end
 
+@interface PowerAuthCoreHttpHeader (Private)
+- (instancetype) initWithHttpHeader:(const powerAuth::HttpHeader&)httpHeader;
+@end
 
+@interface PowerAuthCoreTokenData (Private)
+- (instancetype) initWithResponse:(const powerAuth::GetAccessTokenResponsePtr&)response;
+@end
 
+@interface PowerAuthCoreDevicePublicKeyData (Private)
+- (instancetype) initWithKeyData:(const powerAuth::DevicePublicKeyData&)keyData;
+@end
+
+@interface PowerAuthCoreProtocolUpgradeResult (Private)
+- (instancetype) initWithProtocolUpgradeResult:(const powerAuth::ProtocolUpgradeResult&)protocolUpgradeResult;
+@end
+
+// Services
+
+@interface PowerAuthCoreTimeService (Private)
+- (instancetype) initWithService:(const powerAuth::TimeServicePtr&)timeService;
+@end
+
+// Encryptor
+
+@interface PowerAuthCoreEncryptedRequest (Private)
+- (instancetype) initWithEncryptedRequest:(const powerAuth::EncryptedRequest&)request;
+@end
+
+@interface PowerAuthCoreEncryptedResponse (Private)
+- (const powerAuth::EncryptedResponse&) responseRef;
+@end
+
+@interface PowerAuthCoreEncryptorFactory (Private)
+- (instancetype) initWithFactory:(powerAuth::IClientEncryptorFactoryPtr)factory;
+@end
+
+@interface PowerAuthCoreEncryptor (Private)
+- (instancetype) initWithEncryptor:(powerAuth::IClientEncryptorPtr)encryptor
+                             scope:(PowerAuthCoreEncryptorScope)scope;
+@end
+
+// Support functions
+
+namespace powerAuth {
+
+/// Build `NSError` object with given error code and message.
+/// - Parameters:
+///   - errorCode: Error code.
+///   - message: Error message.
+/// - Returns: Constructed `NSError`.
+extern NSError* BuildCoreNSError(PowerAuthCoreError errorCode, NSString * message);
+
+/// Build `NSError` object from provided `std::exception_ptr`. The function is useful in typical
+/// high level `try {} catch (...) {}` statement.
+extern NSError* BuildNSErrorFromException(std::exception_ptr ptr = std::current_exception());
+
+/// Build `NSDictionary` object from provided list of HTTP headers.
+/// - Parameter headers: Vector with headers.
+/// - Returns: NSArray with headers.
+extern NSArray<PowerAuthCoreHttpHeader*>* BuildNSArrayWithHeaders(const HttpHeaderList& headers);
+
+} // namespace powerAuth

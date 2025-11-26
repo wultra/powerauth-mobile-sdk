@@ -18,7 +18,7 @@
 #import <PowerAuth2/PowerAuthActivationStatus.h>
 #import "PA2GroupedTask.h"
 
-@class PA2HttpClient;
+@class PA2CoreHttpClient;
 @class PowerAuthCoreSession;
 @class PA2GetActivationStatusTask;
 @class PowerAuthCoreData;
@@ -37,9 +37,7 @@
 @end
 
 /**
- The `PA2GetActivationStatusTask` class implements getting activation status from the server
- and the protocol upgrade. The upgrade is started automatically, depending on the
- local and server's state of the activation.
+ The `PA2GetActivationStatusTask` class implements getting activation status from the server.
  */
 @interface PA2GetActivationStatusTask : PA2GroupedTask<PowerAuthActivationStatus*>
 
@@ -47,18 +45,17 @@
  Initializes the object.
 
  @param httpClient HTTP client for communicating with the server
- @param deviceRelatedKey key for unlocking possession factor
  @param sessionProvider PowerAuthCoreSession provider.
  @param delegate Delegate to be called once the task is finished. The weak reference is used internally.
  @param sharedLock Shared lock with recursive locking capability.
  @param disableUpgrade Set to true whether the protocol upgrade should be disabled.
  @return initialized object
  */
-- (id) initWithHttpClient:(PA2HttpClient*)httpClient
-         deviceRelatedKey:(PowerAuthCoreData*)deviceRelatedKey
+- (id) initWithHttpClient:(PA2CoreHttpClient*)httpClient
           sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
                  delegate:(id<PA2GetActivationStatusTaskDelegate>)delegate
                sharedLock:(id<NSLocking>)sharedLock
            disableUpgrade:(BOOL)disableUpgrade;
+
 
 @end

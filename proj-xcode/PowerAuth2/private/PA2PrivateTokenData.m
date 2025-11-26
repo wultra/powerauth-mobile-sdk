@@ -20,13 +20,11 @@
 #import "PA2PrivateTokenData.h"
 #import "PA2PrivateMacros.h"
 
-#define TOKEN_SECRET_LENGTH     16
-
 @implementation PA2PrivateTokenData
 
 - (BOOL) hasValidData
 {
-    return !(!_name || !_identifier || _secret.length != TOKEN_SECRET_LENGTH);
+    return !(!_name || !_identifier || _secret.length < 16);    // 16 is minimal length for all protocol versions
 }
 
 - (nonnull NSData*)serializedData

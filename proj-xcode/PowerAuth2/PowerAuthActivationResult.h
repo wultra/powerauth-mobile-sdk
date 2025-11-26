@@ -16,24 +16,20 @@
 
 #import <PowerAuth2/PowerAuthUserInfo.h>
 
-/**
- The PowerAuthActivationResult object represents successfull result from the activation
- process.
- */
+/// The PowerAuthActivationResult object represents successful result from the activation process.
 @interface PowerAuthActivationResult : NSObject
-/**
- Decimalized fingerprint calculated from device's public key.
- */
-@property (nonatomic, strong, nonnull) NSString * activationFingerprint;
-/**
- Custom attributes received from the server. The value may be nil in case that there
- are no custom attributes available.
- */
-@property (nonatomic, strong, nullable) NSDictionary<NSString*, NSObject*>* customAttributes;
-/**
- Information about user's identity. The value is optional and depending on whether the server
- implementation provide such information in the time of activation.
- */
-@property (nonatomic, strong, nullable) PowerAuthUserInfo * userInfo;
+
+/// Default construction is unavailable
+- (nonnull instancetype) init NS_UNAVAILABLE;
+
+/// Decimalized fingerprint calculated from device's public key.
+@property (nonatomic, strong, readonly, nonnull) NSString * activationFingerprint;
+/// Custom attributes received from the server. The value may be nil in case that there
+/// are no custom attributes available.
+@property (nonatomic, strong, readonly, nullable) NSDictionary<NSString*, NSObject*>* customAttributes;
+
+/// Information about user's identity. The value is optional and depending on whether the server
+/// implementation provide such information in the time of activation.
+@property (nonatomic, strong, readonly, nullable) PowerAuthUserInfo * userInfo;
 
 @end

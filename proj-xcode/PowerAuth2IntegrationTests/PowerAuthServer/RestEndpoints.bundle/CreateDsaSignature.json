@@ -1,0 +1,10 @@
+{
+    "path": "/rest/v4/dsa/sign",
+    "parameters": [
+        "activationId",
+        "data"
+    ],
+    "response": {
+        "class": "dictionary"
+    }
+}

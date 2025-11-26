@@ -46,6 +46,9 @@ PA2_EXTERN_C NSString * __nonnull const PowerAuthErrorInfoKey_ResponseData;
  */
 PA2_EXTERN_C NSString * __nonnull const PowerAuthErrorInfoKey_ExternalPendingOperation;
 
+
+// TODO: redesign error codes
+
 /**
  Error codes returned for PowerAuthErrorDomain errors
  */
@@ -146,7 +149,19 @@ typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
     /**
      Failed to synchronize time with the server.
      */
-    PowerAuthErrorCode_TimeSynchronization          = 20
+    PowerAuthErrorCode_TimeSynchronization          = 20,
+    /**
+     Error from PowerAuthCore module.
+     */
+    PowerAuthErrorCode_CoreError                    = 21,
+    /**
+     Other, unspecified error.
+     */
+    PowerAuthErrorCode_Other                        = 22,
+    /**
+     Digital or JWS signature is not valid.
+     */
+    PowerAuthErrorCode_WrongSignature               = 23
 };
 
 @interface NSError (PowerAuthErrorCode)

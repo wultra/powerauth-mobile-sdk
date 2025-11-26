@@ -20,6 +20,8 @@
 #import <PowerAuth2/PowerAuthErrorConstants.h>
 #import "PA2PrivateConstants.h"
 
+@import PowerAuthCore;
+
 #pragma mark - Error codes
 
 NSString *const PowerAuthErrorDomain                            = PA2Def_PowerAuthErrorDomain;
@@ -54,10 +56,67 @@ NSString * PA2MakeDefaultErrorDescription(NSInteger errorCode, NSString * messag
         _CODE_DESC(PowerAuthErrorCode_PendingProtocolUpgrade, @"Pending protocol ugprade, try later")
         _CODE_DESC(PowerAuthErrorCode_ExternalPendingOperation, @"Other application does critical operation")
         _CODE_DESC(PowerAuthErrorCode_TimeSynchronization, @"Failed to synchronize time with the server")
+        _CODE_DESC(PowerAuthErrorCode_CoreError, @"PowerAuthCore error")
+        _CODE_DESC(PowerAuthErrorCode_Other, @"Unspecified error")
         default:
             return [NSString stringWithFormat:@"Unknown error %@", @(errorCode)];
     }
 #undef _CODE_DESC
+}
+
+NSError * PA2WrapError(NSError * error, NSError** out_error)
+{
+    NSString * domain = error.domain;
+    NSError * wrapped = nil;
+    
+    PowerAuthErrorCode errorCode;
+    if ([domain isEqualToString:PowerAuthErrorDomain]) {
+        wrapped = error;
+        errorCode = PowerAuthErrorCode_NA;
+    } else if ([domain isEqualToString:PowerAuthCoreErrorDomain]) {
+        switch ([error powerAuthCoreErrorCode]) {
+            case PowerAuthCoreError_MissingActivation:
+                errorCode = PowerAuthErrorCode_MissingActivation;
+                break;
+            case PowerAuthCoreError_WrongActivationState:
+                errorCode = PowerAuthErrorCode_InvalidActivationState;
+                break;
+            case PowerAuthCoreError_WrongParameter:
+                errorCode = PowerAuthErrorCode_WrongParameter;
+                break;
+            case PowerAuthCoreError_BiometryNotAllowed:
+                errorCode = PowerAuthErrorCode_BiometryNotAvailable;
+                break;
+            case PowerAuthCoreError_WrongSignature:
+                errorCode = PowerAuthErrorCode_WrongSignature;
+                break;
+            case PowerAuthCoreError_Canceled:
+                errorCode = PowerAuthErrorCode_OperationCancelled;
+                break;
+            case PowerAuthCoreError_TimeNotSynchronized:
+                errorCode = PowerAuthErrorCode_TimeSynchronization;
+                break;
+            case PowerAuthCoreError_PendingProtocolUpgrade:
+                errorCode = PowerAuthErrorCode_PendingProtocolUpgrade;
+                break;
+            default:
+                errorCode = PowerAuthErrorCode_CoreError;
+                break;
+        }
+    } else {
+        errorCode = PowerAuthErrorCode_Other;
+    }
+    if (!wrapped) {
+        NSDictionary * info = @{
+            NSLocalizedDescriptionKey: [error localizedDescription],
+            NSUnderlyingErrorKey: error
+        };
+        wrapped = [NSError errorWithDomain:PowerAuthErrorDomain code:errorCode userInfo:info];
+    }
+    if (out_error) {
+        *out_error = wrapped;
+    }
+    return wrapped;
 }
 
 NSError * PA2MakeError(NSInteger errorCode, NSString * message)

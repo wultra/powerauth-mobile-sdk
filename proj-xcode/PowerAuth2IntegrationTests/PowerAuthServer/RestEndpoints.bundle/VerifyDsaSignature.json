@@ -1,0 +1,13 @@
+{
+    "path": "/rest/v4/dsa/verify",
+    "parameters": [
+        "activationId",
+        "data",
+        "signature",
+        "signatureFormat",
+        "signatureType"
+    ],
+    "response": {
+        "class": "dictionary"
+    }
+}

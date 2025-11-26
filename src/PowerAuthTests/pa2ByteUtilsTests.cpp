@@ -20,81 +20,74 @@
 
 using namespace cc7;
 using namespace cc7::tests;
-using namespace io::getlime::powerAuth;
-using namespace io::getlime::powerAuth::utils;
+using namespace powerAuth;
+using namespace powerAuth::utils;
 
-namespace io
+namespace powerAuthTests {
+
+class pa2ByteUtilsTests : public UnitTest
 {
-namespace getlime
-{
-namespace powerAuthTests
-{
-    class pa2ByteUtilsTests : public UnitTest
+public:
+    
+    pa2ByteUtilsTests()
     {
-    public:
+        CC7_REGISTER_TEST_METHOD(testConcatWithSizesBytes)
+        CC7_REGISTER_TEST_METHOD(testConcatWithSizesStrings)
+    }
         
-        pa2ByteUtilsTests()
-        {
-            CC7_REGISTER_TEST_METHOD(testConcat)
-            CC7_REGISTER_TEST_METHOD(testJoin)
-        }
+    void testConcatWithSizesBytes()
+    {
+        auto data = utils::ByteUtils_ConcatWithSizes(std::initializer_list<ByteRange>());
+        ccstAssertTrue(data.empty());
+        data = utils::ByteUtils_ConcatWithSizes({
+            cc7::ByteRange()
+        });
+        ccstAssertEqual(cc7::MakeRange(cc7::U32(0)), data);
+        data = utils::ByteUtils_ConcatWithSizes({
+            cc7::MakeRange("hello"),
+            cc7::MakeRange(cc7::byte(32)),
+            cc7::MakeRange("world!"),
+            cc7::ByteRange()
+        });
+        cc7::byte expected[] = {
+            0, 0, 0, 5, 'h', 'e', 'l', 'l', 'o',
+            0, 0, 0, 1, ' ',
+            0, 0, 0, 6, 'w', 'o', 'r', 'l', 'd', '!',
+            0, 0, 0, 0
+        };
+        ccstAssertEqual(cc7::MakeRange(expected), data);
         
-        void testConcat()
-        {
-            auto data = utils::ByteUtils_Concat({});
-            ccstAssertTrue(data.empty());
-            data = utils::ByteUtils_Concat({
-                cc7::MakeRange("hello"),
-                cc7::MakeRange(cc7::byte(32)),
-                cc7::MakeRange("world!")
-            });
-            auto expected = "hello world!";
-            ccstAssertEqual(cc7::MakeRange(expected), data);
-            data = utils::ByteUtils_Concat({
-                cc7::ByteRange(),
-                cc7::ByteRange(),
-                cc7::ByteRange(),
-                cc7::ByteRange()
-            });
-            ccstAssertTrue(data.empty());
-        }
-        
-        void testJoin()
-        {
-            auto data = utils::ByteUtils_Join({});
-            ccstAssertTrue(data.empty());
-            data = utils::ByteUtils_Join({
-                cc7::ByteRange()
-            });
-            ccstAssertEqual(cc7::MakeRange(cc7::U32(0)), data);
-            data = utils::ByteUtils_Join({
-                cc7::MakeRange("hello"),
-                cc7::MakeRange(cc7::byte(32)),
-                cc7::MakeRange("world!"),
-                cc7::ByteRange()
-            });
-            cc7::byte expected[] = {
-                0, 0, 0, 5, 'h', 'e', 'l', 'l', 'o',
-                0, 0, 0, 1, ' ',
-                0, 0, 0, 6, 'w', 'o', 'r', 'l', 'd', '!',
-                0, 0, 0, 0
-            };
-            ccstAssertEqual(cc7::MakeRange(expected), data);
-            
-            auto r1 = cc7::crypto::GetRandomData(0x00102);
-            auto r2 = cc7::crypto::GetRandomData(0x10002);
-            data = utils::ByteUtils_Join({r1, r2});
-            auto expected_bytes = cc7::ByteArray();
-            expected_bytes.append({ 0, 0, 1, 2});
-            expected_bytes.append(r1);
-            expected_bytes.append({ 0, 1, 0, 2});
-            expected_bytes.append(r2);
-            ccstAssertEqual(expected_bytes, data);
-        }
-    };
+        auto r1 = cc7::crypto::GetRandomData(0x00102);
+        auto r2 = cc7::crypto::GetRandomData(0x10002);
+        data = utils::ByteUtils_ConcatWithSizes({r1, r2});
+        auto expected_bytes = cc7::ByteArray();
+        expected_bytes.append({ 0, 0, 1, 2});
+        expected_bytes.append(r1);
+        expected_bytes.append({ 0, 1, 0, 2});
+        expected_bytes.append(r2);
+        ccstAssertEqual(expected_bytes, data);
+    }
+    
+    void testConcatWithSizesStrings()
+    {
+        auto data = utils::ByteUtils_ConcatWithSizes(std::initializer_list<std::string_view>());
+        ccstAssertTrue(data.empty());
+        data = utils::ByteUtils_ConcatWithSizes({ "" });
+        ccstAssertEqual(cc7::MakeRange(cc7::U32(0)), data);
+        data = utils::ByteUtils_ConcatWithSizes({
+            "hello",
+            "world!",
+            ""
+        });
+        cc7::byte expected[] = {
+            0, 0, 0, 5, 'h', 'e', 'l', 'l', 'o',
+            0, 0, 0, 6, 'w', 'o', 'r', 'l', 'd', '!',
+            0, 0, 0, 0
+        };
+        ccstAssertEqual(cc7::MakeRange(expected), data);
+    }
+};
 
-    CC7_CREATE_UNIT_TEST(pa2ByteUtilsTests, "pa2")
+CC7_CREATE_UNIT_TEST(pa2ByteUtilsTests, "pa2")
 
-} // io::getlime::powerAuthTests
-} // io::getlime
-} // io
+} // namespace powerAuthTests

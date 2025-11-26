@@ -41,7 +41,7 @@
 /**
  Store token data.
  */
-- (void) storeTokenData:(nonnull PA2PrivateTokenData*)tokenData;
+- (BOOL) storeTokenData:(nonnull PA2PrivateTokenData*)tokenData error:(NSError*_Nullable*_Nullable)error;
 
 /**
  Remove task that crate a new token from the list of pending tasks.
@@ -53,6 +53,13 @@
  Cancel all pending tasks.
  */
 - (void) cancelAllTasks;
+
+/// Calculate token header for given token data.
+/// - Parameters:
+///   - tokenData: Private token data.
+///   - error: Pointer where to store error.
+- (nullable PowerAuthHttpHeader*) calculateTokenHeader:(nonnull PA2PrivateTokenData*)tokenData
+                                                              error:(NSError*_Nullable*_Nullable)error;
 
 @end
 

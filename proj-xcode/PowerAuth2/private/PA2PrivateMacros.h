@@ -19,6 +19,7 @@
 
 #import <PowerAuth2/PowerAuthMacros.h>
 #import <PowerAuth2/PowerAuthErrorConstants.h>
+#import <PowerAuth2/PowerAuthLog.h>
 
 // Check whether we're using C++ in Extensions SDK. If yes, then treat this as an error.
 #if defined(__cplusplus) && defined(PA2_EXTENSION_SDK)
@@ -52,6 +53,12 @@ PA2_EXTERN_C id PA2CastToProtoImpl(id object, Protocol * desiredProtocol);
  */
 #define PA2ConformsTo(object, requiredProtocol) ((id<requiredProtocol>)(PA2CastToProtoImpl(object, @protocol(requiredProtocol))))
 
+/// Returns NSError with wrapper original error from PowerAuthCore module.
+/// - Parameters:
+///   - error: Original error.
+///   - out_error: Output pointer where wrapper error will be stored.
+/// - Returns: Wrapped error.
+PA2_EXTERN_C NSError * PA2WrapError(NSError * error, NSError** out_error);
 /// Returns NSError with PA2ErrorDomain with given errorCode & message.
 PA2_EXTERN_C NSError * PA2MakeError(PowerAuthErrorCode errorCode, NSString * message);
 /// Returns NSError with PA2ErrorDomain with given errorCode, message and additional info.
@@ -60,6 +67,14 @@ PA2_EXTERN_C NSError * PA2MakeErrorInfo(NSInteger errorCode, NSString * message,
 /// If message is provided, then returns this message instead of default string.
 PA2_EXTERN_C NSString * PA2MakeDefaultErrorDescription(PowerAuthErrorCode errorCode, NSString * message);
 
+/// Safe set nullable value to mutable dictionary.
+PA2_EXTERN_C void PA2DictionarySafeSet(NSMutableDictionary * dict, NSString * key, id value);
+
+/// Create NSError with using PA2MakeError function and set it to optional errorPtr.
+#define PA2SetError(errorPtr, errorCode, message)       \
+    if (errorPtr) {                                     \
+        *errorPtr = PA2MakeError(errorCode, message);   \
+    }
 
 #if DEBUG
 /// Print error based on errno constant. Function is implemented only for DEBUG builds.

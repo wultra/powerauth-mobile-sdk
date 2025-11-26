@@ -25,7 +25,7 @@
 
 #if PA2_HAS_CORE_MODULE
 @import PowerAuthCore;
-#define _CoreModuleIsDebug() [PowerAuthCoreSession hasDebugFeatures]
+#define _CoreModuleIsDebug() PowerAuthCoreHasDebugFeatures()
 #else
 #define _CoreModuleIsDebug() NO
 #endif

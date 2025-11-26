@@ -35,12 +35,15 @@
 
 - (NSString*) activationCodeWithSignature
 {
-    return [[[self activationCodeWithoutSignature] stringByAppendingString:@"#"] stringByAppendingString:_activationSignature];
+    if (_activationSignature) {
+        return [[_activationCode stringByAppendingString:@"#"] stringByAppendingString:_activationSignature];
+    }
+    return _activationCode;
 }
 
 - (NSString*) activationCodeWithoutSignature
 {
-    return [[_activationIdShort stringByAppendingString:@"-"] stringByAppendingString:_activationOTP];
+    return _activationCode;
 }
 
 @end
@@ -58,6 +61,14 @@
 @end
 
 @implementation PATSVerifySignatureResponse
+- (void) setSignatureValid:(BOOL)signatureValid
+{
+    _authenticationValid = signatureValid;
+}
+- (BOOL) signatureValid
+{
+    return _authenticationValid;
+}
 @end
 
 @implementation PATSOfflineSignaturePayload

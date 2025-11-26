@@ -29,21 +29,29 @@
 {
     self = [super init];
     if (self) {
-        _offlineAuthorizationCodeComponentLength = MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN;
+        _algorithm = PowerAuthAlgorithm_DEFAULT;
+        _offlineAuthenticationCodeComponentLength = MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN;
     }
     return self;
 }
 
-- (id) initWithInstanceId:(NSString *)instanceId baseEndpointUrl:(NSString *)baseEndpointUrl configuration:(NSString *)configuration
+- (id) initWithInstanceId:(NSString *)instanceId baseEndpointUrl:(NSString *)baseEndpointUrl configuration:(NSString *)configuration algorithm:(PowerAuthAlgorithm)algorithm
 {
     self = [super init];
     if (self) {
         _instanceId = instanceId;
         _baseEndpointUrl = baseEndpointUrl;
         _configuration = configuration;
-        _offlineAuthorizationCodeComponentLength = MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN;
+        _algorithm = algorithm;
+        _offlineAuthenticationCodeComponentLength = MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN;
+        _disableAutomaticProtocolUpgrade = algorithm == PowerAuthAlgorithm_LEGACY_P256;
     }
     return self;
+}
+
+- (id) initWithInstanceId:(NSString *)instanceId baseEndpointUrl:(NSString *)baseEndpointUrl configuration:(NSString *)configuration
+{
+    return [self initWithInstanceId:instanceId baseEndpointUrl:baseEndpointUrl configuration:configuration algorithm:PowerAuthAlgorithm_DEFAULT];
 }
 
 - (BOOL) validateConfiguration
@@ -51,12 +59,13 @@
     BOOL result = YES;
     result = result && (_instanceId.length > 0);
     result = result && (_baseEndpointUrl.length > 0);
-    result = result && (_offlineAuthorizationCodeComponentLength >= MIN_OFFLINE_AUTH_CODE_COMPONENT_LEN &&
-                        _offlineAuthorizationCodeComponentLength <= MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN);
+    result = result && (_offlineAuthenticationCodeComponentLength >= MIN_OFFLINE_AUTH_CODE_COMPONENT_LEN &&
+                        _offlineAuthenticationCodeComponentLength <= MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN);
     if (_sharingConfiguration) {
         result = result && [_sharingConfiguration validateConfiguration];
     }
-    result = result && [PowerAuthCoreSessionSetup validateConfiguration:_configuration];
+    result = result && [PowerAuthCoreConfig validateConfiguration:_configuration
+                                                        algorithm:(PowerAuthCoreAlgorithm)_algorithm];
     return result;
 }
 
@@ -67,24 +76,25 @@
         c->_instanceId = _instanceId;
         c->_baseEndpointUrl = _baseEndpointUrl;
         c->_configuration = _configuration;
+        c->_algorithm = _algorithm;
         c->_keychainKey_Biometry = _keychainKey_Biometry;
         c->_externalEncryptionKey = _externalEncryptionKey;
         c->_disableAutomaticProtocolUpgrade = _disableAutomaticProtocolUpgrade;
-        c->_offlineAuthorizationCodeComponentLength = _offlineAuthorizationCodeComponentLength;
+        c->_offlineAuthenticationCodeComponentLength = _offlineAuthenticationCodeComponentLength;
         c->_sharingConfiguration = [_sharingConfiguration copy];
     }
     return c;
 }
 
-// PA2_DEPRECATED(1.10.0)
+// PA2_DEPRECATED(2.0.0)
 - (void) setOfflineSignatureComponentLength:(NSUInteger)offlineSignatureComponentLength
 {
-    _offlineAuthorizationCodeComponentLength = offlineSignatureComponentLength;
+    _offlineAuthenticationCodeComponentLength = offlineSignatureComponentLength;
 }
-// PA2_DEPRECATED(1.10.0)
+// PA2_DEPRECATED(2.0.0)
 - (NSUInteger) offlineSignatureComponentLength
 {
-    return _offlineAuthorizationCodeComponentLength;
+    return _offlineAuthenticationCodeComponentLength;
 }
 
 @end

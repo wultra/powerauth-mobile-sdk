@@ -31,6 +31,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
     TestActivationFlags_PersistWithPlainPassword = 1 << 1,
     TestActivationFlags_PersistWithCorePassword  = 1 << 2,
     TestActivationFlags_PersistWithBiometry      = 1 << 3,
+    TestActivationFlags_PersistWithFakeBiometry  = 1 << 4,
     TestActivationFlags_RemoveAfter              = 1 << 31,
 };
 
@@ -41,6 +42,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 
 @property (nonatomic, strong, readonly) PATSInitActivationResponse * activationData;
 @property (nonatomic, strong, readonly) PowerAuthAuthentication * credentials;
+@property (nonatomic, strong, readonly) PowerAuthAuthentication * biometryCredentials;
 @property (nonatomic, strong, readonly) PowerAuthActivationResult * activationResult;
 @property (nonatomic, strong, readonly) NSString * activationId;
 
@@ -51,6 +53,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 
 @interface PowerAuthSdkTestHelper : NSObject
 
++ (NSString*) currentTestNameFromTestCase:(XCTestCase*)testCase;
 /**
  Create default helper.
  */
@@ -89,6 +92,11 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
                                  keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
                                    clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration;
 
+/**
+ Re-instantiate PowerAuthSDK instance, while keeping configuration from current PowerAuthSDK.
+ */
+- (PowerAuthSDK*) reCreateSdkInstance;
+
 // Activation
 
 /**
@@ -104,6 +112,10 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
  Contains possession + knowledge authentication object, after last successful activation.
  */
 @property (nonatomic, strong, readonly) PowerAuthAuthentication * authPossessionWithKnowledge;
+/**
+ Contains possession + biometry authentication object.
+ */
+@property (nonatomic, strong, readonly) PowerAuthAuthentication * authPossessionWithBiometry;
 /**
  Contains possession + knowledge authentication object. The password is always wrong.
  */
@@ -143,6 +155,27 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
                                            credentials:(PowerAuthAuthentication*)credentials;
 
 /**
+ Creates a new activation using the protocol version defined by the base test,
+ and configures it to support an upgrade to the specified target algorithm.
+ 
+ @param targetAlgorithm Algorithm to which the activation is expected to be upgraded.
+ @param flags Test activation flags to create the activation with.
+ @return A `PowerAuthSDK` instance with a activation preconfigured for a protocol upgrade scenario.
+ */
+- (PowerAuthSDK*) prepareActivationForUpgradeTest:(PowerAuthAlgorithm)targetAlgorithm
+                                        withFlags:(TestActivationFlags)flags;
+
+/**
+ Start the protocol upgrade task.
+
+ @param customBiometryKek An optional biometry KEK to be used after the upgrade.
+ @param shouldFinish Boolean flag indicating whether the call should finish successfully or not.
+ @return Result of the protocol upgrade task if completed sucessully, nil on an error.
+ */
+- (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)customBiometryKek
+                                                                 shouldFinish:(BOOL)shouldFinish;
+
+/**
  Returns an activation status object. May return nil if status is not available yet, which is also valid operation.
  */
 - (PowerAuthActivationStatus*) fetchActivationStatus;
@@ -178,7 +211,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
     0x0100 - will cripple method string
     0x1000 - will cripple uriId string
  */
-- (BOOL) validateSignature:(PowerAuthAuthentication*)auth data:(NSData*)data method:(NSString*)method uriId:(NSString*)uriId
+- (BOOL) validateAuthentication:(PowerAuthAuthentication*)auth data:(NSData*)data method:(NSString*)method uriId:(NSString*)uriId
                     online:(BOOL)online
                    cripple:(NSInteger)cripple;
 
@@ -214,15 +247,9 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 
 
 /**
- Creates a new PowerAuthAuthentication object configured to persist activation with default configuration.
+ Creates a new PowerAuthAuthentication object configured to persist activation depending on provided flags.
  */
-- (PowerAuthAuthentication*) createAuthentication;
-
-/**
- Creates a new PowerAuthAuthentication object configured to persist activation with biometry.
- */
-- (PowerAuthAuthentication*) createAuthenticationWithBiometry;
-
+- (PowerAuthAuthentication*) createPersistAuthenticationWithFlags:(TestActivationFlags)flags;
 
 // Tokens
 
@@ -234,7 +261,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 /**
  Validate token header on test server.
  */
-- (BOOL) validateTokenHeader:(PowerAuthAuthorizationHttpHeader*)header
+- (BOOL) validateTokenHeader:(PowerAuthHttpHeader*)header
                 activationId:(NSString*)activationId
               expectedResult:(BOOL)expectedResult;
 
@@ -245,10 +272,25 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
  Create copy from this authentication object, suited for the signature calculation.
  */
 - (PowerAuthAuthentication*) copyForSigning;
+/**
+ Create copy from this authentication object, suited for the signature calculation.
+ */
+- (PowerAuthAuthentication*) copyBiometryForSigning;
 
 /**
  Create a broken copy from this authentication object.
  */
 - (PowerAuthAuthentication*) copyCrippledForSigning;
+
+@end
+
+
+@interface PowerAuthSDK (IntegrationTests)
+
+/// Test password on the server. The method suppose to be used only in integration tests.
+- (id<PowerAuthOperationTask>) testPassword:(NSString*)password callback:(void (^)(NSError *))callback;
+
+/// Test password on the server. The method suppose to be used only in integration tests.
+- (id<PowerAuthOperationTask>) testCorePassword:(PowerAuthCorePassword*)password callback:(void (^)(NSError *))callback;
 
 @end

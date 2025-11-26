@@ -24,29 +24,6 @@
 /**
  Private constructor with core status object and optional custom object
  */
-- (instancetype) initWithCoreStatus:(PowerAuthCoreActivationStatus*)status
-                       customObject:(NSDictionary<NSString*, NSObject*>*)customObject;
-/**
- Contains current version of activation
- */
-@property (nonatomic, assign, readonly) UInt8 currentActivationVersion;
-/**
- Contains version of activation available for upgrade.
- */
-@property (nonatomic, assign, readonly) UInt8 upgradeActivationVersion;
-/**
- Contains YES if upgrade to a newer protocol version is available.
- */
-@property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
-/**
- Returns true if dummy authorization code calculation is recommended to prevent
- the counter's de-synchronization.
- */
-@property (nonatomic, assign, readonly) BOOL isSignatureCalculationRecommended;
-/**
- Returns true if session's state should be serialized after the successful
- activation status decryption.
- */
-@property (nonatomic, assign, readonly) BOOL needsSerializeSessionState;
+- (instancetype) initWithCoreStatus:(PowerAuthCoreActivationStatus*)status;
 
 @end

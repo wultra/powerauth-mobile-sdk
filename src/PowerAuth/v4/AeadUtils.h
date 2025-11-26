@@ -1,0 +1,35 @@
+/*
+ * Copyright 2025 Wultra s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <PowerAuth/Encryptor.h>
+
+namespace powerAuth {
+namespace v4 {
+
+/// Create encryptor secrets for AEAD End-To-End encryption scheme.
+/// - Parameters:
+///   - parameters: Encryptor parameters.
+///   - shared_secret: Temporary shared secret
+///   - e2ee_shared_info2_key: If this is activation scoped encryption, then parameter contains value of `KEY_E2EE_SHARED_INFO2`.
+/// - Throws: `Exception` with `EC_InternalError` if `e2ee_shared_info2_key` is required but is not provided.
+extern EncryptorSecretsPtr AEAD_BuildSecrets(const EncryptorParameters& parameters,
+                                             const cc7::ByteRange& shared_secret,
+                                             const cc7::ByteRange& e2ee_shared_info2_key);
+
+} // namespace v4
+} // namespace powerAuth

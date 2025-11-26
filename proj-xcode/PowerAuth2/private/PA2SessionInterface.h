@@ -20,11 +20,13 @@
 
 @import PowerAuthCore;
 
+@class PA2KeystoreService, PA2TimeSynchronizationService;
+
 /**
  The `PA2SessionInterface` extends public `PowerAuthCoreSessionProvider` with private API
  not exposed to the application.
  */
-@protocol PA2SessionInterface <PowerAuthCoreSessionProvider, PA2TokenDataLock>
+@protocol PA2SessionInterface <PowerAuthCoreSessionProvider, PowerAuthCoreSessionDelegate, PA2TokenDataLock>
 @required
 
 /**
@@ -38,12 +40,27 @@
  @param externalPendingOperation Operation type to start.
  @return NSError in case that other application is already started its own critical operation.
  */
-- (nullable NSError*) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation;
-
+- (BOOL) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation error:(NSError*_Nullable*_Nullable)error;
 
 /**
  Add operation to the queue synchronized between multiple applications.
  */
 - (void) addOperation:(nonnull NSOperation*)operation toSharedQueue:(nonnull NSOperationQueue*)queue;
+
+// Services
+
+/// Method stores instances of keystore and time synchronization services in the instance of session interface. The services
+/// are used in other parts of SDK for required tasks.
+///
+/// @param keystoreService Keystore service.
+/// @param timeService Time synchronization service.
+- (void) connectWithKeystoreService:(nonnull PA2KeystoreService*)keystoreService
+                        timeService:(nonnull PA2TimeSynchronizationService*)timeService;
+
+/// Contains instance of PA2KeystoreService. If no service is set, then throws ObjC exception.
+@property (nonatomic, strong, nonnull, readonly) PA2KeystoreService* keystoreService;
+
+/// Contains instance of PA2TimeSynchronizationService. If no service is set, then throws ObjC exception.
+@property (nonatomic, strong, nonnull, readonly) PA2TimeSynchronizationService* timeSynchronizationService;
 
 @end

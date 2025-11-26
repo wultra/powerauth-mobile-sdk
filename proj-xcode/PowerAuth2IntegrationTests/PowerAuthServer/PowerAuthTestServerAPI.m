@@ -54,8 +54,9 @@
         return NO;
     }
     _testServerConfig.serverApiVersion = [_rest applyServerVersion:systemStatus.version];
-    _testServerConfig.serverMaxProtovolVersion = PATSProtoVer(_testServerConfig.serverApiVersion);
+    _testServerConfig.serverMaxProtocolVersion = PATSProtoVer(_testServerConfig.serverApiVersion);
     _serverVersion = _testServerConfig.serverApiVersion;
+    _clientProtocolVersion = _testServerConfig.serverMaxProtocolVersion;
     
     NSArray<PATSApplication*>* applicationList = [self getApplicationList];
     __block PATSApplication * foundRequiredApp = nil;
@@ -244,8 +245,9 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 - (PATSActivationStatus*) getActivationStatus:(NSString*)activationId challenge:(NSString*)challenge
 {
     [self checkForValidConnection];
+    NSString * apiCall = _clientProtocolVersion < PATS_P40 ? @"ActivationStatus_P3" : @"ActivationStatus_P4";
     NSArray * params = challenge == nil ? @[activationId]  : @[activationId, challenge];
-    PATSActivationStatus * response = [_rest request:@"ActivationStatus" params:params];
+    PATSActivationStatus * response = [_rest request:apiCall params:params];
     response.activationStatusEnum = _String_to_ActivationStatusEnum(response.activationStatus);
     return response;
 }
@@ -284,15 +286,16 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 
 #pragma mark - SOAP Signatures
 
-- (PATSVerifySignatureResponse*) verifySignature:(NSString*)activationId
-                                            data:(NSString*)normalizedData
-                                       signature:(NSString*)signature
-                                   signatureType:(NSString*)signatureType
-                                signatureVersion:(NSString*)signatureVersion
+- (PATSVerifySignatureResponse*) verifyAuthHeader:(NSString*)activationId
+                                             data:(NSString*)normalizedData
+                                         authCode:(NSString*)authCode
+                                          factors:(NSString*)factors
+                                          version:(NSString*)version
 {
     [self checkForValidConnection];
-    NSArray * params = @[activationId, _appVersion.applicationKey, normalizedData, signature, signatureType.uppercaseString, signatureVersion];
-    PATSVerifySignatureResponse * response = [_rest request:@"VerifySignature" params:params];
+    NSString * apiCall = _clientProtocolVersion < PATS_P40 ? @"VerifySignature" : @"AuthCodeVerifyOnline";
+    NSArray * params = @[activationId, _appVersion.applicationKey, normalizedData, authCode, factors.uppercaseString, version];
+    PATSVerifySignatureResponse * response = [_rest request:apiCall params:params];
     response.activationStatusEnum   = _String_to_ActivationStatusEnum(response.activationStatus);
     return response;
 }
@@ -302,7 +305,7 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
                                             nonce:(NSString*)nonceB64
                                              data:(NSData*)data
 {
-    NSString * dataB64 = [data base64EncodedStringWithOptions:0];
+    NSString * dataB64 = data ? [data base64EncodedStringWithOptions:0] : @"";
     NSString * uriIdB64 = [[uriId dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0];
     NSArray * components = @[httpMethod, uriIdB64, nonceB64, dataB64 ];
     return [components componentsJoinedByString:@"&"];
@@ -312,46 +315,118 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
                                                                          data:(NSString*)data
 {
     [self checkForValidConnection];
-    return [_rest request:@"CreateNonPersonalizedOfflineSignaturePayload" params:@[applicationId, data]];
+    NSString * apiCall = _clientProtocolVersion < PATS_P40 ? @"CreateNonPersonalizedOfflineSignaturePayload_P3" : @"CreateNonPersonalizedOfflineSignaturePayload_P4";
+    return [_rest request:apiCall params:@[applicationId, data]];
 }
 
 - (PATSOfflineSignaturePayload*) createPersonalizedOfflineSignaturePayload:(NSString*)activationId
                                                                       data:(NSString*)data
 {
     [self checkForValidConnection];
-    return [_rest request:@"CreatePersonalizedOfflineSignaturePayload" params:@[activationId, data]];
+    NSString * apiCall = _clientProtocolVersion < PATS_P40 ? @"CreatePersonalizedOfflineSignaturePayload_P3" : @"CreatePersonalizedOfflineSignaturePayload_P4";
+    return [_rest request:apiCall params:@[activationId, data]];
 }
 
-- (PATSVerifySignatureResponse*) verifyOfflineSignature:(NSString*)activationId
-                                                   data:(NSString*)dataHash
-                                              signature:(NSString*)signature
-                                          allowBiometry:(BOOL)allowBiometry
+- (PATSVerifySignatureResponse*) verifyOfflineAuthCode:(NSString*)activationId
+                                                  data:(NSString*)normalizedData
+                                              authCode:(NSString*)authCode
+                                         allowBiometry:(BOOL)allowBiometry
+                                       componentLength:(NSInteger)componentLength
 {
     [self checkForValidConnection];
-    PATSVerifySignatureResponse * response = [_rest request:@"VerifyOfflineSignature" params:@[activationId, dataHash, signature, @(allowBiometry)]];
+    if (componentLength == 0) {
+        componentLength = 8;
+    }
+    NSString * apiCall = _clientProtocolVersion < PATS_P40 ? @"VerifyOfflineSignature" : @"AuthCodeVerifyOffline";
+    PATSVerifySignatureResponse * response = [_rest request:apiCall params:@[activationId, normalizedData, authCode, @(allowBiometry), @(componentLength)]];
     response.activationStatusEnum = _String_to_ActivationStatusEnum(response.activationStatus);
     return response;
 }
 
-- (BOOL) verifyECDSASignature:(NSString*)activationId data:(NSData*)data signature:(NSData*)signature
-{
-    return [self verifyECDSASignature:activationId data:data signature:signature signatureFormat:nil];
-}
+#pragma mark - Digital Signatures
 
-- (BOOL) verifyECDSASignature:(NSString*)activationId
-                         data:(NSData*)data
-                    signature:(NSData*)signature
-              signatureFormat:(NSString*)signatureFormat
+- (BOOL) verifyDsaSignature:(NSString*)activationId
+                       data:(NSData*)data
+                  signature:(NSData*)signature
+            signatureFormat:(NSString*)signatureFormat
+              signatureType:(NSString*)signatureType
 {
     NSString * dataB64 = [data base64EncodedStringWithOptions:0];
     NSString * signatureB64 = [signature base64EncodedStringWithOptions:0];
+    NSString * apiCall;
     NSArray * params;
-    if (signatureFormat) {
-        params = @[activationId, dataB64, signatureB64, signatureFormat];
+    if (_clientProtocolVersion < PATS_P40) {
+        // V3
+        if (signatureFormat) {
+            params = @[ activationId, dataB64, signatureB64, signatureFormat];
+            apiCall = @"VerifyECDSASignature_v19";
+        } else {
+            params = @[ activationId, dataB64, signatureB64];
+            apiCall = @"VerifyECDSASignature_v10";
+        }
     } else {
-        params = @[activationId, dataB64, signatureB64];
+        // V4
+        params = @[ activationId, dataB64, signatureB64, signatureFormat, signatureType];
+        apiCall = @"VerifyDsaSignature";
     }
-    NSDictionary * response = [_rest request:@"VerifyECDSASignature" params:params];
+    NSDictionary * response = [_rest request:apiCall params:params];
+    return [response[@"signatureValid"] boolValue];
+}
+
+- (NSDictionary<NSString*, NSString*>*) createDsaSignature:(NSString*)activationId
+                                                      data:(NSData*)data
+{
+    NSString * dataB64 = [data base64EncodedStringWithOptions:0];
+    NSArray * params;
+    NSString * apiCall;
+    if (_clientProtocolVersion < PATS_P40) {
+        // V3
+        params = @[ activationId, dataB64 ];
+        apiCall = @"CreateEcdsaSignature";
+    } else {
+        // V4
+        params = @[ activationId, dataB64 ];
+        apiCall = @"CreateDsaSignature";
+    }
+    NSDictionary * response = [_rest request:apiCall params:params];
+    // Process result
+    NSMutableDictionary * result = [NSMutableDictionary dictionaryWithCapacity:2];
+    if (_clientProtocolVersion < PATS_P40) {
+        // V3
+        result[@"ecdsa"] = response[@"signature"];
+    } else {
+        // V4
+        result[@"ecdsa"] = response[@"signatureEcdsa"];
+        if ([response[@"signatureMldsa"] isKindOfClass:[NSString class]]) {
+            result[@"mldsa"] = response[@"signatureMldsa"];
+        }
+    }
+    return result;
+}
+
+- (NSString*) createJwtSignature:(NSString*)activationId
+                            data:(NSData*)data
+                         compact:(BOOL)compact
+                   signatureType:(NSString*)signatureType
+{
+    NSString * dataB64 = [data base64EncodedStringWithOptions:0];
+    NSString * signatureFormat = compact ? @"JWS_COMPACT" : @"JWS_JSON";
+    NSArray * params = @[ activationId, dataB64, signatureFormat, signatureType ? signatureType : [NSNull null] ];
+    NSDictionary * response = [_rest request:@"CreateJwtSignature" params:params];
+    id signedData = response[@"signedData"];
+    if ([signedData isKindOfClass:[NSString class]]) {
+        return signedData;
+    }
+    return nil;
+}
+
+- (BOOL) verifyJwtSignature:(NSString*)activationId
+                 signedData:(NSString*)signedData
+                    compact:(BOOL)compact
+{
+    NSString * signatureFormat = compact ? @"JWS_COMPACT" : @"JWS_JSON";
+    NSArray * params = @[ activationId, signedData, signatureFormat ];
+    NSDictionary * response = [_rest request:@"VerifyJwtSignature" params:params];
     return [response[@"signatureValid"] boolValue];
 }
 
@@ -360,13 +435,14 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 - (PATSTokenValidationResponse*) validateTokenRequest:(PATSTokenValidationRequest*)request
 {
     [self checkForValidConnection];
+    NSString * apiCall = _clientProtocolVersion < PATS_P40 ? @"TokenValidate_P3" : @"TokenValidate_P4";
     NSArray * params;
-    if (_testServerConfig.serverMaxProtovolVersion >= PATS_P32) {
+    if (_testServerConfig.serverMaxProtocolVersion >= PATS_P32) {
         params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp, request.protocolVersion];
     } else {
         params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp];
     }
-    return [_rest request:@"TokenValidate" params:params];
+    return [_rest request:apiCall params:params];
 }
 
 @end

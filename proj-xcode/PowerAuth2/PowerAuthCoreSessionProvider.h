@@ -19,6 +19,9 @@
 
 @class PowerAuthCoreSession;
 
+typedef id _Nullable (^PowerAuthCoreSessionTaskBlock)(PowerAuthCoreSession* _Nonnull session, NSError*_Nonnull*_Nullable error);
+typedef BOOL (^PowerAuthCoreSessionTaskBoolBlock)(PowerAuthCoreSession* _Nonnull session, NSError*_Nonnull*_Nullable error);
+
 /**
  The `PowerAuthCoreSessionProvider` extends `PowerAuthSessionStatusProvider` protocol with
  functionality that allows inter-process safe access to the activation. Since SDK version 1.7.x,
@@ -34,7 +37,7 @@
 /**
  Resets session into its initial state.
  */
-- (void) resetSession;
+- (BOOL) resetSession:(NSError*_Nullable*_Nullable)error;
 
 /**
  Execute task that suppose to access read-only functions from `PowerAuthCoreSession`. It's allowed to call other
@@ -43,7 +46,8 @@
  @param taskBlock Block to execute with properly locked `PowerAuthCoreSession`.
  @return Object returned from the task block.
  */
-- (nullable id) readTaskWithSession:(id _Nullable (NS_NOESCAPE ^_Nonnull)(PowerAuthCoreSession* _Nonnull session))taskBlock;
+- (nullable id) readTaskWithSession:(nonnull NS_NOESCAPE PowerAuthCoreSessionTaskBlock)taskBlock
+                              error:(NSError*_Nullable*_Nullable)error;
 
 /**
  Execute task that can access read and write functions from `PowerAuthCoreSession`. It's allowed to call other
@@ -52,22 +56,8 @@
  @param taskBlock Block to execute with properly locked `PowerAuthCoreSession`.
  @return Object returned from the task block.
  */
-- (nullable id) writeTaskWithSession:(id _Nullable (NS_NOESCAPE ^_Nonnull)(PowerAuthCoreSession* _Nonnull session))taskBlock;
-
-/**
- Execute task that suppose to access read-only functions from `PowerAuthCoreSession`. It's allowed to call other
- "read*" or "write*" task functions from the taskBlock.
- 
- @param taskBlock Block to execute with properly locked `PowerAuthCoreSession`.
- */
-- (void) readVoidTaskWithSession:(void (NS_NOESCAPE ^_Nonnull)(PowerAuthCoreSession* _Nonnull session))taskBlock;
-/**
- Execute task that can access read and write functions from `PowerAuthCoreSession`. It's allowed to call other
- "read*" or "write*" task functions from the taskBlock.
- 
- @param taskBlock Block to execute with properly locked `PowerAuthCoreSession`.
- */
-- (void) writeVoidTaskWithSession:(void (NS_NOESCAPE ^_Nonnull)(PowerAuthCoreSession* _Nonnull session))taskBlock;
+- (nullable id) writeTaskWithSession:(nonnull NS_NOESCAPE PowerAuthCoreSessionTaskBlock)taskBlock
+                               error:(NSError*_Nullable*_Nullable)error;
 
 /**
  Execute task that suppose to access read-only functions from `PowerAuthCoreSession`. It's allowed to call other
@@ -76,7 +66,8 @@
  @param taskBlock Block to execute with properly locked `PowerAuthCoreSession`.
  @return Boolean value returned from the task block.
  */
-- (BOOL) readBoolTaskWithSession:(BOOL (NS_NOESCAPE ^_Nonnull)(PowerAuthCoreSession* _Nonnull session))taskBlock;
+- (BOOL) readBoolTaskWithSession:(nonnull NS_NOESCAPE PowerAuthCoreSessionTaskBoolBlock)taskBlock
+                           error:(NSError*_Nullable*_Nullable)error;
 
 /**
  Execute task that can access read and write functions from `PowerAuthCoreSession`. It's allowed to call other
@@ -85,7 +76,8 @@
  @param taskBlock Block to execute with properly locked `PowerAuthCoreSession`.
  @return Boolean value returned from the task block.
  */
-- (BOOL) writeBoolTaskWithSession:(BOOL (NS_NOESCAPE ^_Nonnull)(PowerAuthCoreSession* _Nonnull session))taskBlock;
+- (BOOL) writeBoolTaskWithSession:(nonnull NS_NOESCAPE PowerAuthCoreSessionTaskBoolBlock)taskBlock
+                            error:(NSError*_Nullable*_Nullable)error;
 
 /**
  Execute block when no read or write task is open in the current thread. If this thread is in the middle

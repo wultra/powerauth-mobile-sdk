@@ -17,6 +17,7 @@
     },
     "mappings": {
         "v10": {
+            "ActivationStatus":             "ActivationStatus_P3",
             "GetApplicationList":           "GetApplicationList_v10",
             "CreateApplication":            "CreateApplication_v10",
             "GetApplicationDetail":         "GetApplicationDetail_v10",
@@ -24,7 +25,7 @@
             "SupportApplicationVersion":    "SupportApplicationVersion_v10",
             "UnsupportApplicationVersion":  "UnsupportApplicationVersion_v10",
             "TokenValidate":                "TokenValidate_v10",
-            "VerifyECDSASignature":         "VerifyECDSASignature_v10"
+            "VerifyECDSASignature":         "VerifyECDSASignature_v10",
         },
         "v13": {
             "GetApplicationList":           "GetApplicationList_v13",
@@ -39,15 +40,31 @@
         "v15": { "#base": "v13",
             "GetApplicationDetail":         "GetApplicationDetail_v15",
             "CreateApplicationVersion":     "CreateApplicationVersion_v15",
-            "TokenValidate":                "TokenValidate_v15"
+            "TokenValidate":                "TokenValidate_P3"
         },
         "v19": { "#base": "v15",
             "GetApplicationDetail":         "GetApplicationDetail_v15",
             "CreateApplicationVersion":     "CreateApplicationVersion_v15",
-            "TokenValidate":                "TokenValidate_v15",
+            "TokenValidate":                "TokenValidate_P3",
             "VerifyECDSASignature":         "VerifyECDSASignature_v19"
         },
-        "v20": { "#base": "v19",
+        "v20": {
+            "ActivationStatus":             "ActivationStatus_P4",
+            "ActivationInit":               "ActivationInit_v20",
+            "ActivationCommit":             "ActivationCommit_v20",
+            "ActivationBlock":              "ActivationBlock_v20",
+            "ActivationUnblock":            "ActivationUnblock_v20",
+            "ActivationRemove":             "ActivationRemove_v20",
+            "CreateApplication":            "CreateApplication_v20",
+            "CreateApplicationVersion":     "CreateApplicationVersion_v20",
+            "GetApplicationList":           "GetApplicationList_v20",
+            "GetApplicationDetail":         "GetApplicationDetail_v20",
+            "GetSystemStatus":              "GetSystemStatus_v20",
+            "SupportApplicationVersion":    "SupportApplicationVersion_v20",
+            "UnsupportApplicationVersion":  "UnsupportApplicationVersion_v20",
+            "TokenValidate":                "TokenValidate_P4",
+            "CreateNonPersonalizedOfflineSignaturePayload":     "CreateNonPersonalizedOfflineSignaturePayload_P4",
+            "CreatePersonalizedOfflineSignaturePayload":        "CreatePersonalizedOfflineSignaturePayload_P4",
         }
     }
 }

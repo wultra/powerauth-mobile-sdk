@@ -15,10 +15,9 @@
  */
 
 #import <PowerAuth2/PowerAuthServerStatus.h>
-#import "PA2GetServerStatusResponse.h"
 
 @interface PowerAuthServerStatus (Private)
 
-- (instancetype) initWithGetServerStatusResponse:(PA2GetServerStatusResponse*)response;
+- (instancetype) initWithJsonResponse:(id)response;
 
 @end

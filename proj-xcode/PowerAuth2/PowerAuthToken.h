@@ -19,9 +19,9 @@
 
 #import <PowerAuth2/PowerAuthMacros.h>
 #import <PowerAuth2/PowerAuthOperationTask.h>
+#import <PowerAuth2/PowerAuthHttpHeader.h>
 
 // Forward declarations...
-@class PowerAuthAuthorizationHttpHeader;
 @class PowerAuthAuthentication;
 @protocol PowerAuthTokenStore;
 
@@ -29,7 +29,7 @@
 #pragma mark - Token -
 
 /**
- The `PowerAuthToken` interface generates a token based authorization headers.
+ The `PowerAuthToken` interface generates a token based authentication headers.
  You have to use `PowerAuthTokenStore` to get an instance of this class.
  
  The whole interface is thread safe.
@@ -61,9 +61,9 @@
 @property (nonatomic, readonly) BOOL canGenerateHeader;
 
 /**
- Returns a new token-based authorization header or nil, if it's not possible to generate the header.
+ Returns a new token-based authentication header or nil, if it's not possible to generate the header.
  */
-- (nullable PowerAuthAuthorizationHttpHeader*) generateHeader;
+- (nullable PowerAuthHttpHeader*) generateHeader;
 
 /**
  Returns YES if both token objects are equal.
@@ -162,11 +162,21 @@
 - (nullable PowerAuthToken*) localTokenWithName:(nonnull NSString*)name;
 
 /**
- Generate authorization header with token with given name. Unlike `PowerAuthToken.generateHeader()`, this
+ Generate authentication header with token with given name. Unlike `PowerAuthToken.generateHeader()`, this
  asynchronous function guarantees that time used for the token digest calculation is always synchronized
  with the server.
  */
+- (nullable id<PowerAuthOperationTask>) generateAuthenticationHeaderWithName:(nonnull NSString *)name
+                                                                  completion:(nonnull void(^)(PowerAuthHttpHeader * _Nullable header, NSError * _Nullable error))completion;
+
+/**
+ Generate authentication header with token with given name. Unlike `PowerAuthToken.generateHeader()`, this
+ asynchronous function guarantees that time used for the token digest calculation is always synchronized
+ with the server.
+ @deprecated Please use `generateAuthenticationHeader(withName:completion:)` function instead.
+ */
 - (nullable id<PowerAuthOperationTask>) generateAuthorizationHeaderWithName:(nonnull NSString *)name
-                                                                 completion:(nonnull void(^)(PowerAuthAuthorizationHttpHeader * _Nullable header, NSError * _Nullable error))completion;
+                                                                 completion:(nonnull void(^)(PowerAuthAuthorizationHttpHeader * _Nullable header, NSError * _Nullable error))completion
+                                                                    PA2_DEPRECATED(2.0.0);
 
 @end

@@ -29,11 +29,11 @@
  Lock token store data and return whether the local cached context
  should be invalidated.
  */
-- (BOOL) lockTokenStore;
+- (BOOL) lockTokenStore:(BOOL*_Nonnull)dirty error:(NSError * _Nullable * _Nonnull)error;
 
 /**
  Unlock token store data and mark that token store has been modified.
  */
-- (void) unlockTokenStore:(BOOL)contentModified;
+- (BOOL) unlockTokenStore:(BOOL)contentModified error:(NSError * _Nullable * _Nonnull)error;
 
 @end

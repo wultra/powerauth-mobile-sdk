@@ -15,110 +15,125 @@
  */
 
 #import <PowerAuthCore/PowerAuthCoreTypes.h>
-#import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
-#import <PowerAuthCore/PowerAuthCoreDebugMonitor.h>
+#import <PowerAuthCore/PowerAuthCoreConfig.h>
+#import <PowerAuthCore/PowerAuthCoreError.h>
+#import <PowerAuthCore/PowerAuthCoreTask.h>
 #import <PowerAuthCore/PowerAuthCoreTimeService.h>
+#import <PowerAuthCore/PowerAuthCoreEncryptorFactory.h>
+#import <PowerAuthCore/PowerAuthCoreCredentials.h>
+#import <PowerAuthCore/PowerAuthCoreActivationStatus.h>
 
-/**
- The `PowerAuthCoreSession` provides Objective-C interface to the low-level
- C++ Session implementation.
- */
+
+/// The `PowerAuthCoreSessionDelegate` provide interface required for interaction
+/// with the low level C++ session.
+@protocol PowerAuthCoreSessionDelegate <NSObject>
+@required
+/// Called when session require read access to the activation data.
+/// The implementation must validate whether the read access is granted.
+/// If access is not granted, then return `false`.
+- (BOOL) requireReadAccess;
+
+/// Called when session require write access to the activation data.
+/// The implementation must validate whether the write access is granted.
+/// If access is not granted, then return `false`.
+- (BOOL) requireWriteAccess;
+
+@end
+
+/// The `PowerAuthCoreSession` provides Objective-C interface to the low-level
+/// C++ Session implementation.
 @interface PowerAuthCoreSession : NSObject
 
 #pragma mark -  Initialization / Reset
 
-/**
- The designated initializer. You have to provide a valid PowerAuthCoreSessionSetup object
- and time synchronization service implementation.
- */
-- (nullable instancetype) initWithSessionSetup:(nonnull PowerAuthCoreSessionSetup *)setup
-                                   timeService:(nonnull id<PowerAuthCoreTimeService>)timeService;
+/// Default construction is unavailable
+- (nonnull instancetype) init NS_UNAVAILABLE;
 
-/**
- Resets session into its initial state. The existing session's setup and EEK is preserved
- after the call. If `fullReset` parameter is YES, then also resets data not relevant
- to the activation state. For example, ECIES public key for application scope.
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (void) resetSession:(BOOL)fullReset;
+/// Create session object with provided configuration  You have to provide a valid
+/// `PowerAuthCoreConfig` object and optional delegate. The delegate is  required in
+/// case the PowerAuth SDK is configured to share the activation data between
+/// multiple applications.
+///
+/// - Parameters:
+///   - configuration: Session's configuration.
+///   - delegate: Interface to Session's delegate. The weak reference is stored internally.
+///   - error: Pointer where the error will be stored in case of failure.
+/// - Returns: Configured instance of `PowerAuthCoreSession` object.
+/// - Throws: `NSException` in case of failure.
++ (nullable instancetype) createWithConfiguration:(nonnull PowerAuthCoreConfig*)configuration
+                                         delegate:(nullable id<PowerAuthCoreSessionDelegate>)delegate
+                                            error:(NSError*_Nullable*_Nullable)error;
 
-/**
- Returns YES if PowerAuthCore library was compiled with a debug features. It is highly recommended
- to check this flag and force application to crash if the producion, final application
- is running against the debug featured library.
- */
-+ (BOOL) hasDebugFeatures;
+/// Create session object with provided configuration  You have to provide a valid
+/// `PowerAuthCoreConfig` object. This method is useful in situations, when activation
+/// data is not shared between multiple applications.
+///
+/// - Parameters:
+///   - configuration: Session's configuration.
+///   - error: Pointer where the error will be stored in case of failure.
+/// - Returns: Configured instance of `PowerAuthCoreSession` object or `nil` in case of failure.
++ (nullable instancetype) createWithConfiguration:(nonnull PowerAuthCoreConfig*)configuration
+                                            error:(NSError*_Nullable*_Nullable)error;
 
-/**
- If set, then the sesison will use methods from `PowerAuthCoreDebugMonitor` protocol to
- report type of access (read, write) required for particular method.
- 
- The property nas no functionality if library is compiled for Release configuration.
- */
-@property (nonatomic, weak, nullable) id<PowerAuthCoreDebugMonitor> debugMonitor;
+/// Resets session into its initial state. The existing session's configuration is preserved
+/// after the call.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+- (void) resetSession;
 
-/**
- Returns pointer to an internal SessionSetup object.
- 
- This property doesn't use shared data, so no exclusive access is required.
- */
-@property (nonatomic, strong, readonly, nullable) PowerAuthCoreSessionSetup * sessionSetup;
+/// Contains pointer to an internal `PowerAuthCoreConfig` object.
+///
+/// This property doesn't use shared data, so no exclusive access is required.
+@property (nonatomic, strong, readonly, nullable) PowerAuthCoreConfig * configuration;
 
-/**
- Contains `APPLICATION_KEY` extracted from the SessionSetup object. Returns nil if
- session has no valid setup.
- 
- This property doesn't use shared data, so no exclusive access is required.
- */
-@property (nonatomic, strong, readonly, nullable) NSString * applicationKey;
+/// Contains `APPLICATION_KEY` read from the configuration object object.
+///
+/// This property doesn't use shared data, so no exclusive access is required.
 
-/**
- Returns value of [self sessionSetup].sessionIdentifier if the setup object is present or 0 if not.
- 
- This property doesn't use shared data, so no exclusive access is required.
- */
-@property (nonatomic, assign, readonly) UInt32 sessionIdentifier;
+@property (nonatomic, strong, readonly, nonnull) NSString * applicationKey;
 
+/// Contains instance identifier provided in configuration.
+///
+/// This property doesn't use shared data, so no exclusive access is required.
+@property (nonatomic, strong, readonly, nonnull) NSString* instanceId;
+
+/// Contains weak reference to delegate.
+@property (nonatomic, weak, nullable) id<PowerAuthCoreSessionDelegate> delegate;
+
+/// Contains current effective algorithm used in the session. If there's no activation, then returns
+/// algorithm provided in the configuration.
+@property (nonatomic, readonly) PowerAuthCoreAlgorithm currentAlgorithm;
 
 #pragma mark - Session state
 
 /**
- Contains YES if the internal SessionSetup object is valid.
- Note that the method doesn't validate whether the provided master key is valid
- or not.
- 
- This property doesn't use shared data, so no exclusive access is required.
- */
-@property (nonatomic, assign, readonly) BOOL hasValidSetup;
-/**
- Contains YES if the session is in state where it's possible to start a new activation.
+ Contains `true` if the session is in state where it's possible to create a new activation.
  
  This property access the session's state, so read access must be guaranteed.
  */
-@property (nonatomic, assign, readonly) BOOL canStartActivation;
+@property (nonatomic, assign, readonly) BOOL canCreateActivation;
 /**
- Contains YES if the session has pending and unfinished activation.
+ Contains `true` if the session has pending activation create.
  
  This property access the session's state, so read access must be guaranteed.
  */
-@property (nonatomic, assign, readonly) BOOL hasPendingActivation;
+@property (nonatomic, assign, readonly) BOOL hasPendingCreateActivation;
 /**
- Contains YES if the session has valid activation and the shared secret between the client and
- the server has been estabilished. You can sign data in this state.
+ Contains `true` if the session has valid activation and the shared secret between the client and
+ the server has been established. You can sign data in this state.
  
  This property access the session's state, so read access must be guaranteed.
  */
-@property (nonatomic, assign, readonly) BOOL hasValidActivation;
+@property (nonatomic, assign, readonly) BOOL hasValidActivationData;
 /**
- Checks if there's a valid activation that requires a protocol upgrade. Contains NO once the upgrade
+ Checks if there's a valid activation that requires a protocol upgrade. Contains `false` once the upgrade
  process is started. The application should fetch the activation's status to do the upgrade.
  
  This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL hasProtocolUpgradeAvailable;
 /**
- Contains YES if the session has pending upgrade to newer protocol version.
+ Contains `true` if the session has pending upgrade to newer protocol version.
  Some operations may be temporarily blocked during the upgrade process.
  
  This property access the session's state, so read access must be guaranteed.
@@ -131,527 +146,419 @@
  This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) PowerAuthCoreProtocolVersion protocolVersion;
-
+/**
+ Contains last user info received from the server during activation or explicit user info fetch.
+ This property provides the most recent user info and does not trigger any server communication.
+ If no such information has been received yet, nil is returned.
+ 
+ This property accesses user info cached in the session, so read access must be guaranteed.
+ */
+@property (nonatomic, strong, readonly, nullable) NSDictionary<NSString*, NSObject*>* lastUserInfo;
+/**
+ Contains last activation status received from the server.
+ This property provides the most recent activation status and does not trigger any server communication.
+ If no such information has been received yet, nil is returned.
+ 
+ This property accesses activation status cached in the session, so read access must be guaranteed.
+ */
+@property (nonatomic, strong, readonly, nullable) PowerAuthCoreActivationStatus * lastActivationStatus;
 
 #pragma mark - Serialization
 
-/**
- Saves state of session into the sequence of bytes. The saved sequence contains content of
- internal PersistentData structure, if is present.
- 
- Note that saving a state during the pending activation has no effect. In this case,
- the returned byte sequence represents the state of the session before the activation started.
- 
- This function access the session's state, so read access must be guaranteed.
- */
-- (nonnull NSData*) serializedState;
+/// Save the state of session into the sequence of bytes.
+///
+/// Note that saving a state during the pending activation has no effect. In this case,
+/// the returned byte sequence represents the state of the session before the activation
+/// process is started.
+///
+/// This function access the session's state, so read access must be guaranteed.
+- (nullable NSData*) serializedState:(NSError*_Nullable*_Nullable)error;
 
-/**
- Loads state of session from previously saved sequence of bytes. If the serialized state is
- invalid then the session ends in empty, unitialized state.
- 
- Returns YES if operation succeeds. In case of faulure, you can determine the failure reason from
- DEBUG log.
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (BOOL) deserializeState:(nonnull NSData *)state;
+/// Loads state of session from previously saved sequence of bytes. If the serialized state is
+/// invalid then the session ends in empty, uninitialized state.
+///
+/// Returns `true` if operation succeeds. In case of failure, you can determine the failure reason from
+/// DEBUG log.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
+/// - Parameter state: Previously saved state.
+/// - Parameter error: Pointer where error is stored in case of failure.
+/// - Returns: `true` in case of success.
+- (BOOL) deserializeState:(nonnull NSData *)state
+                    error:(NSError*_Nullable*_Nullable)error;
 
+/// Indicate that session has modified internal state that needs to be saved to the persistent storage.
+@property (nonatomic, readonly) BOOL isModifiedState;
 
 #pragma mark - Activation
 
-/**
- If the session has valid activation, then returns the activation identifier.
- Otherwise returns nil.
- 
- This property access the session's state, so read access must be guaranteed.
- */
+/// If the session has valid activation, then returns the activation identifier.
+/// Otherwise returns nil.
+///
+/// This property access the session's state, so read access must be guaranteed.
 @property (nonatomic, strong, readonly, nullable) NSString * activationIdentifier;
 
-/**
- If the session has valid activation, then returns decimalized fingerprint, calculated
- from device's public key. Otherwise returns nil.
- 
- This property access the session's state, so read access must be guaranteed.
- */
+/// If the session has valid activation, then returns decimalized fingerprint, calculated
+/// from device's public key. Otherwise returns nil.
+///
+/// This property access the session's state, so read access must be guaranteed.
 @property (nonatomic, strong, readonly, nullable) NSString * activationFingerprint;
 
-/**
- Starts a new activation process. The session must have valid setup. Once the activation 
- is started you have to complete whole activation sequence or reset a whole session.
- 
- You have to provide PowerAuthCoreActivationStep1Param object with all required properties available.
- The result of the operation returned in the PowerAuthCoreActivationStep1Result object. If the
- returned value is nil, then the error occured.
- 
- You can determine the failure reason from DEBUG log:
-    PowerAuthCoreErrorCode_Encryption, if you provided invalid Base64 strings or if signature is invalid
-    PowerAuthCoreErrorCode_WrongState, if called in wrong session's state
-    PowerAuthCoreErrorCode_WrongParam, if some required parameter is missing
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (nullable PowerAuthCoreActivationStep1Result*) startActivation:(nonnull PowerAuthCoreActivationStep1Param*)param;
 
-/**
- Validates activation respose received from the server. The session expects that the activation
- process was previously started with using 'startActivation' method. You have to provide 
- PowerAuthCoreActivationStep2Param object with all members filled with the response. The result of the
- operation is stored in the PowerAuthCoreActivationStep2Result object. If the response is correct then
- you can call 'completeActivation' and finish the activation process.
- 
- Discussion
- 
- If the operation succeeds then the PowerAuth handshake is from a network communication point of view
- considered as complete. The server knows our client and both sides have calculated shared
- secret key. Because of the complexity of the operation, there's one more separate step in our
- activation flow, which finally protects all sensitive information with user password and
- other local keys. This last step is offline only, no data is transmitted over the network
- and therefore if you don't complete the activation (you can reset session for example)
- then the server will keep its part of shared secret but nobody will be able to use that
- estabilished context.
- 
- If the returned value is nil, then the error occured. You can determine the failure reason from
- DEBUG log:
-    PowerAuthCoreErrorCode_Encryption, if provided data, signature or keys are invalid.
-                                       If this error occurs then the session resets its state.
-    PowerAuthCoreErrorCode_WrongState, if called in wrong session's state
-    PowerAuthCoreErrorCode_WrongParam, if required parameter is missing
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (nullable PowerAuthCoreActivationStep2Result*) validateActivationResponse:(nonnull PowerAuthCoreActivationStep2Param*)param;
+/// Starts a new activation process. Once the activation is started you have to complete
+/// whole activation sequence or reset a whole session.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+/// - Parameters:
+///   - L1Data: JSON representation with L1 activation data
+///   - L2Data: JSON representation with L2 activation data
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for activation creation.
+- (nullable PowerAuthCoreRequest*) createActivation:(nonnull NSDictionary*)L1Data
+                                         withL2Data:(nonnull NSDictionary*)L2Data
+                                              error:(NSError*_Nullable*_Nullable)error;
 
-/**
- Completes previously started activation process and protects sensitive local information with
- provided protection keys. Please check the documentation for PowerAuthCoreSignatureUnlockKeys object
- for details about constructing protection keys and for other related information.
- 
- You have to provide at least keys.userPassword and keys.possessionUnlockKey to pass the method's
- input validation. After the activation is complete, you can finally save session's state
- into the persistent storage.
- 
- WARNING: You have to save session's staate when the activation is completed!
- 
- Returns YES if operation succeeds. In case of faulure, you can determine the failure reason from
- DEBUG log:
-    PowerAuthCoreErrorCode_Encryption,  if some internal encryption failed
-                                        if this error occurs, then the session resets its state
-    PowerAuthCoreErrorCode_WrongState,  if called in wrong session's state
-    PowerAuthCoreErrorCode_WrongParam,  if required parameter is missing
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (BOOL) completeActivation:(nonnull PowerAuthCoreSignatureUnlockKeys*)keys;
+/// Fetch activation status from the server.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameter error: Pointer where error is stored in case of failure.
+/// - Returns: Core task for getting activation status.
+- (nullable PowerAuthCoreTask*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error;
 
+/// Start protocol upgrade procedure.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - password: User's password for protocol upgrade start authentication, if `nil` the task is only allowed to confirm the protocol upgrade.
+///   - biometryKek: Biometric factor KEK. Should be set if the session already have a biometry configured.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core task for protocol upgrade procedure.
+- (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePassword*)password
+                                                 withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
+                                               error: (NSError*_Nullable*_Nullable)error;
 
-#pragma mark - Activation Status
+/// Confirm activation and complete the activation process with user's password.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - password: User's password.
+///   - biometryKek: Optional biometric factor KEK. If `nil` then this session will not have biometry configured.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for activation confirmation.
+- (nullable PowerAuthCoreRequest*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
+                                                 withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
+                                                           error:(NSError*_Nullable*_Nullable)error;
 
-/**
- The method decodes received status blob into PowerAuthCoreActivationStatus object. You can call this method after successful
- activation and obtain information about pairing between the client and server. You have to provide valid
- possessionUnlockKey in the unlockKeys object.
- 
- If the returned object is nil then the error occured and you can determine the failure reason from
- DEBUG log.
- 
- This function access the session's state, so read access must be guaranteed.
- */
-- (nullable PowerAuthCoreActivationStatus*) decodeActivationStatus:(nonnull PowerAuthCoreEncryptedActivationStatus *)encryptedStatus
-                                                              keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
+/// Remove activation from the server.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameters:
+///   - credentials: Credentials with at least two factors.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for activation remove.
+- (nullable PowerAuthCoreRequest*) removeActivationWithCredentials:(nonnull PowerAuthCoreCredentials*)credentials
+                                                             error:(NSError*_Nullable*_Nullable)error;
 
-#pragma mark - Data signing
+#pragma mark - User info
 
-/**
- Converts NSDictionary into normalized data, suitable for data signing. The method is useful in cases where
- you want to sign parameters of GET request. You have to provide key-value map constructed from your GET parameters.
- The result is normalized byte sequence, prepared for data signing. For POST requests it's recommended to sign
- a whole POST body.
- 
- The method returns always NSData object, unless you provide the NSDictionary with wrong type of objects.
- 
- Compatibility note
- 
- This interface doesn't support multiple values for the same key. This is a known limitation, due to fact, that
- underlying std::map<> doesn't allow duplicit keys. The arrays in GET requests are so rare that I've decided to do not support
- them. You can still implement your own data normalization, if this is your situation.
- */
-+ (nullable NSData*) prepareKeyValueDictionaryForDataSigning:(nonnull NSDictionary<NSString*, NSString*>*)dictionary;
+/// Fetch user info from the server.
+///
+/// This function caches the received user info in the session, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for user info fetch.
+- (nullable PowerAuthCoreRequest*) fetchUserInfo:(NSError*_Nullable*_Nullable)error;
 
-/**
- Calculates signature from given data. You have to provide all involved unlock keys in |unlockKeys| object,
- required for desired signature |factor|. For the request |requestData.body| you can provide whole POST body or
- you can prepare data with using 'prepareKeyValueDictionaryForDataSigning' method. The |requestData.method| parameter
- is the HTML method of signed request (e.g. GET, POST, etc...). The |requestData.uri| parameter should be relative URI.
- Check the original PowerAuth documentation for details about signing the HTTP requests.
- 
- The result returned string contains a full value for X-PowerAuth-Authorization header.
- 
- WARNING
- 
- You have to save session's state after the successful operation, due to internal counter change.
- If you don't save the state then you'll sooner or later loose synchronization with the server
- and your client will not be able to sign data anymore.
- 
- Returns string with autorization header or nil if opeartion failed. You can determine the failure reason from
- DEBUG log:
-    PowerAuthCoreErrorCode_Encryption, if some cryptographic operation failed
-    PowerAuthCoreErrorCode_WrongState, if the session has no valid activation
-    PowerAuthCoreErrorCode_WrongParam, if some required parameter is missing
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (nullable PowerAuthCoreHTTPRequestDataSignature*) signHttpRequestData:(nonnull PowerAuthCoreHTTPRequestData*)requestData
-                                                                   keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-                                                                 factor:(PowerAuthCoreSignatureFactor)factor;
-/**
- Returns name of authorization header. The value is constant and is equal to "X-PowerAuth-Authorization".
- You can calculate appropriate value with using 'httpAuthHeaderValueForBody:...' method.
- 
- This property doesn't use shared data, so no exclusive access is required.
- */
-@property (nonatomic, strong, readonly, nonnull) NSString * httpAuthHeaderName;
+#pragma mark - Factor keys management
 
-/**
- Validates whether the data has been signed with master server private key.
- Returns YES if signature is valid. In case of error, you can determine the failure reason from
- DEBUG log:
-    PowerAuthCoreErrorCode_Encryption  if signature is not valid or some cryptographic operation failed
-    PowerAuthCoreErrorCode_WrongState  if session contains invalid setup
-    PowerAuthCoreErrorCode_WrongParam  if signedData object doesn't contain signature
- 
- This function access the session's state, so read access must be guaranteed.
- */
-- (BOOL) verifyServerSignedData:(nonnull PowerAuthCoreSignedData*)signedData;
+/// Verify user's password on the server.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameters:
+///   - password: User's password.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for password verify.
+- (nullable PowerAuthCoreRequest*) verifyPassword:(nonnull PowerAuthCorePassword*)password
+                                            error:(NSError*_Nullable*_Nullable)error;
 
-/**
- Calculates HMAC-SHA256 signature with using key specified in |dataToSign|. The output signature is
- also stored to provided data object. If `HMAC_Activation` key is requested, then |unlockKeys| must
- contain possession factor unlock key and the session must have valid activation.
- 
- Returns YES if signature is calculated. In case of error, you can determine the failure reason
- from DEBUG log:
-    PowerAuthCoreErrorCode_Ok          if operation succeeded and signature is computed.
-    PowerAuthCoreErrorCode_Encryption  if cryptographic operation failed.
-    PowerAuthCoreErrorCode_WrongState  if session contains invalid setup, or valid activation is required
-                                        for the requested key.
-    PowerAuthCoreErrorCode_WrongParam  if keys structure doesn't contain possession factor unlock key
-                                        and the key is required.
- */
-- (BOOL) signDataWithHmacKey:(nonnull PowerAuthCoreSignedData*)dataToSign
-                        keys:(nullable PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
+/// Change user's password.
+///
+/// This function may change the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - oldPassword: Old password.
+///   - newPassword: New password.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request in case that operation require communication with the server, or `nil` in case the
+///            password has been changed synchronously. Check the returned error to distinguish between the success
+///            and the failure.
+- (nullable PowerAuthCoreRequest*) changePassword:(nonnull PowerAuthCorePassword*)oldPassword
+                                       toPassword:(nonnull PowerAuthCorePassword*)newPassword
+                                            error:(NSError*_Nullable*_Nullable)error;
 
-#pragma mark - Signature keys management
-
-/**
- Changes user's password. You have to save session's state to keep this change for later.
- 
- The method doesn't perform old password validation and therefore, if the wrong password is provided,
- then the internal knowledge key will be permanently lost. Before calling this method, you have to validate
- old password by calling some server's endpoint, which requires at least knowledge factor for completion.
- 
- So, the typical flow for password change has a following steps:
- 
- 1. ask user for an old password
- 2. send HTTP request, signed with knowledge factor, use an old password for key unlock
-    - if operation fails, then you can repeat step 1 or exit the flow
- 3. ask user for a new password as usual (e.g. ask for passwd for twice, compare both,
-    check minimum length, entropy, etc...)
- 4. call `changeUserPassword` with old and new password
- 5. save session's state
- 
- WARNING
- 
- All this, is just a preliminary proposal functionality and is not covered by PowerAuth specification.
- The behavior or a whole flow of password changing may be a subject of change in the future.
- 
- Returns YES if operation succeeds or NO in case of failure. You can determine the failure reason from
- DEBUG log:
-    PowerAuthCoreErrorCode_Encryption,  if underlying cryptograhic operation did fail or
-                                        if you provided too short passwords.
-    PowerAuthCoreErrorCode_WrongState,  if the session has no valid activation
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (BOOL) changeUserPassword:(nonnull PowerAuthCorePassword *)old_password newPassword:(nonnull PowerAuthCorePassword*)new_password;
-
-/**
- Adds a key for biometry factor. You have to provide encrypted vault key |cVaultKey| in Base64 format
- and |unlockKeys| object where the valid possessionUnlockKey is set. The |unlockKeys| also must contain a
- new biometryUnlockKey, which will be used for a protection of the newly created biometry signature key. 
- You should always save session's state after this operation, whether it ends with error or not.
- 
- Returns YES if operation succeeds or NO in case of failure. You can determine the failure reason from
- DEBUG log:
-    PowerAuthCoreErrorCode_Encryption, if general encryption error occurs
-    PowerAuthCoreErrorCode_WrongState, if the session has no valid activation
-    PowerAuthCoreErrorCode_WrongParam, if some required parameter is missing
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (BOOL) addBiometryFactor:(nonnull NSString *)cVaultKey
-                      keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
-
-/** Checks if there is a biometry factor present in a current session.
- 
- This function access the session's state, so read access must be guaranteed.
- 
- @return YES if there is a biometry factor related key present, NO otherwise.
- */
+/// Returns `true` in case the biometric factor is set.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
 - (BOOL) hasBiometryFactor;
 
-/**
- Removes existing key for biometric signatures from the session. You have to save state of the session
- after the operation. Returns YES if operation succeeds or NO in case of failure. You can determine
- the failure reason from DEBUG log:
-    PowerAuthCoreErrorCode_WrongState, if the session has no valid activation
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (BOOL) removeBiometryFactor;
+/// Add biometry factor.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameters:
+///   - password: User's password.
+///   - biometryKek: New biometry KEK.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for biometry add.
+- (nullable PowerAuthCoreRequest*) addBiometryFactorWithPassword:(nonnull PowerAuthCorePassword*)password
+                                                 withBiometryKek:(nonnull PowerAuthCoreData*)biometryKek
+                                                           error:(NSError*_Nullable*_Nullable)error;
+/// Remove biometry factor.
+///
+/// This function may change the session's state, so write access must be guaranteed.
+///
+/// - Parameter error: Pointer where error is stored in case of failure.
+/// - Returns: Core request in case that operation require communication with the server, or `nil` in case the
+///            biometry has been removed synchronously. Check the returned error to distinguish between the success
+///            and the failure.
+- (nullable PowerAuthCoreRequest*) removeBiometryFactor:(NSError*_Nullable*_Nullable)error;
+
+
+#pragma mark - Authentication
+
+/// Calculate online authentication header for HTTP request.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - credentials: Credentials used for authentication.
+///   - uriIdentifier: URI identifier
+///   - httpMethod: HTTP method
+///   - requestBody: Request body.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: `PowerAuthCoreHttpHeader` object if succeeds.
+- (nullable PowerAuthCoreHttpHeader*) calculateOnlineAuthenticationHeader:(nonnull PowerAuthCoreCredentials*)credentials
+                                                            uriIdentifier:(nonnull NSString*)uriIdentifier
+                                                               httpMethod:(nonnull NSString*)httpMethod
+                                                              requestBody:(nullable NSData*)requestBody
+                                                                    error:(NSError *_Nullable*_Nullable)error;
+
+/// Calculate human readable authentication code for offline authentication.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - credentials: Credentials used for authentication.
+///   - uriIdentifier: URI identifier.
+///   - offlineNonce: Offline nonce.
+///   - codeLength: Length of calculated code.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Human readable authentication code if succeeds.
+- (nullable NSString*) calculateOfflineAuthenticationCode:(nonnull PowerAuthCoreCredentials*)credentials
+                                            uriIdentifier:(nonnull NSString*)uriIdentifier
+                                             offlineNonce:(nonnull NSString*)offlineNonce
+                                               codeLength:(NSUInteger)codeLength
+                                                     data:(nullable NSData*)data
+                                                    error:(NSError *_Nullable*_Nullable)error;
+
+/// Normalize parameters of GET HTTP request into data suitable for function that calculate online authentication header.
+///
+/// This function doesn't use session's state, so it doesn't require any granted access.
+///
+/// - Parameters:
+///   - parameters: Dictionary with get parameters.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Normalized data.
+- (nullable NSData*) normalizeGetRequestParameters:(nonnull NSDictionary<NSString*, NSString*>*)parameters
+                                             error:(NSError *_Nullable*_Nullable)error;
+
+#pragma mark - Tokens
+
+/// Calculate HTTP header for token authentication.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameters:
+///   - tokenIdentifier: Token's identifier.
+///   - tokenSecret: Token's secret.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: `PowerAuthCoreHttpHeader` object if succeeds.
+- (nullable PowerAuthCoreHttpHeader*) calculateTokenHeader:(nonnull NSString *)tokenIdentifier
+                                               tokenSecret:(nonnull NSData*)tokenSecret
+                                                     error:(NSError *_Nullable*_Nullable)error;
+
+/// Create access token on the server.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameters:
+///   - credentials: Credentials used for token creation.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for token creation.
+- (nullable PowerAuthCoreRequest*) createAccessToken:(nonnull PowerAuthCoreCredentials*)credentials
+                                               error:(NSError *_Nullable*_Nullable)error;
+
+/// Remove access token from the server.
+/// - Parameters:
+///   - tokenIdentifier: Token's identifier.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for token removal.
+- (nullable PowerAuthCoreRequest*) removeAccessToken:(nonnull NSString *)tokenIdentifier
+                                               error:(NSError *_Nullable*_Nullable)error;
 
 #pragma mark - Vault operations
 
-/**
- Calculates a cryptographic key, derived from encrypted vault key, received from the server. The method
- is useful for situations, where the application needs to protect locally stored data with a cryptographic
- key, which is normally not present on the device and must be acquired from the server at first.
- 
- You have to provide encrypted |cVaultKey| and |unlockKeys| object with a valid possessionUnlockKey.
- The |keyIndex| is a parameter to the key derivation function. You should always save session's state 
- after this operation, whether it ends with error or not.
- 
- Discussion
- 
- You should NOT store the produced key to the permanent storage. If you store the key to the filesystem
- or even to the keychain, then the whole server based protection scheme will have no effect. You can, of
- course, keep the key in the volatile memory, if the application needs use the key for a longer period.
- 
- Retuns PowerAuthCoreData object with a derived cryptographic key or nil in case of failure. You can determine
- the failure reason from DEBUG log:
-    PowerAuthCoreErrorCode_Encryption,  if general encryption error occurs
-    PowerAuthCoreErrorCode_WrongState,  if the session has no valid activation
-    PowerAuthCoreErrorCode_WrongParam,  if some required parameter is missing
- 
- This function access the session's state, so read access must be guaranteed.
- */
-- (nullable PowerAuthCoreData*) deriveCryptographicKeyFromVaultKey:(nonnull NSString*)cVaultKey
-                                                              keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-                                                          keyIndex:(UInt64)keyIndex;
-/**
- Computes a ECDSA-SHA256 signature of given |data| with using device's private key. You have to provide
- encrypted |cVaultKey| and |unlockKeys| structure with a valid possessionUnlockKey.
- 
- Discussion
- 
- The session's state contains device private key but it is encrypted with vault key, which is normally not
- available on the device.
- 
- Retuns NSData object with calculated signature or nil in case of failure. You can determine the failure
- reason from DEBUG log:
-    PowerAuthCoreErrorCode_Encryption,  if general encryption error occurs
-    PowerAuthCoreErrorCode_WrongState,  if the session has no valid activation
-    PowerAuthCoreErrorCode_WrongParam,  if some required parameter is missing
- 
- This function access the session's state, so read access must be guaranteed.
- */
-- (nullable NSData*) signDataWithDevicePrivateKey:(nonnull NSString*)cVaultKey
-                                             keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-                                             data:(nonnull NSData*)data
-                                           format:(PowerAuthCoreSignatureFormat)format;
+/// Fetch vault key from the server. If the requested key is `PowerAuthCoreSecureVaultKeyId_Legacy`,
+/// then also apply key derivation with given index. In case of success, the response object
+/// contains instance of `PowerAuthCoreData` object.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+/// 
+/// - Parameters:
+///   - credentials: Credentials used for access the key.
+///   - keyId: Vault encryption key to fetch.
+///   - index: Derivation index of the vault key. The value is ignored for non-"legacy" keys.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for accessing the key.
+- (nullable PowerAuthCoreRequest*) fetchVaultEncryptionKey:(nonnull PowerAuthCoreCredentials*)credentials
+                                                     keyId:(PowerAuthCoreSecureVaultKeyId)keyId
+                                                     index:(UInt64)index
+                                                     error:(NSError *_Nullable*_Nullable)error;
+
+/// Derive already existing key into new key. If the key type is `PowerAuthCoreSecureVaultKeyId_Legacy`,
+/// then return error.
+/// - Parameters:
+///   - vaultKey: Original key.
+///   - keyId: Identifier of current vault encryption key.
+///   - index: Derivation index of the new key.
+///   - keySize: Size of derived key in bytes. Minimum is 16 bytes.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: `PowerAuthCoreData` instance with derived key.
++ (nullable PowerAuthCoreData*) deriveVaultEncryptionKey:(nonnull PowerAuthCoreData*)vaultKey
+                                                   keyId:(PowerAuthCoreSecureVaultKeyId)keyId
+                                                   index:(UInt64)index
+                                                 keySize:(UInt64)keySize
+                                                   error:(NSError *_Nullable*_Nullable)error;
+
+#pragma mark - Digital signatures
+
+/// Export device public key into the specified format.
+/// - Parameters:
+///   - format: Required format of the output public key data.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Array of `PowerAuthCoreDevicePublicKeyData` objects or `nil` in case of failure.
+- (nullable NSArray<PowerAuthCoreDevicePublicKeyData*>*) exportDevicePublicKeysToFormat:(PowerAuthCoreDevicePublicKeyFormat)format
+                                                                                  error:(NSError *_Nullable*_Nullable)error;
+
+/// Verify a digital signature over the given data.
+/// - Parameters:
+///   - signature: Signature calculated from signed data.
+///   - data: Signed data.
+///   - keyId: Key used for signature verification. The key must support signature verification.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: `true` if signature is valid, otherwise `false`. If failure is caused by invalid signature,
+///            then error with `PowerAuthCoreError_WrongSignature` is returned.
+- (BOOL) verifySignature:(nonnull NSData*)signature
+                    data:(nonnull NSData*)data
+                   keyId:(PowerAuthCoreSignatureKeyId)keyId
+                   error:(NSError *_Nullable*_Nullable)error;
+
+/// Verify server-signed data in JWS or JWT form.
+///
+/// - Parameters:
+///   - signedData: JWS or JWT signed data.
+///   - compactForm: If `true`, the provided string is a JWT instead of a full JWS object.
+///   - strict: If `true`, all provided keys must be used to successfully verify
+///             their corresponding signatures. If `false`, verification succeeds when at least one provided key
+///             matches a valid signature; however, invalid or mismatched signatures still result in an error.
+///   - keyId: Key used for signature verification. The key must support such operation.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: `true` if signature is valid, otherwise `false`. If failure is caused by invalid signature,
+///            then error with `PowerAuthCoreError_WrongSignature` is returned
+- (BOOL) jwsVerifySignature:(nonnull NSString*)signedData
+                compactForm:(BOOL)compactForm
+                     strict:(BOOL)strict
+                      keyId:(PowerAuthCoreSignatureKeyId)keyId
+                      error:(NSError *_Nullable*_Nullable)error;
+
+/// Create a digital signature over the given data. If the request succeeds, the
+/// response contains a `NSData` with the calculated signature.
+///
+/// - Parameters:
+///   - data: Data to sign.
+///   - credentials: Credentials used for unlocking the device private key.
+///   - keyId: Key used for signature calculation. The key must support such operation.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for unlocking device private key
+///            or `nil` in case of failure.
+- (nullable PowerAuthCoreRequest*) signData:(nullable NSData*)data
+                                credentials:(nonnull PowerAuthCoreCredentials*)credentials
+                                      keyId:(PowerAuthCoreSignatureKeyId)keyId
+                                      error:(NSError *_Nullable*_Nullable)error;
+
+/// Create a JWS (or compact JWT) over the given data. If the request succeeds, the
+/// response contains a `NSString` with the calculated JWS or JWT.
+
+/// - Parameters:
+///   - data: Data to sign and embed into JWS.
+///   - dataType: Data type set to JOSE header. Use `"JWT"` or `nil` if no type is set.
+///   - compactForm: If `true`, the result contains a compact JWT string instead of a JWS.
+///                 If used with hybrid keys, an error is reported.
+///   - credentials: Credentials used for unlocking the device private key.
+///   - keyId: Key used for signature calculation. The key must support such operation.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for unlocking device private key
+///            or `nil` in case of failure.
+- (nullable PowerAuthCoreRequest*) jwsSignData:(nullable NSData*)data
+                                      dataType:(nullable NSString*)dataType
+                                   compactForm:(BOOL)compactForm
+                                   credentials:(nonnull PowerAuthCoreCredentials*)credentials
+                                         keyId:(PowerAuthCoreSignatureKeyId)keyId
+                                         error:(NSError *_Nullable*_Nullable)error;
 
 #pragma mark - External Encryption Key
 
 /**
- Returns YES if EEK (external encryption key) is set.
+ Returns true if EEK (external encryption key) is set.
  
  This function access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL hasExternalEncryptionKey;
 
-/**
- Sets a known external encryption key to the internal SessionSetup structure. This method
- is useful, when the Session is using EEK, but the key is not known yet. You can restore
- the session without the EEK and use it for a very limited set of operations, like the status
- decode. The data signing will also work correctly, but only for a possession factor, which
- is by design not protected with EEK.
- 
- Returns::
-    PowerAuthCoreErrorCode_WrongParam  if key is already set and new EEK is different, or
-                                       if provided key has invalid length.
-    PowerAuthCoreErrorCode_WrongState  if you're setting key to activated session which doesn't use EEK
- 
- This function access the session's state, so read access must be guaranteed.
- */
-- (PowerAuthCoreErrorCode) setExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey;
+#pragma mark - Services
 
-/**
- Adds a new external encryption key permanently to the activated Session and to the internal 
- SessionSetup structure. The method is different than 'setExternalEncryptionKey' and is useful 
- for scenarios, when you need to add the EEK additionally, after the activation.
- 
- You have to save state of the session after the operation.
- 
- Returns:
-    PowerAuthCoreErrorCode_WrongParam   if the EEK has wrong size
-    PowerAuthCoreErrorCode_WrongState   if session has no valid activation, or
-                                        if the EEK is already set.
-    PowerAuthCoreErrorCode_Encryption   if internal cryptographic operation failed
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (PowerAuthCoreErrorCode) addExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey;
+/// Contains reference to time synchronization service.
+@property (nonatomic, readonly, strong, nonnull) PowerAuthCoreTimeService * timeSynchronizationService;
 
-/**
- Removes existing external encryption key from the activated Session. The method removes EEK permanently
- and clears internal EEK usage flag from the persistent data. The session has to be activated and EEK
- must be set at the time of call (e.g. 'hasExternalEncryptionKey' returns true).
-    
- You have to save state of the session after the operation.
- 
- Returns:
-    PowerAuthCoreErrorCode_WrongState   if session has no valid activation, or
-                                        if session has no EEK set
-    PowerAuthCoreErrorCode_Encryption   if internal cryptographic operation failed
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (PowerAuthCoreErrorCode) removeExternalEncryptionKey;
+/// Contains reference to encryptor factory.
+@property (nonatomic, readonly, strong, nonnull) PowerAuthCoreEncryptorFactory * encryptorFactory;
 
-#pragma mark - ECIES
+#pragma mark - Utilities
 
-/**
- Constructs the `PowerAuthCoreEciesEncryptor` object for the required `scope` and for optional `sharedInfo1`.
- The `keys` parameter must contain valid `possessionUnlockKey` in case that the "activation" scope is requested.
- For "application" scope, the `keys` object may be nil.
- 
- This function access the session's state, so read access must be guaranteed.
- */
-- (nullable PowerAuthCoreEciesEncryptor*) eciesEncryptorForScope:(PowerAuthCoreEciesEncryptorScope)scope
-                                                            keys:(nullable PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-                                                     sharedInfo1:(nullable NSData*)sharedInfo1;
-/**
- Sets a server's public key and its identifier for ECIES encryption. The scope of the encryption is
- determined by |scope| parameter.
- 
- Returns:
-    PowerAuthCoreErrorCode_Ok          if operation succeeded.
-    PowerAuthCoreErrorCode_WrongState  if activation scope is used and the session has no valid activation, or
-                                       if session object has no valid setup.
-    PowerAuthCoreErrorCode_WrongParam  if public key is empty, or doesn't contain Base64 encoded data, or
-                                       if key identifier is empty.
+/// Generate new factor KEK. The size of KEK depends on the current protocol version.
+///
+/// This function access the session's state, so read access must be guaranteed.
+/// - Parameter error: Pointer to output error.
+/// - Returns: New KEK or `nil` in case of failure.
+- (nullable PowerAuthCoreData*) generateFactorKek:(NSError*_Nullable*_Nullable)error;
 
- */
-- (PowerAuthCoreErrorCode) setPublicKeyForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope
-                                           publicKey:(nonnull NSString*)publicKey
-                                         publicKeyId:(nonnull NSString*)publicKeyId;
+/// Generate new factor KEK for selected protocol version.
+/// - Parameters:
+///   - protocolVersion: Protocol version.
+///   - error: Pointer to output error.
+/// - Returns: New KEK or `nil` in case of failure.
++ (nullable PowerAuthCoreData*) generateFactorKekForProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
+                                                              error:(NSError*_Nullable*_Nullable)error;
 
-/**
- Removes a server's public key and its identifier store for the given scope. It's safe to call this
- function if key for given scope is not set.
- */
-- (void) removePublicKeyForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope;
-
-/**
- Determines whether session contains stored server's public key for ECIES scope.
- */
-- (BOOL) hasPublicKeyForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope;
-
-/**
- Returns identifier of server's public key for given scope. If no key is set, or if function is called in
- wrong state, then returns `nil`.
- */
-- (nullable NSString*) publicKeyIdForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope;
-
-#pragma mark - Utilities for generic keys
-
-/**
- Returns normalized key suitable for a signagure keys protection. The key is computed from
- provided data with using one-way hash function (SHA256)
- 
- Discussion
- 
- This method is useful for situations, where you have to prepare key for possession factor,
- but your source data is not normalized. For example, WI-FI or UDID doesn't fit to
- requirements for cryptographic key and this function helps derive the key from an input data.
- */
-+ (nonnull PowerAuthCoreData*) normalizeSignatureUnlockKeyFromData:(nonnull NSData*)data;
-
-/**
- Returns new normalized key usable for a signature keys protection.
- 
- Discussion
- 
- The method is useful for situations, whenever you need to create a new key which will be
- protected with another, external factor. The best example is when a "biometry" factor is
- involved in the signatures. For this situation, you can generate a new key and save it
- to the storage, protected by the biometric factor.
- 
- Internally, method only generates 16 bytes long random data and therefore is also suitable
- for all other situations, when the generated random key is required.
- */
-+ (nonnull PowerAuthCoreData*) generateSignatureUnlockKey;
-
-/**
- Returns new challenge for getting activation status.
- 
- Internally, method only generates 16 bytes long random data encoded to Base64 and therefore
- is also suitable for all other situations, when the generated random key is required.
- */
-+ (nonnull NSString*) generateActivationStatusChallenge;
-
-
-#pragma mark - Protocol upgrade
-
-/**
- Formally starts the protocol upgrade to a newer version. The function only sets flag
- indicating that upgrade is in progress. You should serialize an activation status
- after this call.
- 
- Returns YES if upgrade has been started.
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (BOOL) startProtocolUpgrade;
-
-/**
- Determines which version of the protocol is the session being upgraded to.
- 
- Retuns protocol version or `PowerAuthCoreProtocolVersion_NA` if there's no upgrade, or session
- has no activation.
- 
- This property access the session's state, so read access must be guaranteed.
- */
-@property (nonatomic, assign, readonly) PowerAuthCoreProtocolVersion pendingProtocolUpgradeVersion;
-
-/**
- Applies upgrade data to the session. The version of data is determined by the
- object you provide. Currently, only `PowerAuthCoreProtocolUpgradeDataV3` is supported.
- 
- Returns YES if session has been successfully upgraded.
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (BOOL) applyProtocolUpgradeData:(nonnull id<PowerAuthCoreProtocolUpgradeData>)upgradeData;
-
-
-/**
- Formally ends the protocol upgrade. The function resets flag indicating that upgrade
- to the next protocol version is in progress. The reset is possible only if the upgrade
- was successful (e.g. when upgrading to V3, the protocol version is now V3)
- 
- You should serialize an activation status ater this call.
- 
- Returns YES if upgrade has been finished successfully.
- 
- This function changes the session's state, so write access must be guaranteed.
- */
-- (BOOL) finishProtocolUpgrade;
-
-/**
- Returns textual representation for given protocol version. For example, for `PowerAuthCoreProtocolVersion_V3`
- returns "3.3". You can use `PowerAuthCoreProtocolVersion_NA` to get the lastest supported version.
- */
+/// Returns textual representation for given protocol version. For example, for `PowerAuthCoreProtocolVersion_V3`
+/// returns "3.3". You can use `PowerAuthCoreProtocolVersion_NA` to get the value for the latest supported version.
 + (nonnull NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion;
 
 @end

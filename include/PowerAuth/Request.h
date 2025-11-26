@@ -1,0 +1,291 @@
+/*
+ * Copyright 2025 Wultra s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <PowerAuth/Response.h>
+#include <cc7/crypto/Parameter.h>
+
+#include <functional>
+#include <memory>
+
+namespace powerAuth {
+
+class Request;
+
+using PrepareRequestCallback = std::function<cc7::json::JsonValue(const Request&)>;
+using ResponseCallback       = std::function<ResponseObjectPtr(const Request&, const cc7::json::JsonValue&)>;
+using CancelCallback         = std::function<void()>;
+
+struct EndpointSpec;
+class IClientEncryptorFactory;
+class IClientEncryptor;
+class IAuthenticationService;
+class Credentials;
+class Task;
+
+/// The `Request` class contains information about HTTP request created in the core module.
+/// The core module doesn't perform any networking, so the higher level SDK is responsible
+/// for the request execution and the response delegate back to this request object.
+///  
+/// Be aware, that the Request is designed only to process a successful responses, and therefore
+/// non-200 responses has to be processed in the networking code.
+class Request
+{
+public:
+    
+    /// Object's destructor.
+    ~Request();
+    
+    /// Cancel the request.
+    void cancel() noexcept;
+        
+    /// Cancel the request from the parent task.
+    void cancelFromTask() noexcept;
+    
+    /// Set external reason of failure. If request is already completed, then method does nothing.
+    /// - Parameters:
+    ///   - exception: Reason of failure. If `nullptr`, then request is still set as failed.
+    void setFailed(std::exception_ptr exception) noexcept;
+    
+    /// Re-throw reason of failure. The method is useful in case the external code wants
+    /// to investigate the reason of failure. If request did not fail, then the method
+    /// throws `Exception` with `EC_NotAllowed`.
+    void reThrowFailure() const;
+
+    /// Prepare the request body and the headers. You have to call this method before you
+    /// call `getRequestBody()` or `getRequestHeaders()`.
+    ///
+    /// The method should be called from the background thread dedicated for the networking,
+    /// because preparation may take a significant amount of CPU time (for example, if activation
+    /// is being created).
+    void prepareRequest();
+    
+    /// Process response and set request completed.
+    /// - Parameter response_data: Response data.
+    void processResponse(const cc7::ByteRange& response_data);
+            
+    /// Returns `true` if request completed with success.
+    bool isCompleted() const noexcept;
+    
+    /// Returns `true` if request was canceled.
+    bool isCanceled() const noexcept;
+    
+    /// Returns `true` if request completed with failure.
+    bool isFailed() const noexcept;
+    
+    /// Returns `true` if request is completed with any type of result (success, cancel, failure).
+    bool isDone() const noexcept;
+    
+    /// Returns relative part of path to endpoint's URL.
+    const std::string& getRelativePath() const noexcept;
+    
+    /// Returns HTTP method.
+    const std::string& getHttpMethod() const noexcept;
+        
+    /// Returns `true` if request require synchronized time for proper processing.
+    bool requireSynchronizedTime() const noexcept;
+    
+    /// Returns `true` if request must be executed in serial queue.
+    bool requireSerialQueue() const noexcept;
+    
+    /// Returns `true` if request is allowed during the protocol upgrade.
+    bool isAllowedInUpgrade() const noexcept;
+    
+    /// Returns `true` if request is encrypted.
+    bool isEncrypted() const noexcept;
+    
+    /// Returns `true` if request is authenticated with authentication header.
+    bool isAuthenticated() const noexcept;
+    
+    /// Returns scope of temporary key required for proper processing. If request is not
+    /// encrypted, then throws exception.
+    EncryptorScope encryptorScope() const;
+    
+    
+    /// Returns request's body.
+    ///
+    /// You have to call `prepareRequest()` from the processing queue, before you
+    /// get the body, otherwise exception is raised.
+    const cc7::ByteArray& getRequestBody() const;
+    
+    /// Returns request's headers.
+    ///
+    /// You have to call `prepareRequest()` from the processing queue, before you
+    /// get the headers, otherwise exception is raised.
+    const HttpHeaderList& getRequestHeaders() const;
+
+    
+    /// Returns response body.
+    ///
+    /// You have to call `processResponse()` before you get the response, otherwise
+    /// the exception is raised.
+    const cc7::ByteArray& getResponseBody() const;
+    
+    /// Returns response object or `nullptr` if response object was not created in the response
+    /// processing.
+    ///
+    /// You have to call `processResponse()` before you get the response, otherwise
+    /// the exception is raised.
+    const ResponseObjectPtr& getResponseObject() const;
+    
+    /// Returns response JSON representation.
+    ///
+    /// You have to call `processResponse()` before you get the response, otherwise
+    /// the exception is raised.
+    const cc7::json::JsonValue& getResponseJson() const;
+    
+    /// Returns custom parameter associated with the request.
+    const cc7::crypto::Parameter& getCustomParameter() const noexcept;
+    
+    /// Get typed response object.
+    ///
+    /// - Parameter required: If true, then exception is raised if type of object is different
+    ///                       or no response object was created during the processing.
+    /// - Returns: Smart pointer to typed response object.
+    template <typename T> std::shared_ptr<T> getTypedResponseObject(bool required = true) const
+    {
+        auto response = getResponseObject();
+        auto typed = std::dynamic_pointer_cast<T>(response);
+        if (required && typed == nullptr) {
+            if (response != nullptr) {
+                throw Exception(EC_InvalidResponse, "Wrong response object type created");
+            } else {
+                throw Exception(EC_InvalidResponse, "Response object is null");
+            }
+        }
+        return typed;
+    }
+    
+    /// Execute operation while internal lock is granted.
+    /// - Parameter operation: Operation to execute.
+    /// - Returns: Value returned from operation function.
+    template <typename T> T executeOperation(std::function<T()> operation)
+    {
+        std::lock_guard<std::recursive_mutex> _lock_guard(*_mutex);
+        return operation();
+    }
+    
+    /// Set parent task that manages execution of this request.
+    /// - Parameters:
+    ///   - task: Parent task.
+    ///   - tag: Tag identifying this request in the task.
+    /// - Throws: `Exception` in case parent task is already set or it's too late to
+    ///           set the task.
+    void setParentTask(const std::shared_ptr<Task>& task, int tag);
+    
+    /// Get pointer to parent task. If no task is assigned, then pointer is null.
+    const std::shared_ptr<Task>& getParentTask() const noexcept;
+    
+    /// Get tag associated with the parent task.
+    int getParentTaskTag() const noexcept;
+    
+private:
+    
+    enum State
+    {
+        /// Request is waiting to prepare request body and headers.
+        WAITING,
+        /// Request is awaiting response from the server.
+        PENDING,
+        /// Request successfully processed the response.
+        PROCESSED,
+        /// Request failed.
+        FAILED,
+        /// Request is canceled.
+        CANCELED,
+    };
+    
+    friend class RequestBuilder;
+    
+    /// Request constructor.
+    /// - Parameters:
+    ///   - mutex: Shared mutex.
+    ///   - endpoint: Endpoint specification.
+    Request(const SharedMutexPtr& mutex, const EndpointSpec& endpoint);
+
+    /// Prepare request body and headers.
+    void doPrepareRequest();
+    
+    /// Process response data.
+    /// - Parameter response_data: Response data to process.
+    void doProcessResponse(const cc7::ByteRange& response_data);
+
+    /// Cleanup request. The method clears all pointers to callbacks and breaks possible retain loops.
+    void cleanup() noexcept;
+    
+    /// Prepares request body.
+    void prepareRequestBody();
+    
+    /// Process failure and re-throw the provided exception.
+    void processFailure [[noreturn]] (ErrorCode ec, const std::string& msg, std::exception_ptr failure);
+    
+    /// Common cancel implementation.
+    /// - Parameter clear_task: If `true` then also clear `_task` reference.
+    void cancelImpl(bool clear_task) noexcept;
+    
+    /// Notify all listeners about the request completion.
+    void notifyResult() noexcept;
+    
+    /// Endpoint specification.
+    const EndpointSpec & _endpoint;
+    
+    /// Prepare callback.
+    PrepareRequestCallback _on_prepare;
+    /// Response callback.
+    ResponseCallback _on_response;
+    /// Cancel callback.
+    CancelCallback _on_cancel;
+    /// Parent task
+    std::shared_ptr<Task> _task;
+    /// Custom tag associated with the task
+    int _task_tag;
+    
+    /// If request is encrypted then contains encryptor factory.
+    std::shared_ptr<IClientEncryptorFactory> _encryptor_factory;
+    /// If request is encrypted then contains encryptor for response decryption.
+    std::shared_ptr<IClientEncryptor> _encryptor;
+    /// If request is authenticated then contains authentication code calculator.
+    std::shared_ptr<IAuthenticationService> _authenticator;
+    /// If request is authenticated then contains user's credentials.
+    std::shared_ptr<Credentials> _authentication;
+    
+    /// Shared mutex.
+    SharedMutexPtr _mutex;
+    /// State of the request.
+    State _state;
+    /// Request headers.
+    HttpHeaderList _request_headers;
+
+    /// Request body.
+    cc7::ByteArray _request_body;
+    /// Request JSON.
+    cc7::json::JsonValue _request_json;
+    /// Response body.
+    cc7::ByteArray _response_body;
+    /// Response JSON.
+    cc7::json::JsonValue _response_json;
+    /// Response object, if created.
+    ResponseObjectPtr _response_object;
+    /// Custom parameter
+    cc7::crypto::Parameter _custom_parameter;
+    /// Cause of failure
+    std::exception_ptr _failure;
+};
+
+CC7_SHARED_PTR(Request)
+
+} // namespace powerAuth

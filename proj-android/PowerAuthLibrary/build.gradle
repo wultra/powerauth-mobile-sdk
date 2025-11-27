@@ -24,15 +24,19 @@ plugins {
 android {
     namespace = "io.getlime.security.powerauth"
 
-    compileSdk rootProject.ext.compileSdkVersion
+    compileSdk = rootProject.ext.compileSdkVersion
     buildToolsVersion = rootProject.ext.buildToolsVersion
-    ndkVersion rootProject.ext.ndkVersion
+    ndkVersion = rootProject.ext.ndkVersion
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName VERSION_NAME
-        versionCode 1
+        versionName = VERSION_NAME
+        versionCode = 1
         buildConfigField "String", "LIBRARY_VERSION_NAME", "\"" + VERSION_NAME + "\""
 
         vectorDrawables.useSupportLibrary = true

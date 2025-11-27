@@ -19,7 +19,9 @@ package io.getlime.security.powerauth.integration.tests;
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import io.getlime.security.powerauth.integration.support.model.ServerVersion;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,6 +71,9 @@ public class RecoveryActivationTest {
 
     @Test
     public void testCreateActivationWithNoRC() throws Exception {
+        // Test only if server supports RC
+        Assume.assumeTrue(testHelper.getServerApi().getServerVersion().isFeatureSupported(ServerVersion.Feature.RECOVERY_CODES));
+
         // Disable recovery activations
         enableRecoveryActivations(false);
         regularActivation.createStandardActivation(true, null);
@@ -79,6 +84,8 @@ public class RecoveryActivationTest {
 
     @Test
     public void testCreateRecoveryActivation() throws Exception {
+        // Test only if server supports RC
+        Assume.assumeTrue(testHelper.getServerApi().getServerVersion().isFeatureSupported(ServerVersion.Feature.RECOVERY_CODES));
 
         final String extras = "recovery,attributes";
 

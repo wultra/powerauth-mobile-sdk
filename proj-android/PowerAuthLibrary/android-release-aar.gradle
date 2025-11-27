@@ -43,25 +43,26 @@ ext {
     NEXUS_STAGING_PROFILE = findProperty('nexus.stagingProfileId')
 }
 
-task androidJavadocs(type: Javadoc) {
+tasks.register('androidJavadocs', Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     // Make generated BuildConfig visible for javadoc
     source += 'build/generated/source/buildConfig'
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += files(android.getBootClasspath())
     // adds libraries to classpath
-    android.libraryVariants.all { variant ->
+    android.libraryVariants.configureEach { variant ->
         if (variant.name == 'release') {
             owner.classpath += variant.getJavaCompileProvider().get().classpath
         }
     }
 }
 
-task androidSourcesJar(type: Jar) {
+tasks.register('androidSourcesJar', Jar) {
     archiveClassifier.set('sources')
     from android.sourceSets.main.java.srcDirs
 }
 
-task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+tasks.register('androidJavadocsJar', Jar) {
+    dependsOn androidJavadocs
     archiveClassifier.set('javadoc')
     from androidJavadocs.destinationDir
 }
@@ -75,12 +76,11 @@ publishing {
     publications {
         release(MavenPublication) {
             // POM group, artifact & version
-            groupId GROUP_ID
+            groupId = GROUP_ID
             artifactId = ARTIFACT_ID
             version = VERSION_NAME
 
-            // Include artifacts, the `aar` and the sources
-            artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
+            // Include artifacts, the sources and javadocs (AAR wired in afterEvaluate)
             artifact androidSourcesJar
             artifact androidJavadocsJar
 
@@ -134,15 +134,15 @@ publishing {
             url = isReleaseBuild() ? releasesRepoUrl : snapshotsRepoUrl
 
             credentials {
-                username NEXUS_USERNAME
-                password NEXUS_PASSWORD
+                username = NEXUS_USERNAME
+                password = NEXUS_PASSWORD
             }
         }
     }
 }
 
 signing {
-    required { shouldSignArtifacts() }
+    required = shouldSignArtifacts()
     if (shouldSignArtifacts()) {
         // This must be also conditional, otherwise developers with no signing capabilities will
         // not be able to publish library to the local maven.
@@ -164,7 +164,16 @@ nexusPublishing {
 }
 
 afterEvaluate {
-    androidJavadocs.dependsOn generateReleaseBuildConfig
+    androidJavadocs.dependsOn "generateReleaseBuildConfig"
+
+    // Wire the AAR-producing task into the publication after Android has created variant tasks
+    publishing {
+        publications {
+            release(MavenPublication) {
+                artifact(tasks.named("bundleReleaseAar"))
+            }
+        }
+    }
 }
 
 

@@ -42,6 +42,16 @@ public enum ServerVersion {
     ;
 
     /**
+     * Features added or removed over the time.
+     */
+    public enum Feature {
+        /**
+         * Starting 2.0, the recovery codes feature is NOT supported.
+         */
+        RECOVERY_CODES
+    }
+
+    /**
      * Contains constant for the latest PowerAuth Server version.
      */
     public static final ServerVersion LATEST = V2_0_0;
@@ -80,6 +90,18 @@ public enum ServerVersion {
      */
     public int getMinorVersion() {
         return (numericVersion % 1000000) / 1000;
+    }
+
+    /**
+     * Test feature support with this version of the server.
+     * @param feature Feature to test.
+     * @return `true` if feature is supported.
+     */
+    public boolean isFeatureSupported(@NonNull Feature feature) {
+        if (feature == Feature.RECOVERY_CODES) {
+            return numericVersion < V2_0_0.numericVersion;
+        }
+        return false;
     }
 
     /**

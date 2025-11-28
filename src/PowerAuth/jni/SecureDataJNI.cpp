@@ -23,7 +23,7 @@
 #define CC7_JNI_CPP_CLASS           SecureData
 #include <cc7/jni/JniModule.inl>
 
- using namespace io::getlime::powerAuth;
+ using namespace powerAuth;
 
 jobject CopyToSecureData(JNIEnv * env, const cc7::ByteRange & data)
 {

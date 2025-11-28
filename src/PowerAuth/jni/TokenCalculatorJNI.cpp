@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-#include <PowerAuth/PublicTypes.h>
+#include <PowerAuth/Types.h>
 #include <PowerAuth/Algorithms.h>
 #include <cc7/jni/JniHelper.h>
-#include "../protocol/Constants.h"
 #include <sys/time.h>
 
 // Package: io.getlime.security.powerauth.core
@@ -27,7 +26,7 @@
 #define CC7_JNI_CPP_CLASS           NA
 #include <cc7/jni/JniModule.inl>
 
-using namespace io::getlime::powerAuth;
+using namespace powerAuth;
 
 extern "C" {
 
@@ -36,62 +35,7 @@ extern "C" {
 //
 CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData, jlong timestamp)
 {
-    if (privateData == NULL || env == NULL) {
-        CC7_ASSERT(false, "Missing parameter privateData.");
-        return NULL;
-    }
-    // Look for io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData
-    jclass privateDataClazz = env->FindClass("io/getlime/security/powerauth/sdk/impl/PowerAuthPrivateTokenData");
-
-    // Load parameters into C++ objects
-    auto cppTokenSecret = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(privateData, privateDataClazz, "secret"));
-    auto cppTokenIdentifier = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(privateData, privateDataClazz, "identifier"));
-
-    if (cppTokenSecret.size() != 16 || cppTokenIdentifier.empty()) {
-        CC7_ASSERT(false, "PowerAuthPrivateTokenData is not valid.");
-        return NULL;
-    }
-
-    // Get nonce & timestamp
-    std::string timestamp_string = std::to_string(timestamp);
-    cc7::ByteArray nonce = cc7::crypto::GetRandomData(16);
-
-    // Construct data for HMAC and calculate that digest.
-    auto protocol_version = Version_GetMaxSupportedHttpProtocolVersion(Version_Latest);
-    cc7::ByteArray data;
-    data.reserve(16 + 1 + timestamp_string.length() + 1 + protocol_version.length());
-
-    data.assign(nonce);
-    data.append(cc7::MakeRange(protocol::AMP));
-    data.append(cc7::MakeRange(timestamp_string));
-    data.append(cc7::MakeRange(protocol::AMP));
-    data.append(cc7::MakeRange(protocol_version));
-    cc7::ByteArray digest;
-    try {
-        digest = algorithms().hmacWithSha256().token(cppTokenSecret, data);
-    } catch (std::exception & e) {
-        return nullptr;
-    }
-    // Construct header
-    auto digestBase64 = digest.base64String();
-    auto nonceBase64 = nonce.base64String();
-
-    std::string result;
-    result.reserve(cppTokenIdentifier.length() + digestBase64.length() + nonceBase64.length() + timestamp_string.length() + 80);
-
-    result.assign("PowerAuth version=\"");
-    result.append(protocol_version);
-    result.append("\", token_id=\"");
-    result.append(cppTokenIdentifier);
-    result.append("\", token_digest=\"");
-    result.append(digestBase64);
-    result.append("\", nonce=\"");
-    result.append(nonceBase64);
-    result.append("\", timestamp=\"");
-    result.append(timestamp_string);
-    result.append("\"");
-
-    return cc7::jni::CopyToJavaString(env, result);
+    return nullptr;
 }
 
 } // extern "C"

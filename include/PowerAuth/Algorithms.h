@@ -28,7 +28,6 @@ namespace v4
     class PowerAuthAEAD;
     class PowerAuthUKE;
     class HybridKeyPairFactory;
-    class HybridSignature;
 }
 namespace v3
 {

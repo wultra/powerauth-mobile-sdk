@@ -17,7 +17,7 @@
  #pragma once
 
  #include <cc7/jni/JniHelper.h>
- #include <PowerAuth/PublicTypes.h>
+ #include <PowerAuth/Types.h>
 
 /**
  Create instance of SecureData from provided byte range.

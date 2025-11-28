@@ -22,4 +22,4 @@
 /**
  Returns underlying C++ object, stored in java Password class instance. 
  */
-CC7_EXTERN_C io::getlime::powerAuth::Password * GetCppPasswordFromJavaObject(JNIEnv * env, jobject passwordObject);
+CC7_EXTERN_C powerAuth::Password * GetCppPasswordFromJavaObject(JNIEnv * env, jobject passwordObject);

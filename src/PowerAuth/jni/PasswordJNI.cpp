@@ -24,7 +24,7 @@
 #define CC7_JNI_CPP_CLASS           Password
 #include <cc7/jni/JniModule.inl>
 
-using namespace io::getlime::powerAuth;
+using namespace powerAuth;
 
 CC7_JNI_MODULE_CLASS_BEGIN()
 

@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#include "SharedSecret.h"
-
+#include <PowerAuth/SharedSecret.h>
 #include <PowerAuth/Algorithms.h>
 #include <PowerAuth/ByteUtils.h>
 #include <cc7/utils/DataReader.h>

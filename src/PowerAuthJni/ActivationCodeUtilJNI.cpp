@@ -24,7 +24,7 @@
 #define CC7_JNI_CPP_CLASS           OtpUtil
 #include <cc7/jni/JniModule.inl>
 
-using namespace io::getlime::powerAuth;
+using namespace powerAuth;
 
 // This class has all its methods declared as static. We don't need to use CC7_JNI_MODULE_CLASS_BEGIN
 // macro, because we're OK with simple "exttern C" declaration.

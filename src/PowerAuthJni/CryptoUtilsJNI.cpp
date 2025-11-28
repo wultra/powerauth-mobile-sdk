@@ -26,8 +26,8 @@
 #define CC7_JNI_CPP_CLASS           NA
 #include <cc7/jni/JniModule.inl>
 
-using namespace io::getlime::powerAuth;
-using namespace io::getlime::powerAuth::jni;
+using namespace powerAuth;
+using namespace powerAuth::jni;
 
 extern "C" {
 
@@ -41,7 +41,7 @@ CC7_JNI_METHOD(jobject, ecGenerateKeyPair)
     EcPublicKeyJNI * cpp_public_key = nullptr;
     do {
         try {
-            auto key_pair = algorithms().p256().generateKeyPair();
+            auto key_pair = algorithms().v3.p256().generateKeyPair();
             cpp_private_key = new EcPrivateKeyJNI(key_pair->getPrivateKeyPtr());
             cpp_public_key = new EcPublicKeyJNI(key_pair->getPublicKeyPtr());
         } catch (std::exception & e) {
@@ -89,7 +89,7 @@ CC7_JNI_METHOD_PARAMS(jboolean, ecdsaValidateSignature, jbyteArray data, jbyteAr
     if (cpp_publicKey != nullptr) {
         // Validate signature
         try {
-            result = algorithms().ecdsaWithSha256().verify(cpp_publicKey->keyPtr(), cpp_signature, cpp_data);
+            result = algorithms().v3.ecdsaWithSha256().verify(cpp_publicKey->keyPtr(), cpp_signature, cpp_data);
         } catch (std::exception & e) {
             result = false;
         }
@@ -116,7 +116,7 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, ecdsaComputeSignature, jbyteArray data, jobjec
     if (cpp_privateKey != nullptr) {
         // Compute signature
         try {
-            auto cpp_result = algorithms().ecdsaWithSha256().sign(cpp_privateKey->keyPtr(), cpp_data);
+            auto cpp_result = algorithms().v3.ecdsaWithSha256().sign(cpp_privateKey->keyPtr(), cpp_data);
             result = cc7::jni::CopyToJavaByteArray(env, cpp_result);
         } catch (std::exception & e) {
             result = nullptr;
@@ -144,7 +144,7 @@ CC7_JNI_METHOD_PARAMS(jobject, ecdhComputeSharedSecret, jobject publicKey, jobje
     if (cpp_privateKey != nullptr && cpp_publicKey != nullptr) {
         // Compute shared secret
         try {
-            auto cpp_result = algorithms().ecdhWithNullKdf().phase(cpp_privateKey->keyPtr(), cpp_publicKey->keyPtr());
+            auto cpp_result = algorithms().v3.ecdhWithNullKdf().phase(cpp_privateKey->keyPtr(), cpp_publicKey->keyPtr());
             result = CopyToNullableSecureData(env, cpp_result->getKeyData());
         } catch (std::exception & e) {
             result = nullptr;
@@ -165,7 +165,7 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, hashSha256, jbyteArray data)
     try {
         // Convert data objects & calculate hash
         auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
-        auto hash =  algorithms().sha256().digest(cpp_data);
+        auto hash =  algorithms().v3.sha256().digest(cpp_data);
         return cc7::jni::CopyToJavaByteArray(env, hash);
     } catch (std::exception & e) {
         return nullptr;
@@ -189,7 +189,7 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, hmacSha256, jbyteArray data, jbyteArray key, j
         // Convert data objects
         auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
         auto cpp_key = cc7::jni::CopyFromJavaByteArray(env, key);
-        auto cpp_result = algorithms().hmacWithSha256().token(cpp_key, cpp_data, {
+        auto cpp_result = algorithms().v3.hmacWithSha256().token(cpp_key, cpp_data, {
             { cc7::crypto::MAC_PARAM_DIGEST_LENGTH, cc7::crypto::Parameter::take((size_t)outputLength) }
         });
         return cc7::jni::CopyToNullableJavaByteArray(env, cpp_result);

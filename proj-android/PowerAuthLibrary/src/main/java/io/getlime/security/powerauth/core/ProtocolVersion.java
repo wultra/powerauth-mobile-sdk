@@ -40,7 +40,12 @@ public enum ProtocolVersion {
     /**
      * Protocol version 3
      */
-    V3(3);
+    V3(3),
+
+    /**
+     * Protocol version 4
+     */
+    V4(4);
 
     /**
      * The value associated to the enumeration.

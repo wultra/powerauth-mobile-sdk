@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-#pragma once
+ #pragma once
 
-#include <cc7/jni/JniHelper.h>
-#include <PowerAuth/Password.h>
+ #include <cc7/jni/JniHelper.h>
+ #include <PowerAuth/Types.h>
 
 /**
- Returns underlying C++ object, stored in java Password class instance. 
+ Create instance of SecureData from provided byte range.
  */
-CC7_EXTERN_C io::getlime::powerAuth::Password * GetCppPasswordFromJavaObject(JNIEnv * env, jobject passwordObject);
+extern jobject CopyToSecureData(JNIEnv * env, const cc7::ByteRange & data);
+/**
+ Create instance of SecureData from provided byte range. If range is empty,
+ then returns null.
+ */
+extern jobject CopyToNullableSecureData(JNIEnv * env, const cc7::ByteRange & data);
+/**
+ Return byte array from bytes stored in SecureData.
+ */
+extern cc7::ByteArray CopyFromSecureData(JNIEnv * env, jobject object);

@@ -36,24 +36,90 @@ LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/../cc7/include \
 	$(LOCAL_PATH)/../cc7/openssl-lib/android/include
 
-# Multiplatform sources
-LOCAL_SRC_FILES := \
+# Multiplatform sources - PowerAuth/
+LOCAL_SRC_FILES += \
 	PowerAuth/Session.cpp \
-	PowerAuth/PublicTypes.cpp \
-	PowerAuth/Password.cpp \
-	PowerAuth/Debug.cpp \
-	PowerAuth/OtpUtil.cpp \
-	PowerAuth/ECIES.cpp \
-	PowerAuth/ByteUtils.cpp \
+	PowerAuth/Context.cpp \
+	PowerAuth/ActivationResult.cpp \
+	PowerAuth/ProtocolUpgradeResult.cpp \
+	PowerAuth/ActivationStatus.cpp \
+	PowerAuth/HttpHeaderHelper.cpp \
 	PowerAuth/Algorithms.cpp \
-	PowerAuth/crypto/JOSE.cpp \
-	PowerAuth/protocol/Constants.cpp \
-	PowerAuth/protocol/PrivateTypes.cpp \
-	PowerAuth/protocol/ProtocolUtils.cpp \
-	PowerAuth/utils/DataReader.cpp \
-	PowerAuth/utils/DataWriter.cpp \
-	PowerAuth/utils/URLEncoding.cpp \
-	PowerAuth/utils/CRC16.cpp
+	PowerAuth/PowerAuthSpec.cpp \
+	PowerAuth/Exception.cpp \
+	PowerAuth/Configuration.cpp \
+	PowerAuth/Types.cpp \
+	PowerAuth/Request.cpp \
+	PowerAuth/Task.cpp \
+	PowerAuth/Credentials.cpp \
+	PowerAuth/Service.cpp \
+	PowerAuth/Encryptor.cpp \
+	PowerAuth/AuthenticationService.cpp \
+	PowerAuth/TokenService.cpp \
+	PowerAuth/TimeService.cpp \
+	PowerAuth/SignatureService.cpp \
+	PowerAuth/VaultService.cpp \
+	PowerAuth/Debug.cpp \
+	PowerAuth/Password.cpp \
+	PowerAuth/ByteUtils.cpp \
+	PowerAuth/KeyProvider.cpp \
+	PowerAuth/OtpUtil.cpp \
+	PowerAuth/SharedSecret.cpp
+
+# Multiplatform sources - PowerAuth/common
+LOCAL_SRC_FILES += \
+	PowerAuth/common/CRC16.cpp \
+	PowerAuth/common/ThreadSafeNonceGenerator.cpp \
+	PowerAuth/common/SecretKeysPool.cpp \
+	PowerAuth/common/CommonFunctions.cpp
+
+# Multiplatform sources - PowerAuth/request
+LOCAL_SRC_FILES += \
+	PowerAuth/request/EndpointSpec.cpp \
+	PowerAuth/request/RequestBuilder.cpp
+
+# Multiplatform sources - PowerAuth/task
+LOCAL_SRC_FILES += \
+	PowerAuth/task/ProtocolUpgradeTask.cpp \
+	PowerAuth/task/GetActivationStatusTask.cpp
+
+# Multiplatform sources - PowerAuth/model
+LOCAL_SRC_FILES += \
+	PowerAuth/model/Constants.cpp \
+	PowerAuth/model/SessionData.cpp \
+	PowerAuth/model/PersistentData.cpp \
+	PowerAuth/model/RegistrationData.cpp \
+	PowerAuth/model/UpgradeData.cpp
+
+# Multiplatform sources - PowerAuth/v3
+LOCAL_SRC_FILES += \
+	PowerAuth/v3/AuthenticationServiceV3.cpp \
+	PowerAuth/v3/TokenServiceV3.cpp \
+	PowerAuth/v3/ActivationServiceV3.cpp \
+	PowerAuth/v3/SecretKeysV3.cpp \
+	PowerAuth/v3/KeyProviderV3.cpp \
+	PowerAuth/v3/EciesEncryptorFactory.cpp \
+	PowerAuth/v3/EciesEncryptor.cpp \
+	PowerAuth/v3/EciesUtils.cpp \
+	PowerAuth/v3/LegacyKDF.cpp \
+	PowerAuth/v3/LegacyUKE.cpp \
+	PowerAuth/v3/FunctionsV3.cpp
+
+# Multiplatform sources - PowerAuth/v4
+LOCAL_SRC_FILES += \
+	PowerAuth/v4/ActivationServiceV4.cpp \
+	PowerAuth/v4/AuthenticationServiceV4.cpp \
+	PowerAuth/v4/TokenServiceV4.cpp \
+	PowerAuth/v4/SecretKeysV4.cpp \
+	PowerAuth/v4/KeyProviderV4.cpp \
+	PowerAuth/v4/AeadEncryptorFactory.cpp \
+	PowerAuth/v4/AeadEncryptor.cpp \
+	PowerAuth/v4/AeadUtils.cpp \
+	PowerAuth/v4/HybridKeyPair.cpp \
+	PowerAuth/v4/PowerAuthAEAD.cpp \
+	PowerAuth/v4/PowerAuthKDF.cpp \
+	PowerAuth/v4/PowerAuthUKE.cpp \
+	PowerAuth/v4/FunctionsV4.cpp
 
 include $(BUILD_STATIC_LIBRARY)
 
@@ -135,17 +201,15 @@ LOCAL_C_INCLUDES := \
 
 # JNI sources
 LOCAL_SRC_FILES := \
-	PowerAuth/jni/SessionJNI.cpp \
-	PowerAuth/jni/SessionSetupJNI.cpp \
-	PowerAuth/jni/PasswordJNI.cpp \
-	PowerAuth/jni/ActivationCodeUtilJNI.cpp \
-	PowerAuth/jni/ECIESEncryptorJNI.cpp \
-	PowerAuth/jni/TokenCalculatorJNI.cpp \
-	PowerAuth/jni/CryptoUtilsJNI.cpp \
-	PowerAuth/jni/ProtocolVersionJNI.cpp \
-	PowerAuth/jni/EcPrivateKeyJNI.cpp \
-	PowerAuth/jni/EcPublicKeyJNI.cpp \
-	PowerAuth/jni/SecureDataJNI.cpp \
+	PowerAuthJni/SessionJNI.cpp \
+	PowerAuthJni/PasswordJNI.cpp \
+	PowerAuthJni/ActivationCodeUtilJNI.cpp \
+	PowerAuthJni/TokenCalculatorJNI.cpp \
+	PowerAuthJni/CryptoUtilsJNI.cpp \
+	PowerAuthJni/ProtocolVersionJNI.cpp \
+	PowerAuthJni/EcPrivateKeyJNI.cpp \
+	PowerAuthJni/EcPublicKeyJNI.cpp \
+	PowerAuthJni/SecureDataJNI.cpp
 
 include $(BUILD_SHARED_LIBRARY)
 

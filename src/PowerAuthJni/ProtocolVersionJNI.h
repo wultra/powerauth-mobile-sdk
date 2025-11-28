@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Wultra s.r.o.
+ * Copyright 2018 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
- #pragma once
+#pragma once
 
- #include <cc7/jni/JniHelper.h>
- #include <PowerAuth/PublicTypes.h>
+#include <cc7/jni/JniHelper.h>
+#include <PowerAuth/Types.h>
 
 /**
- Create instance of SecureData from provided byte range.
+ Returns underlying C++ object, stored in java Password class instance. 
  */
-extern jobject CopyToSecureData(JNIEnv * env, const cc7::ByteRange & data);
-/**
- Create instance of SecureData from provided byte range. If range is empty,
- then returns null.
- */
-extern jobject CopyToNullableSecureData(JNIEnv * env, const cc7::ByteRange & data);
-/**
- Return byte array from bytes stored in SecureData.
- */
-extern cc7::ByteArray CopyFromSecureData(JNIEnv * env, jobject object);
+CC7_EXTERN_C jobject CreateJavaProtocolVersion(JNIEnv * env, int v);

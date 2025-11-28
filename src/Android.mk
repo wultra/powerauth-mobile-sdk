@@ -201,15 +201,15 @@ LOCAL_C_INCLUDES := \
 
 # JNI sources
 LOCAL_SRC_FILES := \
-	PowerAuth/jni/SessionJNI.cpp \
-	PowerAuth/jni/PasswordJNI.cpp \
-	PowerAuth/jni/ActivationCodeUtilJNI.cpp \
-	PowerAuth/jni/TokenCalculatorJNI.cpp \
-	PowerAuth/jni/CryptoUtilsJNI.cpp \
-	PowerAuth/jni/ProtocolVersionJNI.cpp \
-	PowerAuth/jni/EcPrivateKeyJNI.cpp \
-	PowerAuth/jni/EcPublicKeyJNI.cpp \
-	PowerAuth/jni/SecureDataJNI.cpp \
+	PowerAuthJni/SessionJNI.cpp \
+	PowerAuthJni/PasswordJNI.cpp \
+	PowerAuthJni/ActivationCodeUtilJNI.cpp \
+	PowerAuthJni/TokenCalculatorJNI.cpp \
+	PowerAuthJni/CryptoUtilsJNI.cpp \
+	PowerAuthJni/ProtocolVersionJNI.cpp \
+	PowerAuthJni/EcPrivateKeyJNI.cpp \
+	PowerAuthJni/EcPublicKeyJNI.cpp \
+	PowerAuthJni/SecureDataJNI.cpp
 
 include $(BUILD_SHARED_LIBRARY)
 

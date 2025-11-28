@@ -86,7 +86,7 @@ done
 
 [[ x$DO_LINT$DO_SCRIPT$DO_ANDROID$DO_CORE == x0000 ]] && FAILURE "Please specify buld mode: lint, script, android or all."
 
-REQUIRE_COMMAND pod
+[[ x$DO_LINT == x1 ]] && REQUIRE_COMMAND pod
 
 # -----------------------------------------------------------------------------
 # Run builds....

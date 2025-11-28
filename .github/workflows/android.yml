@@ -8,7 +8,9 @@ on:
       - releases/*
       - feature/crypto4
     paths:
+      - ".gitmodules"
       - "cc7"
+      - "scripts/**"
       - "src/PowerAuth/**"
       - "src/PowerAuthJni/**"
       - "src/PowerAuthTests/**"
@@ -16,12 +18,16 @@ on:
       - "proj-android/**"
   pull_request:
     paths:
+      - ".gitmodules"
       - "cc7"
+      - "scripts/**"
       - "src/PowerAuth/**"
       - "src/PowerAuthJni/**"
       - "src/PowerAuthTests/**"
       - "include/**"
       - "proj-android/**"
+  schedule:
+    - cron: '30 6 * * 1'
 
 jobs:
   build:

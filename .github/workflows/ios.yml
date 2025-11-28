@@ -8,14 +8,18 @@ on:
       - releases/*
       - feature/crypto4
     paths:
+      - ".gitmodules"
       - "cc7"
+      - "scripts/**"
       - "src/PowerAuth/**"
       - "src/PowerAuthTests/**"
       - "include/**"
       - "proj-xcode/**"
   pull_request:
     paths:
+      - ".gitmodules"
       - "cc7"
+      - "scripts/**"
       - "src/PowerAuth/**"
       - "src/PowerAuthTests/**"
       - "include/**"

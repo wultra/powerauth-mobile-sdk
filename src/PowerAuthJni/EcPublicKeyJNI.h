@@ -19,14 +19,8 @@
 #include <cc7/jni/JniHelper.h>
 #include <PowerAuth/Algorithms.h>
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuth
-{
-namespace jni
-{
+namespace powerAuth {
+namespace jni {
     /**
      * Object that contains reference to public EC_KEY.
      */
@@ -36,11 +30,12 @@ namespace jni
          * Create new instance of EcPrivateKeyJNI from provided private key data. Function returns
          * nullptr if provided data doesn't represent private key.
          */
-        static EcPublicKeyJNI * createFromBytes(const cc7::ByteRange & public_key_data) {
+        static EcPublicKeyJNI *createFromBytes(const cc7::ByteRange &public_key_data) {
             try {
-                auto ec_key = algorithms().p256().newPublicKey(public_key_data, cc7::crypto::KEY_FORMAT_X963);
+                auto ec_key = algorithms().v3.p256().newPublicKey(public_key_data,
+                                                               cc7::crypto::KEY_FORMAT_X963);
                 return new EcPublicKeyJNI(ec_key);
-            } catch (std::exception & e) {
+            } catch (std::exception &e) {
                 return nullptr;
             }
         }
@@ -56,28 +51,27 @@ namespace jni
         /**
          * Return pointer to public key implementation.
          */
-         cc7::crypto::PublicKey & keyPtr() {
+        cc7::crypto::PublicKey &keyPtr() {
             return *_ec_key;
         }
-        
-        EcPublicKeyJNI(const cc7::crypto::PublicKeyPtr & ec_key) : _ec_key(ec_key) {}
+
+        EcPublicKeyJNI(const cc7::crypto::PublicKeyPtr &ec_key) : _ec_key(ec_key) {}
 
     private:
 
         cc7::crypto::PublicKeyPtr _ec_key;
     };
-    
-} // io::getlime::powerAuth::jni
-} // io::getlime::powerAuth
-} // io::getlime
-} // io
+
+} // namespace jni
+} // namespace powerAuth
+
 
 /**
  * Get CPP object from EcPublicKey java object.
  */
-CC7_EXTERN_C io::getlime::powerAuth::jni::EcPublicKeyJNI * GetEcPublicKeyFromJavaObject(JNIEnv * env, jobject object);
+CC7_EXTERN_C powerAuth::jni::EcPublicKeyJNI * GetEcPublicKeyFromJavaObject(JNIEnv * env, jobject object);
 
 /**
  * Create EcPublicKey java object from provided CPP object. If object creation fails, then CPP object is destroyed.
  */
-CC7_EXTERN_C jobject CreateJavaEcPublicKeyFromCppObject(JNIEnv * env, io::getlime::powerAuth::jni::EcPublicKeyJNI * object);
+CC7_EXTERN_C jobject CreateJavaEcPublicKeyFromCppObject(JNIEnv * env, powerAuth::jni::EcPublicKeyJNI * object);

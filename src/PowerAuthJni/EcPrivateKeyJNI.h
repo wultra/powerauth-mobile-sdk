@@ -19,14 +19,8 @@
 #include <cc7/jni/JniHelper.h>
 #include <PowerAuth/Algorithms.h>
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuth
-{
-namespace jni
-{
+namespace powerAuth {
+namespace jni {
     /**
      * Object that contains reference to private EC_KEY.
      */
@@ -38,7 +32,7 @@ namespace jni
          */
         static EcPrivateKeyJNI * createFromBytes(const cc7::ByteRange & private_key_data) {
             try {
-                auto ec_key = algorithms().p256().newPrivateKey(private_key_data, cc7::crypto::KEY_FORMAT_RAW);
+                auto ec_key = algorithms().v3.p256().newPrivateKey(private_key_data, cc7::crypto::KEY_FORMAT_RAW);
                 return new EcPrivateKeyJNI(ec_key);
             } catch (std::exception & e) {
                 return nullptr;
@@ -67,17 +61,15 @@ namespace jni
         cc7::crypto::PrivateKeyPtr _ec_key;
     };
     
-} // io::getlime::powerAuth::jni
-} // io::getlime::powerAuth
-} // io::getlime
-} // io
+} // namespace jni
+} // namespace powerAuth
 
 /**
  * Get CPP object from EcPrivateKey java object.
  */
-CC7_EXTERN_C io::getlime::powerAuth::jni::EcPrivateKeyJNI * GetEcPrivateKeyFromJavaObject(JNIEnv * env, jobject object);
+CC7_EXTERN_C powerAuth::jni::EcPrivateKeyJNI * GetEcPrivateKeyFromJavaObject(JNIEnv * env, jobject object);
 
 /**
  * Create EcPrivateKey java object from provided CPP object. If object creation fails, then CPP object is destroyed.
  */
-CC7_EXTERN_C jobject CreateJavaEcPrivateKeyFromCppObject(JNIEnv * env, io::getlime::powerAuth::jni::EcPrivateKeyJNI * object);
+CC7_EXTERN_C jobject CreateJavaEcPrivateKeyFromCppObject(JNIEnv * env, powerAuth::jni::EcPrivateKeyJNI * object);

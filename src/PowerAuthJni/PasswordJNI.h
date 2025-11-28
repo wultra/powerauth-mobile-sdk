@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Wultra s.r.o.
+ * Copyright 2016-2017 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 #pragma once
 
 #include <cc7/jni/JniHelper.h>
-#include <PowerAuth/PublicTypes.h>
+#include <PowerAuth/Password.h>
 
 /**
  Returns underlying C++ object, stored in java Password class instance. 
  */
-CC7_EXTERN_C jobject CreateJavaProtocolVersion(JNIEnv * env, int v);
+CC7_EXTERN_C powerAuth::Password * GetCppPasswordFromJavaObject(JNIEnv * env, jobject passwordObject);

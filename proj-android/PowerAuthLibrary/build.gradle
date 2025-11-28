@@ -142,14 +142,14 @@ static def loadInstrumentationTestConfigProperties(project, defaultConfig) {
 }
 
 // Task to prepare OpenSSL precompiled library
-task prepareOpenSSL(type: Exec) {
+tasks.register('prepareOpenSSL', Exec) {
     workingDir '../../cc7'
-    commandLine 'sh', './openssl-build/fetch.sh', 'android'
+    commandLine 'bash', './openssl-build/fetch.sh', 'android'
 }
 
 // Task to verify release to do not contain debug symbols
-task verifyDebugSymbolsForRelease(type: Exec) {
-    commandLine 'sh', '../../scripts/android-validate-build.sh', '--aar', "${buildDir}/outputs/aar/PowerAuthLibrary-release.aar"
+tasks.register('verifyDebugSymbolsForRelease', Exec) {
+    commandLine 'bash', '../../scripts/android-validate-build.sh', '--aar', "${buildDir}/outputs/aar/PowerAuthLibrary-release.aar"
 }
 
 afterEvaluate {

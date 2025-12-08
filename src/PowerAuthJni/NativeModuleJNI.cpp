@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
- #pragma once
+#include "NativeHelper.h"
 
- #include <cc7/jni/JniWrapper.h>
- #include <PowerAuth/Types.h>
+// Package: io.getlime.security.powerauth.core
+#define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
+#define CC7_JNI_CLASS_PACKAGE       io_getlime_security_powerauth_core
+#define CC7_JNI_JAVA_CLASS          NativeModule
+#define CC7_JNI_CPP_CLASS           NA
+#include <cc7/jni/JniModule.inl>
 
-namespace powerAuth::jni {
+CC7_JNI_MODULE_CLASS_BEGIN()
 
-/// Create instance of SecureData from provided byte range.
-jobject CopyToSecureData(cc7::jni::JNI& jni, const cc7::ByteRange &data);
+//
+// private native static void initializeJNI();
+//
+CC7_JNI_STATIC_METHOD(void, initializeJNI)
+{
+    powerAuth::jni::NativeHelper::registerGlobalJniInitializers();
+}
 
-/// Create instance of SecureData from provided byte range. If range is empty,
-/// then returns null.
-jobject CopyToNullableSecureData(cc7::jni::JNI& jni, const cc7::ByteRange &data);
-
-/// Return byte array from bytes stored in SecureData.
-cc7::ByteArray CopyFromSecureData(cc7::jni::JNI& jni, jobject object);
-
-} // namespace powerAuth::jni
+CC7_JNI_MODULE_CLASS_END()

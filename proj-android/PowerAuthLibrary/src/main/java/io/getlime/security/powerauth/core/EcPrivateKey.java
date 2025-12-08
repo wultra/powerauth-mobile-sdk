@@ -23,18 +23,14 @@ import androidx.annotation.Nullable;
  * The `EcPrivateKey` represents private key for elliptic curve based cryptography routines.
  * The PowerAuth is using NIST P-256 curve under the hood.
  */
-public class EcPrivateKey {
-
-    static {
-        System.loadLibrary("PowerAuth2Module");
-    }
+public class EcPrivateKey extends NativeObject {
 
     /**
      * Constructs a new private key with private key data.
      * @param privateKeyData Private key data bytes.
      */
     public EcPrivateKey(@NonNull byte[] privateKeyData) {
-        this.handle = init(privateKeyData);
+        super(initKey(privateKeyData));
     }
 
     /**
@@ -42,39 +38,8 @@ public class EcPrivateKey {
      * @param handle Pointer to native underlying object.
      */
     private EcPrivateKey(long handle) {
-        this.handle = handle;
+        super(handle);
     }
-
-    /**
-     * Pointer to native underlying object.
-     */
-    private long handle;
-
-    /**
-     * Destroys underlying native C++ object. You can call this method
-     * if you want to be sure that internal object is properly destroyed.
-     * You can't use instance of this java object anymore after this call.
-     */
-    public synchronized void destroy() {
-        if (this.handle != 0) {
-            destroy(this.handle);
-            this.handle = 0;
-        }
-    }
-
-    /**
-     Make sure that the underlying C++ object is always destroyed.
-     */
-    protected void finalize() {
-        destroy();
-    }
-
-    /**
-     * Internal JNI destroy.
-     *
-     * @param handle A handle representing underlying native C++ object
-     */
-    private native void destroy(long handle);
 
     /**
      * Internal JNI initialization.
@@ -82,12 +47,16 @@ public class EcPrivateKey {
      * @param privateKeyData EC private key.
      * @return A handle representing underlying native C++ object.
      */
-    private native long init(@NonNull byte[] privateKeyData);
+    private static native long initKey(@NonNull byte[] privateKeyData);
 
     /**
      * Return byte array representing a private key.
      * @return Array with private key data bytes or null if object is no longer valid.
      */
     @Nullable
-    public native byte[] getPrivateKeyData();
+    public byte[] getPrivateKeyData() {
+        return getKeyData(handle);
+    }
+
+    private native static byte[] getKeyData(long handle);
 }

@@ -42,7 +42,7 @@ import androidx.annotation.Nullable;
 public class ActivationCodeUtil {
 
     static {
-        System.loadLibrary(Session.NATIVE_LIB);
+        NativeModule.loadNativeModule();
     }
 
     /**

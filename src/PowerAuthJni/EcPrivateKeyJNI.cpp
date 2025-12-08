@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include "EcPrivateKeyJNI.h"
+#include <PowerAuth/Algorithms.h>
+#include "NativeHelper.h"
 
 // Package: io.getlime.security.powerauth.core
 #define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
@@ -28,31 +29,18 @@ using namespace powerAuth::jni;
 
 CC7_JNI_MODULE_CLASS_BEGIN()
 
-// ----------------------------------------------------------------------------
-// Init & Destroy
-// ----------------------------------------------------------------------------
-
-//
-// private native void destroy(long handle)
-//
-CC7_JNI_METHOD_PARAMS(void, destroy, jlong handle)
-{
-    auto object = CC7_THIS_OBJ();
-    if (!object || (jlong)object != handle) {
-        CC7_ASSERT(false, "Internal object is already destroyed, or provided handle is not ours.");
-        return;
-    }
-    delete object;
-}
-
 //
 // private native long init(byte[] privateKeyData)
 //
-CC7_JNI_METHOD_PARAMS(jlong, init, jbyteArray privateKeyData)
+CC7_JNI_STATIC_METHOD_PARAMS(jlong, initKey, jbyteArray privateKeyData)
 {
-    auto cppPrivateKeyData = cc7::jni::CopyFromJavaByteArray(env, privateKeyData);
-    auto object = EcPrivateKeyJNI::createFromBytes(cppPrivateKeyData);
-    return object != nullptr ? reinterpret_cast<jlong>(object) : 0;
+    NH_TRY
+    {
+        auto cpp_private_key_data = jni.fromJava(privateKeyData);
+        auto private_key = algorithms().v3.p256().newPrivateKey(cpp_private_key_data, cc7::crypto::KEY_FORMAT_RAW);
+        return jni.toHandle(private_key);
+    }
+    NH_CATCH(0)
 }
 
 // ----------------------------------------------------------------------------
@@ -60,41 +48,16 @@ CC7_JNI_METHOD_PARAMS(jlong, init, jbyteArray privateKeyData)
 // ----------------------------------------------------------------------------
 
 //
-// public native byte[] getPrivateKeyData()
+// public native byte[] getKeyData(long handle)
 //
-CC7_JNI_METHOD(jbyteArray, getPrivateKeyData)
+CC7_JNI_STATIC_METHOD_PARAMS(jbyteArray, getKeyData, jlong handle)
 {
-    auto object = CC7_THIS_OBJ();
-    if (!object) {
-        CC7_ASSERT(false, "Missing internal handle.");
-        return nullptr;
+    NH_TRY
+    {
+        auto private_key = jni.fromHandle<cc7::crypto::PrivateKey>(handle);
+        return jni.toJava(private_key->exportKey(cc7::crypto::KEY_FORMAT_RAW));
     }
-    return cc7::jni::CopyToNullableJavaByteArray(env, object->privateKeyBytes());
-}
-
-// ----------------------------------------------------------------------------
-// Helper functions
-// ----------------------------------------------------------------------------
-
-EcPrivateKeyJNI * GetEcPrivateKeyFromJavaObject(JNIEnv * env, jobject thiz)
-{
-    auto object = CC7_THIS_OBJ();
-    return object;
-}
-
-jobject CreateJavaEcPrivateKeyFromCppObject(JNIEnv * env, EcPrivateKeyJNI * object)
-{
-    if (!env || !object) {
-        CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
-        delete object;
-        return nullptr;
-    }
-    auto object_ptr_long = reinterpret_cast<jlong>(object);
-    jobject java_object = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("EcPrivateKey"), "(J)V", object_ptr_long);
-    if (nullptr == java_object) {
-        delete object;
-    }
-    return java_object;
+    NH_CATCH(nullptr)
 }
 
 CC7_JNI_MODULE_CLASS_END()

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "PasswordJNI.h"
 #include "SecureDataJNI.h"
 #include "ProtocolVersionJNI.h"
 #include <PowerAuth/Session.h>

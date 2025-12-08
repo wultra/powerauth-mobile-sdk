@@ -16,7 +16,7 @@
 
 #include <PowerAuth/Types.h>
 #include <PowerAuth/Algorithms.h>
-#include <cc7/jni/JniHelper.h>
+#include <cc7/jni/JniWrapper.h>
 #include <sys/time.h>
 
 // Package: io.getlime.security.powerauth.core

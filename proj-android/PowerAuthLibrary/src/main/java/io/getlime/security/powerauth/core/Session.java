@@ -22,21 +22,8 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class Session {
-    
-    //
-    // Init & Destroy
-    //
-    static final String NATIVE_LIB = "PowerAuth2Module";
+public class Session extends NativeObject {
 
-    static {
-        System.loadLibrary(NATIVE_LIB);
-    }
-    
-    /**
-     * Pointer to native underlying object
-     */
-    private long handle;
 
     private final @NonNull SessionSetup setup;
     private final @NonNull ICoreTimeService timeService;
@@ -48,9 +35,9 @@ public class Session {
      * @param timeService {@link ICoreTimeService} object providing synchronized time.
      */
     public Session(@NonNull SessionSetup setup, @NonNull ICoreTimeService timeService) {
+        super(init(setup));
         this.setup = setup;
         this.timeService = timeService;
-        this.handle = init(setup);
     }
     
     /**
@@ -58,34 +45,8 @@ public class Session {
      *
      * @return pointer to underlying C++ object
      */
-    private native long init(SessionSetup setup);
+    private native static long init(SessionSetup setup);
 
-    /**
-     * Internal JNI destroy. You have to provide handle created during the initialization.
-     *
-     * @param handle pointer to underlying C++ object
-     */
-    private native void destroy(long handle);
-    
-    /**
-     * Destroys underlying native C++ object. You can call this method
-     * if you want to be sure that internal C++ object is properly destroyed.
-     * You can't use instance of this java object anymore after this call.
-     */
-    public synchronized void destroy() {
-        if (this.handle != 0) {
-            destroy(this.handle);
-            this.handle = 0;
-        }
-    }
-    
-    /**
-     * Make sure that the underlying C++ object is always destroyed.
-     */
-    protected void finalize() {
-        destroy();
-    }
-    
     /**
      * @return {@link SessionSetup} object with parameters provided in Session's constructor
      */

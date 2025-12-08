@@ -201,6 +201,11 @@ LOCAL_C_INCLUDES := \
 
 # JNI sources
 LOCAL_SRC_FILES := \
+	PowerAuthJni/NativeHelper.cpp \
+	PowerAuthJni/ClassSpecs.cpp \
+	PowerAuthJni/NativeModuleJNI.cpp \
+	PowerAuthJni/NativeObjectJNI.cpp \
+	\
 	PowerAuthJni/SessionJNI.cpp \
 	PowerAuthJni/PasswordJNI.cpp \
 	PowerAuthJni/ActivationCodeUtilJNI.cpp \

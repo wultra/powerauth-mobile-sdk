@@ -16,10 +16,12 @@
 
 #pragma once
 
-#include <cc7/jni/JniHelper.h>
+#include <cc7/jni/JniWrapper.h>
 #include <PowerAuth/Types.h>
 
-/**
- Returns underlying C++ object, stored in java Password class instance. 
- */
-CC7_EXTERN_C jobject CreateJavaProtocolVersion(JNIEnv * env, int v);
+namespace powerAuth::jni {
+
+/// Create instance of ProtocolVersion enumeration from given protocol version.
+jobject CreateJavaProtocolVersion(cc7::jni::JNI& jni, int version);
+
+} // namespace powerAuth::jni

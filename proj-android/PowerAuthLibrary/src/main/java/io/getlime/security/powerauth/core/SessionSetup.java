@@ -26,7 +26,7 @@ import androidx.annotation.Nullable;
 public class SessionSetup {
 
     static {
-        System.loadLibrary(Session.NATIVE_LIB);
+        NativeModule.loadNativeModule();
     }
 
     /**

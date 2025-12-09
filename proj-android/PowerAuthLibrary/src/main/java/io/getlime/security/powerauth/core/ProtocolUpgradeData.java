@@ -25,6 +25,7 @@ import androidx.annotation.Nullable;
  */
 public class ProtocolUpgradeData {
 
+    @ProtocolVersion
     public final int toVersion;
 
     // V3 Fields
@@ -47,8 +48,8 @@ public class ProtocolUpgradeData {
      * @param toVersion specifies version of data for upgrade
      * @param v3CtrData initial value for hash-based counter
      */
-    private ProtocolUpgradeData(ProtocolVersion toVersion, @Nullable String v3CtrData) {
-        this.toVersion = toVersion.numericValue;
+    private ProtocolUpgradeData(@ProtocolVersion int toVersion, @Nullable String v3CtrData) {
+        this.toVersion = toVersion;
         this.v3CtrData = v3CtrData;
     }
 }

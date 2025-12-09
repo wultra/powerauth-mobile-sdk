@@ -24,7 +24,7 @@ import androidx.annotation.IntDef;
 import java.lang.annotation.Retention;
 
 @Retention(SOURCE)
-@IntDef({MISSING_ACTIVATION, WRONG_ACTIVATION_STATE, BIOMETRY_NOT_ALLOWED, NOT_ALOOWED,
+@IntDef({MISSING_ACTIVATION, WRONG_ACTIVATION_STATE, BIOMETRY_NOT_ALLOWED, NOT_ALLOWED,
         TIME_NOT_SYNCHRONIZED, INVALID_DATA, INVALID_RESPONSE, WRONG_SIGNATURE, INTERNAL_ERROR,
         CRYPTOGRAPHY, CANCELED, PENDING_PROTOCOL_UPGRADE, OTHER})
 public @interface CoreErrorCode {
@@ -47,7 +47,7 @@ public @interface CoreErrorCode {
     /**
      * Operation is not allowed in the current object's state. For example, if you try to already used encryptor object.
      */
-    int NOT_ALOOWED = 5;
+    int NOT_ALLOWED = 5;
     /**
      * Operation require synchronized time.
      */

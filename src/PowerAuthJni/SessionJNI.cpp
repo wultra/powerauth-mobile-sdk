@@ -15,7 +15,6 @@
  */
 
 #include "SecureDataJNI.h"
-#include "ProtocolVersionJNI.h"
 #include <PowerAuth/Session.h>
 #include <PowerAuth/Debug.h>
 #include <map>

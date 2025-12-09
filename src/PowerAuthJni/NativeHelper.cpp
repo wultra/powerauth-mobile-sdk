@@ -34,9 +34,8 @@ void NativeHelper::registerGlobalJniInitializers()
 {
     std::lock_guard<std::mutex> lock(GetInstanceMutex());
     auto& instance = GetInstance();
-    if (instance._initialized) {
-        // Initialization handler is already registered
-        return;
+    if (instance._init_registered) {
+        throw JniFatalException("powerAuth::jni::NativeHelper already registered its initializer");
     }
     JNIGlobal::addGlobalInitializer([](JNI& jni){
         std::lock_guard<std::mutex> lock(GetInstanceMutex());
@@ -44,6 +43,7 @@ void NativeHelper::registerGlobalJniInitializers()
         instance._specs = ClassSpecs::buildSpecs(jni);
         instance._initialized = true;
     });
+    instance._init_registered = true;
 }
 
 const NativeHelper& NativeHelper::helper()
@@ -58,10 +58,58 @@ const NativeHelper& NativeHelper::helper()
 
 void NativeHelper::handleException(cc7::jni::JNI &jni, std::exception_ptr exception)
 {
-    if (jni.processException(exception)) {
+    if (jni.processException(exception, true)) {
+        // Already handled
         return;
     }
-    // TODO: process other exceptions
+
+    // This is similar to BuildNSErrorFromException() on iOS platform.
+
+    std::string message;
+    std::vector<std::string> additional_info;
+
+    auto error_code =  powerAuth::EC_Other;
+    auto ptr = Exception::wrapException(exception);
+    while (ptr != nullptr) {
+        std::string cpp_message;
+        auto ec = powerAuth::EC_Other;
+        try {
+            std::rethrow_exception(ptr);
+        } catch (powerAuth::Exception & e) {
+            cpp_message = e.exceptionClass() + ": " + e.message();
+            ptr = e.cause();
+            ec = e.error();
+        } catch (cc7::BaseException & e) {
+            cpp_message = e.exceptionClass() + ": " + e.message();
+            ptr = e.cause();
+        } catch (std::exception & e) {
+            cpp_message = e.what();
+            ptr = nullptr;
+        } catch (...) {
+            cpp_message = "Unknown exception type";
+            ptr = nullptr;
+        }
+        if (cpp_message.empty()) {
+            cpp_message = Exception::defaultMessage(error_code);
+        }
+        if (message.empty()) {
+            // First message not set,
+            message = cpp_message;
+            error_code = ec;
+        }
+    }
+    // Convert additional_info vector into String[] array.
+    auto java_info = jni.createObjectArray(jni.commonSpecs().classString, additional_info.size(), true);
+    for (auto i = 0; i < additional_info.size(); i++) {
+        java_info.setObject(i, jni.toJava(additional_info[i]));
+    }
+    const auto& specs = helper().classSpecs();
+    // Throw custom exception to Java:
+    // - CoreException(@CoreErrorCode int errorCode, @Nullable String message, @Nullable String[] additionalFailureInfo)
+    jni.throwToJava(specs.coreException.methods.initCodeMessage,
+                    jni.toJava<>(specs.coreErrorCode, error_code),
+                    jni.toJava(message),
+                    java_info.array());
 }
 
 } // namespace powerAuth::jni

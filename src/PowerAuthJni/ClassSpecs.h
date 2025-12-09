@@ -50,30 +50,6 @@ struct ClassSpecs
         Fields fields;
     };
 
-    struct ProtocolVersion
-    {
-        struct Methods {};
-        static constexpr JniMethodSpec methodSpecs[] = {};
-
-        struct Fields
-        {
-            jfieldID NA;
-            jfieldID V2;
-            jfieldID V3;
-            jfieldID V4;
-        };
-        static constexpr JniFieldSpec fieldSpecs[4] {
-                { "NA", "Lio/getlime/security/powerauth/core/ProtocolVersion;", offsetof(Fields, NA), true },
-                { "V2", "Lio/getlime/security/powerauth/core/ProtocolVersion;", offsetof(Fields, V2), true },
-                { "V3", "Lio/getlime/security/powerauth/core/ProtocolVersion;", offsetof(Fields, V3), true },
-                { "V4", "Lio/getlime/security/powerauth/core/ProtocolVersion;", offsetof(Fields, V4), true },
-        };
-
-        jclass classRef;
-        Methods methods;
-        Fields fields;
-    };
-
     // Model
     struct ActivationCode
     {
@@ -122,14 +98,41 @@ struct ClassSpecs
         Fields fields;
     };
 
-    // class definitions
+    // Exceptions
 
-    JniCommon::NativeHandleClass ecPublicKey;
-    JniCommon::NativeHandleClass ecPrivateKey;
+    // io.getlime.security.powerauth.core.CoreException
+    struct CoreException
+    {
+        struct Methods
+        {
+            cc7::jni::JniMethod initCodeMessage;
+            cc7::jni::JniMethod initCodeMessageCause;
+        };
+        static constexpr JniMethodSpec methodSpecs[1] = {
+                // constructor: EcKeyPair(EcPrivateKey, EcPublicKey)
+                { "<init>", "(I;Ljava/lang/String;)V", offsetof(Methods, initCodeMessage) },
+        };
+
+        struct Fields {};
+        static constexpr JniFieldSpec fieldSpecs[] {};
+
+        jclass classRef;
+        Methods methods;
+        Fields fields;
+    };
+
+
     EcKeyPair ecKeyPair;
     SecureData secureData;
     ActivationCode activationCode;
-    ProtocolVersion protocolVersion;
+    CoreException coreException;
+
+    // enums
+    JniCommon::ConstantSetSpec coreErrorCode;
+    JniCommon::ConstantSetSpec protocolVersion;
+    // handle based objects
+    JniCommon::NativeHandleClass ecPublicKey;
+    JniCommon::NativeHandleClass ecPrivateKey;
     JniCommon::NativeHandleClass password;
     JniCommon::NativeHandleClass session;
 

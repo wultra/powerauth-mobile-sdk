@@ -92,7 +92,8 @@ public class Session extends NativeObject {
      * @return Version of protocol in which the session currently operates. If the session has no
      *         activation, then the most up to date version is returned.
      */
-    public native ProtocolVersion getProtocolVersion();
+    @ProtocolVersion
+    public native int getProtocolVersion();
 
     //
     // Serialization
@@ -634,7 +635,8 @@ public class Session extends NativeObject {
      * @return {@link ProtocolVersion} enumeration with version to which the session is currently
      *         upgrading.
      */
-    public native ProtocolVersion getPendingProtocolUpgradeVersion();
+    @ProtocolVersion
+    public native int getPendingProtocolUpgradeVersion();
 
     /**
      * Start protocol upgrade. You should serialize the session's state after this operation.
@@ -675,18 +677,5 @@ public class Session extends NativeObject {
      * @return Textual representation for given protocol version.
      */
     @NonNull
-    public static String getMaxSupportedHttpProtocolVersion(ProtocolVersion version) {
-        return getMaxSupportedHttpProtocolVersion(version.numericValue);
-    }
-
-    /**
-     * Return textual representation for given integer value of protocol version. For example,
-     * for {@link ProtocolVersion#V3} returns {@code "3.3"}. You can use {@link ProtocolVersion#NA}
-     * to get the latest supported version.
-     *
-     * @param protocolVersionValue Integer value from {@link ProtocolVersion} enum.
-     * @return Textual representation for given protocol version.
-     */
-    @NonNull
-    private static native String getMaxSupportedHttpProtocolVersion(int protocolVersionValue);
+    public static native String getMaxSupportedHttpProtocolVersion(@ProtocolVersion int version);
 }

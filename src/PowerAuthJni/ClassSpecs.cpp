@@ -31,7 +31,28 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         spec.ecKeyPair = jni.buildClassSpec<EcKeyPair>("io/getlime/security/powerauth/core/EcKeyPair");
         spec.secureData = jni.buildClassSpec<SecureData>("io/getlime/security/powerauth/core/SecureData");
         spec.activationCode = jni.buildClassSpec<ActivationCode>("io/getlime/security/powerauth/core/ActivationCode");
-        spec.protocolVersion = jni.buildClassSpec<ProtocolVersion>("io/getlime/security/powerauth/core/ProtocolVersion");
+        spec.protocolVersion = jni.buildConstantSetSpec("io/getlime/security/powerauth/core/ProtocolVersion", {
+            "NA",
+            "V2",
+            "V3",
+            "V4"
+        });
+        spec.coreErrorCode = jni.buildConstantSetSpec("io/getlime/security/powerauth/core/CoreErrorCode", {
+            "MISSING_ACTIVATION",
+            "WRONG_ACTIVATION_STATE",
+            "BIOMETRY_NOT_ALLOWED",
+            "NOT_ALLOWED",
+            "TIME_NOT_SYNCHRONIZED",
+            "INVALID_DATA",
+            "INVALID_RESPONSE",
+            "WRONG_SIGNATURE",
+            "INTERNAL_ERROR",
+            "CRYPTOGRAPHY",
+            "CANCELED",
+            "PENDING_PROTOCOL_UPGRADE",
+            "OTHER"
+        });
+        spec.coreException = jni.buildClassSpec<CoreException>("io/getlime/security/powerauth/core/CoreException");
     } catch (...) {
         // Cleanup already resolved classes
         jni.releaseObject(spec.password.classRef);
@@ -42,6 +63,8 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         jni.releaseObject(spec.secureData.classRef);
         jni.releaseObject(spec.activationCode.classRef);
         jni.releaseObject(spec.protocolVersion.classRef);
+        jni.releaseObject(spec.coreErrorCode.classRef);
+        jni.releaseObject(spec.coreException.classRef);
         // rethrow the exception
         std::rethrow_exception(std::current_exception());
     }

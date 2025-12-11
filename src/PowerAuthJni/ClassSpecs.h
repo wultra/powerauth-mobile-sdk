@@ -127,7 +127,8 @@ struct ClassSpecs
     CoreException coreException;
 
     // enums
-    JniCommon::ConstantSetSpec coreErrorCode;
+    JniCommon::ConstantRangeSpec powerAuthAlgorithm;
+    JniCommon::ConstantRangeSpec coreErrorCode;
     JniCommon::ConstantSetSpec protocolVersion;
     // handle based objects
     JniCommon::NativeHandleClass ecPublicKey;

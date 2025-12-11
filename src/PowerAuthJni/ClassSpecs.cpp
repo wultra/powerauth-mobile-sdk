@@ -31,15 +31,23 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         spec.ecKeyPair = jni.buildClassSpec<EcKeyPair>("io/getlime/security/powerauth/core/EcKeyPair");
         spec.secureData = jni.buildClassSpec<SecureData>("io/getlime/security/powerauth/core/SecureData");
         spec.activationCode = jni.buildClassSpec<ActivationCode>("io/getlime/security/powerauth/core/ActivationCode");
+        // Enums
+        spec.powerAuthAlgorithm = jni.buildConstantRangeSpec("io/getlime/security/powerauth/core/Algorithm", {
+            "LEGACY_P256",
+            "EC_P384",
+            "EC_P384_ML_L3",
+            "EC_P384_ML_L5"
+        });
         spec.protocolVersion = jni.buildConstantSetSpec("io/getlime/security/powerauth/core/ProtocolVersion", {
             "NA",
             "V2",
             "V3",
             "V4"
         });
-        spec.coreErrorCode = jni.buildConstantSetSpec("io/getlime/security/powerauth/core/CoreErrorCode", {
+        spec.coreErrorCode = jni.buildConstantRangeSpec("io/getlime/security/powerauth/core/CoreErrorCode", {
             "MISSING_ACTIVATION",
             "WRONG_ACTIVATION_STATE",
+            "WRONG_PARAMETER",
             "BIOMETRY_NOT_ALLOWED",
             "NOT_ALLOWED",
             "TIME_NOT_SYNCHRONIZED",
@@ -52,6 +60,7 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
             "PENDING_PROTOCOL_UPGRADE",
             "OTHER"
         });
+        // Exceptions
         spec.coreException = jni.buildClassSpec<CoreException>("io/getlime/security/powerauth/core/CoreException");
     } catch (...) {
         // Cleanup already resolved classes

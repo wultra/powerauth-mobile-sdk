@@ -80,7 +80,7 @@ public class ActivationHelper {
     /**
      * Alternate method that persist activation with deprecated functions.
      */
-    // @Deprecated // 1.10.0
+    // @Deprecated // 2.0.0
     public static final int TF_PERSIST_WITH_DEPRECATED          = 0x0100;
 
     /**
@@ -349,7 +349,7 @@ public class ActivationHelper {
                 }
             };
             if (!persistWithDeprecated) {
-                // New asynchronous persist (1.10.0)
+                // New asynchronous persist (2.0.0)
                 // If biometry (in any form) is required, then we have to use auth object.
                 boolean useAuthObject = persistWithBiometryAct || persistWithBiometryFrag;
                 if (!useAuthObject) {
@@ -384,7 +384,7 @@ public class ActivationHelper {
                     powerAuthSDK.persistActivationWithAuthentication(testHelper.getContext(), authentication, persistActivationListener);
                 }
             } else {
-                // @Deprecated // 1.10.0 - Remove in 2.0.0
+                // @Deprecated // 2.0.0 - Remove in 2.1.0
                 if (persistWithBiometryAct || persistWithBiometryFrag) {
                     //noinspection deprecation
                     IPersistActivationWithBiometricsListener deprecatedListener = new IPersistActivationWithBiometricsListener() {

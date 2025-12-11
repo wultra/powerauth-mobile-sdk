@@ -32,7 +32,6 @@
     PA2CoreHttpClient * _client;
     id<PowerAuthCoreSessionProvider> _sessionProvider;
     __weak id<PA2GetActivationStatusTaskDelegate> _delegate;
-    BOOL _disableUpgrade;
     
     // Runtime variables
     NSInteger _upgradeAttempts;
@@ -44,14 +43,12 @@
           sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
                  delegate:(id<PA2GetActivationStatusTaskDelegate>)delegate
                sharedLock:(id<NSLocking>)sharedLock
-           disableUpgrade:(BOOL)disableUpgrade
 {
     self = [super initWithSharedLock:sharedLock taskName:@"GetActivationStatus"];
     if (self) {
         _client = httpClient;
         _sessionProvider = sessionProvider;
         _delegate = delegate;
-        _disableUpgrade = disableUpgrade;
         
         _upgradeAttempts = 3;
         _disableAutoCancel = NO;

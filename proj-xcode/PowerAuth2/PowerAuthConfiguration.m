@@ -44,7 +44,6 @@
         _configuration = configuration;
         _algorithm = algorithm;
         _offlineAuthenticationCodeComponentLength = MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN;
-        _disableAutomaticProtocolUpgrade = algorithm == PowerAuthAlgorithm_LEGACY_P256;
     }
     return self;
 }

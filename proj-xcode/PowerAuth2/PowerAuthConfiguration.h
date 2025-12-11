@@ -98,12 +98,9 @@ typedef NS_ENUM(NSInteger, PowerAuthAlgorithm) {
 @property (nonatomic, assign) PowerAuthAlgorithm algorithm;
 
 /**
- If set to YES, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
- This option should be used only for the testing purposes.
- 
- Default and recommended value is `NO`.
+ Property is deprecated and has no effect in PowerAuth Mobile SDK version 2.0+.
  */
-@property (nonatomic, assign) BOOL disableAutomaticProtocolUpgrade;
+@property (nonatomic, assign) BOOL disableAutomaticProtocolUpgrade PA2_DEPRECATED(2.0.0);
 
 /**
  Length of offline authentication code component. The value between 4 and 8 is allowed.

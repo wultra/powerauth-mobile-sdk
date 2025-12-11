@@ -37,7 +37,7 @@ public class PowerAuthAuthorizationHttpHeader {
      * The property is deprecated and is only effective if header is calculated in deprecated methods from
      * {@link PowerAuthSDK} or {@link PowerAuthToken}.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     @PowerAuthErrorCodes
     public final int powerAuthErrorCode;
 
@@ -76,7 +76,7 @@ public class PowerAuthAuthorizationHttpHeader {
      * @deprecated The new methods for calculating authorization headers throws an exception in case of failure, and
      *             therefore the returned header is always valid.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public boolean isValid() {
         return powerAuthErrorCode == PowerAuthErrorCodes.SUCCEED &&
                 key != null &&
@@ -102,7 +102,7 @@ public class PowerAuthAuthorizationHttpHeader {
     // final public properties to access the elements.
     //
 
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     @PowerAuthErrorCodes
     public int getPowerAuthErrorCode() {
         return powerAuthErrorCode;

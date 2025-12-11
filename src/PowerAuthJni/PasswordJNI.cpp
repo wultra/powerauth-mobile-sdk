@@ -28,17 +28,16 @@ using namespace powerAuth;
 
 CC7_JNI_MODULE_CLASS_BEGIN()
 
-//
-// private static native long initPassword(String strPass, byte[] dataPass, long handleOtherPassword) throws IllegalStateException
-//
-CC7_JNI_METHOD_PARAMS(jlong, initPassword, jstring strPass, jbyteArray dataPass, jlong handleOtherPassword)
+#define THIS_OBJ()  jni.fromJava<Password>(NH_SPECS().password, thiz)
+
+CC7_JNI_STATIC_METHOD_PARAMS(jlong, initPassword, jstring strPass, jbyteArray dataPass, jlong handleOtherPassword)
 {
     NH_TRY
     {
         auto pass = std::make_shared<Password>();
         auto has_str = strPass != nullptr;
         auto has_data = dataPass != nullptr;
-        auto has_other = cc7::jni::JNI::isNullHandle(handleOtherPassword);
+        auto has_other = !cc7::jni::JNI::isNullHandle(handleOtherPassword);
 
         if ((has_str && has_data) || (has_str && has_other) || (has_data && has_other)) {
             throw std::invalid_argument("Invalid combination of input parameters");
@@ -68,34 +67,25 @@ CC7_JNI_METHOD_PARAMS(jlong, initPassword, jstring strPass, jbyteArray dataPass,
 // Methods for immutable operations
 // ----------------------------------------------------------------------------
 
-//
-//  private native boolean isMutable(long handle) throws IllegalStateException
-//
-CC7_JNI_METHOD_PARAMS(jboolean, isMutable, jlong handle)
+CC7_JNI_METHOD(jboolean, isMutable)
 {
     NH_TRY
     {
-        return jni.fromHandle<Password>(handle)->isMutable();
+        return THIS_OBJ()->isMutable();
     }
     NH_CATCH(false)
 }
 
-//
-//private native int length(long handle) throws IllegalStateException
-//
-CC7_JNI_METHOD_PARAMS(jint, length, jlong handle)
+CC7_JNI_METHOD(jint, length)
 {
     NH_TRY
     {
-        return (jint) jni.fromHandle<Password>(handle)->length();
+        return (jint) THIS_OBJ()->length();
     }
     NH_CATCH(0)
 }
 
-//
-// private native boolean isEqualToPassword(long handle, long handleAnotherPassword) throws IllegalStateException;
-//
-CC7_JNI_METHOD_PARAMS(jboolean, isEqualToPassword, jlong handle, jlong handleAnotherPassword)
+CC7_JNI_STATIC_METHOD_PARAMS(jboolean, isEqualToPassword, jlong handle, jlong handleAnotherPassword)
 {
     NH_TRY
     {
@@ -110,70 +100,52 @@ CC7_JNI_METHOD_PARAMS(jboolean, isEqualToPassword, jlong handle, jlong handleAno
 // Methods for mutable operations
 // ----------------------------------------------------------------------------
 
-//
-// private native boolean clear(long handle) throws IllegalStateException
-//
-CC7_JNI_METHOD_PARAMS(jboolean, clear, jlong handle)
+CC7_JNI_METHOD(jboolean, clear)
 {
     NH_TRY
     {
-        return jni.fromHandle<Password>(handle)->clear();
+        return THIS_OBJ()->clear();
     }
     NH_CATCH(false)
 }
 
-//
-// private native boolean addCharacter(long handle, int utfCodepoint) throws IllegalStateException;
-//
-CC7_JNI_METHOD_PARAMS(jboolean, addCharacter, jlong handle, jint utfCodepoint)
+CC7_JNI_METHOD_PARAMS(jboolean, addCharacter, jint utfCodepoint)
 {
     NH_TRY
     {
-        return jni.fromHandle<Password>(handle)->addCharacter((cc7::U32)utfCodepoint);
+        return THIS_OBJ()->addCharacter((cc7::U32)utfCodepoint);
     }
     NH_CATCH(false)
 }
 
-//
-// private native boolean insertCharacter(long handle, int utfCodepoint, int index) throws IllegalStateException;
-//
-CC7_JNI_METHOD_PARAMS(jboolean, insertCharacter, jlong handle, jint utfCodepoint, jint index)
+CC7_JNI_METHOD_PARAMS(jboolean, insertCharacter,jint utfCodepoint, jint index)
 {
     NH_TRY
     {
-        return jni.fromHandle<Password>(handle)->insertCharacter((cc7::U32)utfCodepoint, (size_t)index);
+        return THIS_OBJ()->insertCharacter((cc7::U32)utfCodepoint, (size_t)index);
     }
     NH_CATCH(false)
 }
 
-//
-// private native boolean removeLastCharacter(long handle) throws IllegalStateException;
-//
-CC7_JNI_METHOD_PARAMS(jboolean, removeLastCharacter, jlong handle)
+CC7_JNI_METHOD(jboolean, removeLastCharacter)
 {
     NH_TRY
     {
-        return jni.fromHandle<Password>(handle)->removeLastCharacter();
+        return THIS_OBJ()->removeLastCharacter();
     }
     NH_CATCH(false)
 }
 
-//
-// private native boolean removeCharacter(long handle, int index) throws IllegalStateException;
-//
-CC7_JNI_METHOD_PARAMS(jboolean, removeCharacter, jlong handle, jint index)
+CC7_JNI_METHOD_PARAMS(jboolean, removeCharacter, jint index)
 {
     NH_TRY
     {
-        return jni.fromHandle<Password>(handle)->removeCharacter((size_t)index);
+        return THIS_OBJ()->removeCharacter((size_t)index);
     }
     NH_CATCH(false)
 }
 
-//
-// private native byte[] getPlaintextPassword(long handle) throws IllegalStateException;
-//
-CC7_JNI_METHOD_PARAMS(jbyteArray, getPlaintextPassword, jlong handle)
+CC7_JNI_STATIC_METHOD_PARAMS(jbyteArray, getPlaintextPassword, jlong handle)
 {
     NH_TRY
     {

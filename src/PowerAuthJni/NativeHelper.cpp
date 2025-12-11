@@ -50,7 +50,7 @@ const NativeHelper& NativeHelper::helper()
 {
     std::lock_guard<std::mutex> lock(GetInstanceMutex());
     auto& instance = GetInstance();
-    if (instance._initialized) {
+    if (!instance._initialized) {
         throw cc7::jni::JniFatalException("powerAuth::jni::NativeHelper is not initialized yet");
     }
     return instance;
@@ -106,7 +106,7 @@ void NativeHelper::handleException(cc7::jni::JNI &jni, std::exception_ptr except
     const auto& specs = helper().classSpecs();
     // Throw custom exception to Java:
     // - CoreException(@CoreErrorCode int errorCode, @Nullable String message, @Nullable String[] additionalFailureInfo)
-    jni.throwToJava(specs.coreException.methods.initCodeMessage,
+    jni.throwToJava(specs.coreException.methods.initCodeMessageInfo,
                     jni.toJava<>(specs.coreErrorCode, error_code),
                     jni.toJava(message),
                     java_info.array());

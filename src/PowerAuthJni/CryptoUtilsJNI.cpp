@@ -30,6 +30,9 @@ using namespace powerAuth::jni;
 
 extern "C" {
 
+// NOTE: This is a legacy interface that will be replaced with a new functionality in future SDK versions.
+//       Due to a compatibility reasons, all native functions doesn't throw an exceptions.
+
 //
 // public static native EcKeyPair ecGenerateKeyPair()
 //
@@ -43,7 +46,7 @@ CC7_JNI_STATIC_METHOD(jobject, ecGenerateKeyPair)
         auto public_key  = jni.toJava(specs.ecPublicKey, key_pair->getPublicKeyPtr());
         return jni.createObject(specs.ecKeyPair.methods.init, private_key, public_key).object();
     }
-    NH_CATCH(nullptr)
+    NH_NO_THROW(nullptr)
 }
 
 //
@@ -65,7 +68,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jboolean, ecdsaValidateSignature, jbyteArray data, 
             return false;
         }
     }
-    NH_CATCH(false)
+    NH_NO_THROW(false)
 }
 
 //
@@ -82,7 +85,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jbyteArray, ecdsaComputeSignature, jbyteArray data,
         auto cpp_sign = algorithms().v3.ecdsaWithSha256().sign(*cpp_private_key, cpp_data);
         return jni.toJava(cpp_sign);
     }
-    NH_CATCH(nullptr)
+    NH_NO_THROW(nullptr)
 }
 
 //
@@ -100,7 +103,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jobject, ecdhComputeSharedSecret, jobject publicKey
         auto secret = algorithms().v3.ecdhWithNullKdf().phase(*cpp_private_key, *cpp_public_key);
         return CopyToSecureData(jni, secret->getKeyData());
     }
-    NH_CATCH(nullptr)
+    NH_NO_THROW(nullptr)
 }
 
 //
@@ -114,7 +117,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jbyteArray, hashSha256, jbyteArray data)
         auto hash = algorithms().v3.sha256().digest(cpp_data);
         return jni.toJava(hash);
     }
-    NH_CATCH(nullptr)
+    NH_NO_THROW(nullptr)
 }
 
 //
@@ -132,7 +135,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jbyteArray, hmacSha256, jbyteArray data, jbyteArray
         auto cpp_result = algorithms().v3.hmacWithSha256().token(cpp_key, cpp_data, params);
         return jni.toJava(cpp_result);
     }
-    NH_CATCH(nullptr)
+    NH_NO_THROW(nullptr)
 }
 
 //
@@ -148,7 +151,7 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, randomBytes, jint count)
         auto random_bytes = cc7::crypto::GetRandomData((size_t)count, true);
         return jni.toJava(random_bytes);
     }
-    NH_CATCH(nullptr)
+    NH_NO_THROW(nullptr)
 }
 
 } // extern "C"

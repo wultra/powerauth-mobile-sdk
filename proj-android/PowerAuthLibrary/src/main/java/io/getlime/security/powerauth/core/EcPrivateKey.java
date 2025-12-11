@@ -55,7 +55,7 @@ public class EcPrivateKey extends NativeObject {
      */
     @Nullable
     public byte[] getPrivateKeyData() {
-        return getKeyData(handle);
+        return getKeyData(nativeObjectHandle);
     }
 
     private native static byte[] getKeyData(long handle);

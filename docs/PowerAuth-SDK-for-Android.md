@@ -1235,6 +1235,8 @@ class EnterPinScene(val desiredPinLength: Int = 4) {
         //
         // Make sure that this is done only after PowerAuth SDK finishes all operations
         // started with this object at input.
+        // 
+        // Note that IllegalStateException is raised if you use Password object after its destroy.
         pinInstance?.destroy()
         pinInstance = null
     }

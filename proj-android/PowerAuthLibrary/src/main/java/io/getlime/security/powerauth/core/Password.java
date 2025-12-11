@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ public class Password extends NativeObject {
      */
     @NonNull
     public Password copyToImmutable() {
-        return new Password(initPassword(null, null, handle));
+        return new Password(initPassword(null, null, nativeObjectHandle));
     }
 
     //
@@ -140,22 +140,14 @@ public class Password extends NativeObject {
     /**
      * @return true if {@code Password} object was created as mutable, or false if is immutable.
      */
-    public boolean isMutable() {
-        return isMutable(handle);
-    }
-
-    private native boolean isMutable(long handle) throws IllegalStateException;
+    public native boolean isMutable() throws IllegalStateException;
 
     /**
      * @return If password is immutable, then returns length of password in bytes.
      *         If password is mutable, then returns a number of characters stored in the object.
      */
-    public int length() {
-        return length(handle);
-    }
+    public native int length() throws IllegalStateException;
 
-    private native int length(long handle) throws IllegalStateException;
-    
     /**
      * Compares two passwords.
      *
@@ -167,10 +159,17 @@ public class Password extends NativeObject {
         if (anotherPassword == null) {
             return false;
         }
-        return isEqualToPassword(handle, anotherPassword.handle);
+        return isEqualToPassword(nativeObjectHandle, anotherPassword.nativeObjectHandle);
     }
 
-    private native boolean isEqualToPassword(long handle, long handleAnotherPassword) throws IllegalStateException;
+    /**
+     * Compare two underlying native Password objects identified by its handles.
+     * @param thisHandle This object's handle.
+     * @param anotherHandle Another object's handle.
+     * @return true if both objects contains the same password.
+     * @throws IllegalStateException In case handles are no longer valid.
+     */
+    private native static boolean isEqualToPassword(long thisHandle, long anotherHandle) throws IllegalStateException;
 
     public boolean equals(Object anObject) {
         if (this == anObject) {
@@ -190,12 +189,9 @@ public class Password extends NativeObject {
      * Clears internally stored passphrase.
      *
      * @return false if the object was initialized as immutable.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    public boolean clear() {
-        return clear(handle);
-    }
-
-    private native boolean clear(long handle) throws IllegalStateException;
+    public native boolean clear() throws IllegalStateException;
 
     /**
      * Adds one unicode code point at the end of the passphrase.
@@ -204,12 +200,9 @@ public class Password extends NativeObject {
      *
      * @return true if operation succeeded or false if object is not
      *         mutable, or code the point is invalid.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    public boolean addCharacter(int utfCodepoint) {
-        return addCharacter(handle, utfCodepoint);
-    }
-
-    private native boolean addCharacter(long handle, int utfCodepoint) throws IllegalStateException;
+    public native boolean addCharacter(int utfCodepoint) throws IllegalStateException;
 
     /**
      * Inserts unicode code point at the desired index.
@@ -219,24 +212,18 @@ public class Password extends NativeObject {
      *
      * @return true if operation succeeded or false if object is not
      *         mutable, or code point is invalid, or index is out of the range.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    public boolean insertCharacter(int utfCodepoint, int index) {
-        return insertCharacter(handle, utfCodepoint, index);
-    }
-
-    private native boolean insertCharacter(long handle, int utfCodepoint, int index) throws IllegalStateException;
+    public native boolean insertCharacter(int utfCodepoint, int index) throws IllegalStateException;
 
     /**
      * Removes last unicode code point from the passphrase.
      *
      * @return Returns true if operation succeeded or false if object is not
      *         mutable, or passphrase is already empty.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    public boolean removeLastCharacter() {
-        return removeLastCharacter(handle);
-    }
-
-    private native boolean removeLastCharacter(long handle) throws IllegalStateException;
+    public native boolean removeLastCharacter() throws IllegalStateException;
 
     /**
      * Removes character from desired index.
@@ -245,12 +232,9 @@ public class Password extends NativeObject {
      *
      * @return true if operation succeeded or false if object is not
      *         mutable, or index is out of the range.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    public boolean removeCharacter(int index) {
-        return removeCharacter(handle, index);
-    }
-
-    private native boolean removeCharacter(long handle, int index) throws IllegalStateException;
+    public native boolean removeCharacter(int index) throws IllegalStateException;
 
     //
     // Password complexity validation
@@ -261,8 +245,9 @@ public class Password extends NativeObject {
      * plaintext password does safe content cleanup after the array is no longer needed.
      *
      * @return Array of bytes with plaintext password.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    private native byte[] getPlaintextPassword(long handle) throws IllegalStateException;
+    private native static byte[] getPlaintextPassword(long handle) throws IllegalStateException;
 
     /**
      * The {@code IPasswordComplexityValidator} provides simple interface to validate password
@@ -289,11 +274,8 @@ public class Password extends NativeObject {
      * @return Value returned from the complexity validation.
      * @throws IllegalStateException in case that underlying C++ object is already destroyed.
      */
-    public int validatePasswordComplexity(@NonNull IPasswordComplexityValidator complexityValidator) {
-        final byte[] passwordBytes = getPlaintextPassword(handle);
-        if (passwordBytes == null) {
-            throw new IllegalStateException("Password object is no longer valid");
-        }
+    public int validatePasswordComplexity(@NonNull IPasswordComplexityValidator complexityValidator) throws IllegalStateException {
+        final byte[] passwordBytes = getPlaintextPassword(nativeObjectHandle);
         final int result = complexityValidator.validatePasswordComplexity(passwordBytes);
         // cleanup array of bytes
         Arrays.fill(passwordBytes, (byte) 0);

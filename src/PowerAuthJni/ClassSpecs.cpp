@@ -23,10 +23,10 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
     ClassSpecs spec {};
     try {
         // Handle based objects
-        spec.password = jni.buildClassSpec<JniCommon::NativeHandleClass>("io/getlime/security/powerauth/core/Password");
-        spec.session = jni.buildClassSpec<JniCommon::NativeHandleClass>("io/getlime/security/powerauth/core/Session");
-        spec.ecPublicKey = jni.buildClassSpec<JniCommon::NativeHandleClass>("io/getlime/security/powerauth/core/EcPublicKey");
-        spec.ecPrivateKey = jni.buildClassSpec<JniCommon::NativeHandleClass>("io/getlime/security/powerauth/core/EcPrivateKey");
+        spec.password = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/Password");
+        spec.session = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/Session");
+        spec.ecPublicKey = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/EcPublicKey");
+        spec.ecPrivateKey = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/EcPrivateKey");
         // Custom objects
         spec.ecKeyPair = jni.buildClassSpec<EcKeyPair>("io/getlime/security/powerauth/core/EcKeyPair");
         spec.secureData = jni.buildClassSpec<SecureData>("io/getlime/security/powerauth/core/SecureData");
@@ -55,16 +55,16 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         spec.coreException = jni.buildClassSpec<CoreException>("io/getlime/security/powerauth/core/CoreException");
     } catch (...) {
         // Cleanup already resolved classes
-        jni.releaseObject(spec.password.classRef);
-        jni.releaseObject(spec.session.classRef);
-        jni.releaseObject(spec.ecPublicKey.classRef);
-        jni.releaseObject(spec.ecPrivateKey.classRef);
-        jni.releaseObject(spec.ecKeyPair.classRef);
-        jni.releaseObject(spec.secureData.classRef);
-        jni.releaseObject(spec.activationCode.classRef);
-        jni.releaseObject(spec.protocolVersion.classRef);
-        jni.releaseObject(spec.coreErrorCode.classRef);
-        jni.releaseObject(spec.coreException.classRef);
+        jni.releaseSpec(spec.password);
+        jni.releaseSpec(spec.session);
+        jni.releaseSpec(spec.ecPublicKey);
+        jni.releaseSpec(spec.ecPrivateKey);
+        jni.releaseSpec(spec.ecKeyPair);
+        jni.releaseSpec(spec.secureData);
+        jni.releaseSpec(spec.activationCode);
+        jni.releaseSpec(spec.protocolVersion);
+        jni.releaseSpec(spec.coreErrorCode);
+        jni.releaseSpec(spec.coreException);
         // rethrow the exception
         std::rethrow_exception(std::current_exception());
     }

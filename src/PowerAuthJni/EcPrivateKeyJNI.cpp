@@ -29,6 +29,9 @@ using namespace powerAuth::jni;
 
 CC7_JNI_MODULE_CLASS_BEGIN()
 
+// NOTE: This is a legacy interface that will be replaced with a new functionality in future SDK versions.
+//       Due to a compatibility reasons, all native functions doesn't throw an exceptions.
+
 //
 // private native long init(byte[] privateKeyData)
 //
@@ -40,7 +43,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jlong, initKey, jbyteArray privateKeyData)
         auto private_key = algorithms().v3.p256().newPrivateKey(cpp_private_key_data, cc7::crypto::KEY_FORMAT_RAW);
         return jni.toHandle(private_key);
     }
-    NH_CATCH(0)
+    NH_NO_THROW(0)
 }
 
 // ----------------------------------------------------------------------------
@@ -57,7 +60,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jbyteArray, getKeyData, jlong handle)
         auto private_key = jni.fromHandle<cc7::crypto::PrivateKey>(handle);
         return jni.toJava(private_key->exportKey(cc7::crypto::KEY_FORMAT_RAW));
     }
-    NH_CATCH(nullptr)
+    NH_NO_THROW(nullptr)
 }
 
 CC7_JNI_MODULE_CLASS_END()

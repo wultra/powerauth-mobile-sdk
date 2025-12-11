@@ -61,6 +61,7 @@ Notable changes on Android:
     - The value of `powerAuthErrorCode` property, or value returned in `getPowerAuthErrorCode()` is filled only in deprecated SDK functions, such as `requestSignatureWithAuthentication()`. To fix this, migrate to `authorizationHeaderForRequestWithBody()` that throws an exception in case of failure.
     - `isValid()` method is also deprecated, because the new methods, such as `authorizationHeaderForRequestWithBody()`, always returns the valid header.
 
+- All methods in `Password` class now throws `IllegalStateException` when called on already destroyed object. In other words, if you call `destroy()` to force native C++ object cleanup, then the object is no longer available for use.
 
 - The following classes and interfaces are now deprecated:
   - `IPersistActivationWithBiometricsListener` - use `IPersistActivationListener` instead.

@@ -16,18 +16,32 @@
 
 package io.getlime.security.powerauth.core;
 
+/**
+ * The {@code NativeObject} is a base class for all objects wrapping a native C++ object.
+ */
 public class NativeObject {
 
     static {
         NativeModule.loadNativeModule();
     }
 
-    protected static final long NATIVE_NULL = 0L;
+    /**
+     * Constant representing a NULL handle.
+     */
+    public static final long NATIVE_NULL = 0L;
 
-    protected final long handle;
+    /**
+     * Contains handle to underlying native object.
+     */
+    protected final long nativeObjectHandle;
 
-    protected NativeObject(long handle) {
-        this.handle = handle;
+    /**
+     * Construct object with handle to native object. This is a designated constructor used from JNI,
+     * when C++ object is being wrapped into Java object.
+     * @param nativeObjectHandle Handle to native object.
+     */
+    protected NativeObject(long nativeObjectHandle) {
+        this.nativeObjectHandle = nativeObjectHandle;
     }
 
     /**
@@ -36,19 +50,32 @@ public class NativeObject {
      * You can't use instance of this java object anymore after this call.
      */
     public void destroy() {
-        safeNativeDestroy(handle);
+        safeNativeDestroy(nativeObjectHandle);
     }
 
+    /**
+     * Get information whether the underlying native object is already destroyed.
+     * @return {@code true} if underlying native object is already destroyed, {@code false} otherwise.
+     */
     public boolean isNativeObjectDestroyed() {
-        return isNativeDestroyed(handle);
+        return isNativeDestroyed(nativeObjectHandle);
     }
 
     protected void finalize() {
         // Destroy from GC
-        safeNativeDestroy(handle);
+        safeNativeDestroy(nativeObjectHandle);
     }
 
+    /**
+     * Safe destroy underlying native object.
+     * @param handle Handle to native object.
+     */
     private native static void safeNativeDestroy(long handle);
 
+    /**
+     * Get information whether the underlying native object is already destroyed.
+     * @param handle Handle to native object.
+     * @return {@code true} if underlying native object is already destroyed, {@code false} otherwise.
+     */
     private native static boolean isNativeDestroyed(long handle);
 }

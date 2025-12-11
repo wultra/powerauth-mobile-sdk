@@ -105,12 +105,11 @@ struct ClassSpecs
     {
         struct Methods
         {
-            cc7::jni::JniMethod initCodeMessage;
-            cc7::jni::JniMethod initCodeMessageCause;
+            cc7::jni::JniMethod initCodeMessageInfo;
         };
         static constexpr JniMethodSpec methodSpecs[1] = {
-                // constructor: EcKeyPair(EcPrivateKey, EcPublicKey)
-                { "<init>", "(I;Ljava/lang/String;)V", offsetof(Methods, initCodeMessage) },
+                // constructor: CoreException(int, String, String[])
+                { "<init>", "(ILjava/lang/String;[Ljava/lang/String;)V", offsetof(Methods, initCodeMessageInfo) },
         };
 
         struct Fields {};

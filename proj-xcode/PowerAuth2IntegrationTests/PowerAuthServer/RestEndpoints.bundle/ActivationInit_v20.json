@@ -12,9 +12,7 @@
             "activationId":               { "class" : "string" },
             "activationCode":             { "class" : "string" },
             "activationSignature":        { "class" : "string" },
-            "activationSignatureMldsa65": { "class" : "string" },
-            "activationSignatureMldsa87": { "class" : "string" },
-            "activationSignatureEcdsa":   { "class" : "string" },
+            "activationSignatures":       { "class" : "dictionary" },
             "userId":                     { "class" : "string" },
             "applicationId":              { "class" : "string" }
         }

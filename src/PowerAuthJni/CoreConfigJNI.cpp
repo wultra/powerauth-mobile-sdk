@@ -61,7 +61,7 @@ CC7_JNI_METHOD(jstring, getInstanceId)
     {
         return jni.toJava(THIS_OBJ()->instanceId());
     }
-    NH_CATCH(nullptr)
+    NH_CATCH_RT_ONLY(nullptr)
 }
 
 CC7_JNI_METHOD(jbyteArray, getDeviceSpecificData)
@@ -70,7 +70,7 @@ CC7_JNI_METHOD(jbyteArray, getDeviceSpecificData)
     {
         return jni.toJava(THIS_OBJ()->deviceSpecificData());
     }
-    NH_CATCH(nullptr)
+    NH_CATCH_RT_ONLY(nullptr)
 }
 
 CC7_JNI_METHOD(jint, getAlgorithm)
@@ -81,7 +81,7 @@ CC7_JNI_METHOD(jint, getAlgorithm)
         auto config = jni.fromJava<Configuration>(spec.coreConfig, thiz);
         return jni.toJava(spec.coreAlgorithm, config->algorithm());
     }
-    NH_CATCH(0)
+    NH_CATCH_RT_ONLY(0)
 }
 
 CC7_JNI_MODULE_CLASS_END()

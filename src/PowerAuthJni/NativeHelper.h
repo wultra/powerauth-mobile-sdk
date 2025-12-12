@@ -17,8 +17,7 @@
 #pragma once
 
 #include "ClassSpecs.h"
-#include <PowerAuth/Password.h>
-#include <PowerAuth/Exception.h>
+#include "SecureDataJNI.h"
 
 namespace powerAuth::jni {
 
@@ -52,6 +51,11 @@ public:
     /// ```
     static void handleException(cc7::jni::JNI& jni, std::exception_ptr exception = std::current_exception());
 
+    /// Handle exception thrown from C++ code. Unlike `handleException()` this method processes only exceptions from `cc7::jni`
+    /// namespace. All such exceptions are marshalled to RuntimeException types, so it's useful for functions that
+    /// doesn't throw `CoreException`.
+    static void handleJniExceptionsOnly(cc7::jni::JNI& jni, std::exception_ptr exception = std::current_exception());
+
 private:
 
     bool _init_registered = false;
@@ -80,19 +84,32 @@ private:
 /// Macro ends try - catch block started in `NH_TRY` and translates any known C++ exception into Java exception.
 /// @param return_value Defines a value returned in case the exception occurred. In case this is JNI function
 ///        returning `void`, then you use nothing form parameter.
-#define NH_CATCH(return_value)                               \
-    catch (...) {                                            \
-        powerAuth::jni::NativeHelper::handleException(jni);  \
-        return return_value;                                 \
+#define NH_CATCH(return_value)                                      \
+    catch (...) {                                                   \
+        powerAuth::jni::NativeHelper::handleException(jni);         \
+        return return_value;                                        \
+    }
+
+/// Macro ends try - catch block started in `NH_TRY` and translates `cc7::jni` C++ exceptions into Java RuntimeException
+/// types. If other than `cc7::jni` exception is raised, then `IllegalStateException` is reported back to java.
+///
+/// This is useful for methods that suppose not to throw `CoreException`.
+///
+/// @param return_value Defines a value returned in case the exception occurred. In case this is JNI function
+///        returning `void`, then you use nothing form parameter.
+#define NH_CATCH_RT_ONLY(return_value)                              \
+    catch (...) {                                                   \
+        powerAuth::jni::NativeHelper::handleJniExceptionsOnly(jni); \
+        return return_value;                                        \
     }
 
 /// Macro ends try - catch block started by `NH_TRY` and swallows all C++ exceptions.
 /// @param return_value Defines a value returned in case the exception occurred. In case this is JNI function
 ///        returning `void`, then you use nothing form parameter.
-#define NH_NO_THROW(return_value)                            \
-    catch (...) {                                            \
-        jni.noThrow();                                       \
-        return return_value;                                 \
+#define NH_NO_THROW(return_value)                                   \
+    catch (...) {                                                   \
+        jni.noThrow();                                              \
+        return return_value;                                        \
     }
 
 /// Get reference to class specifications provided by NativeHelper.

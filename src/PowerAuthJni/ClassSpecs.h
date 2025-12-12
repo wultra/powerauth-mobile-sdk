@@ -51,14 +51,51 @@ struct ClassSpecs
     };
 
     // Model
+
+    struct CoreHttpHeader
+    {
+        struct Methods
+        {
+            cc7::jni::JniMethod init;
+        };
+        static constexpr JniMethodSpec methodSpecs[1] = {
+                { "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", offsetof(Methods, init) }
+        };
+
+        struct Fields {};
+        static constexpr JniFieldSpec fieldSpecs[] {};
+
+        jclass classRef;
+        Methods methods;
+        Fields fields;
+    };
+
+    struct CoreDevicePublicKeyData
+    {
+        struct Methods
+        {
+            cc7::jni::JniMethod init;
+        };
+        static constexpr JniMethodSpec methodSpecs[1] = {
+                { "<init>", "(ILjava/lang/String;[B)V", offsetof(Methods, init) }
+        };
+
+        struct Fields {};
+        static constexpr JniFieldSpec fieldSpecs[] {};
+
+        jclass classRef;
+        Methods methods;
+        Fields fields;
+    };
+
     struct ActivationCode
     {
         struct Methods
         {
-            cc7::jni::JniMethod initStringString;
+            cc7::jni::JniMethod init;
         };
         static constexpr JniMethodSpec methodSpecs[1] = {
-                { "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", offsetof(Methods, initStringString) }
+                { "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", offsetof(Methods, init) }
         };
 
         struct Fields
@@ -121,20 +158,38 @@ struct ClassSpecs
     };
 
 
+    // Deprecated?
     EcKeyPair ecKeyPair;
-    SecureData secureData;
-    ActivationCode activationCode;
-    CoreException coreException;
-
-    // enums
-    JniCommon::ConstantRangeSpec powerAuthAlgorithm;
-    JniCommon::ConstantRangeSpec coreErrorCode;
-    JniCommon::ConstantSetSpec protocolVersion;
-    // handle based objects
     JniCommon::NativeHandleClass ecPublicKey;
     JniCommon::NativeHandleClass ecPrivateKey;
+    ActivationCode activationCode;
+
+    // model
+    SecureData secureData;
+    CoreHttpHeader coreHttpHeader;
+    CoreDevicePublicKeyData coreDevicePublicKeyData;
+
+    // enums
+    JniCommon::ConstantRangeSpec coreAlgorithm;
+    JniCommon::ConstantSetSpec coreSignatureKeyId;
+    JniCommon::ConstantRangeSpec coreSignatureKeyType;
+    JniCommon::ConstantRangeSpec coreDevicePublicKeyFormat;
+    JniCommon::ConstantSetSpec protocolVersion;
+    JniCommon::ConstantRangeSpec coreEncryptorScope;
+
+    // handle based objects
     JniCommon::NativeHandleClass password;
-    JniCommon::NativeHandleClass session;
+    JniCommon::NativeHandleClass coreConfig;
+    JniCommon::NativeHandleClass coreSession;
+    JniCommon::NativeHandleClass coreCredentials;
+    JniCommon::NativeHandleClass coreEncryptor;
+    JniCommon::NativeHandleClass coreEncryptorFactory;
+    JniCommon::NativeHandleClass coreRequest;
+    JniCommon::NativeHandleClass coreTask;
+
+    // exception
+    JniCommon::ConstantRangeSpec coreErrorCode;
+    CoreException coreException;
 
     /// Build ClassSpecs structure at JNI initialization.
     static ClassSpecs buildSpecs(JNI& jni);

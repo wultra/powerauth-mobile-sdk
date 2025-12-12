@@ -35,6 +35,7 @@ import static io.getlime.security.powerauth.core.ErrorCode.WrongState;
  * For example, if the operation fails at WrongState or WrongParam,
  * then it's usually your fault and you're using Session in wrong way.
  */
+@Deprecated // 2.0.0
 @Retention(RetentionPolicy.SOURCE)
 @IntDef({OK, Encryption, WrongState, WrongParam})
 public @interface ErrorCode

@@ -15,42 +15,49 @@
  */
 
 #include "NativeHelper.h"
+#include <PowerAuth/Credentials.h>
 
 // Package: io.getlime.security.powerauth.core
 #define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
 #define CC7_JNI_CLASS_PACKAGE       io_getlime_security_powerauth_core
-#define CC7_JNI_JAVA_CLASS          NativeObject
-#define CC7_JNI_CPP_CLASS           NA
+#define CC7_JNI_JAVA_CLASS          CoreCredentials
+#define CC7_JNI_CPP_CLASS           Credentials
 #include <cc7/jni/JniModule.inl>
 
 using namespace powerAuth;
-using namespace powerAuth::jni;
-using namespace cc7::jni;
 
 CC7_JNI_MODULE_CLASS_BEGIN()
 
-//
-// private native static void safeNativeDestroy(long handle);
-//
-CC7_JNI_STATIC_METHOD_PARAMS(void, safeNativeDestroy, jlong handle)
+#define THIS_OBJ()  jni.fromJava<CC7_JNI_CPP_CLASS>(NH_SPECS().coreConfig, thiz)
+
+CC7_JNI_STATIC_METHOD(jobject, possession)
 {
     NH_TRY
     {
-        jni.global().objectRegister().removeEntry(handle);
+        return jni.toJava(NH_SPECS().coreCredentials, Credentials::possession());
     }
-    NH_NO_THROW()
+    NH_CATCH_RT_ONLY(nullptr)
 }
 
-//
-// private native static boolean isNativeDestroyed(long handle);
-//
-CC7_JNI_STATIC_METHOD_PARAMS(jboolean, isNativeDestroyed, jlong handle)
+CC7_JNI_STATIC_METHOD_PARAMS(jobject, knowledge, jobject password)
 {
     NH_TRY
     {
-        return !jni.global().objectRegister().containsEntry(handle);
+        auto& spec = NH_SPECS();
+        auto cpp_password = jni.fromJava<Password>(spec.password, password);
+        return jni.toJava(spec.coreCredentials, Credentials::knowledge(cpp_password->passwordData()));
     }
-    NH_NO_THROW(true)
+    NH_CATCH_RT_ONLY(nullptr)
+}
+
+CC7_JNI_STATIC_METHOD_PARAMS(jobject, biometry, jobject secureData)
+{
+    NH_TRY
+    {
+        auto cpp_data = jni::CopyFromSecureData(jni, secureData);
+        return jni.toJava(NH_SPECS().coreCredentials, Credentials::knowledge(cpp_data));
+    }
+    NH_CATCH_RT_ONLY(nullptr)
 }
 
 CC7_JNI_MODULE_CLASS_END()

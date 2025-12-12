@@ -113,6 +113,15 @@ public class Password extends NativeObject {
     }
 
     /**
+     * Destroys underlying native C++ object. You can call this method
+     * if you want to be sure that internal object is properly destroyed.
+     * You can't use instance of this java object anymore after this call.
+     */
+    public void destroy() {
+        safeNativeDestroy(nativeObjectHandle);
+    }
+
+    /**
      * Initializes internal passphrase with given string or byte array based passphrase.
      * You cannot pass a both parameters at the same time, but both parameters can be
      * null. In this case, the mutable Password is initialized.

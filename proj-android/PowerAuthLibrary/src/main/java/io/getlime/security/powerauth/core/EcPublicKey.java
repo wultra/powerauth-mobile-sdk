@@ -42,6 +42,15 @@ public class EcPublicKey extends NativeObject {
     }
 
     /**
+     * Destroys underlying native C++ object. You can call this method
+     * if you want to be sure that internal object is properly destroyed.
+     * You can't use instance of this java object anymore after this call.
+     */
+    public void destroy() {
+        safeNativeDestroy(nativeObjectHandle);
+    }
+
+    /**
      * Internal JNI initialization.
      *
      * @param publicKeyData EC public key bytes.

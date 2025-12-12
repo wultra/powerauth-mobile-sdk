@@ -206,7 +206,13 @@ LOCAL_SRC_FILES := \
 	PowerAuthJni/NativeModuleJNI.cpp \
 	PowerAuthJni/NativeObjectJNI.cpp \
 	\
-	PowerAuthJni/SessionJNI.cpp \
+	PowerAuthJni/CoreConfigJNI.cpp \
+	PowerAuthJni/CoreSessionJNI.cpp \
+	PowerAuthJni/CoreRequestJNI.cpp \
+	PowerAuthJni/CoreTaskJNI.cpp \
+	PowerAuthJni/CoreCredentialsJNI.cpp \
+	PowerAuthJni/CoreEncryptorJNI.cpp \
+	PowerAuthJni/CoreEncryptorFactoryJNI.cpp \
 	PowerAuthJni/PasswordJNI.cpp \
 	PowerAuthJni/ActivationCodeUtilJNI.cpp \
 	PowerAuthJni/TokenCalculatorJNI.cpp \

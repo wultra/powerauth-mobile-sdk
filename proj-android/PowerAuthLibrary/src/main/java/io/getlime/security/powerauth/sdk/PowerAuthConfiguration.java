@@ -16,10 +16,12 @@
 
 package io.getlime.security.powerauth.sdk;
 
+import android.health.connect.datatypes.units.Power;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import io.getlime.security.powerauth.core.Algorithm;
+import io.getlime.security.powerauth.core.CoreAlgorithm;
 import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.core.SessionSetup;
 
@@ -32,7 +34,7 @@ public class PowerAuthConfiguration {
     private final @NonNull String baseEndpointUrl;
     private final @NonNull SessionSetup sessionSetup;
     private final int offlineAuthorizationCodeComponentLength;
-    private final @Algorithm int algorithm;
+    private final @PowerAuthAlgorithm int algorithm;
 
     /**
      * Constant for default PowerAuthSDK instance identifier.
@@ -44,6 +46,13 @@ public class PowerAuthConfiguration {
      */
     public @NonNull String getInstanceId() {
         return instanceId;
+    }
+
+    /**
+     * @return Algorithm specified for communication with the server.
+     */
+    public @PowerAuthAlgorithm int getAlgorithm() {
+        return algorithm;
     }
 
     /**
@@ -135,7 +144,7 @@ public class PowerAuthConfiguration {
             @NonNull String baseEndpointUrl,
             @NonNull SessionSetup sessionSetup,
             int offlineSignatureComponentLength,
-            @Algorithm int algorithm) {
+            @PowerAuthAlgorithm int algorithm) {
         this.instanceId = instanceId;
         this.baseEndpointUrl = baseEndpointUrl;
         this.sessionSetup = sessionSetup;
@@ -153,9 +162,8 @@ public class PowerAuthConfiguration {
         // optional
         private String instanceId;
         private SecureData externalEncryptionKey = null;
-        private boolean disableAutomaticProtocolUpgrade = false;
         private int offlineAuthorizationCodeComponentLength = MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH;
-        private @Algorithm int algorithm = Algorithm.DEFAULT;
+        private @PowerAuthAlgorithm int algorithm = PowerAuthAlgorithm.DEFAULT;
 
         /**
          * Creates a builder for {@link PowerAuthConfiguration}.
@@ -190,7 +198,7 @@ public class PowerAuthConfiguration {
          * @param algorithm Algorithm for communication.
          * @return {@link Builder}
          */
-        public @NonNull Builder algorithm(@Algorithm int algorithm) {
+        public @NonNull Builder algorithm(@PowerAuthAlgorithm int algorithm) {
             this.algorithm = algorithm;
             return this;
         }

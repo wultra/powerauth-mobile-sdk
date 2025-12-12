@@ -49,6 +49,11 @@
     return cc7::objc::CopyToNSData(_config->deviceSpecificData());
 }
 
+- (PowerAuthCoreAlgorithm) algorithm
+{
+    return static_cast<PowerAuthCoreAlgorithm>(_config->algorithm());
+}
+
 + (BOOL) validateConfiguration:(nonnull NSString*)configuration
                      algorithm:(PowerAuthCoreAlgorithm)algorithm
 {

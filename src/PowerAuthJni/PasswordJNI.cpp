@@ -15,7 +15,7 @@
  */
 
 #include "NativeHelper.h"
-#include <algorithm>
+#include <PowerAuth/Password.h>
 
 // Package: io.getlime.security.powerauth.core
 #define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"

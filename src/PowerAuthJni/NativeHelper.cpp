@@ -112,4 +112,24 @@ void NativeHelper::handleException(cc7::jni::JNI &jni, std::exception_ptr except
                     java_info.array());
 }
 
+void NativeHelper::handleJniExceptionsOnly(cc7::jni::JNI& jni, std::exception_ptr exception)
+{
+    if (jni.processException(exception, false)) {
+        // Already handled
+        return;
+    }
+    // Unhandled exception, throw
+    std::string message;
+    try {
+        std::rethrow_exception(exception);
+    } catch (cc7::BaseException & e) {
+        message = e.message();
+    } catch (std::exception & e) {
+        message = e.what();
+    } catch (...) {
+        message = "Unknown C++ exception type";
+    }
+    jni.throwToJava(jni.commonSpecs().illegalStateException.classRef, "Unhandled C++ exception: " + message);
+}
+
 } // namespace powerAuth::jni

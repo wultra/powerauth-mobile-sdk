@@ -48,7 +48,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jobject, parseFromActivationCode, jstring activatio
             return nullptr;
         }
         const auto& spec = NH_SPECS().activationCode;
-        return jni.createObject(spec.methods.initStringString,
+        return jni.createObject(spec.methods.init,
                                 jni.toJava(components.activationCode),
                                 jni.toJavaNullable(components.activationSignature));
     }

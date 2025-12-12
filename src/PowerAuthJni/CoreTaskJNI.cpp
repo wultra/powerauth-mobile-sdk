@@ -15,42 +15,19 @@
  */
 
 #include "NativeHelper.h"
+#include <PowerAuth/Task.h>
 
 // Package: io.getlime.security.powerauth.core
 #define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
 #define CC7_JNI_CLASS_PACKAGE       io_getlime_security_powerauth_core
-#define CC7_JNI_JAVA_CLASS          NativeObject
-#define CC7_JNI_CPP_CLASS           NA
+#define CC7_JNI_JAVA_CLASS          CoreTask
+#define CC7_JNI_CPP_CLASS           Task
 #include <cc7/jni/JniModule.inl>
 
 using namespace powerAuth;
-using namespace powerAuth::jni;
-using namespace cc7::jni;
 
 CC7_JNI_MODULE_CLASS_BEGIN()
 
-//
-// private native static void safeNativeDestroy(long handle);
-//
-CC7_JNI_STATIC_METHOD_PARAMS(void, safeNativeDestroy, jlong handle)
-{
-    NH_TRY
-    {
-        jni.global().objectRegister().removeEntry(handle);
-    }
-    NH_NO_THROW()
-}
-
-//
-// private native static boolean isNativeDestroyed(long handle);
-//
-CC7_JNI_STATIC_METHOD_PARAMS(jboolean, isNativeDestroyed, jlong handle)
-{
-    NH_TRY
-    {
-        return !jni.global().objectRegister().containsEntry(handle);
-    }
-    NH_NO_THROW(true)
-}
+#define THIS_OBJ()  jni.fromJava<CC7_JNI_CPP_CLASS>(NH_SPECS().coreConfig, thiz)
 
 CC7_JNI_MODULE_CLASS_END()

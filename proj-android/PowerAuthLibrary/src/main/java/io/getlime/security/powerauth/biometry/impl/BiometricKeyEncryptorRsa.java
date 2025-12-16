@@ -141,7 +141,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
                 }
                 this.encryptMode = encryptMode;
             }
-        } catch (ProviderException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeySpecException | InvalidAlgorithmParameterException | InvalidKeyException e) {
+        } catch (Throwable e) {
             PowerAuthLog.e("BiometricKeyEncryptorRsa.initializeCipher failed: " + e.getMessage());
             this.cipher = null;
         } finally {

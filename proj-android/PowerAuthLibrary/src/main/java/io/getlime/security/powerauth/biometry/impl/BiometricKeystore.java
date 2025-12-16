@@ -72,7 +72,27 @@ public class BiometricKeystore implements IBiometricKeystore {
             return false;
         }
         try {
-            return mKeyStore.containsAlias(getKeystoreAlias(keyId));
+            final String alias = getKeystoreAlias(keyId);
+            if (!mKeyStore.containsAlias(alias)) {
+                return false;
+            }
+            // Validate the key by attempting to initialize a cipher in decryption mode
+            final IBiometricKeyEncryptor encryptor = getBiometricKeyEncryptor(keyId);
+            if (encryptor == null) {
+                // Failed to get encryptor, remove the key
+                PowerAuthLog.w("BiometricKeystore.containsBiometricKeyEncryptor: Failed to get encryptor for key, removing invalid key");
+                mKeyStore.deleteEntry(alias);
+                return false;
+            }
+            // Try to initialize cipher in decryption mode
+            if (encryptor.initializeCipher(false) == null) {
+                // Failed to initialize cipher, key is invalid - remove it
+                PowerAuthLog.w("BiometricKeystore.containsBiometricKeyEncryptor: Failed to initialize cipher, removing invalid key");
+                mKeyStore.deleteEntry(alias);
+                return false;
+            }
+            // Key is valid
+            return true;
         } catch (KeyStoreException e) {
             PowerAuthLog.e("BiometricKeystore.containsBiometricKeyEncryptor failed: " + e.getMessage());
             return false;
@@ -93,8 +113,9 @@ public class BiometricKeystore implements IBiometricKeystore {
     @Override
     public void removeBiometricKeyEncryptor(@NonNull String keyId) {
         try {
-            if (containsBiometricKeyEncryptor(keyId)) {
-                mKeyStore.deleteEntry(getKeystoreAlias(keyId));
+            final String alias = getKeystoreAlias(keyId);
+            if (mKeyStore.containsAlias(alias)) {
+                mKeyStore.deleteEntry(alias);
             }
         } catch (KeyStoreException e) {
             PowerAuthLog.e("BiometricKeystore.removeBiometricKeyEncryptor failed: " + e.getMessage());

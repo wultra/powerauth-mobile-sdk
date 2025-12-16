@@ -46,6 +46,21 @@
     return _activationCode;
 }
 
+- (NSString*) activationSignatureEcdsa
+{
+    return _activationSignatures[@"ES384"];
+}
+
+- (NSString*) activationSignatureMldsa65
+{
+    return _activationSignatures[@"ML-DSA-65"];
+}
+
+- (NSString*) activationSignatureMldsa87
+{
+    return _activationSignatures[@"ML-DSA-87"];
+}
+
 @end
 
 @implementation PATSCommitActivationResponse

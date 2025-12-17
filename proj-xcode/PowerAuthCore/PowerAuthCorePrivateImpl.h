@@ -60,8 +60,8 @@
 typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::ResponseObjectPtr& response);
 
 @interface PowerAuthCoreRequest (Private)
-- (id) initWithRequest:(powerAuth::RequestPtr&)request;
-- (id) initWithRequest:(powerAuth::RequestPtr&)request
+- (id) initWithRequest:(const powerAuth::RequestPtr&)request;
+- (id) initWithRequest:(const powerAuth::RequestPtr&)request
            withBuilder:(PowerAuthCoreResponseBuilder)builder;
 @end
 

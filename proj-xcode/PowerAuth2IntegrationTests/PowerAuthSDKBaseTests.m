@@ -2120,6 +2120,7 @@
         }];
         XCTAssertNotNil(operation);
     }];
+    XCTAssertNotNil(header);
     result = [_helper validateTokenHeader:header activationId:activationData.activationId expectedResult:YES];
     
     // Now ask for the same token

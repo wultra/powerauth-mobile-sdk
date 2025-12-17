@@ -43,6 +43,8 @@ typedef NS_ENUM(int, PowerAuthCoreAlgorithm) {
 @property (nonatomic, strong, readonly, nonnull) NSString * instanceId;
 /// Contains device specific data provided in the configuration construction.
 @property (nonatomic, strong, readonly, nonnull) NSData * deviceSpecificData;
+/// Contains algorithm provided in the configuration construction.
+@property (nonatomic, readonly) PowerAuthCoreAlgorithm algorithm;
 
 /// Create instance of `PowerAuthCoreConfig` object from the provided parameters.
 ///

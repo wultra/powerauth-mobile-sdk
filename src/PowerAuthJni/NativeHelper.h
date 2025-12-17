@@ -17,8 +17,8 @@
 #pragma once
 
 #include "ClassSpecs.h"
-#include <PowerAuth/Password.h>
-#include <PowerAuth/Exception.h>
+#include "SecureDataJNI.h"
+#include <PowerAuth/Task.h>
 
 namespace powerAuth::jni {
 
@@ -52,6 +52,11 @@ public:
     /// ```
     static void handleException(cc7::jni::JNI& jni, std::exception_ptr exception = std::current_exception());
 
+    /// Handle exception thrown from C++ code. Unlike `handleException()` this method processes only exceptions from `cc7::jni`
+    /// namespace. All such exceptions are marshalled to RuntimeException types, so it's useful for functions that
+    /// doesn't throw `CoreException`.
+    static void handleJniExceptionsOnly(cc7::jni::JNI& jni, std::exception_ptr exception = std::current_exception());
+
 private:
 
     bool _init_registered = false;
@@ -80,19 +85,32 @@ private:
 /// Macro ends try - catch block started in `NH_TRY` and translates any known C++ exception into Java exception.
 /// @param return_value Defines a value returned in case the exception occurred. In case this is JNI function
 ///        returning `void`, then you use nothing form parameter.
-#define NH_CATCH(return_value)                               \
-    catch (...) {                                            \
-        powerAuth::jni::NativeHelper::handleException(jni);  \
-        return return_value;                                 \
+#define NH_CATCH(return_value)                                      \
+    catch (...) {                                                   \
+        powerAuth::jni::NativeHelper::handleException(jni);         \
+        return return_value;                                        \
+    }
+
+/// Macro ends try - catch block started in `NH_TRY` and translates `cc7::jni` C++ exceptions into Java RuntimeException
+/// types. If other than `cc7::jni` exception is raised, then `IllegalStateException` is reported back to java.
+///
+/// This is useful for methods that suppose not to throw `CoreException`.
+///
+/// @param return_value Defines a value returned in case the exception occurred. In case this is JNI function
+///        returning `void`, then you use nothing form parameter.
+#define NH_CATCH_RT_ONLY(return_value)                              \
+    catch (...) {                                                   \
+        powerAuth::jni::NativeHelper::handleJniExceptionsOnly(jni); \
+        return return_value;                                        \
     }
 
 /// Macro ends try - catch block started by `NH_TRY` and swallows all C++ exceptions.
 /// @param return_value Defines a value returned in case the exception occurred. In case this is JNI function
 ///        returning `void`, then you use nothing form parameter.
-#define NH_NO_THROW(return_value)                            \
-    catch (...) {                                            \
-        jni.noThrow();                                       \
-        return return_value;                                 \
+#define NH_NO_THROW(return_value)                                   \
+    catch (...) {                                                   \
+        jni.noThrow();                                              \
+        return return_value;                                        \
     }
 
 /// Get reference to class specifications provided by NativeHelper.
@@ -100,5 +118,46 @@ private:
 
 /// Get reference to common class specifications provided by JNI instance.
 #define NH_COMMON_SPECS() jni.commonSpecs()
+
+// Support functions
+
+/// Closure for constructing Java model objects from C++ response objects.
+typedef std::function<
+        jobject(cc7::jni::JNI& jni,
+                const ClassSpecs& specs,
+                const powerAuth::ResponseObjectPtr& response
+        )> ResponseObjectBuilder;
+
+/// Structure contains information required for response object build.
+struct JavaResponseBuilder
+{
+    ResponseObjectBuilder build;
+};
+
+/// Build CoreRequest Java object from given C++ Request instance.
+/// @param jni JNI reference.
+/// @param request Request object.
+/// @return CoreRequest Java instance.
+jobject BuildCoreRequest(cc7::jni::JNI &jni, const RequestPtr& request);
+
+/// Build CoreRequest Java object from given C++ Request instance and set closure that translates received response into Java response object.
+/// @param jni JNI reference.
+/// @param request Request object.
+/// @param builder Closure that translates received C++ response object into Java response object.
+/// @return CoreRequest Java instance with additional builder closure.
+jobject BuildCoreRequest(cc7::jni::JNI &jni, const RequestPtr& request, const ResponseObjectBuilder& builder);
+
+/// Build CoreTask Java object from given C++ Task instance.
+/// @param jni JNI reference.
+/// @param task Task object.
+/// @return CoreTask Java instance.
+jobject BuildCoreTask(cc7::jni::JNI& jni, const TaskPtr& task);
+
+/// Build CoreTask Java object from given C++ Task instance and set closure that translates received response into Java response object.
+/// @param jni JNI reference.
+/// @param task Task object.
+/// @param builder Closure that translates received C++ response object into Java response object.
+/// @return CoreTask Java instance with additional builder closure.
+jobject BuildCoreTask(cc7::jni::JNI &jni, const TaskPtr& task, const ResponseObjectBuilder& builder);
 
 } // namespace powerAuth::jni

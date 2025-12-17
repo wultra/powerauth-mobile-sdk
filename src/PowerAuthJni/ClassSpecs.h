@@ -31,18 +31,18 @@ struct ClassSpecs
     {
         struct Methods
         {
-            JniMethod initBytes;
+            JniInitMethod initBytes;
         };
-        static constexpr JniMethodSpec methodSpecs[1] = {
-                { "<init>", "([B)V", offsetof(Methods, initBytes) }
+        static constexpr JniMethodSpec methodSpecs[] = {
+                JniMethodSpec::constructor("([B)V", offsetof(Methods, initBytes))
         };
 
         struct Fields
         {
             jfieldID sensitiveData;
         };
-        static constexpr JniFieldSpec fieldSpecs[1] {
-                { "sensitiveData", "[B", offsetof(Fields, sensitiveData) }
+        static constexpr JniFieldSpec fieldSpecs[] {
+            JniFieldSpec::field("sensitiveData", "[B", offsetof(Fields, sensitiveData))
         };
 
         jclass classRef;
@@ -51,14 +51,43 @@ struct ClassSpecs
     };
 
     // Model
+
+    struct CoreHttpHeader
+    {
+        struct Methods
+        {
+            cc7::jni::JniInitMethod init;
+        };
+        static constexpr JniMethodSpec methodSpecs[] = {
+                JniMethodSpec::constructor("(Ljava/lang/String;Ljava/lang/String;)V", offsetof(Methods, init))
+        };
+
+        jclass classRef;
+        Methods methods;
+    };
+
+    struct CoreDevicePublicKeyData
+    {
+        struct Methods
+        {
+            cc7::jni::JniInitMethod init;
+        };
+        static constexpr JniMethodSpec methodSpecs[] = {
+                JniMethodSpec::constructor("(ILjava/lang/String;[B)V", offsetof(Methods, init))
+        };
+
+        jclass classRef;
+        Methods methods;
+    };
+
     struct ActivationCode
     {
         struct Methods
         {
-            cc7::jni::JniMethod initStringString;
+            cc7::jni::JniInitMethod init;
         };
-        static constexpr JniMethodSpec methodSpecs[1] = {
-                { "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", offsetof(Methods, initStringString) }
+        static constexpr JniMethodSpec methodSpecs[] = {
+                JniMethodSpec::constructor("(Ljava/lang/String;Ljava/lang/String;)V", offsetof(Methods, init))
         };
 
         struct Fields
@@ -66,9 +95,9 @@ struct ClassSpecs
             jfieldID activationCode;
             jfieldID activationSignature;
         };
-        static constexpr JniFieldSpec fieldSpecs[2] {
-                { "activationCode", "Ljava/lang/String;", offsetof(Fields, activationCode) },
-                { "activationSignature", "Ljava/lang/String;", offsetof(Fields, activationSignature) }
+        static constexpr JniFieldSpec fieldSpecs[] {
+            JniFieldSpec::field("activationCode", "Ljava/lang/String;", offsetof(Fields, activationCode)),
+            JniFieldSpec::field("activationSignature", "Ljava/lang/String;", offsetof(Fields, activationSignature))
         };
 
         jclass classRef;
@@ -83,19 +112,15 @@ struct ClassSpecs
     {
         struct Methods
         {
-            cc7::jni::JniMethod init;
+            cc7::jni::JniInitMethod init;
         };
         static constexpr JniMethodSpec methodSpecs[1] = {
                 // constructor: EcKeyPair(EcPrivateKey, EcPublicKey)
-                { "<init>", "(Lio/getlime/security/powerauth/core/EcPrivateKey;Lio/getlime/security/powerauth/core/EcPublicKey;)V", offsetof(Methods, init) }
+                JniMethodSpec::constructor("(Lio/getlime/security/powerauth/core/EcPrivateKey;Lio/getlime/security/powerauth/core/EcPublicKey;)V", offsetof(Methods, init))
         };
-
-        struct Fields {};
-        static constexpr JniFieldSpec fieldSpecs[] {};
 
         jclass classRef;
         Methods methods;
-        Fields fields;
     };
 
     // Exceptions
@@ -105,36 +130,68 @@ struct ClassSpecs
     {
         struct Methods
         {
-            cc7::jni::JniMethod initCodeMessageInfo;
+            cc7::jni::JniInitMethod initCodeMessageInfo;
         };
         static constexpr JniMethodSpec methodSpecs[1] = {
                 // constructor: CoreException(int, String, String[])
-                { "<init>", "(ILjava/lang/String;[Ljava/lang/String;)V", offsetof(Methods, initCodeMessageInfo) },
+                JniMethodSpec::constructor("(ILjava/lang/String;[Ljava/lang/String;)V", offsetof(Methods, initCodeMessageInfo))
         };
-
-        struct Fields {};
-        static constexpr JniFieldSpec fieldSpecs[] {};
 
         jclass classRef;
         Methods methods;
-        Fields fields;
     };
 
+    // io.getlime.security.powerauth.core.CoreRequest
+    struct CoreRequest
+    {
+        JniCommon::NativeHandleClass native;
+        jfieldID responseBuilderHandle;
+        jfieldID responseObject;
+        jfieldID responseJson;
+    };
 
+    // io.getlime.security.powerauth.core.CoreTask
+    struct CoreTask
+    {
+        JniCommon::NativeHandleClass native;
+        jfieldID responseIsCaptured;
+        jfieldID responseBuilderHandle;
+        jfieldID responseObject;
+        jfieldID responseJson;
+    };
+
+    // Deprecated?
     EcKeyPair ecKeyPair;
-    SecureData secureData;
-    ActivationCode activationCode;
-    CoreException coreException;
-
-    // enums
-    JniCommon::ConstantRangeSpec powerAuthAlgorithm;
-    JniCommon::ConstantRangeSpec coreErrorCode;
-    JniCommon::ConstantSetSpec protocolVersion;
-    // handle based objects
     JniCommon::NativeHandleClass ecPublicKey;
     JniCommon::NativeHandleClass ecPrivateKey;
+    ActivationCode activationCode;
+
+    // model
+    SecureData secureData;
+    CoreHttpHeader coreHttpHeader;
+    CoreDevicePublicKeyData coreDevicePublicKeyData;
+
+    // enums
+    JniCommon::ConstantRangeSpec coreAlgorithm;
+    JniCommon::ConstantSetSpec coreSignatureKeyId;
+    JniCommon::ConstantRangeSpec coreSignatureKeyType;
+    JniCommon::ConstantRangeSpec coreDevicePublicKeyFormat;
+    JniCommon::ConstantSetSpec protocolVersion;
+    JniCommon::ConstantRangeSpec coreEncryptorScope;
+
+    // handle based objects
     JniCommon::NativeHandleClass password;
-    JniCommon::NativeHandleClass session;
+    JniCommon::NativeHandleClass coreConfig;
+    JniCommon::NativeHandleClass coreSession;
+    JniCommon::NativeHandleClass coreCredentials;
+    JniCommon::NativeHandleClass coreEncryptor;
+    JniCommon::NativeHandleClass coreEncryptorFactory;
+    CoreRequest coreRequest;
+    CoreTask coreTask;
+
+    // exception
+    JniCommon::ConstantRangeSpec coreErrorCode;
+    CoreException coreException;
 
     /// Build ClassSpecs structure at JNI initialization.
     static ClassSpecs buildSpecs(JNI& jni);

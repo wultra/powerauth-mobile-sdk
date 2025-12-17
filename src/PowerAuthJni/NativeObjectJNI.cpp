@@ -36,7 +36,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(void, safeNativeDestroy, jlong handle)
 {
     NH_TRY
     {
-        jni.global().objectRegister().removeObject(handle);
+        jni.global().objectRegister().removeEntry(handle);
     }
     NH_NO_THROW()
 }
@@ -48,7 +48,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jboolean, isNativeDestroyed, jlong handle)
 {
     NH_TRY
     {
-        return !jni.global().objectRegister().containsObject(handle);
+        return !jni.global().objectRegister().containsEntry(handle);
     }
     NH_NO_THROW(true)
 }

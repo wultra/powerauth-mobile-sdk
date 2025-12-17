@@ -21,7 +21,8 @@ namespace powerAuth {
 namespace v4 {
 
 const EndpointSpec Endpoint_SystemStatus {
-    Version_V4, "/pa/v4/status", "", EncryptorId::NONE, EndpointSpec::FL_ALLOWED_IN_UPGRADE
+    Version_V4, "/pa/v4/status", "", EncryptorId::NONE,
+    EndpointSpec::FL_ALLOWED_IN_UPGRADE | EndpointSpec::FL_PUBLIC_RESPONSE_JSON
 };
 
 const EndpointSpec Endpoint_TemporaryKey {
@@ -33,7 +34,7 @@ const EndpointSpec Endpoint_ActivationCreate {
 };
 
 const EndpointSpec Endpoint_ActivationConfirm {
-    Version_V4, "/pa/v4/activation/confirm", "/pa/activation/confirm", EncryptorId::NONE, EndpointSpec::Flags::FL_PENDING_REGISTRATION
+    Version_V4, "/pa/v4/activation/confirm", "/pa/activation/confirm", EncryptorId::NONE, EndpointSpec::FL_PENDING_REGISTRATION
 };
 
 const EndpointSpec Endpoint_ActivationRemove {
@@ -41,7 +42,9 @@ const EndpointSpec Endpoint_ActivationRemove {
 };
 
 const EndpointSpec Endpoint_ActivationStatus {
-    Version_V4, "/pa/v4/activation/status", "", EncryptorId::ACTIVATION_SCOPE_GENERIC, EndpointSpec::Flags::FL_PENDING_REGISTRATION // NOTE: V4 allows status during registration
+    Version_V4, "/pa/v4/activation/status", "", EncryptorId::ACTIVATION_SCOPE_GENERIC,
+    // NOTE: V4 allows status during registration
+    EndpointSpec::FL_PENDING_REGISTRATION | EndpointSpec::FL_PUBLIC_RESPONSE_JSON
 };
 
 const EndpointSpec Endpoint_PasswordChange {
@@ -61,7 +64,7 @@ const EndpointSpec Endpoint_VaultUnlock {
 };
 
 const EndpointSpec Endpoint_TokenCreate {
-    Version_V4, "/pa/v4/token/create", "/pa/token/create", EncryptorId::CREATE_TOKEN
+    Version_V4, "/pa/v4/token/create", "/pa/token/create", EncryptorId::CREATE_TOKEN, EndpointSpec::FL_PUBLIC_RESPONSE_JSON
 };
 
 const EndpointSpec Endpoint_TokenRemove {
@@ -84,7 +87,7 @@ const EndpointSpec Endpoint_ProtocolUpgradeConfirm {
 };
 
 const EndpointSpec Endpoint_UserInfo {
-    Version_V4, "/pa/v4/user/info", "", EncryptorId::ACTIVATION_SCOPE_GENERIC
+    Version_V4, "/pa/v4/user/info", "", EncryptorId::ACTIVATION_SCOPE_GENERIC, EndpointSpec::FL_PUBLIC_RESPONSE_JSON
 };
 
 } // namespace v4
@@ -92,7 +95,8 @@ const EndpointSpec Endpoint_UserInfo {
 namespace v3 {
 
 const EndpointSpec Endpoint_SystemStatus {
-    Version_V3, "/pa/v3/status", "", EncryptorId::NONE, EndpointSpec::FL_ALLOWED_IN_UPGRADE
+    Version_V3, "/pa/v3/status", "", EncryptorId::NONE,
+    EndpointSpec::FL_ALLOWED_IN_UPGRADE | EndpointSpec::FL_PUBLIC_RESPONSE_JSON
 };
 
 const EndpointSpec Endpoint_TemporaryKey {
@@ -104,7 +108,7 @@ const EndpointSpec Endpoint_ActivationCreate {
 };
 
 const EndpointSpec Endpoint_ActivationStatus {
-    Version_V3, "/pa/v3/activation/status", "", EncryptorId::NONE
+    Version_V3, "/pa/v3/activation/status", "", EncryptorId::NONE, EndpointSpec::FL_PUBLIC_RESPONSE_JSON
 };
 
 const EndpointSpec Endpoint_ActivationRemove {
@@ -120,7 +124,7 @@ const EndpointSpec Endpoint_VaultUnlock {
 };
 
 const EndpointSpec Endpoint_TokenCreate {
-    Version_V3, "/pa/v3/token/create", "/pa/token/create", EncryptorId::CREATE_TOKEN
+    Version_V3, "/pa/v3/token/create", "/pa/token/create", EncryptorId::CREATE_TOKEN, EndpointSpec::FL_PUBLIC_RESPONSE_JSON
 };
 
 const EndpointSpec Endpoint_TokenRemove {
@@ -128,7 +132,7 @@ const EndpointSpec Endpoint_TokenRemove {
 };
 
 const EndpointSpec Endpoint_UserInfo {
-    Version_V3, "/pa/v3/user/info", "", EncryptorId::ACTIVATION_SCOPE_GENERIC
+    Version_V3, "/pa/v3/user/info", "", EncryptorId::ACTIVATION_SCOPE_GENERIC, EndpointSpec::FL_PUBLIC_RESPONSE_JSON
 };
 
 } // namespace v3

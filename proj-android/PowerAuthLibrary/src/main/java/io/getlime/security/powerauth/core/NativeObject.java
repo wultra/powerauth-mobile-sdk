@@ -45,15 +45,6 @@ public class NativeObject {
     }
 
     /**
-     * Destroys underlying native C++ object. You can call this method
-     * if you want to be sure that internal object is properly destroyed.
-     * You can't use instance of this java object anymore after this call.
-     */
-    public void destroy() {
-        safeNativeDestroy(nativeObjectHandle);
-    }
-
-    /**
      * Get information whether the underlying native object is already destroyed.
      * @return {@code true} if underlying native object is already destroyed, {@code false} otherwise.
      */
@@ -70,12 +61,12 @@ public class NativeObject {
      * Safe destroy underlying native object.
      * @param handle Handle to native object.
      */
-    private native static void safeNativeDestroy(long handle);
+    protected native static void safeNativeDestroy(long handle);
 
     /**
      * Get information whether the underlying native object is already destroyed.
      * @param handle Handle to native object.
      * @return {@code true} if underlying native object is already destroyed, {@code false} otherwise.
      */
-    private native static boolean isNativeDestroyed(long handle);
+    protected native static boolean isNativeDestroyed(long handle);
 }

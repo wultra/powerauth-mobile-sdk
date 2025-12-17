@@ -21,24 +21,21 @@ import androidx.annotation.IntDef;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import static io.getlime.security.powerauth.core.Algorithm.*;
-
-import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthSDK;
+import static io.getlime.security.powerauth.core.CoreAlgorithm.*;
 
 /**
- * The {@code Algorithm} enumeration defines algorithms available for PowerAuth
+ * The {@code CoreAlgorithm} enumeration defines algorithms available for PowerAuth
  * initialization. The algorithm specifies also the protocol version used for communication
  * with the server.
  */
 @Retention(RetentionPolicy.SOURCE)
-@IntDef({LEGACY_P256, EC_P384, EC_P384_ML_L3, EC_P384_ML_L5, DEFAULT})
-public @interface Algorithm {
+@IntDef({LEGACY_P256, EC_P384, EC_P384_ML_L3, EC_P384_ML_L5})
+public @interface CoreAlgorithm {
     /**
      * Algorithm identifier for legacy protocol V3.3.
      * <p>
-     * If used in {@link PowerAuthConfiguration}, then the protocol upgrade is automatically disabled
-     * and instance of {@link PowerAuthSDK} will use legacy protocol only for communicating with the server.
+     * If used in {@link CoreConfig}, then the protocol upgrade is automatically disabled
+     * and instance of {@code PowerAuthSDK} will use legacy protocol only for communicating with the server.
      */
     int LEGACY_P256 = 0;
 
@@ -71,9 +68,4 @@ public @interface Algorithm {
      * </ul>
      */
     int EC_P384_ML_L5 = 3;
-
-    /**
-     * Default algorithm. Value is identical to {@link #EC_P384_ML_L3}.
-     */
-    int DEFAULT = EC_P384_ML_L3;
 }

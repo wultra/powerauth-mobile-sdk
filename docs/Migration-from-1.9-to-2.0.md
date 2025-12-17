@@ -40,9 +40,11 @@ Notable changes on Android:
 
   - `PowerAuthConfiguration` class:
     - `getOfflineSignatureComponentLength()` - use `getOfflineAuthenticationCodeComponentLength()` instead.
+    - `isAutomaticProtocolUpgradeDisabled()` - always returns `false`.
 
   - `PowerAuthConfiguration.Builder` class:
     - `offlineSignatureComponentLength()` - use `offlineAuthenticationCodeComponentLength()` instead.
+    - `disableAutomaticProtocolUpgrade()` - has no effect.
 
   - `PowerAuthKeychainConfiguration` class:
     - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
@@ -137,6 +139,7 @@ Notable changes on iOS:
 
   - `PowerAuthConfiguration` class:
     - `offlineSignatureComponentLength` property is now replaced with `offlineAuthenticationCodeComponentLength`
+    - `disableAutomaticProtocolUpgrade` property is deprecated and has no effect in SDK.
   - `PowerAuthTokenStore` protocol:
     - `generateAuthorizationHeader(withName:completion:)` is replaced with `generateAuthenticationHeader(withName:completion:)`
   - `PowerAuthAuthorizationHttpHeader` is deprecated and replaced with `PowerAuthHttpHeader`

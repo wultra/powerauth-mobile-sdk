@@ -68,7 +68,7 @@ public class PowerAuthKeychainConfiguration {
      * @return Name of the default biometry Keychain key.
      * @deprecated Use {@link #getKeychainKeyBiometry()} method instead.
      */
-    @Deprecated // 1.7.10 - remove in 1.10.0
+    @Deprecated // 1.7.10 - remove in 2.0.0
     public @NonNull String getKeychainBiometryDefaultKey() {
        return keychainKeyBiometry == null ? KEYCHAIN_KEY_SHARED_BIOMETRY_KEY : keychainKeyBiometry;
     }
@@ -103,7 +103,7 @@ public class PowerAuthKeychainConfiguration {
      *
      * @deprecated Use {@link PowerAuthBiometricConfiguration#isInvalidateBiometricFactorAfterChange()} instead.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public boolean isLinkBiometricItemsToCurrentSet() {
         return linkBiometricItemsToCurrentSet;
     }
@@ -117,7 +117,7 @@ public class PowerAuthKeychainConfiguration {
      *
      * @deprecated Use {@link PowerAuthBiometricConfiguration#isConfirmBiometricAuthentication()} instead.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public boolean isConfirmBiometricAuthentication() {
         return confirmBiometricAuthentication;
     }
@@ -129,7 +129,7 @@ public class PowerAuthKeychainConfiguration {
      *
      * @deprecated Use {@link PowerAuthBiometricConfiguration#isAuthenticateOnBiometricKeySetup()} instead.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public boolean isAuthenticateOnBiometricKeySetup() {
         return authenticateOnBiometricKeySetup;
     }
@@ -143,7 +143,7 @@ public class PowerAuthKeychainConfiguration {
      *
      * @deprecated Use {@link PowerAuthBiometricConfiguration#isFallbackToSharedBiometryKeyEnabled()} instead.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public boolean isFallbackToSharedBiometryKeyEnabled() {
         return enableFallbackToSharedBiometryKey;
     }
@@ -262,7 +262,7 @@ public class PowerAuthKeychainConfiguration {
          * @return {@link Builder}
          * @deprecated Use {@link #keychainKeyBiometry(String)} as a replacement.
          */
-        @Deprecated // 1.7.10 - remove in 1.10.0
+        @Deprecated // 1.7.10 - remove in 2.0.0
         public @NonNull Builder keychainBiometryDefaultKey(@NonNull String keychainKeyBiometry) {
             this.keychainKeyBiometry = keychainKeyBiometry;
             return this;
@@ -288,7 +288,7 @@ public class PowerAuthKeychainConfiguration {
          *
          * @deprecated Use {@link PowerAuthBiometricConfiguration.Builder#invalidateBiometricFactorAfterChange(boolean)} instead.
          */
-        @Deprecated // 1.10.0
+        @Deprecated // 2.0.0
         public @NonNull Builder linkBiometricItemsToCurrentSet(boolean linkBiometricItemsToCurrentSet) {
             this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
             return this;
@@ -304,7 +304,7 @@ public class PowerAuthKeychainConfiguration {
          *
          * @deprecated Use {@link PowerAuthBiometricConfiguration.Builder#confirmBiometricAuthentication(boolean)} instead.
          */
-        @Deprecated // 1.10.0
+        @Deprecated // 2.0.0
         public @NonNull Builder confirmBiometricAuthentication(boolean confirmBiometricAuthentication) {
             this.confirmBiometricAuthentication = confirmBiometricAuthentication;
             return this;
@@ -329,7 +329,7 @@ public class PowerAuthKeychainConfiguration {
          *
          * @deprecated Use {@link PowerAuthBiometricConfiguration.Builder#authenticateOnBiometricKeySetup(boolean)} instead.
          */
-        @Deprecated // 1.10.0
+        @Deprecated // 2.0.0
         public @NonNull Builder authenticateOnBiometricKeySetup(boolean authenticate) {
             this.authenticateOnBiometricKeySetup = authenticate;
             return this;
@@ -346,7 +346,7 @@ public class PowerAuthKeychainConfiguration {
          *
          * @deprecated Use {@link PowerAuthBiometricConfiguration.Builder#enableFallbackToSharedBiometryKey(boolean)} instead.
          */
-        @Deprecated // 1.10.0
+        @Deprecated // 2.0.0
         public @NonNull Builder enableFallbackToSharedBiometryKey(boolean enable) {
             this.enableFallbackToSharedBiometryKey = enable;
             return this;

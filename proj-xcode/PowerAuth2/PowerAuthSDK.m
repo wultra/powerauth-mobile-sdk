@@ -860,8 +860,7 @@ static PowerAuthSDK * s_inst;
         _getActivationStatusTask = [[PA2GetActivationStatusTask alloc] initWithHttpClient:_client
                                                                           sessionProvider:_sessionInterface
                                                                                  delegate:self
-                                                                               sharedLock:_lock
-                                                                           disableUpgrade:_configuration.disableAutomaticProtocolUpgrade];
+                                                                               sharedLock:_lock];
         task = [_getActivationStatusTask createChildTask:callback];
     }
     //

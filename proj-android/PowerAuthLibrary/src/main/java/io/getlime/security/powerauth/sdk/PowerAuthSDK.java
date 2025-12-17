@@ -188,7 +188,7 @@ public class PowerAuthSDK {
                     mBiometricConfiguration = new PowerAuthBiometricConfiguration.Builder().build();
                 } else {
                     // As fallback, construct biometric configuration from the keychain configuration.
-                    // @Deprecated // 1.10.0
+                    // @Deprecated // 2.0.0
                     mBiometricConfiguration = new PowerAuthBiometricConfiguration(mKeychainConfiguration);
                 }
             }
@@ -1047,7 +1047,7 @@ public class PowerAuthSDK {
      */
     @CheckResult
     @PowerAuthErrorCodes
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public int persistActivationWithPassword(@NonNull Context context, @NonNull String password) {
         return persistActivationWithAuthentication(context, PowerAuthAuthentication.persistWithPassword(password));
     }
@@ -1064,7 +1064,7 @@ public class PowerAuthSDK {
      */
     @CheckResult
     @PowerAuthErrorCodes
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public int persistActivationWithPassword(@NonNull Context context, @NonNull Password password) {
         return persistActivationWithAuthentication(context, PowerAuthAuthentication.persistWithPassword(password));
     }
@@ -1083,7 +1083,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @NonNull
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull FragmentActivity fragmentActivity,
@@ -1108,7 +1108,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @NonNull
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull FragmentActivity fragmentActivity,
@@ -1133,7 +1133,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @NonNull
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull Fragment fragment,
@@ -1158,7 +1158,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @NonNull
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull Fragment fragment,
@@ -1181,7 +1181,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @NonNull
-    // @Deprecated // 1.10.0 - remove in 2.0
+    // @Deprecated // 2.0.0 - remove in 2.1.0
     private ICancelable persistActivationWithBiometricsImpl(
             final @NonNull Context context,
             @NonNull PowerAuthBiometricPrompt prompt,
@@ -1228,7 +1228,7 @@ public class PowerAuthSDK {
      */
     @CheckResult
     @PowerAuthErrorCodes
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public int persistActivationWithPassword(@NonNull Context context, @NonNull String password, @Nullable SecureData encryptedBiometryKey) {
         return persistActivationWithPassword(context, new Password(password), encryptedBiometryKey);
     }
@@ -1247,7 +1247,7 @@ public class PowerAuthSDK {
      */
     @CheckResult
     @PowerAuthErrorCodes
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public int persistActivationWithPassword(@NonNull Context context, @NonNull Password password, @Nullable SecureData encryptedBiometryKey) {
         return persistActivationWithAuthentication(context, new PowerAuthAuthentication(true, password, null, encryptedBiometryKey, null));
     }
@@ -1264,7 +1264,7 @@ public class PowerAuthSDK {
      */
     @CheckResult
     @PowerAuthErrorCodes
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public int persistActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) {
         try {
             persistActivationImpl(context, authentication);
@@ -1578,7 +1578,7 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      * @deprecated Use {@link #removeActivationLocal(Context)} as a replacement.
      */
-    @Deprecated // 1.7.10 - remove in 1.10.0
+    @Deprecated // 1.7.10 - remove in 2.0.0
     public void removeActivationLocal(@NonNull Context context, boolean removeSharedBiometryKey) {
         removeActivationLocal(context);
     }
@@ -1757,7 +1757,7 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      * @deprecated Use {@link #authorizationHeaderForRequestWithParams(Context, PowerAuthAuthentication, String, String, Map)} for replacement.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public @NonNull PowerAuthAuthorizationHttpHeader requestGetSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, Map<String, String> params) {
         try {
             return authorizationHeaderForRequestWithParams(context, authentication, "GET", uriId, params);
@@ -1778,7 +1778,7 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      * @deprecated Use {@link #authorizationHeaderForRequestWithBody(Context, PowerAuthAuthentication, String, String, byte[])} for replacement.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public @NonNull PowerAuthAuthorizationHttpHeader requestSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String method, String uriId, byte[] body) {
         try {
             return authorizationHeaderForRequestWithBody(context, authentication, method, uriId, body);
@@ -1799,7 +1799,7 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      * @deprecated Use {@link #offlineAuthorizationCode(Context, PowerAuthAuthentication, String, byte[], String, IOfflineAuthorizationCodeListener)}
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public @Nullable String offlineSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, byte[] body, String nonce) {
 
         checkForValidSetup();
@@ -1957,7 +1957,7 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      * @deprecated Method is deprecated, use {@link #changePassword(Context, String, String, IChangePasswordListener)} as a replacement.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public boolean changePasswordUnsafe(@NonNull final String oldPassword, @NonNull final String newPassword) {
         return changePasswordUnsafeImpl(new Password(oldPassword), new Password(newPassword));
     }
@@ -1975,7 +1975,7 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      * @deprecated Method is deprecated, use {@link #changePassword(Context, Password, Password, IChangePasswordListener)} as a replacement.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public boolean changePasswordUnsafe(@NonNull final Password oldPassword, @NonNull final Password newPassword) {
         return changePasswordUnsafeImpl(oldPassword, newPassword);
     }
@@ -1988,7 +1988,7 @@ public class PowerAuthSDK {
      * @return Returns 'true' in case password was changed without error, 'false' otherwise.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
-    //@Deprecated // 1.10.0
+    //@Deprecated // 2.0.0
     private boolean changePasswordUnsafeImpl(@NonNull final Password oldPassword, @NonNull final Password newPassword) {
         final int result = mSession.changeUserPassword(oldPassword, newPassword);
         if (result == ErrorCode.OK) {
@@ -2126,7 +2126,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @Nullable
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull Fragment fragment,
@@ -2153,7 +2153,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @Nullable
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull Fragment fragment,
@@ -2180,7 +2180,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @Nullable
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull FragmentActivity fragmentActivity,
@@ -2207,7 +2207,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @Nullable
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull FragmentActivity fragmentActivity,
@@ -2384,7 +2384,7 @@ public class PowerAuthSDK {
      * @return TRUE if the key was successfully removed, FALSE otherwise.
      * @deprecated Please use asynchronous variant {@link #removeBiometryFactor(Context, IRemoveBiometryFactorListener)}.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public boolean removeBiometryFactor(@NonNull Context context) {
         try {
             removeBiometryFactorImpl(context);
@@ -2571,7 +2571,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @NonNull
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public ICancelable authenticateUsingBiometrics(
             @NonNull Context context,
             @NonNull Fragment fragment,
@@ -2595,7 +2595,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @NonNull
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public ICancelable authenticateUsingBiometrics(
             @NonNull Context context,
             @NonNull FragmentActivity fragmentActivity,

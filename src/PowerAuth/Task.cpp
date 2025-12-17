@@ -207,7 +207,11 @@ void Task::setRequestCompleted(const Request &request) noexcept
             if (_state == State::PENDING) {
                 if (is_primary) {
                     _response_object = request.getResponseObject();
-                    _response_json = request.getResponseJson();
+                    if (request.isPublicResponseJson()) {
+                        _response_json = request.getResponseJson();
+                    } else {
+                        _response_json = cc7::json::JsonValue();
+                    }
                 }
                 onRequestSuccess(request);
             }

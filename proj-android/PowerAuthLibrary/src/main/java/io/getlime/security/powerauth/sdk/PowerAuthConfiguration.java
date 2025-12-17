@@ -16,9 +16,12 @@
 
 package io.getlime.security.powerauth.sdk;
 
+import android.health.connect.datatypes.units.Power;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import io.getlime.security.powerauth.core.CoreAlgorithm;
 import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.core.SessionSetup;
 
@@ -30,8 +33,8 @@ public class PowerAuthConfiguration {
     private final @NonNull String instanceId;
     private final @NonNull String baseEndpointUrl;
     private final @NonNull SessionSetup sessionSetup;
-    private final boolean disableAutomaticProtocolUpgrade;
     private final int offlineAuthorizationCodeComponentLength;
+    private final @PowerAuthAlgorithm int algorithm;
 
     /**
      * Constant for default PowerAuthSDK instance identifier.
@@ -43,6 +46,13 @@ public class PowerAuthConfiguration {
      */
     public @NonNull String getInstanceId() {
         return instanceId;
+    }
+
+    /**
+     * @return Algorithm specified for communication with the server.
+     */
+    public @PowerAuthAlgorithm int getAlgorithm() {
+        return algorithm;
     }
 
     /**
@@ -74,13 +84,12 @@ public class PowerAuthConfiguration {
     }
 
     /**
-     * If set to true, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
-     * This option should be used only for the testing purposes.
-     *
-     * @return If set to {@code true}, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
+     * Property is deprecated. Disabling protocol upgrade has no effect in this version of SDK.
+     * @return Always {@code false}.
      */
+    @Deprecated // 2.0.0
     public boolean isAutomaticProtocolUpgradeDisabled() {
-        return disableAutomaticProtocolUpgrade;
+        return false;
     }
 
     /**
@@ -93,7 +102,7 @@ public class PowerAuthConfiguration {
     /**
      * @return Length of offline authorization code component.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public int getOfflineSignatureComponentLength() {
         return offlineAuthorizationCodeComponentLength;
     }
@@ -128,19 +137,19 @@ public class PowerAuthConfiguration {
      * @param instanceId Identifier of the PowerAuthSDK instance, used as a 'key' to store session state.
      * @param baseEndpointUrl Base URL to the PowerAuth Standard REST API (the URL part before {@code "/pa/..."}).
      * @param sessionSetup Setup for core/Session object.
-     * @param disableAutomaticProtocolUpgrade If set to {@code true}, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
+     * @param algorithm Algorithm selected for communication with the server.
      */
     private PowerAuthConfiguration(
             @NonNull String instanceId,
             @NonNull String baseEndpointUrl,
             @NonNull SessionSetup sessionSetup,
-            boolean disableAutomaticProtocolUpgrade,
-            int offlineSignatureComponentLength) {
+            int offlineSignatureComponentLength,
+            @PowerAuthAlgorithm int algorithm) {
         this.instanceId = instanceId;
         this.baseEndpointUrl = baseEndpointUrl;
         this.sessionSetup = sessionSetup;
-        this.disableAutomaticProtocolUpgrade = disableAutomaticProtocolUpgrade;
         this.offlineAuthorizationCodeComponentLength = offlineSignatureComponentLength;
+        this.algorithm = algorithm;
     }
 
     /**
@@ -153,8 +162,8 @@ public class PowerAuthConfiguration {
         // optional
         private String instanceId;
         private SecureData externalEncryptionKey = null;
-        private boolean disableAutomaticProtocolUpgrade = false;
         private int offlineAuthorizationCodeComponentLength = MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH;
+        private @PowerAuthAlgorithm int algorithm = PowerAuthAlgorithm.DEFAULT;
 
         /**
          * Creates a builder for {@link PowerAuthConfiguration}.
@@ -185,6 +194,16 @@ public class PowerAuthConfiguration {
         }
 
         /**
+         * Set algorithm for communication with the server.
+         * @param algorithm Algorithm for communication.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder algorithm(@PowerAuthAlgorithm int algorithm) {
+            this.algorithm = algorithm;
+            return this;
+        }
+
+        /**
          * Set external encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
          * @param externalEncryptionKey Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
          * @return {@link Builder}
@@ -195,11 +214,12 @@ public class PowerAuthConfiguration {
         }
 
         /**
-         * Disable automatic protocol upgrade. This option should be used only for the testing purposes.
+         * Disable automatic protocol upgrade.
+         * @deprecated Option is deprecated and has no effect in PowerAuth Mobile SDK 2.0+.
          * @return {@link Builder}
          */
+        @Deprecated // 2.0.0
         public @NonNull Builder disableAutomaticProtocolUpgrade() {
-            this.disableAutomaticProtocolUpgrade = true;
             return this;
         }
 
@@ -219,7 +239,7 @@ public class PowerAuthConfiguration {
          * @return {@link Builder}
          * @deprecated Use {@link #offlineAuthorizationCodeComponentLength(int)} as replacement.
          */
-        @Deprecated // 1.10.0
+        @Deprecated // 2.0.0
         public @NonNull Builder offlineSignatureComponentLength(int length) {
             this.offlineAuthorizationCodeComponentLength = length;
             return this;
@@ -235,8 +255,8 @@ public class PowerAuthConfiguration {
                     instanceId != null ? instanceId : DEFAULT_INSTANCE_ID,
                     baseEndpointUrl,
                     sessionSetup,
-                    disableAutomaticProtocolUpgrade,
-                    offlineAuthorizationCodeComponentLength);
+                    offlineAuthorizationCodeComponentLength,
+                    algorithm);
         }
     }
 }

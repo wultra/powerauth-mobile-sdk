@@ -102,7 +102,7 @@ public class PowerAuthBiometricConfiguration {
      * Internal constructor that create the biometric configuration from provided keychain configuration.
      * @noinspection deprecation
      */
-    // @Deprecated // 1.10.0
+    // @Deprecated // 2.0.0
     PowerAuthBiometricConfiguration(@NonNull PowerAuthKeychainConfiguration keychainConfiguration) {
         this.invalidateBiometricFactorAfterChange = keychainConfiguration.isLinkBiometricItemsToCurrentSet();
         this.confirmBiometricAuthentication = keychainConfiguration.isConfirmBiometricAuthentication();

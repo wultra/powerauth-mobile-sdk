@@ -121,7 +121,7 @@ public class PowerAuthToken {
      *
      * @deprecated Use {@link #generateTokenHeader()} instead.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public @NonNull PowerAuthAuthorizationHttpHeader generateHeader() {
         try {
             return generateTokenHeader();

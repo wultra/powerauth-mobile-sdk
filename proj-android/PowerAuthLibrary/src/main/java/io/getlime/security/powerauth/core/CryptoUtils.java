@@ -20,6 +20,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import java.util.Arrays;
 
+import jakarta.validation.constraints.Null;
+
 /**
  * The CryptoUtils class provides a several general cryptographic primitives
  * required in our other open source libraries.
@@ -27,7 +29,7 @@ import java.util.Arrays;
 public class CryptoUtils {
 
     static {
-        System.loadLibrary("PowerAuth2Module");
+       NativeModule.loadNativeModule();
     }
 
     /**
@@ -44,7 +46,7 @@ public class CryptoUtils {
      * @param publicKey EC public key
      * @return true if signature is valid
      */
-    public static native boolean ecdsaValidateSignature(byte[] data, byte[] signature, EcPublicKey publicKey);
+    public static native boolean ecdsaValidateSignature(@Nullable byte[] data, @NonNull byte[] signature, @NonNull EcPublicKey publicKey);
 
     /**
      * Create ECDSA signature for given data and EC private key.
@@ -53,7 +55,7 @@ public class CryptoUtils {
      * @param privateKey EC public key
      * @return Array of bytes with signature or null in case of failure.
      */
-    public static native byte[] ecdsaComputeSignature(byte[] data, EcPrivateKey privateKey);
+    public static native byte[] ecdsaComputeSignature(@Nullable byte[] data, @NonNull EcPrivateKey privateKey);
 
     /**
      * Compute shared secret with using ECDH key-agreement.
@@ -61,7 +63,7 @@ public class CryptoUtils {
      * @param privateKey Private key.
      * @return Derived shared secret or null in case of failure.
      */
-    public static native SecureData ecdhComputeSharedSecret(EcPublicKey publicKey, EcPrivateKey privateKey);
+    public static native SecureData ecdhComputeSharedSecret(@NonNull EcPublicKey publicKey, @NonNull EcPrivateKey privateKey);
 
     /**
      * Computes SHA-256 from given data.
@@ -69,7 +71,7 @@ public class CryptoUtils {
      * @param data bytes to be hashed
      * @return bytes with SHA-256 result
      */
-    public static native byte[] hashSha256(byte[] data);
+    public static native byte[] hashSha256(@Nullable byte[] data);
 
     /**
      * Computes SHA-256 from given data and resize the result required length.

@@ -201,12 +201,16 @@ LOCAL_C_INCLUDES := \
 
 # JNI sources
 LOCAL_SRC_FILES := \
+	PowerAuthJni/NativeHelper.cpp \
+	PowerAuthJni/ClassSpecs.cpp \
+	PowerAuthJni/NativeModuleJNI.cpp \
+	PowerAuthJni/NativeObjectJNI.cpp \
+	\
 	PowerAuthJni/SessionJNI.cpp \
 	PowerAuthJni/PasswordJNI.cpp \
 	PowerAuthJni/ActivationCodeUtilJNI.cpp \
 	PowerAuthJni/TokenCalculatorJNI.cpp \
 	PowerAuthJni/CryptoUtilsJNI.cpp \
-	PowerAuthJni/ProtocolVersionJNI.cpp \
 	PowerAuthJni/EcPrivateKeyJNI.cpp \
 	PowerAuthJni/EcPublicKeyJNI.cpp \
 	PowerAuthJni/SecureDataJNI.cpp

@@ -35,11 +35,13 @@ public class ActivationCode {
     public final String activationSignature;
 
     /**
-     * Dummy constructor. The object is initialized in the JNI code.
+     * Construct object with given code and signature.
+     * @param activationCode Activation code.
+     * @param activationSignature Activation signature.
      */
-    public ActivationCode() {
-        this.activationCode = null;
-        this.activationSignature = null;
+    public ActivationCode(String activationCode, String activationSignature) {
+        this.activationCode = activationCode;
+        this.activationSignature = activationSignature;
     }
 
     //

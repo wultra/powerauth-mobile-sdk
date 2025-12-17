@@ -316,8 +316,8 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
         lastFetchedStatus = status;
 
         // Get server's and ours protocol version.
-        final ProtocolVersion serverVersion = status.currentVersion;
-        final ProtocolVersion localVersion = session.getProtocolVersion();
+        final int serverVersion = status.currentVersion;
+        final int localVersion = session.getProtocolVersion();
 
         if (serverVersion == ProtocolVersion.V2) {
 
@@ -366,7 +366,7 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
 
             } else if (localVersion == ProtocolVersion.V3) {
                 // Server is in V3, local version is in V3
-                final ProtocolVersion pendingUpgradeVersion = session.getPendingProtocolUpgradeVersion();
+                final int pendingUpgradeVersion = session.getPendingProtocolUpgradeVersion();
                 if (pendingUpgradeVersion == ProtocolVersion.V3) {
                     // Looks like we need to just finish the upgrade. Server and our local session
                     // are already on V3, but pending flag indicates, that we're still in the process.

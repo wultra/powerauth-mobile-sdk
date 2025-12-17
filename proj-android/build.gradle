@@ -24,7 +24,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath('com.android.tools.build:gradle:8.11.2')
+        classpath('com.android.tools.build:gradle:8.13.1')
     }
 }
 
@@ -36,9 +36,10 @@ ext {
     compileSdkVersion = 36
     targetSdkVersion = 36
     minSdkVersion = 21
-    buildToolsVersion = "35.0.0"
+    buildToolsVersion = "36.1.0"
     // NDK, check https://developer.android.com/ndk/downloads for updates
     ndkVersion = "27.3.13750724" // LTS r27d
+    // ndkVersion = "29.0.14206865"
 }
 
 allprojects {

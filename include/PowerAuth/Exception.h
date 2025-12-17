@@ -185,13 +185,13 @@ public:
         return CLASS_NAME;
     }
 
-private:
-    
     /// Function return string with default error message for given error code.
     /// - Parameter error: Error code.
     /// - Returns: Default error message for given code.
     static std::string defaultMessage(ErrorCode error) noexcept;
-    
+
+private:
+
     /// Error code.
     const ErrorCode _error;
     

@@ -26,7 +26,7 @@ import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
 public class TokenCalculator {
 
     static {
-        System.loadLibrary("PowerAuth2Module");
+        NativeModule.loadNativeModule();
     }
 
     /**

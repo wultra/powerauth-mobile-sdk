@@ -34,7 +34,7 @@ public class EciesEncryptor {
     // Init & Destroy
     //
     static {
-        System.loadLibrary("PowerAuth2Module");
+        NativeModule.loadNativeModule();
     }
 
     /**

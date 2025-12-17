@@ -16,43 +16,43 @@
 
 package io.getlime.security.powerauth.core;
 
+import androidx.annotation.IntDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import static io.getlime.security.powerauth.core.ProtocolVersion.*;
+
 /**
  * The <code>ProtocolVersion</code> enum defines PowerAuth protocol version. The main difference
  * between V2 &amp; V3 is that V3 is using hash-based counter instead of linear one,
  * and all E2EE tasks are now implemented by ECIES.
- *
+ * <p>
  * This version of SDK is supporting V2 protocol in very limited scope, where only
  * the V2 authorization code calculations are supported. Basically, you cannot connect
  * to V2 servers with V3 SDK.
  */
-public enum ProtocolVersion {
+@Retention(RetentionPolicy.SOURCE)
+@IntDef({NA, V2, V3, V4})
+public @interface ProtocolVersion {
     /**
      * Version is not available. This enumeration can be returned from some APIs,
      * when the value cannot be determined.
      */
-    NA(0),
+    int NA = 0;
 
     /**
      * Protocol version 2
      */
-    V2(2),
+    int V2 = 2;
 
     /**
      * Protocol version 3
      */
-    V3(3),
+    int V3 = 3;
 
     /**
      * Protocol version 4
      */
-    V4(4);
-
-    /**
-     * The value associated to the enumeration.
-     */
-    public final int numericValue;
-
-    ProtocolVersion(int numericValue) {
-        this.numericValue = numericValue;
-    }
+    int V4 = 4;
 }

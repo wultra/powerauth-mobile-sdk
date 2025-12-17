@@ -225,7 +225,7 @@ public class CryptoUtilsTest {
                         "642062792074686520484d414320616c676f726974686d2e",
                         "9b09ffa71b942fcb27635fbcd5b0e944bfdc63644f0713938a7f51535c3a35e2"),
                 new HmacTestData(null, "00", null),
-                new HmacTestData("00", null, null)
+                new HmacTestData("00", null, "b613679a0814d9ec772f95d778c35fc5ff1697c493715653c6c712144292c5ad")
         };
 
         for (HmacTestData data : testData) {
@@ -279,7 +279,7 @@ public class CryptoUtilsTest {
                 new ShaTestData(
                         "64cd363ecce05fdfda2486d011a3db95b5206a19d3054046819dd0d36783955d7e5bf8ba18bf738a",
                         "32caef024f84e97c30b4a7b9d04b678b3d8a6eb2259dff5b7f7c011f090845f8"),
-                new ShaTestData(null, null)
+                new ShaTestData(null, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
         };
         for (ShaTestData data : testData) {
             byte[] hash = CryptoUtils.hashSha256(data.message);

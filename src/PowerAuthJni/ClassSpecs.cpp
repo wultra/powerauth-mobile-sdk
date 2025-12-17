@@ -31,9 +31,19 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         spec.coreCredentials = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreCredentials");
         spec.coreEncryptor = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreEncryptor");
         spec.coreEncryptorFactory = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreEncryptorFactory");
-        spec.coreRequest = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreRequest");
-        spec.coreTask = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreTask");
-
+        // CoreRequest
+        spec.coreRequest.native = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreRequest");
+        auto request = jni.fromJava(spec.coreRequest.native.classRef);
+        spec.coreRequest.responseBuilderHandle = request.findField("responseBuilderHandle", "J");
+        spec.coreRequest.responseObject = request.findField("responseObject", "Ljava/lang/Object;");
+        spec.coreRequest.responseJson = request.findField("responseJson", "Ljava/lang/Object;");
+        // CoreTask
+        spec.coreTask.native = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreTask");
+        auto task = jni.fromJava(spec.coreTask.native.classRef);
+        spec.coreTask.responseIsCaptured = task.findField("responseIsCaptured", "Z");
+        spec.coreRequest.responseBuilderHandle = request.findField("responseBuilderHandle", "J");
+        spec.coreTask.responseObject = task.findField("responseObject", "Ljava/lang/Object;");
+        spec.coreTask.responseJson = task.findField("responseJson", "Ljava/lang/Object;");
         // Custom objects
         spec.secureData = jni.buildClassSpec<SecureData>("io/getlime/security/powerauth/core/SecureData");
         spec.coreHttpHeader = jni.buildClassSpec<CoreHttpHeader>("io/getlime/security/powerauth/core/CoreHttpHeader");
@@ -112,8 +122,8 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         jni.releaseSpec(spec.coreCredentials);
         jni.releaseSpec(spec.coreEncryptor);
         jni.releaseSpec(spec.coreEncryptorFactory);
-        jni.releaseSpec(spec.coreRequest);
-        jni.releaseSpec(spec.coreTask);
+        jni.releaseSpec(spec.coreRequest.native);
+        jni.releaseSpec(spec.coreTask.native);
         // custom objects
         jni.releaseSpec(spec.coreHttpHeader);
         jni.releaseSpec(spec.coreDevicePublicKeyData);

@@ -28,7 +28,7 @@ using namespace powerAuth;
 
 CC7_JNI_MODULE_CLASS_BEGIN()
 
-#define THIS_OBJ()  jni.fromJava<CC7_JNI_CPP_CLASS>(NH_SPECS().coreConfig, thiz)
+#define THIS_OBJ()  jni.fromJava<CC7_JNI_CPP_CLASS>(NH_SPECS().coreCredentials, thiz)
 
 CC7_JNI_STATIC_METHOD(jobject, possession)
 {

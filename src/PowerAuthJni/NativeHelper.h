@@ -18,6 +18,7 @@
 
 #include "ClassSpecs.h"
 #include "SecureDataJNI.h"
+#include <PowerAuth/Task.h>
 
 namespace powerAuth::jni {
 
@@ -117,5 +118,46 @@ private:
 
 /// Get reference to common class specifications provided by JNI instance.
 #define NH_COMMON_SPECS() jni.commonSpecs()
+
+// Support functions
+
+/// Closure for constructing Java model objects from C++ response objects.
+typedef std::function<
+        jobject(cc7::jni::JNI& jni,
+                const ClassSpecs& specs,
+                const powerAuth::ResponseObjectPtr& response
+        )> ResponseObjectBuilder;
+
+/// Structure contains information required for response object build.
+struct JavaResponseBuilder
+{
+    ResponseObjectBuilder build;
+};
+
+/// Build CoreRequest Java object from given C++ Request instance.
+/// @param jni JNI reference.
+/// @param request Request object.
+/// @return CoreRequest Java instance.
+jobject BuildCoreRequest(cc7::jni::JNI &jni, const RequestPtr& request);
+
+/// Build CoreRequest Java object from given C++ Request instance and set closure that translates received response into Java response object.
+/// @param jni JNI reference.
+/// @param request Request object.
+/// @param builder Closure that translates received C++ response object into Java response object.
+/// @return CoreRequest Java instance with additional builder closure.
+jobject BuildCoreRequest(cc7::jni::JNI &jni, const RequestPtr& request, const ResponseObjectBuilder& builder);
+
+/// Build CoreTask Java object from given C++ Task instance.
+/// @param jni JNI reference.
+/// @param task Task object.
+/// @return CoreTask Java instance.
+jobject BuildCoreTask(cc7::jni::JNI& jni, const TaskPtr& task);
+
+/// Build CoreTask Java object from given C++ Task instance and set closure that translates received response into Java response object.
+/// @param jni JNI reference.
+/// @param task Task object.
+/// @param builder Closure that translates received C++ response object into Java response object.
+/// @return CoreTask Java instance with additional builder closure.
+jobject BuildCoreTask(cc7::jni::JNI &jni, const TaskPtr& task, const ResponseObjectBuilder& builder);
 
 } // namespace powerAuth::jni

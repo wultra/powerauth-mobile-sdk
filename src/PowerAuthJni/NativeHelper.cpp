@@ -20,7 +20,7 @@ namespace powerAuth::jni {
 
 static NativeHelper& GetInstance()
 {
-    static NativeHelper instance;
+    static NativeHelper instance {};
     return instance;
 }
 

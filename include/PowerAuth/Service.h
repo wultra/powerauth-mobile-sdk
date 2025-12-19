@@ -38,6 +38,11 @@ public:
     /// The method is typically called when application is going to background.
     virtual void clearSensitiveData() = 0;
     
+    /// The service's implementation should erase all activation related data.
+    ///
+    /// The method should be called on activation remove.
+    virtual void clearActivationData() = 0;
+    
     /// The service's implementation may restore (if possible) sensitive data previously
     /// cleared in `clearSensitiveData()`.
     ///
@@ -66,6 +71,7 @@ public:
     
     void destroyService() override;
     void clearSensitiveData() override;
+    void clearActivationData() override;
     void restoreSensitiveData() override;
     bool isServiceDestroyed() const noexcept override;
     

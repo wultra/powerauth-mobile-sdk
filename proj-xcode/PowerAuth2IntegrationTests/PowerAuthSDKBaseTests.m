@@ -100,6 +100,26 @@
     XCTAssertNil(_sdk.activationIdentifier);
 }
 
+- (void) testRecreateActivation
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // Tests that activation creation works correctly after a previous activation has been removed
+    // and that the newly created activation is independent of the original one.
+    //
+    
+    PowerAuthSdkActivation * activation1 = [_helper createActivation:YES];
+    XCTAssertTrue(activation1.success);
+
+    [_helper cleanup];
+
+    PowerAuthSdkActivation * activation2 = [_helper createActivation:YES];
+    XCTAssertTrue(activation2.success);
+
+    [_helper cleanup];
+}
+
 - (void) testPasswordCorrect
 {
     CHECK_TEST_CONFIG();

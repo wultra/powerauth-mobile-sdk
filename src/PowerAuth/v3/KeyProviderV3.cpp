@@ -97,7 +97,7 @@ cc7::crypto::ConstPublicKeyPtr KeyProviderV3::getServerPublicKeyPtr()
     return _server_public_key;
 }
 
-void KeyProviderV3::clearActivationKeys() noexcept
+void KeyProviderV3::clearActivationData()
 {
     clearSensitiveData();
 }

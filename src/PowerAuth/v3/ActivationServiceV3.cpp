@@ -176,6 +176,11 @@ void ActivationServiceV3::resetState()
     _session_data->resetSessionData();
 }
 
+void ActivationServiceV3::clearActivationData()
+{
+    resetState();
+}
+
 RequestPtr ActivationServiceV3::fetchActivationStatus()
 {
     LOCK_GUARD();

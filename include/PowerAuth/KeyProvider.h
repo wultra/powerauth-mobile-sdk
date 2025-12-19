@@ -355,10 +355,6 @@ public:
     /// - Throws: `PowerAuthException` in case the key is not available or cannot be constructed.
     const cc7::crypto::PublicKey& serverPublicKey();
     
-    
-    /// Clears activation related keys.
-    virtual void clearActivationKeys() noexcept = 0;
-    
     /// Acquire interface providing secret keys. In this call, only secret keys independent on activation
     /// are unlocked. If the secret keys are no longer required for performed cryptographic operation, then
     /// you must call `lockSecretKeys()` and give the object back to the `KeyProvider`.

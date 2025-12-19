@@ -37,7 +37,7 @@ public:
     cc7::crypto::ConstPublicKeyPtr getMasterServerPublicKeyPtr() override;
     cc7::crypto::ConstPublicKeyPtr getDevicePublicKeyPtr() override;
     cc7::crypto::ConstPublicKeyPtr getServerPublicKeyPtr() override;
-    void clearActivationKeys() noexcept override;
+    void clearActivationData() override;
     
     ISecretKeysPtr unlockInitialSecretKeys(const InitialCredentials &credentials, const cc7::ByteArray &shared_secret) override;
     ISecretKeysPtr unlockSecretKeys() override;

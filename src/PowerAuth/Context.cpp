@@ -346,6 +346,13 @@ void Context::clearSensitiveData()
     }
 }
 
+void Context::clearActivationData()
+{
+    for (auto& service : _services) {
+        service->clearActivationData();
+    }
+}
+
 void Context::restoreSensitiveData()
 {
     for (auto& service : _services) {
@@ -355,6 +362,12 @@ void Context::restoreSensitiveData()
 
 void Context::updateAfterProtocolVersionChange()
 {
+    destroyServices();
+    createServices(false, _session_data->getCurrentSpecification());
+}
+
+void Context::resetState() {
+    clearActivationData();
     destroyServices();
     createServices(false, _session_data->getCurrentSpecification());
 }

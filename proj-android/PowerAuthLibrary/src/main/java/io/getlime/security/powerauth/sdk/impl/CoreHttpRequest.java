@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.networking.client;
+package io.getlime.security.powerauth.sdk.impl;
 
-import android.net.TrafficStats;
-import android.os.AsyncTask;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -35,107 +40,117 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 
-import androidx.annotation.Nullable;
-import io.getlime.security.powerauth.ecies.EciesEncryptorId;
+import io.getlime.core.rest.model.base.entity.Error;
+import io.getlime.security.powerauth.core.CoreEncryptorScope;
+import io.getlime.security.powerauth.core.CoreException;
+import io.getlime.security.powerauth.core.CoreHttpHeader;
+import io.getlime.security.powerauth.core.CoreRequest;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
 import io.getlime.security.powerauth.networking.exceptions.FailedApiException;
 import io.getlime.security.powerauth.networking.interceptors.HttpRequestInterceptor;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
-import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
-import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.ssl.HttpClientValidationStrategy;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
-import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
- * The {@code ClientTask} class implements an actual HTTP request & response processing, with using
- * {@link AsyncTask} infrastructure.
+ * The {@code CoreHttpTask} implements HTTP request execution. The request is specified in input
+ * {@link CoreRequest} object.
+ *
+ * @param <TResult> Type of response. Use {@code Object} if response type is not relevant.
  */
-class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TResponse> implements ICancelable {
+public class CoreHttpRequest<TResult> implements ICancelable {
 
-    private static final int THREAD_STATS_TAG = 0x3456;
+    /**
+     * Interface for HTTP request completion.
+     * @param <TResult> Result type.
+     */
+    public interface ICompletion<TResult> {
+        /**
+         * Called when task is complete with success result.
+         * @param result Result to report.
+         */
+        void onSuccess(@Nullable TResult result);
 
-    private final HttpRequestHelper<TRequest, TResponse> httpRequestHelper;
+        /**
+         * Called when task is complete with failure.
+         * @param failure Failure to report.
+         */
+        void onFailure(@NonNull Throwable failure);
+    }
+
+    @NonNull
     private final String baseUrl;
-    private final IPrivateCryptoHelper cryptoHelper;
-    private final INetworkResponseListener<TResponse> listener;
+    @NonNull
     private final PowerAuthClientConfiguration clientConfiguration;
+    @NonNull
+    private final CoreRequest<TResult> coreRequest;
+    @NonNull
+    private final ICompletion<TResult> completion;
+    private boolean canceled = false;
+    private boolean done = false;
 
     /**
-     * If not null, then the task ended with an error.
+     * Create HTTP request with all required parameters.
+     * @param baseUrl Base URL.
+     * @param clientConfiguration HTTP client configuration.
+     * @param coreRequest {@link CoreRequest} object.
+     * @param completion Completion callback.
      */
-    private Throwable error;
-
-    /**
-     * @param httpRequestHelper request helper responsible for object serialization and deserialization
-     * @param baseUrl base URL
-     * @param clientConfiguration client configuration
-     * @param cryptoHelper cryptographic helper
-     * @param listener response listener
-     */
-    HttpClientTask(
-            @NonNull HttpRequestHelper<TRequest, TResponse> httpRequestHelper,
+    public CoreHttpRequest(
             @NonNull String baseUrl,
             @NonNull PowerAuthClientConfiguration clientConfiguration,
-            @Nullable IPrivateCryptoHelper cryptoHelper,
-            @NonNull INetworkResponseListener<TResponse> listener) {
-        this.httpRequestHelper = httpRequestHelper;
+            @NonNull CoreRequest<TResult> coreRequest,
+            @NonNull ICompletion<TResult> completion) {
         this.baseUrl = baseUrl;
-        this.cryptoHelper = cryptoHelper;
         this.clientConfiguration = clientConfiguration;
-        this.listener = listener;
+        this.coreRequest = coreRequest;
+        this.completion = completion;
+    }
+
+    @Override
+    public synchronized void cancel() {
+        if (!canceled) {
+            canceled = true;
+            coreRequest.cancel();
+        }
+    }
+
+    @Override
+    public synchronized boolean isCancelled() {
+        return canceled || coreRequest.isCanceled();
     }
 
     /**
-     * Reads all bytes from an input stream.
-     *
-     * @param is input stream whose content will be converted
-     * @return String received from input stream
+     * Execute request. THe method should be executed on a background thread, provided
+     * by a task executor.
      */
-    private byte[] loadBytesFromInputStream(InputStream is) throws IOException {
-        if (is == null) {
-            return null;
-        }
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int length;
-        while ((length = is.read(buffer)) != -1) {
-            result.write(buffer, 0, length);
-            if (isCancelled()) {
-                return null;
-            }
-        }
-        return result.toByteArray();
-    }
-
-    @SafeVarargs
-    @Override
-    protected final TResponse doInBackground(TRequest... tRequests) {
-        setThreadStatsTag();
-
+    public void doInBackground() {
         InputStream inputStream = null;
         HttpURLConnection urlConnection = null;
         try {
             if (isCancelled()) {
-                return null;
+                return;
             }
+            // Prepare core request
+            coreRequest.prepareRequest();
 
-            // Prepare request data
-            HttpRequestHelper.RequestData requestData = httpRequestHelper.buildRequest(baseUrl, cryptoHelper);
+            final URL requestUrl = new URL(baseUrl + coreRequest.getRelativePath());
+            final byte[] requestBody = coreRequest.getRequestBody();
 
             // Create an URL connection
-            urlConnection = (HttpURLConnection) requestData.url.openConnection();
+            urlConnection = (HttpURLConnection) requestUrl.openConnection();
             final boolean securedUrlConnection = urlConnection instanceof HttpsURLConnection;
 
             // Setup the connection
-            urlConnection.setRequestMethod(requestData.method);
+            urlConnection.setRequestMethod(coreRequest.getHttpMethod());
             urlConnection.setDoOutput(true);
             urlConnection.setUseCaches(false);
             urlConnection.setConnectTimeout(clientConfiguration.getConnectionTimeout());
             urlConnection.setReadTimeout(clientConfiguration.getReadTimeout());
-            for (Map.Entry<String, String> header : requestData.httpHeaders.entrySet()) {
+            for (CoreHttpHeader header : coreRequest.getRequestHeaders()) {
                 urlConnection.setRequestProperty(header.getKey(), header.getValue());
             }
             if (!TextUtils.isEmpty(clientConfiguration.getUserAgent())) {
@@ -169,17 +184,16 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
                     interceptor.processRequestConnection(urlConnection);
                 }
             }
+
             // Log request
-            logRequest(urlConnection, requestData.body);
+            logRequest(urlConnection, requestBody);
 
             // Connect to endpoint
-            if (requestData.body != null) {
-                urlConnection.getOutputStream().write(requestData.body);
-            }
+            urlConnection.getOutputStream().write(requestBody);
             urlConnection.connect();
 
             if (isCancelled()) {
-                return null;
+                return;
             }
 
             // Get response code & try to get response body
@@ -187,34 +201,49 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             final boolean responseOk = (responseCode == 200);
 
             if (isCancelled()) {
-                return null;
+                return;
             }
-
             // Get response bytes from input stream
             inputStream = responseOk ? urlConnection.getInputStream() : urlConnection.getErrorStream();
             final byte[] responseData = loadBytesFromInputStream(inputStream);
 
             if (isCancelled()) {
-                return null;
+                return;
             }
 
-            // Try to deserialize response
-            TResponse result = httpRequestHelper.buildResponse(responseCode, responseData);
-            // Log response
-            logResponse(urlConnection, responseData, null);
-            // Finally, return the result.
-            return result;
+            if (responseOk) {
+                // Process success response
+                coreRequest.processResponse(responseData);
+                // Log response
+                logResponse(urlConnection, responseData, null);
+                // Set request as completed
+                setCompleted(coreRequest.getResponseObject());
+            } else {
+                // Failure response
+                final Throwable failure = buildResponseException(responseCode, responseData);
+                // Log response with error
+                logResponse(urlConnection, responseData, failure);
+                // Report failure
+                setFailed(failure);
+            }
+
         } catch (IOException e) {
             // Log response with error
             logResponse(urlConnection, null, e);
             // Create PowerAuthErrorException with NETWORK_ERROR code
-            error = new PowerAuthErrorException(PowerAuthErrorCodes.NETWORK_ERROR, e.getMessage(), e);
+            setFailed(new PowerAuthErrorException(PowerAuthErrorCodes.NETWORK_ERROR, e.getMessage(), e));
 
-        } catch (Throwable e) {
+        } catch (CoreException e) {
             // Log response with error
             logResponse(urlConnection, null, e);
-            // Keep an exception for later reporting.
-            error = e;
+            // Create PowerAuthErrorException with NETWORK_ERROR code
+            setFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, e));
+
+        } catch (Throwable t) {
+            // Log response with error
+            logResponse(urlConnection, null, t);
+            // Report failure
+            setFailed(t);
 
         } finally {
             // Close input stream and disconnect the URL connection
@@ -222,45 +251,127 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
                 try {
                     inputStream.close();
                 } catch (IOException e) {
+                    // Ignore
                 }
             }
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
         }
-        return null;
-    }
-
-    @Override
-    protected void onCancelled() {
-        super.onCancelled();
-        listener.onCancel();
-    }
-
-    @Override
-    protected void onPostExecute(TResponse response) {
-        super.onPostExecute(response);
-        if (error == null) {
-            listener.onNetworkResponse(response);
-        } else {
-            listener.onNetworkError(error);
-        }
-    }
-
-    @Override
-    public void cancel() {
-        this.cancel(true);
     }
 
     /**
-     * This method is here to mitigate
-     * {@link android.os.StrictMode.VmPolicy.Builder#detectUntaggedSockets()}
-     * detection problem.
+     * Constructs a {@link ErrorResponseApiException} or {@link FailedApiException} exceptions, depending
+     * on data received from the server. The method is package-private.
+     *
+     * @param responseCode HTTP response code
+     * @param responseData Response bytes
+     * @return {@link Throwable} object with an appropriate exception.
      */
-    private void setThreadStatsTag() {
-        if (TrafficStats.getThreadStatsTag() == -1) {
-            TrafficStats.setThreadStatsTag(THREAD_STATS_TAG);
+    @NonNull
+    private Throwable buildResponseException(int responseCode, @Nullable byte[] responseData) {
+
+        final JsonSerialization serialization = new JsonSerialization();
+
+        // Convert bytes into String
+        final String responseString;
+        if (responseData != null) {
+            responseString = new String(responseData, Charset.defaultCharset());
+        } else {
+            responseString = null;
         }
+
+        Throwable exception = null;
+        JsonObject jsonRoot = null;
+        // Try to parse bytes into JSON representation
+        try {
+            jsonRoot = serialization.parseResponseObject(responseData);
+        } catch (JsonParseException e) {
+            exception = e;
+        }
+        if (jsonRoot != null) {
+            try {
+                // If JSON root is available, then try to deserialize Error object from the response
+                final JsonElement responseObjectElement = jsonRoot.get("responseObject");
+                if (responseObjectElement != null && responseObjectElement.isJsonObject()) {
+                    final io.getlime.core.rest.model.base.entity.Error errorResponse = serialization.getGson().fromJson(responseObjectElement, TypeToken.get(Error.class).getType());
+                    return new ErrorResponseApiException(errorResponse, responseCode, responseString, jsonRoot);
+                }
+            } catch (JsonParseException e) {
+                exception = e;
+            }
+        }
+        if (exception != null) {
+            // If exception is known, then get the message and report FailedApiException
+            return new FailedApiException(exception.getMessage(), responseCode, responseString, jsonRoot);
+        }
+        // Otherwise the FailedApiException will not contain the message.
+        return new FailedApiException(responseCode, responseString, jsonRoot);
+    }
+
+    /**
+     * Set request as completed with success result.
+     * @param response Response object, if available.
+     */
+    private void setCompleted(TResult response) {
+        // Report completion
+        reportCompletion(response, null);
+    }
+
+    /**
+     * Set request as failed,
+     * @param t Reason of failure.
+     */
+    private void setFailed(@NonNull Throwable t) {
+        // Mark core request as failed
+        coreRequest.setFailed();
+        // Report completion
+        reportCompletion(null, t);
+    }
+
+    /**
+     * Set request as completed.
+     * @param result Result to report. Null is accepted in requests with no actual result.
+     * @param failure Failure to report. Non-null means that request failed.
+     */
+    private void reportCompletion(@Nullable TResult result, @Nullable Throwable failure) {
+        final boolean canceled;
+        synchronized (this) {
+            if (done) {
+                return; // do nothing, result already presented
+            }
+            done = true;
+            canceled = this.canceled;
+        }
+        if (!canceled) {
+            if (failure != null) {
+                completion.onFailure(failure);
+            } else {
+                completion.onSuccess(result);
+            }
+        }
+    }
+
+    /**
+     * Reads all bytes from an input stream.
+     *
+     * @param is input stream whose content will be converted
+     * @return String received from input stream
+     */
+    private byte[] loadBytesFromInputStream(InputStream is) throws IOException {
+        if (is == null) {
+            return null;
+        }
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = is.read(buffer)) != -1) {
+            result.write(buffer, 0, length);
+            if (isCancelled()) {
+                return null;
+            }
+        }
+        return result.toByteArray();
     }
 
     /**
@@ -273,15 +384,13 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
         if (!PowerAuthLog.isEnabled()) {
             return;
         }
-        // Endpoint
-        final IEndpointDefinition<TResponse> endpoint = httpRequestHelper.getEndpoint();
         // URL, method
         final boolean hasConnection = connection != null;
         final String url = hasConnection ? connection.getURL().toString() : "null";
-        final String method = endpoint.getHttpMethod();
+        final String method = coreRequest.getHttpMethod();
         // Flags
-        final boolean signature = endpoint.getAuthorizationUriId() != null;
-        final boolean encrypted = endpoint.getEncryptorId() != EciesEncryptorId.NONE;
+        final boolean signature = coreRequest.isAuthenticated();
+        final boolean encrypted = coreRequest.getEncryptorScope() != CoreEncryptorScope.NONE;
         final String signedEncrypted = (signature ? (encrypted ? " (sig+enc)" : " (sig)") : (encrypted ? " (enc)" : ""));
         if (!PowerAuthLog.isVerbose()) {
             // Not verbose -> put a simple log
@@ -310,12 +419,10 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
         if (!PowerAuthLog.isEnabled()) {
             return;
         }
-        // Endpoint
-        final IEndpointDefinition<TResponse> endpoint = httpRequestHelper.getEndpoint();
         // URL, method
         final boolean hasConnection = connection != null;
         final String url = hasConnection ? connection.getURL().toString() : "null";
-        final String method = endpoint.getHttpMethod();
+        final String method = coreRequest.getHttpMethod();
         final String errorMessage;
         if (error != null) {
             if (error instanceof FailedApiException) {
@@ -343,17 +450,11 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
                 PowerAuthLog.d("HTTP %s response %d: <- %s\n- Error: %s", method, responseCode, url, errorMessage);
             }
         } else {
-            final boolean encrypted = endpoint.getEncryptorId() != EciesEncryptorId.NONE;
+            final boolean encrypted = coreRequest.getEncryptorScope() != CoreEncryptorScope.NONE;
             // Response headers
             final String responseHeaders = hasConnection ? connection.getHeaderFields().toString() : "{}";
             // Response body
-            final String responseBodyTmp = responseData == null ? "<empty>" : new String(responseData, Charset.defaultCharset());
-            final String responseBody;
-            if (!encrypted || error != null) {
-                responseBody = responseBodyTmp;
-            } else {
-                responseBody = encrypted ? "<encrypted>" : responseBodyTmp;
-            }
+            final String responseBody = responseData == null ? "<empty>" : new String(responseData, Charset.defaultCharset());
             if (error == null) {
                 PowerAuthLog.d("HTTP %s response %d: <- %s\n- Headers: %s\n- Data: %s", method, responseCode, url, responseHeaders, responseBody);
             } else {

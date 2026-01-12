@@ -27,13 +27,21 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         // Handle based objects
         spec.password = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/Password");
         spec.coreConfig = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreConfig");
-        spec.coreSession = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreSession");
         spec.coreCredentials = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreCredentials");
-        spec.coreEncryptor = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreEncryptor");
         spec.coreEncryptorFactory = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreEncryptorFactory");
+        spec.coreTimeService = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreTimeService");
+        // CoreSession
+        spec.coreSession.native = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreSession");
+        auto session = jni.fromJava(spec.coreSession.native.classRef);
+        spec.coreSession.init =  { session.findMethod("<init>", "(JLio/getlime/security/powerauth/core/CoreConfig;Lio/getlime/security/powerauth/core/CoreTimeService;)V"), session };
+        // CoreEncryptor
+        spec.coreEncryptor.native = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreEncryptor");
+        auto encryptor = jni.fromJava(spec.coreEncryptor.native.classRef);
+        spec.coreEncryptor.init = { encryptor.findMethod("<init>", "(JI)V"), encryptor };
         // CoreRequest
         spec.coreRequest.native = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreRequest");
         auto request = jni.fromJava(spec.coreRequest.native.classRef);
+        spec.coreRequest.initTwoHandles = { request.findMethod("<init>", "(JJ)V"), request };
         spec.coreRequest.responseBuilderHandle = request.findField("responseBuilderHandle", "J");
         spec.coreRequest.responseObject = request.findField("responseObject", "Ljava/lang/Object;");
         spec.coreRequest.responseJson = request.findField("responseJson", "Ljava/lang/Object;");
@@ -48,6 +56,11 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         spec.secureData = jni.buildClassSpec<SecureData>("io/getlime/security/powerauth/core/SecureData");
         spec.coreHttpHeader = jni.buildClassSpec<CoreHttpHeader>("io/getlime/security/powerauth/core/CoreHttpHeader");
         spec.coreDevicePublicKeyData = jni.buildClassSpec<CoreDevicePublicKeyData>("io/getlime/security/powerauth/core/CoreDevicePublicKeyData");
+        spec.coreEncryptedRequest = jni.buildClassSpec<CoreEncryptedRequest>("io/getlime/security/powerauth/core/CoreEncryptedRequest");
+        spec.coreEncryptedResponse = jni.buildClassSpec<CoreEncryptedResponse>("io/getlime/security/powerauth/core/CoreEncryptedResponse");
+
+        // Response
+        spec.respServerStatus = jni.buildClassSpec<RespServerStatus>("io/getlime/security/powerauth/core/response/CoreServerStatus");
 
         // Enums
         spec.protocolVersion = jni.buildConstantSetSpec("io/getlime/security/powerauth/core/ProtocolVersion", {
@@ -118,16 +131,19 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         // handle based
         jni.releaseSpec(spec.password);
         jni.releaseSpec(spec.coreConfig);
-        jni.releaseSpec(spec.coreSession);
         jni.releaseSpec(spec.coreCredentials);
-        jni.releaseSpec(spec.coreEncryptor);
         jni.releaseSpec(spec.coreEncryptorFactory);
+        jni.releaseSpec(spec.coreTimeService);
+        jni.releaseSpec(spec.coreSession.native);
+        jni.releaseSpec(spec.coreEncryptor.native);
         jni.releaseSpec(spec.coreRequest.native);
         jni.releaseSpec(spec.coreTask.native);
         // custom objects
         jni.releaseSpec(spec.coreHttpHeader);
         jni.releaseSpec(spec.coreDevicePublicKeyData);
         jni.releaseSpec(spec.secureData);
+        // response
+        jni.releaseSpec(spec.respServerStatus);
         // enums
         jni.releaseSpec(spec.protocolVersion);
         jni.releaseSpec(spec.coreAlgorithm);

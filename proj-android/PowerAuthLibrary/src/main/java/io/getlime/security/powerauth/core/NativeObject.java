@@ -64,6 +64,12 @@ public class NativeObject {
     protected native static void safeNativeDestroy(long handle);
 
     /**
+     * Safe destroy multiple handles to underlying native objects.
+     * @param handles Handles to native objects.
+     */
+    protected native static void safeNativeDestroyHandles(long[] handles);
+
+    /**
      * Get information whether the underlying native object is already destroyed.
      * @param handle Handle to native object.
      * @return {@code true} if underlying native object is already destroyed, {@code false} otherwise.

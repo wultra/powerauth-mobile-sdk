@@ -32,7 +32,19 @@ public class CoreTask<TResponse> extends NativeObject {
      */
     protected CoreTask(long nativeObjectHandle) {
         super(nativeObjectHandle);
+        this.responseBuilderHandle = NATIVE_NULL;
     }
+
+    protected CoreTask(long nativeObjectHandle, long responseBuilderHandle) {
+        super(nativeObjectHandle);
+        this.responseBuilderHandle = responseBuilderHandle;
+    }
+
+    /**
+     * Handle containing handle to native C++ object translating response into Java model object.
+     * The handle is released by calling {@link #updateResponse()} method, or in {@link #finalize()}.
+     */
+    private final long responseBuilderHandle;
 
     /**
      * Contains information whether response object is already captured in object's properties.
@@ -56,13 +68,6 @@ public class CoreTask<TResponse> extends NativeObject {
      * Property is modified from JNI.
      */
     private Object responseJson;
-
-    /**
-     * Handle containing handle to native C++ object translating response into Java model object.
-     * The handle is released by calling {@link #updateResponse()} method, or in {@link #finalize()}.
-     */
-    private long responseBuilderHandle;
-
     @Override
     protected void finalize() {
         super.finalize();

@@ -16,14 +16,20 @@
 
 package io.getlime.security.powerauth.networking.response;
 
-import io.getlime.security.powerauth.networking.model.response.ServerStatusResponse;
+import androidx.annotation.NonNull;
+
+import io.getlime.security.powerauth.core.response.CoreServerStatus;
 
 public class ServerStatus {
 
     private final long serverTime;
+    @NonNull private final String applicationName;
+    @NonNull private final String applicationVersion;
 
-    public ServerStatus(ServerStatusResponse response) {
+    public ServerStatus(@NonNull CoreServerStatus response) {
         this.serverTime = response.getServerTime();
+        this.applicationName = response.getApplicationName();
+        this.applicationVersion = response.getApplicationVersion();
     }
 
     /**
@@ -32,5 +38,21 @@ public class ServerStatus {
      */
     public long getServerTime() {
         return serverTime;
+    }
+
+    /**
+     * @return Server application's name (for example: "enrollment-server".)
+     */
+    @NonNull
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    /**
+     * @return Server application's version (for example: "2.0.0".)
+     */
+    @NonNull
+    public String getApplicationVersion() {
+        return applicationVersion;
     }
 }

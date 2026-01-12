@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 import java.lang.reflect.Field;
 import java.util.Objects;
 
-import io.getlime.security.powerauth.networking.client.HttpClient;
+import io.getlime.security.powerauth.sdk.impl.CoreHttpClient;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
 import static org.junit.Assert.*;
@@ -47,7 +47,7 @@ public class PowerAuthSDKBuilderTest {
     private Context androidContext;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         androidContext = InstrumentationRegistry.getInstrumentation().getContext();
 
         PowerAuthConfiguration.Builder builder = new PowerAuthConfiguration.Builder(
@@ -67,10 +67,10 @@ public class PowerAuthSDKBuilderTest {
 
         Field pa2ClientField = powerAuthSDK.getClass().getDeclaredField("mClient");
         pa2ClientField.setAccessible(true);
-        HttpClient httpClient = (HttpClient) pa2ClientField.get(powerAuthSDK);
+        CoreHttpClient httpClient = (CoreHttpClient) pa2ClientField.get(powerAuthSDK);
         assertNotNull(httpClient);
 
-        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getClientConfiguration();
+        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getConfiguration();
         assertNotNull(powerAuthClientConfigurationInClient);
     }
 
@@ -87,10 +87,10 @@ public class PowerAuthSDKBuilderTest {
 
         Field httpClientField = powerAuthSDK.getClass().getDeclaredField("mClient");
         httpClientField.setAccessible(true);
-        HttpClient httpClient = (HttpClient) httpClientField.get(powerAuthSDK);
+        CoreHttpClient httpClient = (CoreHttpClient) httpClientField.get(powerAuthSDK);
         assertNotNull(httpClient);
 
-        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getClientConfiguration();
+        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getConfiguration();
         assertNotNull(powerAuthClientConfigurationInClient);
         // In default client configuration, the user-agent is defaulted to value computed in PowerAuthSystem class.
         // So, we should ingore value in compare function.
@@ -112,10 +112,10 @@ public class PowerAuthSDKBuilderTest {
 
         Field httpClientField = powerAuthSDK.getClass().getDeclaredField("mClient");
         httpClientField.setAccessible(true);
-        HttpClient httpClient = (HttpClient) httpClientField.get(powerAuthSDK);
+        CoreHttpClient httpClient = (CoreHttpClient) httpClientField.get(powerAuthSDK);
         assertNotNull(httpClient);
 
-        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getClientConfiguration();
+        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getConfiguration();
         assertNotNull(powerAuthClientConfigurationInClient);
         assertTrue(compareConfigurations(srcClientConfiguration, powerAuthClientConfigurationInClient, false));
         assertTrue(TextUtils.isEmpty(powerAuthClientConfigurationInClient.getUserAgent()));
@@ -135,10 +135,10 @@ public class PowerAuthSDKBuilderTest {
 
         Field httpClientField = powerAuthSDK.getClass().getDeclaredField("mClient");
         httpClientField.setAccessible(true);
-        HttpClient httpClient = (HttpClient) httpClientField.get(powerAuthSDK);
+        CoreHttpClient httpClient = (CoreHttpClient) httpClientField.get(powerAuthSDK);
         assertNotNull(httpClient);
 
-        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getClientConfiguration();
+        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getConfiguration();
         assertNotNull(powerAuthClientConfigurationInClient);
         assertTrue(compareConfigurations(srcClientConfiguration, powerAuthClientConfigurationInClient, false));
     }

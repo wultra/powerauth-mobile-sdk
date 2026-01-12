@@ -21,7 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.biometry.BiometricAuthentication;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
-import io.getlime.security.powerauth.core.Session;
+import io.getlime.security.powerauth.core.CoreSession;
 import io.getlime.security.powerauth.keychain.Keychain;
 import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
@@ -94,7 +94,7 @@ public class BiometricDataMapper {
     public static final int BIO_MAPPING_REMOVE_KEY = 2;
 
     private final ReentrantLock lock;
-    private final Session session;
+    private final CoreSession session;
     private final String instanceId;
     private final String keychainStorageKey;
     private final boolean isFallbackToSharedBiometryKeyEnabled;
@@ -108,14 +108,14 @@ public class BiometricDataMapper {
     /**
      * Create a helper object with all required parameters.
      * @param sharedLock Instance of lock shared between multiple internal SDK objects.
-     * @param session Session instance.
+     * @param session CoreSession instance.
      * @param configuration PowerAuth SDK instance configuration.
      * @param keychainConfiguration PowerAuth SDK keychain configuration.
      * @param biometricKeychain A Keychain for storing biometry-related encryption keys.
      */
     public BiometricDataMapper(
             @NonNull ReentrantLock sharedLock,
-            @NonNull Session session,
+            @NonNull CoreSession session,
             @NonNull PowerAuthConfiguration configuration,
             @NonNull PowerAuthKeychainConfiguration keychainConfiguration,
             @NonNull Keychain biometricKeychain) {

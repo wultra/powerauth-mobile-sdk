@@ -27,6 +27,7 @@ struct ClassSpecs
 {
     // Common objects
 
+    // io.getlime.security.powerauth.core.SecureData
     struct SecureData
     {
         struct Methods
@@ -52,6 +53,7 @@ struct ClassSpecs
 
     // Model
 
+    // io.getlime.security.powerauth.core.response.CoreHttpHeader
     struct CoreHttpHeader
     {
         struct Methods
@@ -66,6 +68,23 @@ struct ClassSpecs
         Methods methods;
     };
 
+    // io.getlime.security.powerauth.core.response.CoreServerStatus
+    struct RespServerStatus
+    {
+        struct Methods
+        {
+            // constructor (long serverTime, String appName, String appVersion)
+            cc7::jni::JniInitMethod initTimeNameVersion;
+        };
+        static constexpr JniMethodSpec methodSpecs[] = {
+                JniMethodSpec::constructor("(JLjava/lang/String;Ljava/lang/String;)V", offsetof(Methods, initTimeNameVersion))
+        };
+
+        jclass classRef;
+        Methods methods;
+    };
+
+    // io.getlime.security.powerauth.core.CoreDevicePublicKeyData
     struct CoreDevicePublicKeyData
     {
         struct Methods
@@ -80,6 +99,7 @@ struct ClassSpecs
         Methods methods;
     };
 
+    // io.getlime.security.powerauth.core.ActivationCode
     struct ActivationCode
     {
         struct Methods
@@ -102,6 +122,34 @@ struct ClassSpecs
 
         jclass classRef;
         Methods methods;
+        Fields fields;
+    };
+
+    // io.getlime.security.powerauth.core.CoreEncryptedRequest
+    struct CoreEncryptedRequest
+    {
+        struct Methods
+        {
+            cc7::jni::JniInitMethod init;
+        };
+        static constexpr JniMethodSpec methodSpecs[] {
+                JniMethodSpec::constructor("([B[Lio/getlime/security/powerauth/core/CoreHttpHeader;)V", offsetof(Methods, init))
+        };
+        jclass classRef;
+        Methods methods;
+    };
+
+    // io.getlime.security.powerauth.core.CoreEncryptedResponse
+    struct CoreEncryptedResponse
+    {
+        struct Fields
+        {
+            jfieldID responseBody;
+        };
+        static constexpr  JniFieldSpec fieldSpecs[] {
+            JniFieldSpec::field("responseBody", "[B", offsetof(Fields, responseBody))
+        };
+        jclass classRef;
         Fields fields;
     };
 
@@ -141,10 +189,25 @@ struct ClassSpecs
         Methods methods;
     };
 
+    // io.getlime.security.powerauth.core.CoreSession
+    struct CoreSession
+    {
+        JniCommon::NativeHandleClass native;
+        JniInitMethod init;
+    };
+
+    // io.getlime.security.powerauth.core.CoreEncryptor
+    struct CoreEncryptor
+    {
+        JniCommon::NativeHandleClass native;
+        JniInitMethod init;
+    };
+
     // io.getlime.security.powerauth.core.CoreRequest
     struct CoreRequest
     {
         JniCommon::NativeHandleClass native;
+        JniInitMethod initTwoHandles;
         jfieldID responseBuilderHandle;
         jfieldID responseObject;
         jfieldID responseJson;
@@ -170,6 +233,10 @@ struct ClassSpecs
     SecureData secureData;
     CoreHttpHeader coreHttpHeader;
     CoreDevicePublicKeyData coreDevicePublicKeyData;
+    CoreEncryptedRequest coreEncryptedRequest;
+    CoreEncryptedResponse coreEncryptedResponse;
+    // response
+    RespServerStatus respServerStatus;
 
     // enums
     JniCommon::ConstantRangeSpec coreAlgorithm;
@@ -182,11 +249,12 @@ struct ClassSpecs
     // handle based objects
     JniCommon::NativeHandleClass password;
     JniCommon::NativeHandleClass coreConfig;
-    JniCommon::NativeHandleClass coreSession;
     JniCommon::NativeHandleClass coreCredentials;
-    JniCommon::NativeHandleClass coreEncryptor;
     JniCommon::NativeHandleClass coreEncryptorFactory;
+    JniCommon::NativeHandleClass coreTimeService;
+    CoreSession coreSession;
     CoreRequest coreRequest;
+    CoreEncryptor coreEncryptor;
     CoreTask coreTask;
 
     // exception

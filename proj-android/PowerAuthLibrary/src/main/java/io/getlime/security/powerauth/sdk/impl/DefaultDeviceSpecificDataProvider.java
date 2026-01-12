@@ -22,17 +22,19 @@ import android.provider.Settings;
 
 import androidx.annotation.NonNull;
 
+import java.nio.charset.Charset;
+
 import io.getlime.security.powerauth.core.CryptoUtils;
 import io.getlime.security.powerauth.core.SecureData;
 
 /**
- * The {@code DefaultPossessionEncryptionKeyProvider} class provides default implementation for {@link IPossessionFactorEncryptionKeyProvider}.
+ * The {@code DefaultDeviceSpecificDataProvider} class provides default implementation for {@link IDeviceSpecificDataProvider}.
  */
-public class DefaultPossessionFactorEncryptionKeyProvider implements IPossessionFactorEncryptionKeyProvider {
+public class DefaultDeviceSpecificDataProvider implements IDeviceSpecificDataProvider {
 
     @NonNull
     @Override
-    public SecureData getPossessionFactorEncryptionKey(@NonNull Context context) {
+    public byte[] getDeviceSpecificData(@NonNull Context context) {
         StringBuilder sb = new StringBuilder();
         String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         if (androidId != null) {
@@ -40,16 +42,6 @@ public class DefaultPossessionFactorEncryptionKeyProvider implements IPossession
         }
         sb.append(Build.MANUFACTURER);
         sb.append(Build.MODEL);
-        return normalizeStringToSignatureKek(sb.toString());
-    }
-
-    /**
-     * Convert provided string into possession encryption key.
-     * @param keyData Source key data for possession encryption key.
-     * @return Possession encryption key calculated from key data.
-     */
-    @NonNull
-    private static SecureData normalizeStringToSignatureKek(@NonNull String keyData) {
-        return SecureData.capture(CryptoUtils.hashSha256(keyData.getBytes(), 16));
+        return sb.toString().getBytes(Charset.defaultCharset());
     }
 }

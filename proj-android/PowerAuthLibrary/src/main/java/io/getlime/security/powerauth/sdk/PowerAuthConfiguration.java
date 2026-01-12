@@ -16,14 +16,17 @@
 
 package io.getlime.security.powerauth.sdk;
 
-import android.health.connect.datatypes.units.Power;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import io.getlime.security.powerauth.core.CoreAlgorithm;
+import io.getlime.security.powerauth.core.CoreConfig;
+import io.getlime.security.powerauth.core.CoreException;
 import io.getlime.security.powerauth.core.SecureData;
-import io.getlime.security.powerauth.core.SessionSetup;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+import io.getlime.security.powerauth.sdk.impl.CoreHttpClient;
 
 /**
  * Class representing a configuration of a single PowerAuthSDK instance.
@@ -32,7 +35,7 @@ public class PowerAuthConfiguration {
 
     private final @NonNull String instanceId;
     private final @NonNull String baseEndpointUrl;
-    private final @NonNull SessionSetup sessionSetup;
+    private final @NonNull String configuration;
     private final int offlineAuthorizationCodeComponentLength;
     private final @PowerAuthAlgorithm int algorithm;
 
@@ -66,21 +69,15 @@ public class PowerAuthConfiguration {
      * @return String containing cryptographic configuration.
      */
     public @NonNull String getConfiguration() {
-        return sessionSetup.configuration;
-    }
-
-    /**
-     * @return {@link SessionSetup} object with configuration for cryptographic components.
-     */
-    @NonNull SessionSetup getSessionSetup() {
-        return sessionSetup;
+        return configuration;
     }
 
     /**
      * @return Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
      */
     public @Nullable SecureData getExternalEncryptionKey() {
-        return sessionSetup.externalEncryptionKey;
+        // TODO: EEK
+        return null;
     }
 
     /**
@@ -121,14 +118,12 @@ public class PowerAuthConfiguration {
      * Validate the configuration. Be aware that the method performs just a formal validation, so it cannot detect if you
      * provide a wrong cryptographic keys or secrets.
      *
-     * @return {@code true} if configuration appears to be valid.
+     * @return Always returns {@code true}. See deprecation.
+     * @deprecated Method is deprecated. The configuration is validated at the time of its construction.
      */
+    @Deprecated // 2.0.0
     public boolean validateConfiguration() {
-        if (!sessionSetup.isValid()) {
-            return false;
-        }
-        return offlineAuthorizationCodeComponentLength >= MIN_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH &&
-                offlineAuthorizationCodeComponentLength <= MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH;
+        return true;
     }
 
     /**
@@ -136,19 +131,20 @@ public class PowerAuthConfiguration {
      *
      * @param instanceId Identifier of the PowerAuthSDK instance, used as a 'key' to store session state.
      * @param baseEndpointUrl Base URL to the PowerAuth Standard REST API (the URL part before {@code "/pa/..."}).
-     * @param sessionSetup Setup for core/Session object.
+     * @param configuration SDK configuration string.
      * @param algorithm Algorithm selected for communication with the server.
+     * @param offlineAuthorizationCodeComponentLength Length of component in offline authorization code.
      */
     private PowerAuthConfiguration(
             @NonNull String instanceId,
             @NonNull String baseEndpointUrl,
-            @NonNull SessionSetup sessionSetup,
-            int offlineSignatureComponentLength,
+            @NonNull String configuration,
+            int offlineAuthorizationCodeComponentLength,
             @PowerAuthAlgorithm int algorithm) {
         this.instanceId = instanceId;
         this.baseEndpointUrl = baseEndpointUrl;
-        this.sessionSetup = sessionSetup;
-        this.offlineAuthorizationCodeComponentLength = offlineSignatureComponentLength;
+        this.configuration = configuration;
+        this.offlineAuthorizationCodeComponentLength = offlineAuthorizationCodeComponentLength;
         this.algorithm = algorithm;
     }
 
@@ -161,7 +157,7 @@ public class PowerAuthConfiguration {
         private final @NonNull String configuration;
         // optional
         private String instanceId;
-        private SecureData externalEncryptionKey = null;
+        private SecureData externalEncryptionKey = null;    // TODO: EEK
         private int offlineAuthorizationCodeComponentLength = MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH;
         private @PowerAuthAlgorithm int algorithm = PowerAuthAlgorithm.DEFAULT;
 
@@ -248,15 +244,47 @@ public class PowerAuthConfiguration {
         /**
          * Build a final {@link PowerAuthConfiguration} instance.
          * @return New instance of {@link PowerAuthConfiguration}.
+         * @throws PowerAuthErrorException With {@link PowerAuthErrorCodes#WRONG_PARAMETER} in case the wrong parameter is used in the configuration.
          */
-        public @NonNull PowerAuthConfiguration build() {
-            final SessionSetup sessionSetup = new SessionSetup(configuration, externalEncryptionKey);
+        public @NonNull PowerAuthConfiguration build() throws PowerAuthErrorException {
+            if (!CoreConfig.validateConfiguration(configuration, algorithm)) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid SDK configuration");
+            }
+            if (offlineAuthorizationCodeComponentLength < MIN_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH ||
+                offlineAuthorizationCodeComponentLength > MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "offlineAuthorizationCodeComponentLength is out of supported range");
+            }
+            if (instanceId == null) {
+                instanceId = DEFAULT_INSTANCE_ID;
+            }
+            if (TextUtils.isEmpty(instanceId)) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "instanceId is empty");
+            }
+            if (TextUtils.isEmpty(baseEndpointUrl)) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "baseEndpointUrl is empty");
+            }
             return new PowerAuthConfiguration(
-                    instanceId != null ? instanceId : DEFAULT_INSTANCE_ID,
+                    instanceId,
                     baseEndpointUrl,
-                    sessionSetup,
+                    configuration,
                     offlineAuthorizationCodeComponentLength,
                     algorithm);
         }
     }
+
+    /**
+     * Internal function converts configuration from application into {@link CoreConfig} object.
+     * @param deviceSpecificData Device specific data.
+     * @return {@link CoreConfig} instance.
+     * @throws PowerAuthErrorException In case that configuration is invalid.
+     */
+    @NonNull
+    CoreConfig getCoreConfiguration(@NonNull byte[] deviceSpecificData) throws PowerAuthErrorException {
+        try {
+            return CoreConfig.build(configuration, deviceSpecificData, instanceId, algorithm);
+        } catch (CoreException e) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid SDK configuration", e);
+        }
+    }
+
 }

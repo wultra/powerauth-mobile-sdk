@@ -34,7 +34,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         PROTOCOL_UPGRADE, PENDING_PROTOCOL_UPGRADE,
         BIOMETRY_NOT_SUPPORTED, BIOMETRY_NOT_AVAILABLE, BIOMETRY_NOT_RECOGNIZED,
         INSUFFICIENT_KEYCHAIN_PROTECTION, BIOMETRY_LOCKOUT, TIME_SYNCHRONIZATION,
-        BIOMETRY_NOT_ENROLLED})
+        BIOMETRY_NOT_ENROLLED, WRONG_SIGNATURE, OTHER})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -168,4 +168,12 @@ public @interface PowerAuthErrorCodes {
      * The biometric authentication failed because there's no biometry enrolled on the device.
      */
     int BIOMETRY_NOT_ENROLLED = 24;
+    /**
+     * Digital or JWS signature is not valid.
+     */
+    int WRONG_SIGNATURE = 25;
+    /**
+     * Other, unspecified error.
+     */
+    int OTHER = 26;
 }

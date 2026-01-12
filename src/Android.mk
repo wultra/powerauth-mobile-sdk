@@ -64,7 +64,8 @@ LOCAL_SRC_FILES += \
 	PowerAuth/ByteUtils.cpp \
 	PowerAuth/KeyProvider.cpp \
 	PowerAuth/OtpUtil.cpp \
-	PowerAuth/SharedSecret.cpp
+	PowerAuth/SharedSecret.cpp \
+	PowerAuth/ServerStatus.cpp
 
 # Multiplatform sources - PowerAuth/common
 LOCAL_SRC_FILES += \
@@ -213,13 +214,17 @@ LOCAL_SRC_FILES := \
 	PowerAuthJni/CoreCredentialsJNI.cpp \
 	PowerAuthJni/CoreEncryptorJNI.cpp \
 	PowerAuthJni/CoreEncryptorFactoryJNI.cpp \
+	PowerAuthJni/CoreTimeServiceJNI.cpp \
+	\
 	PowerAuthJni/PasswordJNI.cpp \
+	PowerAuthJni/SecureDataJNI.cpp \
+	\
 	PowerAuthJni/ActivationCodeUtilJNI.cpp \
 	PowerAuthJni/TokenCalculatorJNI.cpp \
 	PowerAuthJni/CryptoUtilsJNI.cpp \
 	PowerAuthJni/EcPrivateKeyJNI.cpp \
-	PowerAuthJni/EcPublicKeyJNI.cpp \
-	PowerAuthJni/SecureDataJNI.cpp
+	PowerAuthJni/EcPublicKeyJNI.cpp
+
 
 include $(BUILD_SHARED_LIBRARY)
 

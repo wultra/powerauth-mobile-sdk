@@ -16,8 +16,10 @@
 
 #import <PowerAuth2/PowerAuthServerStatus.h>
 
+@class PowerAuthCoreServerStatus;
+
 @interface PowerAuthServerStatus (Private)
 
-- (instancetype) initWithJsonResponse:(id)response;
+- (instancetype) initWithCoreServerStatus:(PowerAuthCoreServerStatus*)response;
 
 @end

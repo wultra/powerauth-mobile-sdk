@@ -16,8 +16,9 @@
 
 #import <PowerAuthCore/PowerAuthCoreMacros.h>
 #import <PowerAuthCore/PowerAuthCoreRequest.h>
+#import <PowerAuthCore/PowerAuthCoreServerStatus.h>
 
-/// The `PowerAuthCoreTimeService` protocol provides functionality for getting
+/// The `PowerAuthCoreTimeService` object provides functionality for getting
 /// time synchronized with the server and allows synchronize time with the server.
 @interface PowerAuthCoreTimeService : NSObject
 
@@ -42,13 +43,13 @@
 /// synchronized time is out of your expectations, then try to synchronize the time again.
 @property (nonatomic, readonly) NSTimeInterval localTimeAdjustmentPrecision;
 
-/// Creates HTTP request for time synchronization.
+/// Creates HTTP request for time synchronization. In case of success, the result is `PowerAuthCoreServerStatus` object.
 /// - Parameter error: Pointer where the error will be stored in case of failure.
 /// - Returns: HTTP request or `nil` in case of failure.
 - (nullable PowerAuthCoreRequest*) createTimeSynchronizationRequest:(NSError*_Nullable*_Nullable)error;
 
 /// Get information whether there's already pending request for time synchronization.
-/// - Returns: YES in there's pending request for time synchronization.
+/// - Returns: YES if there's pending request for time synchronization.
 - (BOOL) hasPendingTimeSynchronizationRequest;
 
 /// Reset time synchronization.

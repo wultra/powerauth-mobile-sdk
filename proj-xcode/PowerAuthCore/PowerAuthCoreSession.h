@@ -127,7 +127,7 @@
 @property (nonatomic, assign, readonly) BOOL hasValidActivationData;
 /**
  Checks if there's a valid activation that requires a protocol upgrade. Contains `false` once the upgrade
- process is started. The application should fetch the activation's status to do the upgrade.
+ process is started.
  
  This property access the session's state, so read access must be guaranteed.
  */
@@ -200,7 +200,7 @@
 @property (nonatomic, strong, readonly, nullable) NSString * activationIdentifier;
 
 /// If the session has valid activation, then returns decimalized fingerprint, calculated
-/// from device's public key. Otherwise returns nil.
+/// from the device and public public keys. Otherwise returns nil.
 ///
 /// This property access the session's state, so read access must be guaranteed.
 @property (nonatomic, strong, readonly, nullable) NSString * activationFingerprint;

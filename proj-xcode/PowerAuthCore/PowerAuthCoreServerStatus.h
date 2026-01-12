@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import <PowerAuthCore/PowerAuthCoreMacros.h>
 
-/// The `PowerAuthServerStatus` contains information about the server, such as
-/// time on the server.
-@interface PowerAuthServerStatus : NSObject
+/// Object contains information about server.
+@interface PowerAuthCoreServerStatus : NSObject
 
-/// Default initialization is unavailable.
+/// Default construction is unavailable
 - (nonnull instancetype) init NS_UNAVAILABLE;
 
 /// Time on the server.
-@property (nonatomic, readonly, strong, nonnull) NSDate * serverTime;
+@property (nonatomic, strong, readonly, nonnull) NSDate * serverTime;
 
 /// Server application's name.
 @property (nonatomic, strong, readonly, nonnull) NSString * applicationName;

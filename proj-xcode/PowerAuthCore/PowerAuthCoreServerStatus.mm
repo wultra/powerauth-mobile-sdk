@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-#import "PowerAuthServerStatus.h"
-#import "PA2PrivateMacros.h"
+#import "PowerAuthCoreServerStatus.h"
+#import "PowerAuthCorePrivateImpl.h"
 
-@import PowerAuthCore;
+@implementation PowerAuthCoreServerStatus
 
-@implementation PowerAuthServerStatus
-
-- (instancetype) initWithCoreServerStatus:(PowerAuthCoreServerStatus*)response
+- (instancetype) initWithServerStatus:(const powerAuth::ServerStatusPtr&)serverStatus
 {
     self = [super init];
     if (self) {
-        _serverTime = response.serverTime;
-        _applicationName = response.applicationName;
-        _applicationVersion = response.applicationVersion;
+        _serverTime = [NSDate dateWithTimeIntervalSince1970:0.001 * serverStatus->serverTime()];
+        _applicationName = cc7::objc::CopyToNSString(serverStatus->applicationName());
+        _applicationVersion = cc7::objc::CopyToNSString(serverStatus->applicationVersion());
     }
     return self;
 }

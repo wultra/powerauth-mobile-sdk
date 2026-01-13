@@ -18,6 +18,8 @@ package io.getlime.security.powerauth.integration.tests;
 
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
@@ -32,11 +34,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.Console;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
@@ -619,5 +623,24 @@ public class StandardActivationTest {
             });
         });
         assertTrue(result);
+    }
+
+    @Test
+    public void testServerStatus() throws Exception {
+        ServerStatus result = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.fetchServerStatus(new IServerStatusListener() {
+                @Override
+                public void onServerStatusSucceeded(@NonNull ServerStatus status) {
+                    resultCatcher.completeWithResult(status);
+                }
+
+                @Override
+                public void onServerStatusFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+        assertNotNull(result);
+        System.out.println("Server name: " + result.getApplicationName() + ", version: " + result.getApplicationVersion());
     }
 }

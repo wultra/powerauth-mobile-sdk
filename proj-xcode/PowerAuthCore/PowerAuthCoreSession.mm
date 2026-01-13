@@ -829,8 +829,15 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 + (nullable PowerAuthCoreData*) generateFactorKekForProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
                                                               error:(NSError**)error
 {
-    auto kek = cc7::crypto::GetRandomData(protocolVersion == PowerAuthCoreProtocolVersion_V4 ? 32 : 16);
-    return [[PowerAuthCoreData alloc] initWithByteRange:kek];
+    try {
+        auto kek = cc7::crypto::GetRandomData(protocolVersion == PowerAuthCoreProtocolVersion_V4 ? 32 : 16);
+        return [[PowerAuthCoreData alloc] initWithByteRange:kek];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
 }
 
 + (NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion

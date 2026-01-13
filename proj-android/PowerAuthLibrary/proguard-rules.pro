@@ -15,22 +15,27 @@
 -keepattributes Signature
 -keepattributes *Annotation*
 
--keep class io.getlime.security.powerauth.core.* {
+-keep class io.getlime.security.powerauth.core.** {
     <init>(...);
+    <methods>;
     <fields>;
 }
+
+# @Deprecated - remove before release
 -keep class io.getlime.security.powerauth.ecies.EciesMetadata {
     <fields>;
 }
 -keep class io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData {
     <fields>;
 }
+# @Deprecated - remove before release
 -keepclassmembers class io.getlime.core.rest.model.** {
     <fields>;
 }
 # necessary for R8 fullMode
 -keep, allowobfuscation class io.getlime.core.rest.model.**
 
+# @Deprecated - remove before release
 -keep class io.getlime.security.powerauth.networking.model.** {
     <fields>;
 }

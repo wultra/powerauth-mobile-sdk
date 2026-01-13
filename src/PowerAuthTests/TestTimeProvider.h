@@ -27,7 +27,7 @@ public:
         setTime(cc7::GetCurrentTime());
     }
     
-    powerAuth::TimeInterval getCurrentTime() const override
+    powerAuth::TimeInterval getCurrentTime() const noexcept override
     {
         if (validInterval) {
             return testTime;
@@ -35,7 +35,7 @@ public:
         return 0.001 * timestamp;
     }
     
-    powerAuth::Timestamp getCurrentTimeMillis() const override
+    powerAuth::Timestamp getCurrentTimeMillis() const noexcept override
     {
         if (validInterval) {
             return 1000 * testTime;

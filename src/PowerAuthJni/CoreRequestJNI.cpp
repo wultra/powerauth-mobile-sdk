@@ -57,7 +57,7 @@ jobject BuildCoreRequest(cc7::jni::JNI &jni, const RequestPtr& request, const Re
 {
     auto& specs = NH_SPECS();
     // Wrap build function into auxiliary structure and register it as handle
-    auto callback = std::shared_ptr<JavaResponseBuilder>(new JavaResponseBuilder { builder });
+    auto callback = std::make_shared<JavaResponseBuilder>(JavaResponseBuilder { builder });
     auto callback_handle = jni.toHandle(callback);
 
     // Build Request java object
@@ -271,7 +271,7 @@ CC7_JNI_METHOD_PARAMS(void, processResponseImpl, jbyteArray response)
             if (!cc7::jni::JNI::isNullHandle(response_builder_handle)) {
                 // Java response construction build is specified.
                 auto callback = jni.fromHandle<jni::JavaResponseBuilder>(response_builder_handle);
-                auto response_object = callback->build(jni, specs, this_obj->getResponseObject());
+                auto response_object = callback->build(jni, specs, this_obj->getResponseObject(), this_obj->getResponseJson());
                 // Keep response object in Request instance
                 this_wrapped.setObject(specs.coreRequest.responseObject, response_object);
                 // Cleanup builder

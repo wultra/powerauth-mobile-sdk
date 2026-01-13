@@ -58,7 +58,6 @@ public class ActivationStatus {
      * Error code returned from the C++ code. The value can be compared
      * to constants from ErrorCode class.
      */
-    @ErrorCode
     public final int errorCode;
     /**
      * State of the activation. You can compare this value to State_XXX constants.
@@ -129,7 +128,7 @@ public class ActivationStatus {
     // Constructor
 
     ActivationStatus() {
-        this.errorCode = ErrorCode.OK;
+        this.errorCode = 0;
         this.state = State_Created;
         this.failCount = 0;
         this.maxFailCount = 0;

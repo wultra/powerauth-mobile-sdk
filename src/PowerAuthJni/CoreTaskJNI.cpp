@@ -23,6 +23,7 @@
 #define CC7_JNI_JAVA_CLASS          CoreTask
 #define CC7_JNI_CPP_CLASS           Task
 #include <cc7/jni/JniModule.inl>
+#include <memory>
 
 using namespace powerAuth;
 
@@ -57,7 +58,7 @@ jobject BuildCoreTask(cc7::jni::JNI &jni, const TaskPtr& task, const ResponseObj
 {
     auto& specs = NH_SPECS();
     // Wrap build function into auxiliary structure and register it as handle
-    auto callback = std::shared_ptr<JavaResponseBuilder>(new JavaResponseBuilder { builder });
+    auto callback = std::make_shared<JavaResponseBuilder>(JavaResponseBuilder { builder });
     auto callback_handle = jni.toHandle(callback);
 
     // Build Request java object
@@ -140,7 +141,7 @@ CC7_JNI_METHOD(void, updateResponse)
                 if (!cc7::jni::JNI::isNullHandle(response_builder_handle)) {
                     // Response builder is set, create builder reference and build a response object
                     auto builder = jni.fromHandle<jni::JavaResponseBuilder>(response_builder_handle);
-                    auto response_object = builder->build(jni, specs, this_obj->getResponseObject());
+                    auto response_object = builder->build(jni, specs, this_obj->getResponseObject(), this_obj->getResponseJson());
                     this_wrapped.setObject(specs.coreTask.responseObject, response_object);
                     // Unregister builder and cleanup handle
                     jni::ClearResponseBuilderClosure(jni, specs, this_wrapped, response_builder_handle);

@@ -76,6 +76,10 @@ typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::ResponseObjectPtr& re
 - (const powerAuth::CredentialsPtr&) credentialsRef;
 @end
 
+@interface PowerAuthCoreServerStatus (Private)
+- (instancetype) initWithServerStatus:(const powerAuth::ServerStatusPtr&)serverStatus;
+@end
+
 @interface PowerAuthCoreActivationResult (Private)
 - (instancetype) initWithActivationResult:(const powerAuth::ActivationResult&)activationResult;
 @end

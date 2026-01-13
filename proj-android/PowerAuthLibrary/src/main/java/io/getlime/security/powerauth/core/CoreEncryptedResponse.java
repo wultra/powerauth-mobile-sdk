@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,31 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.networking.endpoints;
+package io.getlime.security.powerauth.core;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
-import com.google.gson.reflect.TypeToken;
-
-import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
-
-public class RemoveTokenEndpoint implements IEndpointDefinition<Void> {
+/**
+ * The {@code CoreEncryptedResponse} represents encrypted response received from the server.
+ */
+public class CoreEncryptedResponse {
 
     @NonNull
-    @Override
-    public String getRelativePath() {
-        return "/pa/v3/token/remove";
+    private final byte[] responseBody;
+
+    /**
+     * Create response object with body.
+     * @param responseBody Response body.
+     */
+    public CoreEncryptedResponse(@NonNull byte[] responseBody) {
+        this.responseBody = responseBody;
     }
 
-    @Nullable
-    @Override
-    public String getAuthorizationUriId() {
-        return "/pa/token/remove";
+    /**
+     * @return Response body.
+     */
+    @NonNull
+    public byte[] getResponseBody() {
+        return responseBody;
     }
 }

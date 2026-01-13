@@ -15,6 +15,7 @@
  */
 
 #include "NativeHelper.h"
+#import <PowerAuth/Debug.h>
 
 // Package: io.getlime.security.powerauth.core
 #define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
@@ -25,12 +26,18 @@
 
 CC7_JNI_MODULE_CLASS_BEGIN()
 
-//
-// private native static void initializeJNI();
-//
 CC7_JNI_STATIC_METHOD(void, initializeJNI)
 {
     powerAuth::jni::NativeHelper::registerGlobalJniInitializers();
+}
+
+CC7_JNI_STATIC_METHOD(jboolean, hasDebugFeatures)
+{
+#if defined(DEBUG)
+    return true;
+#else
+    return powerAuth::HasDebugFeaturesTurnedOn();
+#endif
 }
 
 CC7_JNI_MODULE_CLASS_END()

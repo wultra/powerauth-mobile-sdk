@@ -30,12 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.keychain.Keychain;
-import io.getlime.security.powerauth.networking.client.HttpClient;
-import io.getlime.security.powerauth.networking.endpoints.CreateTokenEndpoint;
-import io.getlime.security.powerauth.networking.endpoints.RemoveTokenEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
-import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
-import io.getlime.security.powerauth.networking.model.entity.TokenResponsePayload;
 import io.getlime.security.powerauth.networking.model.request.TokenRemoveRequest;
 import io.getlime.security.powerauth.networking.response.IGenerateTokenHeaderListener;
 import io.getlime.security.powerauth.networking.response.IGetTokenListener;
@@ -69,7 +64,7 @@ public class PowerAuthTokenStore {
     /**
      * Reference to @{link HttpClient} for networking purposes
      */
-    private final HttpClient httpClient;
+    private final CoreHttpClient httpClient;
     /**
      * A dictionary mapping token's name to private token's data. This is the in-memory cache
      * which speeds up querying for tokens.
@@ -87,7 +82,7 @@ public class PowerAuthTokenStore {
 
     /**
      * Constructs a new token store with references to parent {@link PowerAuthSDK}, {@link Keychain}
-     * as storage and {@link HttpClient} for networking.
+     * as storage and {@link CoreHttpClient} for networking.
      *
      * @param sdk a parent object which created this instance
      * @param keychain a keychain as persistent storage
@@ -96,7 +91,7 @@ public class PowerAuthTokenStore {
     public PowerAuthTokenStore(
             @NonNull PowerAuthSDK sdk,
             @NonNull Keychain keychain,
-            @NonNull HttpClient httpClient) {
+            @NonNull CoreHttpClient httpClient) {
         this.lock = sdk.getSharedLock();
         this.sdk = sdk;
         this.keychain = keychain;
@@ -290,40 +285,43 @@ public class PowerAuthTokenStore {
                 @Override
                 public void onTaskStart(@NonNull final GetAccessTokenTask groupedTask) {
                     // Execute HTTP request
-                    final ICancelable httpTask = httpClient.post(
-                            null,
-                            new CreateTokenEndpoint(),
-                            sdk.getCryptoHelper(context),
-                            authentication,
-                            new INetworkResponseListener<TokenResponsePayload>() {
-                                @Override
-                                public void onNetworkResponse(@NonNull TokenResponsePayload response) {
-                                    // Success, try to construct a new PowerAuthPrivateTokenData object.
-                                    final byte[] tokenSecretBytes = Base64.decode(response.getTokenSecret(), Base64.NO_WRAP);
-                                    final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes, activationIdentifier, authenticationFactors);
-                                    if (newTokenData.hasValidData()) {
-                                        // Store token data & report to listener
-                                        groupedTask.complete(new PowerAuthToken(PowerAuthTokenStore.this, sdk.getTimeSynchronizationService(), newTokenData));
-                                    } else {
-                                        // Report encryption error
-                                        groupedTask.complete(new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR));
-                                    }
-                                }
+                    // TODO: impl.
+                    throw new IllegalStateException("TODO");
 
-                                @Override
-                                public void onNetworkError(@NonNull Throwable t) {
-                                    groupedTask.complete(t);
-                                }
-
-                                @Override
-                                public void onCancel() {
-                                }
-                            });
-                    // Register HTTP task to the grouped task.
-                    if (!groupedTask.addCancelableOperation(httpTask)) {
-                        // This case should never happen, because we're at task start.
-                        throw new IllegalStateException();
-                    }
+//                    final ICancelable httpTask = httpClient.post(
+//                            null,
+//                            new CreateTokenEndpoint(),
+//                            sdk.getCryptoHelper(context),
+//                            authentication,
+//                            new INetworkResponseListener<TokenResponsePayload>() {
+//                                @Override
+//                                public void onNetworkResponse(@NonNull TokenResponsePayload response) {
+//                                    // Success, try to construct a new PowerAuthPrivateTokenData object.
+//                                    final byte[] tokenSecretBytes = Base64.decode(response.getTokenSecret(), Base64.NO_WRAP);
+//                                    final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes, activationIdentifier, authenticationFactors);
+//                                    if (newTokenData.hasValidData()) {
+//                                        // Store token data & report to listener
+//                                        groupedTask.complete(new PowerAuthToken(PowerAuthTokenStore.this, sdk.getTimeSynchronizationService(), newTokenData));
+//                                    } else {
+//                                        // Report encryption error
+//                                        groupedTask.complete(new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR));
+//                                    }
+//                                }
+//
+//                                @Override
+//                                public void onNetworkError(@NonNull Throwable t) {
+//                                    groupedTask.complete(t);
+//                                }
+//
+//                                @Override
+//                                public void onCancel() {
+//                                }
+//                            });
+//                    // Register HTTP task to the grouped task.
+//                    if (!groupedTask.addCancelableOperation(httpTask)) {
+//                        // This case should never happen, because we're at task start.
+//                        throw new IllegalStateException();
+//                    }
                 }
 
                 @Override
@@ -386,29 +384,30 @@ public class PowerAuthTokenStore {
         // Launch HTTP request...
         final TokenRemoveRequest request = new TokenRemoveRequest();
         request.setTokenId(tokenData.identifier);
-
-        return httpClient.post(
-                request,
-                new RemoveTokenEndpoint(),
-                sdk.getCryptoHelper(context),
-                PowerAuthAuthentication.possession(),
-                new INetworkResponseListener<Void>() {
-                    @Override
-                    public void onNetworkResponse(@NonNull Void aVoid) {
-                        // On success, remove local token data & notify listener
-                        removeLocalToken(context, tokenName);
-                        listener.onRemoveTokenSucceeded();
-                    }
-
-                    @Override
-                    public void onNetworkError(@NonNull Throwable t) {
-                        listener.onRemoveTokenFailed(t);
-                    }
-
-                    @Override
-                    public void onCancel() {
-                    }
-                });
+        return null;
+        // TODO: impl.
+//        return httpClient.post(
+//                request,
+//                new RemoveTokenEndpoint(),
+//                sdk.getCryptoHelper(context),
+//                PowerAuthAuthentication.possession(),
+//                new INetworkResponseListener<Void>() {
+//                    @Override
+//                    public void onNetworkResponse(@NonNull Void aVoid) {
+//                        // On success, remove local token data & notify listener
+//                        removeLocalToken(context, tokenName);
+//                        listener.onRemoveTokenSucceeded();
+//                    }
+//
+//                    @Override
+//                    public void onNetworkError(@NonNull Throwable t) {
+//                        listener.onRemoveTokenFailed(t);
+//                    }
+//
+//                    @Override
+//                    public void onCancel() {
+//                    }
+//                });
     }
 
 

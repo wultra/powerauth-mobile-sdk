@@ -38,4 +38,10 @@ public class NativeModule {
      * Initialize JNI wrapper.
      */
     private native static void initializeJNI();
+
+    /**
+     * Get information whether native module is compiled with debug features turned on.
+     * @return true if some debug feature is turned on in the compiled native module.
+     */
+    public native static boolean hasDebugFeatures();
 }

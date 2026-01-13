@@ -30,4 +30,65 @@ CC7_JNI_MODULE_CLASS_BEGIN()
 
 #define THIS_OBJ()  jni.fromJava<CC7_JNI_CPP_CLASS>(NH_SPECS().coreEncryptorFactory, thiz)
 
+CC7_JNI_METHOD_PARAMS(jobject, createEncryptorWithScope, jint scope)
+{
+    NH_TRY
+    {
+        if (scope == 0) {
+            // NONE
+            throw Exception(EC_WrongParameter, "CoreEncryptorScope.None cannot be used");
+        }
+        auto& specs = NH_SPECS();
+        auto cpp_scope = jni.fromJava<EncryptorScope>(specs.coreEncryptorScope, scope);
+        auto encryptor_id = (cpp_scope == EncryptorScope::APPLICATION)
+                                ? EncryptorId::APPLICATION_SCOPE_GENERIC
+                                : EncryptorId::ACTIVATION_SCOPE_GENERIC;
+        auto encryptor = THIS_OBJ()->getClientEncryptor(encryptor_id);
+        return jni.createObject(specs.coreEncryptor.init, jni.toHandle(encryptor), scope);
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, fetchTemporaryKeyForScope, jint scope)
+{
+    NH_TRY
+    {
+        if (scope == 0) {
+            // NONE
+            throw Exception(EC_WrongParameter, "CoreEncryptorScope.None cannot be used");
+        }
+        auto& specs = NH_SPECS();
+        auto cpp_scope = jni.fromJava<EncryptorScope>(specs.coreEncryptorScope, scope);
+        auto request = THIS_OBJ()->getTemporaryKeyRequest(cpp_scope);
+        return jni::BuildCoreRequest(jni, request);
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jboolean, hasPendingRequestForTemporaryKeyWithScope, jint scope)
+{
+    NH_TRY
+    {
+        if (scope != 0) {
+            auto cpp_scope = jni.fromJava<EncryptorScope>(NH_SPECS().coreEncryptorScope, scope);
+            return THIS_OBJ()->hasPendingTemporaryKeyRequest(cpp_scope);
+        }
+        return false;
+    }
+    NH_CATCH_RT_ONLY(false)
+}
+
+CC7_JNI_METHOD_PARAMS(jboolean, hasTemporaryKeyForScope, jint scope)
+{
+    NH_TRY
+    {
+        if (scope != 0) {
+            auto cpp_scope = jni.fromJava<EncryptorScope>(NH_SPECS().coreEncryptorScope, scope);
+            return THIS_OBJ()->hasTemporaryKey(cpp_scope);
+        }
+        return false;
+    }
+    NH_CATCH_RT_ONLY(false)
+}
+
 CC7_JNI_MODULE_CLASS_END()

@@ -45,7 +45,7 @@ public class CoreRequest<TResponse> extends NativeObject {
      * Handle containing handle to native C++ object translating response into Java model object.
      * The handle is released by calling {@link #processResponse(byte[])} method, or in {@link #finalize()}.
      */
-    private long responseBuilderHandle;
+    private final long responseBuilderHandle;
 
     /**
      * Construct object with handle to native object. This is a designated constructor used from JNI,
@@ -55,12 +55,25 @@ public class CoreRequest<TResponse> extends NativeObject {
      */
     protected CoreRequest(long nativeObjectHandle) {
         super(nativeObjectHandle);
+        this.responseBuilderHandle = NATIVE_NULL;
+    }
+
+    protected CoreRequest(long nativeObjectHandle, long responseBuilderHandle) {
+        super(nativeObjectHandle);
+        this.responseBuilderHandle = responseBuilderHandle;
     }
 
     @Override
     protected void finalize() {
         super.finalize();
         NativeObject.safeNativeDestroy(responseBuilderHandle);
+    }
+
+    /**
+     * Destroy
+     */
+    public void dispose() {
+        NativeObject.safeNativeDestroyHandles(new long[]{ nativeObjectHandle, responseBuilderHandle });
     }
 
     /**

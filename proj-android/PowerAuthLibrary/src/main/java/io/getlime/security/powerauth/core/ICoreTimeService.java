@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
  * The {@code ITimeService} inteface provides functionality for getting time synchronized with the server
  * and allows implement time synchronization with the server.
  */
+@Deprecated // remove before release
 public interface ICoreTimeService {
     /**
      * @return Information whether the service has its time synchronized with the server.

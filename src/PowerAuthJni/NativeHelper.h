@@ -125,7 +125,8 @@ private:
 typedef std::function<
         jobject(cc7::jni::JNI& jni,
                 const ClassSpecs& specs,
-                const powerAuth::ResponseObjectPtr& response
+                const powerAuth::ResponseObjectPtr& response_object,
+                const cc7::json::JsonValue& response_json
         )> ResponseObjectBuilder;
 
 /// Structure contains information required for response object build.

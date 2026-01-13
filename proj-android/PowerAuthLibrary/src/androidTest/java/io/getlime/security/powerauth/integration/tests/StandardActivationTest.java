@@ -18,24 +18,29 @@ package io.getlime.security.powerauth.integration.tests;
 
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.google.gson.reflect.TypeToken;
-import io.getlime.security.powerauth.core.EciesEncryptor;
+
+import io.getlime.security.powerauth.core.CoreEncryptor;
 import io.getlime.security.powerauth.core.SecureData;
-import io.getlime.security.powerauth.networking.client.JsonSerialization;
+import io.getlime.security.powerauth.sdk.impl.JsonSerialization;
 import io.getlime.security.powerauth.networking.response.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.Console;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
@@ -542,16 +547,16 @@ public class StandardActivationTest {
     }
 
     @Test
-    public void testEciesEncryptors() throws Exception {
-        EciesEncryptor encryptor = AsyncHelper.await(resultCatcher -> {
-            powerAuthSDK.getEciesEncryptorForApplicationScope(new IGetEciesEncryptorListener() {
+    public void testEncryptors() throws Exception {
+        CoreEncryptor encryptor = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.getEncryptorForApplicationScope(new IGetEncryptorListener() {
                 @Override
-                public void onGetEciesEncryptorSuccess(@NonNull EciesEncryptor encryptor) {
+                public void onGetEncryptorSuccess(@NonNull CoreEncryptor encryptor) {
                     resultCatcher.completeWithResult(encryptor);
                 }
 
                 @Override
-                public void onGetEciesEncryptorFailed(@NonNull Throwable t) {
+                public void onGetEncryptorFailed(@NonNull Throwable t) {
                     resultCatcher.completeWithError(t);
                 }
             });
@@ -568,14 +573,14 @@ public class StandardActivationTest {
         activationHelper = new ActivationHelper(testHelper, activationHelperState);
 
         encryptor = AsyncHelper.await(resultCatcher -> {
-            powerAuthSDK.getEciesEncryptorForApplicationScope(new IGetEciesEncryptorListener() {
+            powerAuthSDK.getEncryptorForApplicationScope(new IGetEncryptorListener() {
                 @Override
-                public void onGetEciesEncryptorSuccess(@NonNull EciesEncryptor encryptor) {
+                public void onGetEncryptorSuccess(@NonNull CoreEncryptor encryptor) {
                     resultCatcher.completeWithResult(encryptor);
                 }
 
                 @Override
-                public void onGetEciesEncryptorFailed(@NonNull Throwable t) {
+                public void onGetEncryptorFailed(@NonNull Throwable t) {
                     resultCatcher.completeWithError(t);
                 }
             });
@@ -584,7 +589,7 @@ public class StandardActivationTest {
     }
 
     @Test
-    public void testEciesTemporaryKeyExpiration() throws Exception {
+    public void testTemporaryKeyExpiration() throws Exception {
         // This test requires PAS configured for a very short temporary key lifespan.
         activationHelper.createStandardActivation(true, null);
 
@@ -618,5 +623,24 @@ public class StandardActivationTest {
             });
         });
         assertTrue(result);
+    }
+
+    @Test
+    public void testServerStatus() throws Exception {
+        ServerStatus result = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.fetchServerStatus(new IServerStatusListener() {
+                @Override
+                public void onServerStatusSucceeded(@NonNull ServerStatus status) {
+                    resultCatcher.completeWithResult(status);
+                }
+
+                @Override
+                public void onServerStatusFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+        assertNotNull(result);
+        System.out.println("Server name: " + result.getApplicationName() + ", version: " + result.getApplicationVersion());
     }
 }

@@ -29,9 +29,6 @@ using namespace cc7::jni;
 
 CC7_JNI_MODULE_CLASS_BEGIN()
 
-//
-// private native static void safeNativeDestroy(long handle);
-//
 CC7_JNI_STATIC_METHOD_PARAMS(void, safeNativeDestroy, jlong handle)
 {
     NH_TRY
@@ -41,9 +38,16 @@ CC7_JNI_STATIC_METHOD_PARAMS(void, safeNativeDestroy, jlong handle)
     NH_NO_THROW()
 }
 
-//
-// private native static boolean isNativeDestroyed(long handle);
-//
+CC7_JNI_STATIC_METHOD_PARAMS(void, safeNativeDestroyHandles, jlongArray handles)
+{
+    NH_TRY
+    {
+        auto cpp_handles = jni.fromJava(handles);
+        jni.global().objectRegister().removeEntries(cpp_handles);
+    }
+    NH_NO_THROW()
+}
+
 CC7_JNI_STATIC_METHOD_PARAMS(jboolean, isNativeDestroyed, jlong handle)
 {
     NH_TRY

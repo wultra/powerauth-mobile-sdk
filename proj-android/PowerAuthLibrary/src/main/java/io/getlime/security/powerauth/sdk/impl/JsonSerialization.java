@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.networking.client;
+package io.getlime.security.powerauth.sdk.impl;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,12 +32,8 @@ import com.google.gson.reflect.TypeToken;
 import java.nio.charset.Charset;
 
 import io.getlime.core.rest.model.base.request.ObjectRequest;
-import io.getlime.security.powerauth.core.EciesCryptogram;
-import io.getlime.security.powerauth.core.EciesEncryptor;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
-import io.getlime.security.powerauth.networking.model.request.EciesEncryptedRequest;
-import io.getlime.security.powerauth.networking.model.response.EciesEncryptedResponse;
 
 /**
  * The {@code JsonSerialization} class is helping with object to JSON serialization and
@@ -145,124 +141,6 @@ public class JsonSerialization {
         return jsonRoot.getAsJsonObject();
     }
 
-
-    // ECIES encrypt & decrypt
-
-    /**
-     * Encrypt provided object into standard JSON formatted ECIES request.
-     *
-     * @param object object to encrypt and serialize
-     * @param encryptor the ECIES encryptor
-     * @param <TRequest> the type of the desired object
-     * @return JSON formatted bytes with encrypted object
-     * @throws PowerAuthErrorException if encryption fails
-     */
-    @NonNull
-    public <TRequest> byte[] encryptObject(@Nullable TRequest object, @NonNull EciesEncryptor encryptor) throws PowerAuthErrorException {
-        final EciesEncryptedRequest request = encryptObjectToRequest(object, encryptor);
-        return serializeObject(request);
-    }
-
-
-    /**
-     * Decrypt standard JSON formatted ECIES response into bytes.
-     *
-     * @param data data with JSON formatted ECIES response
-     * @param decryptor the ECIES decryptor
-     * @return decrypted sequence of bytes
-     * @throws PowerAuthErrorException if decryption fails.
-     */
-    @NonNull
-    public byte[] decryptData(@Nullable byte[] data, @NonNull EciesEncryptor decryptor) throws PowerAuthErrorException {
-        // 1. Deserialize bytes into response object
-        final EciesEncryptedResponse response = deserializeObject(data, TypeToken.get(EciesEncryptedResponse.class));
-        // 2. Construct cryptogram with data & mac (response doesn't contain ephemeral key)
-        final EciesCryptogram cryptogram = EciesCryptogram.fromEncryptedResponse(response);
-        if (cryptogram == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Invalid encrypted response received.");
-        }
-        // 3. Decrypt the response
-        final byte[] plainData = decryptor.decryptResponse(cryptogram);
-        if (plainData == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to decrypt object data.");
-        }
-        return plainData;
-    }
-
-
-    /**
-     * Decrypt standard JSON formatted ECIES response into response object.
-     *
-     * @param data data with JSON formatted ECIES response
-     * @param decryptor the ECIES decryptor
-     * @param type {@link TypeToken} for object to be deserialized.
-     * @param <TResponse> the type of the desired object
-     * @return decrypted and deserialized response object
-     * @throws PowerAuthErrorException in case of decryption error
-     */
-    @Nullable
-    public <TResponse> TResponse decryptObject(@Nullable byte[] data, @NonNull EciesEncryptor decryptor, @Nullable TypeToken<TResponse> type) throws PowerAuthErrorException {
-        // 1. Decrypt data
-        final byte[] plainData = decryptData(data, decryptor);
-        // 2. If type token is present, then deserialize JSON
-        if (type == null) {
-            return null;
-        }
-        return deserializeObject(plainData, type);
-    }
-
-    /**
-     * Encrypt provided object into {@link EciesEncryptedRequest} object.
-     *
-     * @param object object to encrypt and serialize
-     * @param encryptor the ECIES encryptor
-     * @param <TRequest> the type of the desired object
-     * @return {@link EciesEncryptedRequest} object with encrypted content
-     * @throws PowerAuthErrorException if encryption fails
-     */
-    @NonNull
-    public <TRequest> EciesEncryptedRequest encryptObjectToRequest(@Nullable TRequest object, @NonNull EciesEncryptor encryptor) throws PowerAuthErrorException {
-        // 1. Serialize object into JSON
-        final byte[] plainData = serializeObject(object);
-        // 2. Encrypt serialized JSON data
-        final EciesCryptogram cryptogram = encryptor.encryptRequest(plainData);
-        if (cryptogram == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to encrypt object data.");
-        }
-        // 3. Construct final request object from the cryptogram
-        return cryptogram.toEncryptedRequest();
-    }
-
-
-    /**
-     * Decrypts object from response.
-     *
-     * @param response encrypted response
-     * @param decryptor the ECIES decryptor
-     * @param type {@link TypeToken} for object to be deserialized.
-     * @param <TResponse> the type of the desired object
-     * @return decrypted and deserialized response object
-     * @throws PowerAuthErrorException in case of decryption error
-     */
-    @NonNull
-    public <TResponse> TResponse decryptObjectFromResponse(@Nullable EciesEncryptedResponse response, @NonNull EciesEncryptor decryptor, @NonNull TypeToken<TResponse> type) throws PowerAuthErrorException {
-        // Sanity checks
-        if (response == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Empty response cannot be decrypted.");
-        }
-        // 1. Convert response into cryptogram object
-        final EciesCryptogram cryptogram = EciesCryptogram.fromEncryptedResponse(response);
-        if (cryptogram == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Invalid encrypted response received.");
-        }
-        // 2. Try to decrypt the response
-        final byte[] plainData = decryptor.decryptResponse(cryptogram);
-        if (plainData == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to decrypt object data.");
-        }
-        // 3. Deserialize the object
-        return deserializeObject(plainData, type);
-    }
 
     // JWT
 

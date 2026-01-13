@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,17 @@ package io.getlime.security.powerauth.sdk.impl;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
-import io.getlime.security.powerauth.core.SecureData;
 
 /**
- * Interface for getting encryption key that protects possession factor key. The provided key
- * should be calculated from data unique for the device, such as ANDROID_ID.
+ * Interface for getting device specific data that is used for the possession factor KEK calculation.
+ * The data should be calculated from data unique for the device, such as ANDROID_ID.
  */
-public interface IPossessionFactorEncryptionKeyProvider {
+public interface IDeviceSpecificDataProvider {
     /**
-     * Return encryption key that protects possession factor key.
+     * Return device specific data unique for the device.
      * @param context Android context.
-     * @return 16 bytes long encryption key that protects possession factor key.
+     * @return Byte array containing device specific data.
      */
     @NonNull
-    SecureData getPossessionFactorEncryptionKey(@NonNull Context context);
+    byte[] getDeviceSpecificData(@NonNull Context context);
 }

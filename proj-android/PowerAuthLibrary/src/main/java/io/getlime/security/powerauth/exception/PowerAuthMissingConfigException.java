@@ -18,7 +18,10 @@ package io.getlime.security.powerauth.exception;
 
 /**
  * Will be thrown in case when valid PowerAuth configuration is not present.
+ *
+ * @deprecated Exception is no longer used in PowerAuth Mobile SDK.
  */
+@Deprecated // 2.0.0
 public class PowerAuthMissingConfigException extends IllegalStateException {
 
     public PowerAuthMissingConfigException() {

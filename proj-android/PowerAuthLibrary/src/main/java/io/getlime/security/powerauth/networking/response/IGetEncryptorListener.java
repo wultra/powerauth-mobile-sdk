@@ -17,21 +17,22 @@
 package io.getlime.security.powerauth.networking.response;
 
 import androidx.annotation.NonNull;
-import io.getlime.security.powerauth.core.EciesEncryptor;
+
+import io.getlime.security.powerauth.core.CoreEncryptor;
 
 /**
- * Listener for getting ECIES encryptor for general application purposes.
+ * Listener for getting End-To-End encryptor for general application purposes.
  */
-public interface IGetEciesEncryptorListener {
+public interface IGetEncryptorListener {
     /**
      * Called when encryptor has been successfully created.
-     * @param encryptor {@link EciesEncryptor} object configured for the requested scope.
+     * @param encryptor {@link CoreEncryptor} object configured for the requested scope.
      */
-    void onGetEciesEncryptorSuccess(@NonNull EciesEncryptor encryptor);
+    void onGetEncryptorSuccess(@NonNull CoreEncryptor encryptor);
 
     /**
      * Called when operation fails.
      * @param t Error that occurred during the operation.
      */
-    void onGetEciesEncryptorFailed(@NonNull Throwable t);
+    void onGetEncryptorFailed(@NonNull Throwable t);
 }

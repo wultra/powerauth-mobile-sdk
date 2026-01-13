@@ -60,7 +60,13 @@ using namespace cc7;
 {
     try {
         auto request = _time_service->createTimeSynchronizationRequest();
-        return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto status = std::dynamic_pointer_cast<powerAuth::ServerStatus>(response);
+            if (!status) {
+                throw Exception(EC_InternalError, "No ServerStatus object created");
+            }
+            return [[PowerAuthCoreServerStatus alloc] initWithServerStatus:status];
+        }];
     } catch (...) {
         if (error) {
             *error = BuildNSErrorFromException();

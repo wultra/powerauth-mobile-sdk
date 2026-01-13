@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.core;
+#pragma once
 
-/**
- Result from first step of device activation.
- */
-public class ActivationStep1Result {
+#include <PowerAuth/Response.h>
 
-    /**
-     * Error code returned from the C++ code. The value can be compared
-     * to constants from ErrorCode class.
-     */
-    @ErrorCode
-    public final int errorCode;
+namespace powerAuth {
+
+class ServerStatus : public ResponseObject
+{
+public:
+    ServerStatus(const cc7::json::JsonValue& response);
     
-    /**
-     * Device's public key, in Base64 format
-     */
-    public final String devicePublicKey;
+    const std::string& applicationName() const noexcept;
+    const std::string& applicationVersion() const noexcept;
+    Timestamp serverTime() const noexcept;
     
-    public ActivationStep1Result() {
-        this.errorCode = ErrorCode.OK;
-        this.devicePublicKey = null;
-    }
-}
+private:
+    std::string _applicationName;
+    std::string _applicationVersion;
+    Timestamp _serverTime;
+};
+
+CC7_SHARED_PTR(ServerStatus)
+
+} // namespace powerAuth

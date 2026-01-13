@@ -18,7 +18,8 @@ package io.getlime.security.powerauth.sdk.impl;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import io.getlime.security.powerauth.core.EciesEncryptorScope;
+
+import io.getlime.security.powerauth.core.CoreEncryptorScope;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 
 /**
@@ -32,16 +33,15 @@ public interface IKeystoreService {
      * @param scope The scope of the key.
      * @return {@code true} if service contains a valid key for the requested encryption scope.
      */
-    boolean containsKeyForEncryptor(@EciesEncryptorScope int scope);
+    boolean containsKeyForEncryptor(@CoreEncryptorScope int scope);
 
     /**
      * Create a key for the requested encryptor scope. If the already exist and is valid, then does nothing.
      * @param scope The scope of the key.
-     * @param cryptoHelper Implementation of {@link IPrivateCryptoHelper} interface.
      * @param listener The listener where the result of the operation will be notified.
      * @return Cancelable operation if communication with the server is required, or {@code null} if the result of
      *         the call has been determined immediately.
      */
     @Nullable
-    ICancelable createKeyForEncryptor(@EciesEncryptorScope int scope, @NonNull IPrivateCryptoHelper cryptoHelper, @NonNull ICreateKeyListener listener);
+    ICancelable createKeyForEncryptor(@CoreEncryptorScope int scope, @NonNull ICreateKeyListener listener);
 }

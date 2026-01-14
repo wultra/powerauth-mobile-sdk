@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 Wultra s.r.o.
+ * Copyright 2020 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,11 @@
 
 package io.getlime.security.powerauth.integration.support.model;
 
-import androidx.annotation.NonNull;
-
-public enum SignatureType {
-    ECDSA("ECDSA"),
-    MLDSA("MLDSA")
-    ;
-
-    @NonNull
-    public final String typeValue;
-
-    SignatureType(@NonNull String typeValue) {
-        this.typeValue = typeValue;
-    }
-
-    public static @NonNull SignatureType signatureTypeFromString(String typeValue) {
-        for (SignatureType v : values()) {
-            if (v.typeValue.equals(typeValue)) {
-                return v;
-            }
-        }
-        throw new IllegalArgumentException("Invalid signature type " + typeValue);
-    }
+public enum AuthCodeType {
+    POSSESSION,
+    KNOWLEDGE,
+    BIOMETRY,
+    POSSESSION_KNOWLEDGE,
+    POSSESSION_BIOMETRY,
+    POSSESSION_KNOWLEDGE_BIOMETRY,
 }

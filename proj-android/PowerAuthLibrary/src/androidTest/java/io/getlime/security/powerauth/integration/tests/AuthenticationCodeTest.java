@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.integration.tests;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
@@ -29,21 +28,32 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Objects;
 
-import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
-import io.getlime.security.powerauth.integration.support.model.SignatureData;
-import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
-import io.getlime.security.powerauth.integration.support.model.SignatureType;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
+import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
 
 import static org.junit.Assert.*;
 
-@RunWith(AndroidJUnit4.class)
-public class SymmetricSignatureTest {
+@RunWith(Parameterized.class)
+public class AuthenticationCodeTest {
+
+    @Parameterized.Parameter(0) public String alg;
+    @Parameterized.Parameters(name = " {0} ")
+    public static Iterable<Object[]> testParameters() {
+        return CommonTestParameters.getParameters();
+    }
+
+    @PowerAuthAlgorithm
+    public int getAlgorithmForTest() {
+        return PowerAuthTestHelper.getAlgorithmForName(alg);
+    }
 
     private PowerAuthTestHelper testHelper;
     private PowerAuthSDK powerAuthSDK;
@@ -52,7 +62,9 @@ public class SymmetricSignatureTest {
 
     @Before
     public void setUp() throws Exception {
-        testHelper = new PowerAuthTestHelper.Builder().build();
+        testHelper = new PowerAuthTestHelper.Builder()
+                .powerAuthAlgorithm(getAlgorithmForTest())
+                .build();
         powerAuthSDK = testHelper.getSharedSdk();
         activationHelper = new ActivationHelper(testHelper);
         signatureHelper = new SignatureHelper();
@@ -96,17 +108,17 @@ public class SymmetricSignatureTest {
 
             // Now verify signature on the server
             final String dataToVerifySignature = signatureHelper.normalizeOfflineData(testString, "/offline/test", nonce);
-            SignatureData signatureData = new SignatureData();
-            signatureData.setActivationId(powerAuthSDK.getActivationIdentifier());
-            signatureData.setData(dataToVerifySignature);
-            signatureData.setSignature(offlineAuthCode);
-            signatureData.setAllowBiometry(false);
+            AuthenticationCodeData authenticationCodeData = new AuthenticationCodeData();
+            authenticationCodeData.setActivationId(powerAuthSDK.getActivationIdentifier());
+            authenticationCodeData.setData(dataToVerifySignature);
+            authenticationCodeData.setAuthenticationCode(offlineAuthCode);
+            authenticationCodeData.setAllowBiometry(false);
 
             // Verify on server
-            final SignatureInfo verifyResult = testHelper.getServerApi().verifyOfflineSignature(signatureData);
+            final AuthenticationResult verifyResult = testHelper.getServerApi().verifyOfflineAuthenticationCode(authenticationCodeData);
             assertNotNull(verifyResult);
             assertTrue(verifyResult.isSignatureValid());
-            assertEquals(SignatureType.POSSESSION_KNOWLEDGE, verifyResult.getSignatureType());
+            assertEquals(AuthCodeType.POSSESSION_KNOWLEDGE, verifyResult.getSignatureType());
         }
     }
 
@@ -172,19 +184,19 @@ public class SymmetricSignatureTest {
 
             // Auth & expected result
             final PowerAuthAuthentication authentication;
-            final SignatureType expectedSignatureType;
+            final AuthCodeType expectedSignatureType;
             final boolean expectedValidationResult;
             if ((iteration % 3) == 0) {
                 authentication = activationHelper.getValidAuthentication();
-                expectedSignatureType = SignatureType.POSSESSION_KNOWLEDGE;
+                expectedSignatureType = AuthCodeType.POSSESSION_KNOWLEDGE;
                 expectedValidationResult = true;
             } else if ((iteration % 3) == 1){
                 authentication = activationHelper.getPossessionAuthentication();
-                expectedSignatureType = SignatureType.POSSESSION;
+                expectedSignatureType = AuthCodeType.POSSESSION;
                 expectedValidationResult = true;
             } else {
                 authentication = activationHelper.getInvalidAuthentication();
-                expectedSignatureType = SignatureType.POSSESSION_KNOWLEDGE;
+                expectedSignatureType = AuthCodeType.POSSESSION_KNOWLEDGE;
                 expectedValidationResult = false;
             }
 
@@ -225,16 +237,16 @@ public class SymmetricSignatureTest {
 
             // Now verify signature on the server
             final String dataToVerifySignature = signatureHelper.normalizeOnlineData(dataToSign, method, uriId, sigNonce);
-            SignatureData signatureData = new SignatureData();
-            signatureData.setActivationId(sigActivationId);
-            signatureData.setData(dataToVerifySignature);
-            signatureData.setSignature(sigValue);
-            signatureData.setSignatureType(SignatureType.valueOf(sigType));
-            signatureData.setSignatureVersion(sigVersion);
-            signatureData.setApplicationKey(sigAppKey);
+            AuthenticationCodeData authenticationCodeData = new AuthenticationCodeData();
+            authenticationCodeData.setActivationId(sigActivationId);
+            authenticationCodeData.setData(dataToVerifySignature);
+            authenticationCodeData.setAuthenticationCode(sigValue);
+            authenticationCodeData.setAuthenticationCodeType(AuthCodeType.valueOf(sigType));
+            authenticationCodeData.setAuthenticationVersion(sigVersion);
+            authenticationCodeData.setApplicationKey(sigAppKey);
 
             // Verify on server
-            final SignatureInfo verifyResult = testHelper.getServerApi().verifyOnlineSignature(signatureData);
+            final AuthenticationResult verifyResult = testHelper.getServerApi().verifyOnlineAuthenticationCode(authenticationCodeData);
 
             assertNotNull(verifyResult);
             assertEquals(expectedValidationResult, verifyResult.isSignatureValid());

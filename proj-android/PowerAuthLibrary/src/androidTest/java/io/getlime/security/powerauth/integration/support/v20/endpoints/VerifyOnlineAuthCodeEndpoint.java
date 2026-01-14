@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.integration.support.v10.endpoints;
+package io.getlime.security.powerauth.integration.support.v20.endpoints;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,11 +26,11 @@ import io.getlime.security.powerauth.integration.support.model.AuthenticationCod
 import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
 
-public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyOnlineSignatureEndpoint.Response> {
+public class VerifyOnlineAuthCodeEndpoint implements IServerApiEndpoint<VerifyOnlineAuthCodeEndpoint.Response> {
     @NonNull
     @Override
     public String getRelativePath() {
-        return "/rest/v3/signature/verify";
+        return "/rest/v4/auth/verify";
     }
 
     @Nullable
@@ -44,19 +44,19 @@ public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyO
         private String activationId;
         private String applicationKey;
         private String data;
-        private String signature;
-        private AuthCodeType signatureType;
-        private String signatureVersion;
-        private Long forcedSignatureVersion;
+        private String authenticationCode;
+        private AuthCodeType authenticationCodeType;
+        private String authenticationVersion;
+        private Long forcedAuthenticationVersion;
 
         public Request(@NonNull AuthenticationCodeData sd) {
             activationId = sd.getActivationId();
             applicationKey = sd.getApplicationKey();
             data = sd.getData();
-            signature = sd.getAuthenticationCode();
-            signatureType = sd.getAuthenticationCodeType();
-            signatureVersion = sd.getAuthenticationVersion();
-            forcedSignatureVersion = sd.getForcedAuthenticationVersion();
+            authenticationCode = sd.getAuthenticationCode();
+            authenticationCodeType = sd.getAuthenticationCodeType();
+            authenticationVersion = sd.getAuthenticationVersion();
+            forcedAuthenticationVersion = sd.getForcedAuthenticationVersion();
         }
 
         public String getActivationId() {
@@ -83,36 +83,36 @@ public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyO
             this.data = data;
         }
 
-        public String getSignature() {
-            return signature;
+        public String getAuthenticationCode() {
+            return authenticationCode;
         }
 
-        public void setSignature(String signature) {
-            this.signature = signature;
+        public void setAuthenticationCode(String authenticationCode) {
+            this.authenticationCode = authenticationCode;
         }
 
-        public AuthCodeType getSignatureType() {
-            return signatureType;
+        public AuthCodeType getAuthenticationCodeType() {
+            return authenticationCodeType;
         }
 
-        public void setSignatureType(AuthCodeType signatureType) {
-            this.signatureType = signatureType;
+        public void setAuthenticationCodeType(AuthCodeType authenticationCodeType) {
+            this.authenticationCodeType = authenticationCodeType;
         }
 
-        public String getSignatureVersion() {
-            return signatureVersion;
+        public String getAuthenticationVersion() {
+            return authenticationVersion;
         }
 
-        public void setSignatureVersion(String signatureVersion) {
-            this.signatureVersion = signatureVersion;
+        public void setAuthenticationVersion(String authenticationVersion) {
+            this.authenticationVersion = authenticationVersion;
         }
 
-        public Long getForcedSignatureVersion() {
-            return forcedSignatureVersion;
+        public Long getForcedAuthenticationVersion() {
+            return forcedAuthenticationVersion;
         }
 
-        public void setForcedSignatureVersion(Long forcedSignatureVersion) {
-            this.forcedSignatureVersion = forcedSignatureVersion;
+        public void setForcedAuthenticationVersion(Long forcedAuthenticationVersion) {
+            this.forcedAuthenticationVersion = forcedAuthenticationVersion;
         }
     }
 

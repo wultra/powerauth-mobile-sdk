@@ -21,14 +21,14 @@ import com.google.gson.reflect.TypeToken;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
-import io.getlime.security.powerauth.integration.support.model.SignatureData;
-import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 
 public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<VerifyOfflineSignatureEndpoint.Response> {
     @NonNull
     @Override
     public String getRelativePath() {
-        return "/rest/v3/signature/offline/verify";
+        return "/rest/v4/auth/offline/verify";
     }
 
     @Nullable
@@ -41,14 +41,16 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
 
         private String activationId;
         private String data;
-        private String signature;
+        private String authenticationCode;
         private boolean allowBiometry;
+        private Long componentLength;
 
-        public Request(@NonNull SignatureData sd) {
+        public Request(@NonNull AuthenticationCodeData sd) {
             activationId = sd.getActivationId();
             data = sd.getData();
-            signature = sd.getSignature();
+            authenticationCode = sd.getAuthenticationCode();
             allowBiometry = sd.getAllowBiometry() != null ? sd.getAllowBiometry() : false;
+            componentLength = sd.getOfflineAuthenticationCodeComponentLength();
         }
 
         public String getActivationId() {
@@ -67,12 +69,12 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
             this.data = data;
         }
 
-        public String getSignature() {
-            return signature;
+        public String getAuthenticationCode() {
+            return authenticationCode;
         }
 
-        public void setSignature(String signature) {
-            this.signature = signature;
+        public void setAuthenticationCode(String authenticationCode) {
+            this.authenticationCode = authenticationCode;
         }
 
         public boolean isAllowBiometry() {
@@ -82,8 +84,16 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
         public void setAllowBiometry(boolean allowBiometry) {
             this.allowBiometry = allowBiometry;
         }
+
+        public Long getComponentLength() {
+            return componentLength;
+        }
+
+        public void setComponentLength(Long componentLength) {
+            this.componentLength = componentLength;
+        }
     }
 
-    public static class Response extends SignatureInfo {
+    public static class Response extends AuthenticationResult {
     }
 }

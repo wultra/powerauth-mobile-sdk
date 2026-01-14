@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.integration.support.v13;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,10 +32,13 @@ import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
 import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
+import io.getlime.security.powerauth.integration.support.model.ProtocolVersion;
 import io.getlime.security.powerauth.integration.support.model.ServerConstants;
 import io.getlime.security.powerauth.integration.support.model.ServerVersion;
-import io.getlime.security.powerauth.integration.support.model.SignatureData;
-import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
+import io.getlime.security.powerauth.integration.support.model.SignatureFormat;
+import io.getlime.security.powerauth.integration.support.model.SignatureType;
 import io.getlime.security.powerauth.integration.support.model.TokenInfo;
 import io.getlime.security.powerauth.integration.support.v13.endpoints.BlockActivationEndpoint;
 import io.getlime.security.powerauth.integration.support.v13.endpoints.CommitActivationEndpoint;
@@ -103,6 +107,17 @@ public class PowerAuthClientV3_ServerV13 implements PowerAuthServerApi {
             }
         }
         return currentServerVersion;
+    }
+
+    @Override
+    public void setClientProtocolVersion(@Nullable ProtocolVersion protocolVersion) {
+        // Do nothing...
+    }
+
+    @Nullable
+    @Override
+    public ProtocolVersion getClientProtocolVersion() {
+        return null;
     }
 
     @Nullable
@@ -319,22 +334,25 @@ public class PowerAuthClientV3_ServerV13 implements PowerAuthServerApi {
 
     @NonNull
     @Override
-    public SignatureInfo verifyOnlineSignature(@NonNull SignatureData signatureData) throws Exception {
-        final VerifyOnlineSignatureEndpoint.Request request = new VerifyOnlineSignatureEndpoint.Request(signatureData);
+    public AuthenticationResult verifyOnlineAuthenticationCode(@NonNull AuthenticationCodeData authenticationCodeData) throws Exception {
+        final VerifyOnlineSignatureEndpoint.Request request = new VerifyOnlineSignatureEndpoint.Request(authenticationCodeData);
         return restClient.send(request, new VerifyOnlineSignatureEndpoint());
     }
 
     @NonNull
     @Override
-    public SignatureInfo verifyOfflineSignature(@NonNull SignatureData signatureData) throws Exception {
-        final VerifyOfflineSignatureEndpoint.Request request = new VerifyOfflineSignatureEndpoint.Request(signatureData);
+    public AuthenticationResult verifyOfflineAuthenticationCode(@NonNull AuthenticationCodeData authenticationCodeData) throws Exception {
+        final VerifyOfflineSignatureEndpoint.Request request = new VerifyOfflineSignatureEndpoint.Request(authenticationCodeData);
         return restClient.send(request, new VerifyOfflineSignatureEndpoint());
     }
 
     @Override
-    public boolean verifyEcdsaSignature(@NonNull String activationId, @NonNull String data, @NonNull String signature, @Nullable String format) throws Exception {
-        if (format != null && !"DER".equals(format)) {
-            throw new IllegalArgumentException("Unsupported format: " + format);
+    public boolean verifyDsaSignature(@NonNull String activationId, @NonNull String data, @NonNull String signature, @NonNull SignatureFormat format, @NonNull SignatureType type) throws Exception {
+        if (type != SignatureType.ECDSA) {
+            throw new IllegalArgumentException("Signature type is not supported on the server: " + type.typeValue);
+        }
+        if (format == SignatureFormat.JOSE) {
+            throw new IllegalArgumentException("Signature format is not supported on the server: " + format.formatValue);
         }
         final VerifyEcdsaSignatureEndpoint.Request request = new VerifyEcdsaSignatureEndpoint.Request();
         request.setActivationId(activationId);
@@ -342,6 +360,22 @@ public class PowerAuthClientV3_ServerV13 implements PowerAuthServerApi {
         request.setSignature(signature);
         final VerifyEcdsaSignatureEndpoint.Response response = restClient.send(request, new VerifyEcdsaSignatureEndpoint());
         return response.isSignatureValid();
+    }
+
+    @Override
+    public Map<SignatureType, String> createDsaSignature(@NonNull String activationId, @Nullable String data) throws Exception {
+        throw new IllegalArgumentException("Not implemented");
+    }
+
+    @Override
+    public boolean verifyJwtSignature(@NonNull String activationId, @NonNull String signedData, boolean compactForm) throws Exception {
+        throw new IllegalArgumentException("JWT signatures are not supported on the server");
+    }
+
+    @NonNull
+    @Override
+    public String createJwtSignature(@NonNull String activationId, @Nullable String data, boolean compactForm, @Nullable SignatureType signatureType) throws Exception {
+        throw new IllegalArgumentException("JWT signatures are not supported on the server");
     }
 
     @NonNull

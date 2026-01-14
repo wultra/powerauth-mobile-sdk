@@ -21,8 +21,8 @@ import com.google.gson.reflect.TypeToken;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
-import io.getlime.security.powerauth.integration.support.model.SignatureData;
-import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 
 public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<VerifyOfflineSignatureEndpoint.Response> {
     @NonNull
@@ -44,10 +44,10 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
         private String signature;
         private boolean allowBiometry;
 
-        public Request(@NonNull SignatureData sd) {
+        public Request(@NonNull AuthenticationCodeData sd) {
             activationId = sd.getActivationId();
             data = sd.getData();
-            signature = sd.getSignature();
+            signature = sd.getAuthenticationCode();
             allowBiometry = sd.getAllowBiometry() != null ? sd.getAllowBiometry() : false;
         }
 
@@ -84,6 +84,6 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
         }
     }
 
-    public static class Response extends SignatureInfo {
+    public static class Response extends AuthenticationResult {
     }
 }

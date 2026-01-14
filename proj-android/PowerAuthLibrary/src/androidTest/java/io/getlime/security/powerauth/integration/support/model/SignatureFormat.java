@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,18 @@
 
 package io.getlime.security.powerauth.integration.support.model;
 
-public class EcdsaSignatureData {
+import androidx.annotation.NonNull;
 
-    private String activationId;
-    private String data;
-    private String signature;
+public enum SignatureFormat {
 
-    public String getActivationId() {
-        return activationId;
-    }
+    DER("DER"),
+    JOSE("JOSE")
+    ;
 
-    public void setActivationId(String activationId) {
-        this.activationId = activationId;
-    }
+    @NonNull
+    public final String formatValue;
 
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    public String getSignature() {
-        return signature;
-    }
-
-    public void setSignature(String signature) {
-        this.signature = signature;
+    SignatureFormat(@NonNull String format) {
+        this.formatValue = format;
     }
 }

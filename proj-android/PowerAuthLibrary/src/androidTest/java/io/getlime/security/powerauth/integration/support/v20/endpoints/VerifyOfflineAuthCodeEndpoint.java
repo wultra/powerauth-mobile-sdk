@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.integration.support.v10.endpoints;
+package io.getlime.security.powerauth.integration.support.v20.endpoints;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,13 +24,12 @@ import com.google.gson.reflect.TypeToken;
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
-import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
 
-public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyOnlineSignatureEndpoint.Response> {
+public class VerifyOfflineAuthCodeEndpoint implements IServerApiEndpoint<VerifyOfflineAuthCodeEndpoint.Response> {
     @NonNull
     @Override
     public String getRelativePath() {
-        return "/rest/v3/signature/verify";
+        return "/rest/v4/signature/offline/verify";
     }
 
     @Nullable
@@ -42,21 +41,17 @@ public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyO
     public static class Request {
 
         private String activationId;
-        private String applicationKey;
         private String data;
         private String signature;
-        private AuthCodeType signatureType;
-        private String signatureVersion;
-        private Long forcedSignatureVersion;
+        private boolean allowBiometry;
+        private Long componentLength;
 
         public Request(@NonNull AuthenticationCodeData sd) {
             activationId = sd.getActivationId();
-            applicationKey = sd.getApplicationKey();
             data = sd.getData();
             signature = sd.getAuthenticationCode();
-            signatureType = sd.getAuthenticationCodeType();
-            signatureVersion = sd.getAuthenticationVersion();
-            forcedSignatureVersion = sd.getForcedAuthenticationVersion();
+            allowBiometry = sd.getAllowBiometry() != null ? sd.getAllowBiometry() : false;
+            componentLength = sd.getOfflineAuthenticationCodeComponentLength();
         }
 
         public String getActivationId() {
@@ -65,14 +60,6 @@ public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyO
 
         public void setActivationId(String activationId) {
             this.activationId = activationId;
-        }
-
-        public String getApplicationKey() {
-            return applicationKey;
-        }
-
-        public void setApplicationKey(String applicationKey) {
-            this.applicationKey = applicationKey;
         }
 
         public String getData() {
@@ -91,28 +78,20 @@ public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyO
             this.signature = signature;
         }
 
-        public AuthCodeType getSignatureType() {
-            return signatureType;
+        public boolean isAllowBiometry() {
+            return allowBiometry;
         }
 
-        public void setSignatureType(AuthCodeType signatureType) {
-            this.signatureType = signatureType;
+        public void setAllowBiometry(boolean allowBiometry) {
+            this.allowBiometry = allowBiometry;
         }
 
-        public String getSignatureVersion() {
-            return signatureVersion;
+        public Long getComponentLength() {
+            return componentLength;
         }
 
-        public void setSignatureVersion(String signatureVersion) {
-            this.signatureVersion = signatureVersion;
-        }
-
-        public Long getForcedSignatureVersion() {
-            return forcedSignatureVersion;
-        }
-
-        public void setForcedSignatureVersion(Long forcedSignatureVersion) {
-            this.forcedSignatureVersion = forcedSignatureVersion;
+        public void setComponentLength(Long componentLength) {
+            this.componentLength = componentLength;
         }
     }
 

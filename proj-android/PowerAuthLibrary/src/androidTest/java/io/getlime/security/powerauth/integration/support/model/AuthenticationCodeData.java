@@ -16,21 +16,23 @@
 
 package io.getlime.security.powerauth.integration.support.model;
 
-public class SignatureData {
+public class AuthenticationCodeData {
 
     // Common for online and offline signature
     private String activationId;
     private String data;
-    private String signature;
+    private String authenticationCode;
 
     // Online specific
-    private SignatureType signatureType;
-    private String signatureVersion;
-    private Long forcedSignatureVersion;
+    private AuthCodeType authenticationCodeType;
+    private String authenticationVersion;
+    private Long forcedAuthenticationVersion;
     private String applicationKey;
 
     // Offline specific
     private Boolean allowBiometry;
+
+    private Long offlineAuthenticationCodeComponentLength;
 
     public String getActivationId() {
         return activationId;
@@ -48,36 +50,36 @@ public class SignatureData {
         this.data = data;
     }
 
-    public String getSignature() {
-        return signature;
+    public String getAuthenticationCode() {
+        return authenticationCode;
     }
 
-    public void setSignature(String signature) {
-        this.signature = signature;
+    public void setAuthenticationCode(String authenticationCode) {
+        this.authenticationCode = authenticationCode;
     }
 
-    public SignatureType getSignatureType() {
-        return signatureType;
+    public AuthCodeType getAuthenticationCodeType() {
+        return authenticationCodeType;
     }
 
-    public void setSignatureType(SignatureType signatureType) {
-        this.signatureType = signatureType;
+    public void setAuthenticationCodeType(AuthCodeType authenticationCodeType) {
+        this.authenticationCodeType = authenticationCodeType;
     }
 
-    public String getSignatureVersion() {
-        return signatureVersion;
+    public String getAuthenticationVersion() {
+        return authenticationVersion;
     }
 
-    public void setSignatureVersion(String signatureVersion) {
-        this.signatureVersion = signatureVersion;
+    public void setAuthenticationVersion(String authenticationVersion) {
+        this.authenticationVersion = authenticationVersion;
     }
 
-    public Long getForcedSignatureVersion() {
-        return forcedSignatureVersion;
+    public Long getForcedAuthenticationVersion() {
+        return forcedAuthenticationVersion;
     }
 
-    public void setForcedSignatureVersion(Long forcedSignatureVersion) {
-        this.forcedSignatureVersion = forcedSignatureVersion;
+    public void setForcedAuthenticationVersion(Long forcedAuthenticationVersion) {
+        this.forcedAuthenticationVersion = forcedAuthenticationVersion;
     }
 
     public String getApplicationKey() {
@@ -94,5 +96,13 @@ public class SignatureData {
 
     public void setAllowBiometry(Boolean allowBiometry) {
         this.allowBiometry = allowBiometry;
+    }
+
+    public Long getOfflineAuthenticationCodeComponentLength() {
+        return offlineAuthenticationCodeComponentLength;
+    }
+
+    public void setOfflineAuthenticationCodeComponentLength(Long offlineAuthenticationCodeComponentLength) {
+        this.offlineAuthenticationCodeComponentLength = offlineAuthenticationCodeComponentLength;
     }
 }

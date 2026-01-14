@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.integration.support.v13.endpoints;
-
-import com.google.gson.reflect.TypeToken;
+package io.getlime.security.powerauth.integration.support.v20.endpoints;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
-import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
-import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 
-public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<VerifyOfflineSignatureEndpoint.Response> {
+import com.google.gson.reflect.TypeToken;
+
+import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
+
+public class VerifyDsaSignatureEndpoint implements IServerApiEndpoint<VerifyDsaSignatureEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
-        return "/rest/v3/signature/offline/verify";
+        return "/rest/v4/dsa/verify";
     }
 
     @Nullable
@@ -42,14 +42,8 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
         private String activationId;
         private String data;
         private String signature;
-        private boolean allowBiometry;
-
-        public Request(@NonNull AuthenticationCodeData sd) {
-            activationId = sd.getActivationId();
-            data = sd.getData();
-            signature = sd.getAuthenticationCode();
-            allowBiometry = sd.getAllowBiometry() != null ? sd.getAllowBiometry() : false;
-        }
+        private String signatureFormat;
+        private String signatureType;
 
         public String getActivationId() {
             return activationId;
@@ -75,15 +69,33 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
             this.signature = signature;
         }
 
-        public boolean isAllowBiometry() {
-            return allowBiometry;
+        public String getSignatureFormat() {
+            return signatureFormat;
         }
 
-        public void setAllowBiometry(boolean allowBiometry) {
-            this.allowBiometry = allowBiometry;
+        public void setSignatureFormat(String signatureFormat) {
+            this.signatureFormat = signatureFormat;
+        }
+
+        public String getSignatureType() {
+            return signatureType;
+        }
+
+        public void setSignatureType(String signatureType) {
+            this.signatureType = signatureType;
         }
     }
 
-    public static class Response extends AuthenticationResult {
+    public static class Response {
+
+        private boolean signatureValid;
+
+        public boolean isSignatureValid() {
+            return signatureValid;
+        }
+
+        public void setSignatureValid(boolean signatureValid) {
+            this.signatureValid = signatureValid;
+        }
     }
 }

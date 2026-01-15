@@ -16,13 +16,14 @@
 
 package io.getlime.security.powerauth.integration.support.v13.endpoints;
 
-import com.google.gson.reflect.TypeToken;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.google.gson.reflect.TypeToken;
+
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
-import io.getlime.security.powerauth.integration.support.model.Activation;
 import io.getlime.security.powerauth.integration.support.model.ActivationOtpValidation;
+import io.getlime.security.powerauth.integration.support.shared.ActivationResponseV10;
 
 public class InitActivationEndpoint implements IServerApiEndpoint<InitActivationEndpoint.Response> {
 
@@ -91,6 +92,6 @@ public class InitActivationEndpoint implements IServerApiEndpoint<InitActivation
 
     // Response
 
-    public static class Response extends Activation {
+    public static class Response extends ActivationResponseV10 {
     }
 }

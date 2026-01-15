@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
+import java.util.Map;
 
 public class ActivationDetail {
 
@@ -28,6 +29,7 @@ public class ActivationDetail {
     private ActivationStatus activationStatus;
     private ActivationOtpValidation activationOtpValidation;
     private String blockedReason;
+    private boolean confirmationPending;
     private String activationName;
     private String userId;
     private String extras;
@@ -38,7 +40,7 @@ public class ActivationDetail {
     private String encryptedStatusBlob;
     private String encryptedStatusBlobNonce;
     private String activationCode;
-    private String activationSignature;
+    private Map<String, String> activationSignatures;
     private String devicePublicKeyFingerprint;
     @SerializedName("version")
     private int protocolVersion;
@@ -50,7 +52,7 @@ public class ActivationDetail {
     public @NonNull Activation copyToActivation() {
         Activation activation = new Activation();
         activation.setActivationCode(activationCode);
-        activation.setActivationSignature(activationSignature);
+        activation.setActivationSignatures(activationSignatures);
         activation.setActivationId(activationId);
         activation.setApplicationId(applicationId);
         activation.setUserId(userId);
@@ -87,6 +89,14 @@ public class ActivationDetail {
 
     public void setBlockedReason(String blockedReason) {
         this.blockedReason = blockedReason;
+    }
+
+    public boolean isConfirmationPending() {
+        return confirmationPending;
+    }
+
+    public void setConfirmationPending(boolean confirmationPending) {
+        this.confirmationPending = confirmationPending;
     }
 
     public String getActivationName() {
@@ -169,12 +179,27 @@ public class ActivationDetail {
         this.activationCode = activationCode;
     }
 
-    public String getActivationSignature() {
-        return activationSignature;
+    public Map<String, String> getActivationSignatures() {
+        return activationSignatures;
     }
 
-    public void setActivationSignature(String activationSignature) {
-        this.activationSignature = activationSignature;
+    public void setActivationSignatures(Map<String, String> activationSignatures) {
+        this.activationSignatures = activationSignatures;
+    }
+
+    public String getActivationSignatureLegacy() {
+        return activationSignatures.get(Activation.SIG_ES256);
+    }
+    public String getActivationSignatureEcdsaP384() {
+        return activationSignatures.get(Activation.SIG_ES384);
+    }
+
+    public String getActivationSignatureMlDsa65() {
+        return activationSignatures.get(Activation.SIG_ML_DSA_65);
+    }
+
+    public String getActivationSignatureMlDsa87() {
+        return activationSignatures.get(Activation.SIG_ML_DSA_87);
     }
 
     public String getDevicePublicKeyFingerprint() {

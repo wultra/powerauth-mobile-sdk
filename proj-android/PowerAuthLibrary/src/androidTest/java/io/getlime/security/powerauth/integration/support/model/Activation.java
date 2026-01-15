@@ -18,11 +18,20 @@ package io.getlime.security.powerauth.integration.support.model;
 
 import androidx.annotation.NonNull;
 
+import java.util.Collections;
+import java.util.Map;
+
 public class Activation {
+
+    public static final String SIG_ES256 = "ES256";
+    public static final String SIG_ES384 = "ES384";
+    public static final String SIG_ML_DSA_65 = "ML-DSA-65";
+    public static final String SIG_ML_DSA_87 = "ML-DSA-87";
+
 
     private String activationCode;
     private @NonNull String activationId = "INVALID_ID";
-    private String activationSignature;
+    private Map<String, String> activationSignatures = Collections.emptyMap();
     private String applicationId;
     private String userId;
 
@@ -43,12 +52,27 @@ public class Activation {
         this.activationId = activationId;
     }
 
-    public String getActivationSignature() {
-        return activationSignature;
+    public String getActivationSignatureLegacy() {
+        return activationSignatures.get(SIG_ES256);
+    }
+    public String getActivationSignatureEcdsaP384() {
+        return activationSignatures.get(SIG_ES384);
     }
 
-    public void setActivationSignature(String activationSignature) {
-        this.activationSignature = activationSignature;
+    public String getActivationSignatureMlDsa65() {
+        return activationSignatures.get(SIG_ML_DSA_65);
+    }
+
+    public String getActivationSignatureMlDsa87() {
+        return activationSignatures.get(SIG_ML_DSA_87);
+    }
+
+    public void setActivationSignatures(Map<String, String> activationSignatures) {
+        this.activationSignatures = activationSignatures;
+    }
+
+    public Map<String, String> getActivationSignatures() {
+        return activationSignatures;
     }
 
     public String getApplicationId() {

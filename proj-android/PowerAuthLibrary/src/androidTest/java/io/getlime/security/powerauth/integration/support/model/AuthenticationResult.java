@@ -18,7 +18,7 @@ package io.getlime.security.powerauth.integration.support.model;
 
 import java.util.List;
 
-public class SignatureInfo {
+public class AuthenticationResult {
 
     private String activationId;
     private ActivationStatus activationStatus;
@@ -27,7 +27,7 @@ public class SignatureInfo {
     private String userId;
     private String blockedReason;
     private Long remainingAttempts;
-    private SignatureType signatureType;
+    private AuthCodeType signatureType;
     private boolean signatureValid;
 
     public String getActivationId() {
@@ -86,11 +86,11 @@ public class SignatureInfo {
         this.remainingAttempts = remainingAttempts;
     }
 
-    public SignatureType getSignatureType() {
+    public AuthCodeType getSignatureType() {
         return signatureType;
     }
 
-    public void setSignatureType(SignatureType signatureType) {
+    public void setSignatureType(AuthCodeType signatureType) {
         this.signatureType = signatureType;
     }
 

@@ -436,6 +436,17 @@ public class PowerAuthSDK {
         return mSession.getActivationFingerprint();
     }
 
+
+    /**
+     * Get current {@link PowerAuthAlgorithm}. If PowerAuthSDK has no activation, then algorithm is
+     * equal to algorithm provided in the configuration.
+     * @return Current {@link PowerAuthAlgorithm}.
+     */
+    @PowerAuthAlgorithm
+    public int getCurrentAlgorithm() {
+        return mSession.getCurrentAlgorithm();
+    }
+
     /**
      * @return Configuration provided during the SDK object construction.
      */

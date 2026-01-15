@@ -17,7 +17,6 @@
 package io.getlime.security.powerauth.integration.support;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,7 +29,13 @@ import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
 import io.getlime.security.powerauth.networking.ssl.HttpClientSslNoValidationStrategy;
-import io.getlime.security.powerauth.sdk.*;
+import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
+import io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper;
+import io.getlime.security.powerauth.sdk.PowerAuthBiometricConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
@@ -108,6 +113,8 @@ public class PowerAuthTestHelper {
 
         private boolean authenticationUsageStrictMode = true;
 
+        private @PowerAuthAlgorithm int powerAuthAlgorithm = PowerAuthAlgorithm.DEFAULT;
+
         /**
          * Creates a new default builder. Note that the method does a synchronous communication
          * with PowerAuth Server REST API.
@@ -142,13 +149,28 @@ public class PowerAuthTestHelper {
             return this;
         }
 
+
         /**
-         * Assign custom {@link PowerAuthConfiguration} for the future helper.
+         * Assign custom {@link PowerAuthAlgorithm} for the future helper.
+         * @param algorithm Custom algorithm.
+         * @return Instance of this builder.
+         */
+        public @NonNull Builder powerAuthAlgorithm(@PowerAuthAlgorithm int algorithm) {
+            this.powerAuthAlgorithm = algorithm;
+            return this;
+        }
+
+        /**
+         * Assign custom {@link PowerAuthConfiguration} for the future helper. This method also affects
+         * {@link PowerAuthAlgorithm }applied to future SDK helper. The algorithm is get from the
+         * provided configuration.
+         *
          * @param configuration Custom configuration.
          * @return Instance of this builder.
          */
         public @NonNull Builder sharedConfiguration(@NonNull PowerAuthConfiguration configuration) {
             this.sharedConfiguration = configuration;
+            this.powerAuthAlgorithm = configuration.getAlgorithm();
             return this;
         }
 
@@ -356,12 +378,12 @@ public class PowerAuthTestHelper {
                     null,
                     testConfig.getRestApiUrl(),
                     sharedApplicationVersion.getMobileSdkConfig());
+            builder.algorithm(powerAuthAlgorithm);
             if (configurationObserver != null) {
                 configurationObserver.adjustPowerAuthConfiguration(builder);
             }
             return builder.build();
         }
-
     }
 
     private PowerAuthTestHelper(
@@ -567,5 +589,21 @@ public class PowerAuthTestHelper {
      */
     public @NonNull String getProtocolVersionForHeader() {
         return testConfig.getServerVersion().maxProtocolVersion.versionForHeader;
+    }
+
+    /**
+     * Convert PowerAuth Algorithm name into numeric constant.
+     * @param algorithmName Algorithm name.
+     * @return {@link PowerAuthAlgorithm} constant.
+     */
+    @PowerAuthAlgorithm
+    public static int getAlgorithmForName(String algorithmName) {
+        switch (algorithmName) {
+            case "EC_P384": return PowerAuthAlgorithm.EC_P384;
+            case "EC_P384_ML_L3": return PowerAuthAlgorithm.EC_P384_ML_L3;
+            case "EC_P384_ML_L5": return PowerAuthAlgorithm.EC_P384_ML_L5;
+            case "LEGACY_P256": return PowerAuthAlgorithm.LEGACY_P256;
+            default: throw new IllegalArgumentException("Unsupported algorithm name " + algorithmName);
+        }
     }
 }

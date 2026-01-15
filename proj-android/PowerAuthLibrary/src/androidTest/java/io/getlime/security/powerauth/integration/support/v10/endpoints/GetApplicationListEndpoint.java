@@ -10,7 +10,6 @@ import java.util.List;
 
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
 import io.getlime.security.powerauth.integration.support.model.Application;
-import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 
 public class GetApplicationListEndpoint implements IServerApiEndpoint<GetApplicationListEndpoint.Response> {
 

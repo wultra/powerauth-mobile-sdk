@@ -28,14 +28,25 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import androidx.annotation.NonNull;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import static org.junit.Assert.*;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(Parameterized.class)
 public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserver {
+
+    @Parameterized.Parameter(0) public String alg;
+    @Parameterized.Parameters(name = " {0} ")
+    public static Iterable<Object[]> testParameters() {
+        return TestParameters.getParameters();
+    }
+
+    @PowerAuthAlgorithm
+    public int getAlgorithmForTest() {
+        return PowerAuthTestHelper.getAlgorithmForName(alg);
+    }
 
     private PowerAuthTestHelper testHelper;
     private PowerAuthSDK powerAuthSDK;
@@ -77,6 +88,7 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
         // Setup
         testHelper = new PowerAuthTestHelper.Builder()
                 .configurationObserver(configurationObserver)
+                .powerAuthAlgorithm(getAlgorithmForTest())
                 .testFragmentActivity(capturedActivity[0])
                 .testFragment(fragment)
                 .build();

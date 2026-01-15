@@ -1,9 +1,10 @@
 package io.getlime.security.powerauth.integration.support.v13.endpoints;
 
-import com.google.gson.reflect.TypeToken;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.google.gson.reflect.TypeToken;
+
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
 import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
 

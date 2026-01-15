@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,29 +18,29 @@ package io.getlime.security.powerauth.integration.tests;
 
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.core.CoreEncryptor;
 import io.getlime.security.powerauth.core.SecureData;
+import io.getlime.security.powerauth.integration.support.model.SignatureFormat;
+import io.getlime.security.powerauth.integration.support.model.SignatureType;
+import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
 import io.getlime.security.powerauth.sdk.impl.JsonSerialization;
 import io.getlime.security.powerauth.networking.response.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-import java.io.Console;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
@@ -56,8 +56,19 @@ import io.getlime.security.powerauth.system.PowerAuthSystem;
 
 import static org.junit.Assert.*;
 
-@RunWith(AndroidJUnit4.class)
-public class StandardActivationTest {
+@RunWith(Parameterized.class)
+public class BaseSdkTest {
+
+    @Parameterized.Parameter(0) public String alg;
+    @Parameterized.Parameters(name = " {0} ")
+    public static Iterable<Object[]> testParameters() {
+        return TestParameters.getParameters();
+    }
+
+    @PowerAuthAlgorithm
+    public int getAlgorithmForTest() {
+        return PowerAuthTestHelper.getAlgorithmForName(alg);
+    }
 
     private PowerAuthTestHelper testHelper;
     private PowerAuthSDK powerAuthSDK;
@@ -65,7 +76,9 @@ public class StandardActivationTest {
 
     @Before
     public void setUp() throws Exception {
-        testHelper = new PowerAuthTestHelper.Builder().build();
+        testHelper = new PowerAuthTestHelper.Builder()
+                .powerAuthAlgorithm(getAlgorithmForTest())
+                .build();
         powerAuthSDK = testHelper.getSharedSdk();
         activationHelper = new ActivationHelper(testHelper);
     }
@@ -75,6 +88,16 @@ public class StandardActivationTest {
         if (activationHelper != null) {
             activationHelper.cleanupAfterTest();
         }
+    }
+
+    @Test
+    public void configurationSelfTest() {
+        assertEquals(getAlgorithmForTest(), getCurrentAlgorithm());
+    }
+
+    @PowerAuthAlgorithm
+    public int getCurrentAlgorithm() {
+        return powerAuthSDK.getCurrentAlgorithm();
     }
 
     // Using PowerAuthActivation
@@ -191,7 +214,7 @@ public class StandardActivationTest {
         // Create activation locally
         final String activationCode;
         if (codeWithSignature) {
-            activationCode = activation.getActivationCode() + "#" + activation.getActivationSignature();
+            activationCode = activation.getActivationCode() + "#" + activation.getActivationSignatureLegacy();
         } else {
             activationCode = activation.getActivationCode();
         }
@@ -542,7 +565,7 @@ public class StandardActivationTest {
 
         // Validate signature
         // Note that signature format is supported from PAS 1.9+
-        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), jwtSignedDatasBase64, jwtSignatureBase64, "JOSE");
+        boolean result = testHelper.getServerApi().verifyDsaSignature(activationHelper.getActivation().getActivationId(), jwtSignedDatasBase64, jwtSignatureBase64, SignatureFormat.JOSE, SignatureType.ECDSA);
         assertTrue(result);
     }
 

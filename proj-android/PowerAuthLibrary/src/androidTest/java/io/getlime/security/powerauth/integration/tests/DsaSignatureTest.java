@@ -17,15 +17,17 @@
 package io.getlime.security.powerauth.integration.tests;
 
 import androidx.annotation.NonNull;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import io.getlime.security.powerauth.integration.support.model.SignatureFormat;
+import io.getlime.security.powerauth.integration.support.model.SignatureType;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -35,12 +37,24 @@ import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
 import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
+import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 
 import static org.junit.Assert.*;
 
-@RunWith(AndroidJUnit4.class)
-public class EcdsaSignatureTest {
+@RunWith(Parameterized.class)
+public class DsaSignatureTest {
+
+    @Parameterized.Parameter(0) public String alg;
+    @Parameterized.Parameters(name = " {0} ")
+    public static Iterable<Object[]> testParameters() {
+        return TestParameters.getParameters();
+    }
+
+    @PowerAuthAlgorithm
+    public int getAlgorithmForTest() {
+        return PowerAuthTestHelper.getAlgorithmForName(alg);
+    }
 
     private PowerAuthTestHelper testHelper;
     private PowerAuthSDK powerAuthSDK;
@@ -48,7 +62,9 @@ public class EcdsaSignatureTest {
 
     @Before
     public void setUp() throws Exception {
-        testHelper = new PowerAuthTestHelper.Builder().build();
+        testHelper = new PowerAuthTestHelper.Builder()
+                .powerAuthAlgorithm(getAlgorithmForTest())
+                .build();
         powerAuthSDK = testHelper.getSharedSdk();
         activationHelper = new ActivationHelper(testHelper);
     }
@@ -91,7 +107,7 @@ public class EcdsaSignatureTest {
         final String signatureForVerification = Base64.encodeToString(signatureForData, Base64.NO_WRAP);
 
         // Now validate that signature on the server.
-        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), dataForVerification, signatureForVerification, null);
+        boolean result = testHelper.getServerApi().verifyDsaSignature(activationHelper.getActivation().getActivationId(), dataForVerification, signatureForVerification, SignatureFormat.DER, SignatureType.ECDSA);
         assertTrue(result);
     }
 

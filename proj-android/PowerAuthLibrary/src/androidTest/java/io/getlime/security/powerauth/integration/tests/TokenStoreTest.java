@@ -19,13 +19,13 @@ package io.getlime.security.powerauth.integration.tests;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import io.getlime.security.powerauth.networking.response.IGenerateTokenHeaderListener;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.util.Map;
 import java.util.Objects;
@@ -34,12 +34,13 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
-import io.getlime.security.powerauth.integration.support.model.SignatureType;
+import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
 import io.getlime.security.powerauth.integration.support.model.TokenInfo;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.response.IGetTokenListener;
 import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
+import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
@@ -48,8 +49,19 @@ import io.getlime.security.powerauth.sdk.PowerAuthTokenStore;
 
 import static org.junit.Assert.*;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(Parameterized.class)
 public class TokenStoreTest {
+
+    @Parameterized.Parameter(0) public String alg;
+    @Parameterized.Parameters(name = " {0} ")
+    public static Iterable<Object[]> testParameters() {
+        return TestParameters.getParameters();
+    }
+
+    @PowerAuthAlgorithm
+    public int getAlgorithmForTest() {
+        return PowerAuthTestHelper.getAlgorithmForName(alg);
+    }
 
     private PowerAuthTestHelper testHelper;
     private PowerAuthSDK powerAuthSDK;
@@ -63,7 +75,9 @@ public class TokenStoreTest {
 
     @Before
     public void setUp() throws Exception {
-        testHelper = new PowerAuthTestHelper.Builder().build();
+        testHelper = new PowerAuthTestHelper.Builder()
+                .powerAuthAlgorithm(getAlgorithmForTest())
+                .build();
         powerAuthSDK = testHelper.getSharedSdk();
         tokenStore = powerAuthSDK.getTokenStore();
         activationHelper = new ActivationHelper(testHelper);
@@ -110,7 +124,7 @@ public class TokenStoreTest {
         assertTrue(token1.canGenerateHeader());
         assertTrue(tokenStore.hasLocalToken(context, TOKEN_NAME_POSSESSION));
 
-        assertTrue(calculateAndValidateTokenDigest(token1, SignatureType.POSSESSION));
+        assertTrue(calculateAndValidateTokenDigest(token1, AuthCodeType.POSSESSION));
 
         // Possession + Knowledge
         assertFalse(tokenStore.hasLocalToken(context, TOKEN_NAME_POSSESSION_KNOWLEDGE));
@@ -121,7 +135,7 @@ public class TokenStoreTest {
         assertTrue(token2.canGenerateHeader());
         assertTrue(tokenStore.hasLocalToken(context, TOKEN_NAME_POSSESSION_KNOWLEDGE));
 
-        assertTrue(calculateAndValidateTokenDigest(token2, SignatureType.POSSESSION_KNOWLEDGE));
+        assertTrue(calculateAndValidateTokenDigest(token2, AuthCodeType.POSSESSION_KNOWLEDGE));
 
         // Try to re-create SDK. This simulates application restart.
         powerAuthSDK = testHelper.reCreateSdk(null, null, null);
@@ -133,8 +147,8 @@ public class TokenStoreTest {
         token2 = requestAccessToken(TOKEN_NAME_POSSESSION_KNOWLEDGE, activationHelper.getValidAuthentication(), true);
         assertNotNull(token1);
         assertNotNull(token2);
-        assertTrue(calculateAndValidateTokenDigest(token1, SignatureType.POSSESSION));
-        assertTrue(calculateAndValidateTokenDigest(token2, SignatureType.POSSESSION_KNOWLEDGE));
+        assertTrue(calculateAndValidateTokenDigest(token1, AuthCodeType.POSSESSION));
+        assertTrue(calculateAndValidateTokenDigest(token2, AuthCodeType.POSSESSION_KNOWLEDGE));
 
         // Invalid password
         assertFalse(tokenStore.hasLocalToken(context, TOKEN_NAME_OTHER));
@@ -383,7 +397,7 @@ public class TokenStoreTest {
      * @return Always return true.
      * @throws Exception In case of failure.
      */
-    private boolean calculateAndValidateTokenDigest(@NonNull PowerAuthToken token, @NonNull SignatureType expectedSignatureType) throws Exception {
+    private boolean calculateAndValidateTokenDigest(@NonNull PowerAuthToken token, @NonNull AuthCodeType expectedSignatureType) throws Exception {
         assertTrue(token.canGenerateHeader());
         assertNotNull(token.getTokenName());
 

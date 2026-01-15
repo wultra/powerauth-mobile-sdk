@@ -16,14 +16,15 @@
 
 package io.getlime.security.powerauth.integration.support.v19.endpoints;
 
-import com.google.gson.reflect.TypeToken;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.google.gson.reflect.TypeToken;
+
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
+import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
-import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
 
 public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyOnlineSignatureEndpoint.Response> {
     @NonNull

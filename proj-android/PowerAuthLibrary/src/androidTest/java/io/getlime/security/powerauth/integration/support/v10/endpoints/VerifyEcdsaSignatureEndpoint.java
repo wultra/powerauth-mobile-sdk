@@ -18,9 +18,10 @@ package io.getlime.security.powerauth.integration.support.v10.endpoints;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
 
 import com.google.gson.reflect.TypeToken;
+
+import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
 
 public class VerifyEcdsaSignatureEndpoint implements IServerApiEndpoint<VerifyEcdsaSignatureEndpoint.Response> {
 

@@ -20,11 +20,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 
-import java.nio.charset.StandardCharsets;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.test.platform.app.InstrumentationRegistry;
+
+import java.nio.charset.StandardCharsets;
 
 import io.getlime.security.powerauth.integration.support.model.ServerVersion;
 

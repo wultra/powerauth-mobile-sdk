@@ -16,12 +16,13 @@
 
 package io.getlime.security.powerauth.integration.support.v15;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.integration.support.PowerAuthServerApi;
 import io.getlime.security.powerauth.integration.support.client.HttpRestClient;
 import io.getlime.security.powerauth.integration.support.model.Activation;
@@ -31,12 +32,12 @@ import io.getlime.security.powerauth.integration.support.model.ActivationStatus;
 import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
 import io.getlime.security.powerauth.integration.support.model.ProtocolVersion;
 import io.getlime.security.powerauth.integration.support.model.ServerConstants;
 import io.getlime.security.powerauth.integration.support.model.ServerVersion;
-import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
-import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 import io.getlime.security.powerauth.integration.support.model.SignatureFormat;
 import io.getlime.security.powerauth.integration.support.model.SignatureType;
 import io.getlime.security.powerauth.integration.support.model.TokenInfo;
@@ -213,7 +214,7 @@ public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
         request.setActivationOtp(otp);
         request.setActivationOtpValidation(otpValidation);
         request.setMaxFailureCount(maxFailureCount != null ? maxFailureCount : ServerConstants.DEFAULT_MAX_FAILURE_ATTEMPTS);
-        return restClient.send(request, new InitActivationEndpoint());
+        return restClient.send(request, new InitActivationEndpoint()).copyToActivation();
     }
 
     @NonNull
@@ -311,7 +312,7 @@ public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
         final GetActivationStatusEndpoint.Request request = new GetActivationStatusEndpoint.Request();
         request.setActivationId(activationId);
         request.setChallenge(challenge);
-        return restClient.send(request, new GetActivationStatusEndpoint());
+        return restClient.send(request, new GetActivationStatusEndpoint()).copyToActivationDetail();
     }
 
     @NonNull

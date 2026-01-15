@@ -22,7 +22,7 @@ import androidx.annotation.Nullable;
 import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
-import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
+import io.getlime.security.powerauth.integration.support.shared.ActivationDetailResponseV10;
 
 public class GetActivationStatusEndpoint implements IServerApiEndpoint<GetActivationStatusEndpoint.Response> {
 
@@ -63,7 +63,6 @@ public class GetActivationStatusEndpoint implements IServerApiEndpoint<GetActiva
     }
 
     // Response
-
-    public static class Response extends ActivationDetail {
+    public static class Response extends ActivationDetailResponseV10 {
     }
 }

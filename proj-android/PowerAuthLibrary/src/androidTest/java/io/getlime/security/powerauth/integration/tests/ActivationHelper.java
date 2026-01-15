@@ -296,7 +296,7 @@ public class ActivationHelper {
         // Create activation locally
         final String activationCode;
         if (codeWithSignature) {
-            activationCode = activation.getActivationCode() + "#" + activation.getActivationSignature();
+            activationCode = activation.getActivationCode() + "#" + activation.getActivationSignatureLegacy();
         } else {
             activationCode = activation.getActivationCode();
         }

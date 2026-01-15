@@ -48,7 +48,7 @@ public class DsaSignatureTest {
     @Parameterized.Parameter(0) public String alg;
     @Parameterized.Parameters(name = " {0} ")
     public static Iterable<Object[]> testParameters() {
-        return CommonTestParameters.getParameters();
+        return TestParameters.getParameters();
     }
 
     @PowerAuthAlgorithm

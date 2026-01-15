@@ -37,8 +37,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +62,7 @@ public class BaseSdkTest {
     @Parameterized.Parameter(0) public String alg;
     @Parameterized.Parameters(name = " {0} ")
     public static Iterable<Object[]> testParameters() {
-        return CommonTestParameters.getParameters();
+        return TestParameters.getParameters();
     }
 
     @PowerAuthAlgorithm
@@ -216,7 +214,7 @@ public class BaseSdkTest {
         // Create activation locally
         final String activationCode;
         if (codeWithSignature) {
-            activationCode = activation.getActivationCode() + "#" + activation.getActivationSignature();
+            activationCode = activation.getActivationCode() + "#" + activation.getActivationSignatureLegacy();
         } else {
             activationCode = activation.getActivationCode();
         }

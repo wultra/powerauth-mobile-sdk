@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.integration.support.model;
-
-import androidx.annotation.NonNull;
+package io.getlime.security.powerauth.integration.support.shared;
 
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 import java.util.Map;
 
-public class ActivationDetail {
+import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
+import io.getlime.security.powerauth.integration.support.model.ActivationOtpValidation;
+import io.getlime.security.powerauth.integration.support.model.ActivationStatus;
 
+public class ActivationDetailResponseV20 {
     private String activationId;
     private ActivationStatus activationStatus;
     private ActivationOtpValidation activationOtpValidation;
@@ -44,20 +45,6 @@ public class ActivationDetail {
     private String devicePublicKeyFingerprint;
     @SerializedName("version")
     private int protocolVersion;
-
-    /**
-     * Create {@link Activation} object from values stored in this detail.
-     * @return New {@link Activation} instance.
-     */
-    public @NonNull Activation copyToActivation() {
-        Activation activation = new Activation();
-        activation.setActivationCode(activationCode);
-        activation.setActivationSignatures(activationSignatures);
-        activation.setActivationId(activationId);
-        activation.setApplicationId(applicationId);
-        activation.setUserId(userId);
-        return activation;
-    }
 
     public String getActivationId() {
         return activationId;
@@ -187,21 +174,6 @@ public class ActivationDetail {
         this.activationSignatures = activationSignatures;
     }
 
-    public String getActivationSignatureLegacy() {
-        return activationSignatures.get(Activation.SIG_ES256);
-    }
-    public String getActivationSignatureEcdsaP384() {
-        return activationSignatures.get(Activation.SIG_ES384);
-    }
-
-    public String getActivationSignatureMlDsa65() {
-        return activationSignatures.get(Activation.SIG_ML_DSA_65);
-    }
-
-    public String getActivationSignatureMlDsa87() {
-        return activationSignatures.get(Activation.SIG_ML_DSA_87);
-    }
-
     public String getDevicePublicKeyFingerprint() {
         return devicePublicKeyFingerprint;
     }
@@ -216,5 +188,28 @@ public class ActivationDetail {
 
     public void setProtocolVersion(int protocolVersion) {
         this.protocolVersion = protocolVersion;
+    }
+
+    public ActivationDetail copyToActivationDetail() {
+        ActivationDetail out = new ActivationDetail();
+        out.setActivationId(activationId);
+        out.setActivationStatus(activationStatus);
+        out.setActivationOtpValidation(activationOtpValidation);
+        out.setBlockedReason(blockedReason);
+        out.setConfirmationPending(confirmationPending);
+        out.setActivationName(activationName);
+        out.setUserId(userId);
+        out.setExtras(extras);
+        out.setPlatform(platform);
+        out.setDeviceInfo(deviceInfo);
+        out.setActivationFlags(activationFlags);
+        out.setApplicationId(applicationId);
+        out.setEncryptedStatusBlob(encryptedStatusBlob);
+        out.setEncryptedStatusBlobNonce(encryptedStatusBlobNonce);
+        out.setActivationCode(activationCode);
+        out.setActivationSignatures(activationSignatures);
+        out.setDevicePublicKeyFingerprint(devicePublicKeyFingerprint);
+        out.setProtocolVersion(protocolVersion);
+        return out;
     }
 }

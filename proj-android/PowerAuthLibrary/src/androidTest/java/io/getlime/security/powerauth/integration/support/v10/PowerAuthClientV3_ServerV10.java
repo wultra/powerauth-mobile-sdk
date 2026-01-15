@@ -25,8 +25,41 @@ import java.util.Map;
 
 import io.getlime.security.powerauth.integration.support.PowerAuthServerApi;
 import io.getlime.security.powerauth.integration.support.client.HttpRestClient;
-import io.getlime.security.powerauth.integration.support.v10.endpoints.*;
-import io.getlime.security.powerauth.integration.support.model.*;
+import io.getlime.security.powerauth.integration.support.model.Activation;
+import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
+import io.getlime.security.powerauth.integration.support.model.ActivationOtpValidation;
+import io.getlime.security.powerauth.integration.support.model.ActivationStatus;
+import io.getlime.security.powerauth.integration.support.model.Application;
+import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
+import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
+import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
+import io.getlime.security.powerauth.integration.support.model.ProtocolVersion;
+import io.getlime.security.powerauth.integration.support.model.ServerConstants;
+import io.getlime.security.powerauth.integration.support.model.ServerVersion;
+import io.getlime.security.powerauth.integration.support.model.SignatureFormat;
+import io.getlime.security.powerauth.integration.support.model.SignatureType;
+import io.getlime.security.powerauth.integration.support.model.TokenInfo;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.BlockActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.CommitActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.CreateApplicationEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.CreateApplicationVersionEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.CreateNonPersonalizedOfflineSignaturePayloadEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.CreatePersonalizedOfflineSignaturePayloadEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.GetActivationStatusEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.GetApplicationDetailEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.GetApplicationListEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.GetSystemStatusEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.InitActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.RemoveActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.SetApplicationVersionSupportedEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.UnblockActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.UpdateActivationOtpEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.ValidateTokenEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.VerifyEcdsaSignatureEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.VerifyOfflineSignatureEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.VerifyOnlineSignatureEndpoint;
 
 public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
 
@@ -180,7 +213,7 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
         request.setActivationOtp(otp);
         request.setActivationOtpValidation(otpValidation);
         request.setMaxFailureCount(maxFailureCount != null ? maxFailureCount : ServerConstants.DEFAULT_MAX_FAILURE_ATTEMPTS);
-        return restClient.send(request, new InitActivationEndpoint());
+        return restClient.send(request, new InitActivationEndpoint()).copyToActivation();
     }
 
     @NonNull
@@ -279,7 +312,7 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
         final GetActivationStatusEndpoint.Request request = new GetActivationStatusEndpoint.Request();
         request.setActivationId(activationId);
         request.setChallenge(challenge);
-        return restClient.send(request, new GetActivationStatusEndpoint());
+        return restClient.send(request, new GetActivationStatusEndpoint()).copyToActivationDetail();
     }
 
     @NonNull

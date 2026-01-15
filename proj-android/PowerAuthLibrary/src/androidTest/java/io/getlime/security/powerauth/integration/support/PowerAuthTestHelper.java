@@ -17,7 +17,6 @@
 package io.getlime.security.powerauth.integration.support;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,7 +29,13 @@ import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
 import io.getlime.security.powerauth.networking.ssl.HttpClientSslNoValidationStrategy;
-import io.getlime.security.powerauth.sdk.*;
+import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
+import io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper;
+import io.getlime.security.powerauth.sdk.PowerAuthBiometricConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 

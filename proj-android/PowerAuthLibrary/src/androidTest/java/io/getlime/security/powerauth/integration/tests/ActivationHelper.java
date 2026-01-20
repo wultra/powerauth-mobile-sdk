@@ -22,7 +22,6 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import io.getlime.security.powerauth.biometry.IPersistActivationWithBiometricsListener;
-import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.core.Password;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
@@ -219,22 +218,19 @@ public class ActivationHelper {
      * @return {@link ActivationStatus} object.
      * @throws Exception In case of failure.
      */
-    public @NonNull ActivationStatus fetchActivationStatus() throws Exception {
-        return AsyncHelper.await(new AsyncHelper.Execution<ActivationStatus>() {
-            @Override
-            public void execute(@NonNull final AsyncHelper.ResultCatcher<ActivationStatus> resultCatcher) throws Exception {
-                powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
-                    @Override
-                    public void onActivationStatusSucceed(ActivationStatus status) {
-                        resultCatcher.completeWithResult(status);
-                    }
+    public @NonNull PowerAuthActivationStatus fetchActivationStatus() throws Exception {
+        return AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
+                @Override
+                public void onActivationStatusSucceed(@NonNull PowerAuthActivationStatus status) {
+                    resultCatcher.completeWithResult(status);
+                }
 
-                    @Override
-                    public void onActivationStatusFailed(@NonNull Throwable t) {
-                        resultCatcher.completeWithError(t);
-                    }
-                });
-            }
+                @Override
+                public void onActivationStatusFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
         });
     }
 
@@ -339,7 +335,7 @@ public class ActivationHelper {
                 }
 
                 @Override
-                public void onPersistActivationFailed(@NonNull PowerAuthErrorException error) {
+                public void onPersistActivationFailed(@NonNull Throwable error) {
                     resultCatcher.completeWithError(error);
                 }
 
@@ -445,10 +441,10 @@ public class ActivationHelper {
 
         // Fetch status to test whether it's in "pending commit" or "active" state, depending on server's configuration.
         final boolean isAutoCommit = testHelper.getTestConfig().isServerAutoCommit();
-        ActivationStatus activationStatus = fetchActivationStatus();
-        final @ActivationStatus.ActivationState int expectedState = isAutoCommit ? ActivationStatus.State_Active : ActivationStatus.State_Pending_Commit;
-        if (activationStatus.state != expectedState) {
-            throw new Exception("Activation is in invalid state after creation. State = " + activationStatus.state + ", Expected = " + expectedState);
+        PowerAuthActivationStatus activationStatus = fetchActivationStatus();
+        final @PowerAuthActivationState int expectedState = isAutoCommit ? PowerAuthActivationState.ACTIVE : PowerAuthActivationState.PENDING_COMMIT;
+        if (activationStatus.getState() != expectedState) {
+            throw new Exception("Activation is in invalid state after creation. State = " + activationStatus.getState() + ", Expected = " + expectedState);
         }
 
         // Compare public key fingerprints
@@ -463,8 +459,8 @@ public class ActivationHelper {
 
             // Fetch status to validate whether activation is now active
             activationStatus = fetchActivationStatus();
-            if (activationStatus.state != ActivationStatus.State_Active) {
-                throw new Exception("Activation is in invalid state after commit. State = " + activationStatus.state);
+            if (activationStatus.getState() != PowerAuthActivationState.ACTIVE) {
+                throw new Exception("Activation is in invalid state after commit. State = " + activationStatus.getState());
             }
         }
 
@@ -495,7 +491,7 @@ public class ActivationHelper {
                 }
 
                 @Override
-                public void onPersistActivationFailed(@NonNull PowerAuthErrorException error) {
+                public void onPersistActivationFailed(@NonNull Throwable error) {
                     resultCatcher.completeWithError(error);
                 }
 

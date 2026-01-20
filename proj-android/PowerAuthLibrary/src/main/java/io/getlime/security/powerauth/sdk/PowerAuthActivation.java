@@ -27,7 +27,6 @@ import io.getlime.security.powerauth.core.ActivationCode;
 import io.getlime.security.powerauth.core.ActivationCodeUtil;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
-import io.getlime.security.powerauth.networking.model.entity.ActivationType;
 
 /**
  * The {@code PowerAuthActivation} class contains activation data required for the activation creation.
@@ -35,7 +34,7 @@ import io.getlime.security.powerauth.networking.model.entity.ActivationType;
  */
 public class PowerAuthActivation {
 
-    final @NonNull ActivationType activationType;
+    final @NonNull String activationType;
     final @NonNull Map<String, String> identityAttributes;
     final @Nullable String additionalActivationOtp;
     final @Nullable String activationName;
@@ -46,7 +45,7 @@ public class PowerAuthActivation {
     /**
      * Private object constructor. Use {@link Builder} to construct an instance of the object.
      *
-     * @param activationType {@link ActivationType}.
+     * @param activationType Activation type.
      * @param identityAttributes Identity attributes.
      * @param additionalActivationOtp String with additional activation OTP.
      * @param activationName Optional name of activation.
@@ -54,7 +53,7 @@ public class PowerAuthActivation {
      * @param customAttributes Optional custom attributes.
      * @param activationCode {@link ActivationCode} object, valid in case of regular activation.
      */
-    private PowerAuthActivation(@NonNull ActivationType activationType,
+    private PowerAuthActivation(@NonNull String activationType,
                                 @NonNull Map<String, String> identityAttributes,
                                 @Nullable String additionalActivationOtp,
                                 @Nullable String activationName,
@@ -75,7 +74,7 @@ public class PowerAuthActivation {
      */
     public static class Builder {
 
-        private final @NonNull ActivationType activationType;
+        private final @NonNull String activationType;
         private final @NonNull Map<String, String> identityAttributes;
         private final @Nullable ActivationCode activationCode;
 
@@ -92,7 +91,7 @@ public class PowerAuthActivation {
          * @param activationName Optional name of activation.
          * @param activationCode {@link ActivationCode} object, valid in case of regular activation.
          */
-        private Builder(@NonNull ActivationType activationType,
+        private Builder(@NonNull String activationType,
                         @NonNull Map<String, String> identityAttributes,
                         @Nullable String activationName,
                         @Nullable ActivationCode activationCode) {
@@ -137,7 +136,7 @@ public class PowerAuthActivation {
             if (codeVerifier != null) {
                 identityAttributes.put("codeVerifier", codeVerifier);
             }
-            return new Builder(ActivationType.DIRECT, identityAttributes, null, null);
+            return new Builder(TYPE_DIRECT, identityAttributes, null, null);
         }
 
         /**
@@ -174,7 +173,7 @@ public class PowerAuthActivation {
             }
             final Map<String, String> identityAttributes = new HashMap<>(1);
             identityAttributes.put("code", code.activationCode);
-            return new Builder(ActivationType.CODE, identityAttributes, activationName, code);
+            return new Builder(TYPE_CODE, identityAttributes, activationName, code);
         }
 
         /**
@@ -193,7 +192,7 @@ public class PowerAuthActivation {
             if (identityAttributes.isEmpty()) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, "Empty identity attributes");
             }
-            return new Builder(ActivationType.CUSTOM, identityAttributes, activationName, null);
+            return new Builder(TYPE_CUSTOM, identityAttributes, activationName, null);
         }
 
         // Activation object customization
@@ -258,7 +257,7 @@ public class PowerAuthActivation {
                 if (additionalActivationOtp.isEmpty()) {
                     throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, "Additional activation OTP is empty");
                 }
-                if (activationType != ActivationType.CODE) {
+                if (!activationType.equals(TYPE_CODE)) {
                     throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, "Only regular activation can be used with additional activation OTP");
                 }
             }
@@ -274,4 +273,8 @@ public class PowerAuthActivation {
             );
         }
     }
+
+    static final String TYPE_CODE = "CODE";
+    static final String TYPE_DIRECT = "DIRECT";
+    static final String TYPE_CUSTOM = "CUSTOM";
 }

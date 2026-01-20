@@ -19,38 +19,57 @@ package io.getlime.security.powerauth.sdk.impl;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
-import io.getlime.security.powerauth.core.ActivationStatus;
+import io.getlime.security.powerauth.core.CoreException;
+import io.getlime.security.powerauth.core.CoreRequest;
+import io.getlime.security.powerauth.core.CoreSession;
+import io.getlime.security.powerauth.core.CoreTask;
+import io.getlime.security.powerauth.core.response.CoreActivationStatus;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
+import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
+import io.getlime.security.powerauth.sdk.PowerAuthActivationStatus;
+
 
 /**
  *  The {@code GetActivationStatusTask} class implements getting activation status from the server
  *  and the protocol upgrade. The upgrade is started automatically, depending on the
  *  local and server's state of the activation.
  */
-public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
+public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStatus> {
 
     public interface ICompletionListener {
         void onSessionStateChange();
-        void onTaskCompletion(@NonNull GetActivationStatusTask task, @Nullable ActivationStatus status);
+        void onTaskCompletion(@NonNull GetActivationStatusTask task, @Nullable PowerAuthActivationStatus status);
     }
 
+    @NonNull
     private final CoreHttpClient httpClient;
+    @NonNull
+    private final CoreSession session;
+    @NonNull
     private final ICompletionListener completionListener;
 
     /**
+     * Create task for getting activation status.
+     *
      * @param httpClient HTTP client
+     * @param session Core Session object.
      * @param sharedLock Shared lock.
      * @param callbackDispatcher callback dispatcher from parent SDK object
      * @param completionListener final completion listener.
      */
     public GetActivationStatusTask(
             @NonNull CoreHttpClient httpClient,
+            @NonNull CoreSession session,
             @NonNull ReentrantLock sharedLock,
             @NonNull ICallbackDispatcher callbackDispatcher,
             @NonNull ICompletionListener completionListener) {
         super("GetActivationStatus", sharedLock, callbackDispatcher);
         this.httpClient = httpClient;
+        this.session = session;
         this.completionListener = completionListener;
     }
 
@@ -61,13 +80,33 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
     @Override
     public void onGroupedTaskStart() {
         super.onGroupedTaskStart();
-        throw new IllegalStateException("TODO");
+        try {
+            final CoreTask<CoreActivationStatus> coreTask = session.fetchActivationStatus();
+            final ICancelable cancelable = httpClient.post(coreTask, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable CoreActivationStatus status) {
+                    final CoreActivationStatus coreStatus = Objects.requireNonNull(status);
+                    complete(new PowerAuthActivationStatus(coreStatus));
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    complete(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+            addCancelableOperation(cancelable);
+        } catch (CoreException exception) {
+            complete(PowerAuthErrorException.wrapException(exception));
+        }
     }
 
     @Override
-    public void onGroupedTaskComplete(@Nullable ActivationStatus activationStatus, @Nullable Throwable failure) {
+    public void onGroupedTaskComplete(@Nullable PowerAuthActivationStatus activationStatus, @Nullable Throwable failure) {
         super.onGroupedTaskComplete(activationStatus, failure);
         completionListener.onTaskCompletion(this, activationStatus);
     }
-
 }

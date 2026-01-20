@@ -26,7 +26,7 @@ Notable changes on Android:
 
 ### API changes
 
-- The following methods or properties are now deprecated:
+- The following methods or properties are now deprecated or changed:
   - `PowerAuthSDK` class:
     - `changePasswordUnsafe()` - use asynchronous `changePassword()` as a replacement.
     - `persistActivationWithAuthentication()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
@@ -37,6 +37,10 @@ Notable changes on Android:
     - `authenticateUsingBiometrics()` - with "title" and "description" parameters, use variant with `PowerAuthBiometricPrompt` parameter instead.
     - `requestGetSignatureWithAuthentication()` - use `authenticationHeaderForRequestWithParams()` method instead which throws an exception in case of failure.
     - `requestSignatureWithAuthentication()` - use `authenticationHeaderForRequestWithBody()` method instead which throws an exception in case of failure.
+    - `saveSerializedState()` - method is now private
+    - `restoreState()` - method is now private
+    - `getEciesEncryptorForApplicationScope()` - is now replaced with `getEncryptorForApplicationScope()` and provides `CoreEncryptor` object in case of success.
+    - `getEciesEncryptorForActivationScope()` - is now replaced with `getEncryptorForActivationScope()` and provides `CoreEncryptor` object in case of success.
 
   - `PowerAuthConfiguration` class:
     - `getOfflineSignatureComponentLength()` - use `getOfflineAuthenticationCodeComponentLength()` instead.
@@ -45,6 +49,10 @@ Notable changes on Android:
   - `PowerAuthConfiguration.Builder` class:
     - `offlineSignatureComponentLength()` - use `offlineAuthenticationCodeComponentLength()` instead.
     - `disableAutomaticProtocolUpgrade()` - has no effect.
+    - `build()` - method now throws `PowerAuthErrorException` if wrong configuration is provided.
+
+  - `IPersistActivationListener` callback interface:
+    - `onPersistActivationFailed()` method now receives `Throwable` instead of `PowerAuthErrorException`. You can also expect `FailedApiException` and similar exceptions if communication with the server failed.
 
   - `PowerAuthKeychainConfiguration` class:
     - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
@@ -63,10 +71,35 @@ Notable changes on Android:
     - The value of `powerAuthErrorCode` property, or value returned in `getPowerAuthErrorCode()` is filled only in deprecated SDK functions, such as `requestSignatureWithAuthentication()`. To fix this, migrate to `authorizationHeaderForRequestWithBody()` that throws an exception in case of failure.
     - `isValid()` method is also deprecated, because the new methods, such as `authorizationHeaderForRequestWithBody()`, always returns the valid header.
 
+  - `PowerAuthMissingConfigException` is removed. The configuration is validated in `PowerAuthConfiguration.Builder.build()` method.
+
+  - `PowerAuthActivationStatus` is a new class that replaces `io.getlime.security.powerauth.core.ActivationStatus`. This change affects the following APIs:
+    - `IActivationStatusListener` callback interface now gets `PowerAuthActivationStatus` in success.
+    - `PowerAuthSDK.getLastFetchedActivationStatus()` now returns  `PowerAuthActivationStatus`.
+
+  - `PowerAuthActivationState` is a new enumeration that replaces `io.getlime.security.powerauth.core.ActivationStatus.ActivationState`:
+    - All new constants are uppercase as is usual in Java / Kotlin. For example `ActivationStatus.State_Pending_Commit` is now `PowerAuthActivationState.PENDING_COMMIT`.
+    - There's no "CREATED" state due to fact that such state is never returned from the server.
+
 - All methods in `Password` class now throws `IllegalStateException` when called on already destroyed object. In other words, if you call `destroy()` to force native C++ object cleanup, then the object is no longer available for use.
 
 - The following classes and interfaces are now deprecated:
   - `IPersistActivationWithBiometricsListener` - use `IPersistActivationListener` instead.
+
+- The following functions now takes or returns `SecureData` instead of `byte[]`:
+  - `PowerAuthSDK.persistActivationWithPassword()`
+  - `PowerAuthSDK.addBiometryFactor()`
+  - `PowerAuthSDK.setExternalEncryptionKey()`
+  - `PowerAuthSDK.addExternalEncryptionKey()`
+  - `PowerAuthConfiguration.getExternalEncryptionKey()`
+  - `PowerAuthConfiguration.Builder.externalEncryptionKey()`
+  - `PowerAuthAuthentication.getBiometryFactorRelatedKey()`
+  - `PowerAuthAuthentication.getOverriddenPossessionKey()`
+  - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
+  - `IFetchEncryptionKeyListener.onFetchEncryptionKeySucceed()`
+  - `CryptoUtils.ecdhComputeSharedSecret()`
+  - `BiometricKeyData.getDerivedData()`
+  - `BiometricKeyData.getDataToSave()`
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:
@@ -87,21 +120,6 @@ Notable changes on Android:
     - `IGetRecoveryDataListener`
     - `IConfirmRecoveryCodeListener`
     - `RecoveryData`
-
-- The following functions now takes or returns `SecureData` instead of `byte[]`:
-  - `PowerAuthSDK.persistActivationWithPassword()`
-  - `PowerAuthSDK.addBiometryFactor()`
-  - `PowerAuthSDK.setExternalEncryptionKey()`
-  - `PowerAuthSDK.addExternalEncryptionKey()`
-  - `PowerAuthConfiguration.getExternalEncryptionKey()`
-  - `PowerAuthConfiguration.Builder.externalEncryptionKey()`
-  - `PowerAuthAuthentication.getBiometryFactorRelatedKey()`
-  - `PowerAuthAuthentication.getOverriddenPossessionKey()`
-  - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
-  - `IFetchEncryptionKeyListener.onFetchEncryptionKeySucceed()`
-  - `CryptoUtils.ecdhComputeSharedSecret()`
-  - `BiometricKeyData.getDerivedData()`
-  - `BiometricKeyData.getDataToSave()`
 
 - Removed all interfaces deprecated in release `1.9.x`
 

@@ -538,24 +538,23 @@ To obtain detailed activation status information, use the following code:
 if (powerAuthSDK.hasValidActivation()) {
     // If there is an activation on the device, check the status with server
     powerAuthSDK.fetchActivationStatusWithCallback(context, object: IActivationStatusListener {
-        override fun onActivationStatusSucceed(status: ActivationStatus) {
+        override fun onActivationStatusSucceed(status: PowerAuthActivationStatus) {
             // Activation states are explained in detail in "Activation states" chapter below
             when (status.state) {
-                ActivationStatus.State_Pending_Commit ->
+                PowerAuthActivationState.PENDING_COMMIT ->
                     Log.i(TAG, "Waiting for commit")
-                ActivationStatus.State_Active ->
+                PowerAuthActivationState.ACTIVE ->
                     Log.i(TAG, "Activation is active")
-                ActivationStatus.State_Blocked ->
+                PowerAuthActivationState.BLOCKED ->
                     Log.i(TAG, "Activation is blocked")
-                ActivationStatus.State_Removed -> {
+                PowerAuthActivationState.REMOVED -> {
                     Log.i(TAG, "Activation is no longer valid")
                     powerAuthSDK.removeActivationLocal(context)
                 }
-                ActivationStatus.State_Deadlock -> {
+                PowerAuthActivationState.DEADLOCK -> {
                     Log.i(TAG, "Activation is technically blocked")
                     powerAuthSDK.removeActivationLocal(context)
                 }
-                ActivationStatus.State_Created -> Log.i(TAG, "Unknown state")
                 else -> Log.i(TAG, "Unknown state")
             }
 
@@ -565,6 +564,9 @@ if (powerAuthSDK.hasValidActivation()) {
             val remainingFailCount: Int = status.remainingAttempts
             if (status.customObject != null) {
                 // Custom object contains any proprietary server specific data
+            }
+            if (status.isProtocolUpgradeAvailable) {
+                // Upgrade to new protocol is available
             }
         }
 

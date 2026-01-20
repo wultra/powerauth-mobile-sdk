@@ -36,10 +36,11 @@ public class CoreActivationResult {
     private final Map<String, Object> userInfo;
 
     /**
-     * Construct result object with given parameters.
-     * @param activationFingerprint
-     * @param customAttributes
-     * @param userInfo
+     * Construct result object with given parameters. The method is typically called from JNI wrapper
+     * to construct result of activation process.
+     * @param activationFingerprint Activation fingerprint.
+     * @param customAttributes Map with custom object attributes returned from the server.
+     * @param userInfo Map with user info object.
      */
     public CoreActivationResult(@NonNull String activationFingerprint, @Nullable Map<String, Object> customAttributes, @Nullable Map<String, Object> userInfo) {
         this.activationFingerprint = activationFingerprint;
@@ -47,16 +48,25 @@ public class CoreActivationResult {
         this.userInfo = userInfo;
     }
 
+    /**
+     * @return Activation fingerprint.
+     */
     @NonNull
     public String getActivationFingerprint() {
         return activationFingerprint;
     }
 
+    /**
+     * @return Map with custom object attributes returned from the server.
+     */
     @Nullable
     public Map<String, Object> getCustomAttributes() {
         return customAttributes;
     }
 
+    /**
+     * @return Map with user info object.
+     */
     @Nullable
     public Map<String, Object> getUserInfo() {
         return userInfo;

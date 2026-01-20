@@ -17,6 +17,7 @@
 #include "NativeHelper.h"
 #include "SecureDataJNI.h"
 #include <PowerAuth/Session.h>
+#include <cc7/jni/JniJson.h>
 
 // Package: io.getlime.security.powerauth.core
 #define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
@@ -26,6 +27,9 @@
 #include <cc7/jni/JniModule.inl>
 
 using namespace powerAuth;
+using namespace powerAuth::jni;
+using namespace cc7::json;
+using namespace cc7::jni;
 
 CC7_JNI_MODULE_CLASS_BEGIN()
 
@@ -37,6 +41,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jobject, createSession, jobject configuration)
 {
     NH_TRY
     {
+        jni.requireParameter(configuration, "configuration");
         auto& specs = NH_SPECS();
         auto cpp_config = jni.fromJava<Configuration>(specs.coreConfig, configuration);
         // Build C++ Session instance.
@@ -84,7 +89,7 @@ CC7_JNI_METHOD(jint, getProtocolVersion)
 {
     NH_TRY
     {
-        return jni.toJava(NH_SPECS().protocolVersion, THIS_OBJ()->getProtocolVersion());
+        return jni.toJava(NH_SPECS().coreProtocolVersion, THIS_OBJ()->getProtocolVersion());
     }
     NH_CATCH_RT_ONLY(0)
 }
@@ -183,6 +188,108 @@ CC7_JNI_METHOD(jstring, getActivationFingerprint)
     NH_CATCH_RT_ONLY(nullptr)
 }
 
+CC7_JNI_METHOD_PARAMS(jobject, createActivation, jobject L1Data, jobject L2Data)
+{
+    NH_TRY
+    {
+        jni.requireParameter(L1Data, "L1Data");
+        jni.requireParameter(L2Data, "L2Data");
+        auto L1 = JsonValueFromJava(jni, L1Data);
+        auto L2 = JsonValueFromJava(jni, L2Data);
+        auto request = THIS_OBJ()->createActivation(L1, L2);
+        return BuildCoreRequest(jni, request, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            auto result = std::dynamic_pointer_cast<ActivationResult>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No ActivationResult object created");
+            }
+            return jni.createObject(specs.respActivationResult.methods.init,
+                                    jni.toJava(result->activationFingerprint()),
+                                    JsonValueToJava(jni, result->customAttributes()),
+                                    JsonValueToJava(jni, result->userInfo()));
+        });
+    }
+    NH_CATCH(nullptr)
+}
+
+/// Build Java `CoreActivationStatus` from C++ ActivationStatus object.
+static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const ActivationStatusPtr& status)
+{
+    // constructor (int state,
+    //              int failCount,
+    //              int maxFailCount,
+    //              int remainingAttempts,
+    //              boolean isProtocolUpgradeAvailable,
+    //              boolean isCounterSynchronizationRecommended,
+    //              boolean isSessionSerializationNeeded,
+    //              Map<String, Object> customObject)
+    return jni.createObject(specs.respActivationStatus.methods.init,
+                            jni.toJava(specs.coreActivationState, status->activationState()),
+                            (jint) status->failCount(),
+                            (jint) status->maxFailCount(),
+                            (jint) status->remainingAttempts(),
+                            status->isProtocolUpgradeAvailable(),
+                            status->isCounterSynchronizationRecommended(),
+                            status->isSessionStateSerializationRecommended(),
+                            JsonValueToJava(jni, status->customObject()));
+}
+
+CC7_JNI_METHOD(jobject, fetchActivationStatus)
+{
+    NH_TRY
+    {
+        auto task = THIS_OBJ()->fetchActivationStatus();
+        return BuildCoreTask(jni, task, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            auto result = std::dynamic_pointer_cast<ActivationStatus>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No ActivationStatus object created");
+            }
+            return BuildActivationStatus(jni, specs, result);
+        });
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD(jobject, getLastActivationStatus)
+{
+    NH_TRY
+    {
+        auto status = THIS_OBJ()->lastActivationStatus();
+        return status ? BuildActivationStatus(jni, NH_SPECS(), status) : nullptr;
+    }
+    NH_CATCH_RT_ONLY(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, confirmActivation, jobject password, jobject biometryKek)
+{
+    NH_TRY
+    {
+        jni.requireParameter(password, "password");
+        auto& specs = NH_SPECS();
+        auto cpp_password = jni.fromJava<Password>(specs.password, password);
+        auto cpp_biometry = CopyFromSecureData(jni, biometryKek);
+        auto credentials = InitialCredentials::credentials(cpp_password->passwordData(), cpp_biometry);
+        auto request = THIS_OBJ()->confirmActivation(credentials);
+        if (!request) {
+            // This is valid for V3 activations
+            return nullptr;
+        }
+        return BuildCoreRequest(jni, request);
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, removeActivation, jobject credentials)
+{
+    NH_TRY
+    {
+        jni.requireParameter(credentials, "credentials");
+        auto cpp_credentials = jni.fromJava<Credentials>(NH_SPECS().coreCredentials, credentials);
+        auto request = THIS_OBJ()->removeActivation(cpp_credentials);
+        return BuildCoreRequest(jni, request);
+    }
+    NH_CATCH(nullptr)
+}
+
 // Factor keys management
 
 CC7_JNI_METHOD(jboolean, hasBiometryFactor)
@@ -192,6 +299,18 @@ CC7_JNI_METHOD(jboolean, hasBiometryFactor)
         return THIS_OBJ()->hasBiometricFactor();
     }
     NH_CATCH_RT_ONLY(false)
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, verifyPassword, jobject password)
+{
+    NH_TRY
+    {
+        jni.requireParameter(password, "password");
+        auto cpp_password = jni.fromJava<Password>(NH_SPECS().password, password);
+        auto request = THIS_OBJ()->verifyPassword(cpp_password);
+        return BuildCoreRequest(jni, request);
+    }
+    NH_CATCH(nullptr)
 }
 
 // Services
@@ -207,7 +326,7 @@ CC7_JNI_METHOD(jobject, getEncryptorFactory)
 
 // Utilities
 
-static jobject GenerateFactorKek(cc7::jni::JNI& jni, ProtocolVersion protocol_version)
+static jobject GenerateFactorKek(JNI& jni, ProtocolVersion protocol_version)
 {
     auto kek = cc7::crypto::GetRandomData(protocol_version == Version_V4 ? 32 : 16);
     return jni::CopyToSecureData(jni, kek);
@@ -226,7 +345,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jobject, generateFactorKekForProtocolVersion, jint 
 {
     NH_TRY
     {
-        auto version = jni.fromJava<ProtocolVersion>(NH_SPECS().protocolVersion, protocolVersion);
+        auto version = jni.fromJava<ProtocolVersion>(NH_SPECS().coreProtocolVersion, protocolVersion);
         return GenerateFactorKek(jni, version);
     }
     NH_CATCH(nullptr)
@@ -236,7 +355,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jstring, maxSupportedHttpProtocolVersion, jint prot
 {
     NH_TRY
     {
-        auto version = jni.fromJava<ProtocolVersion>(NH_SPECS().protocolVersion, protocolVersion);
+        auto version = jni.fromJava<ProtocolVersion>(NH_SPECS().coreProtocolVersion, protocolVersion);
         return jni.toJava(ProtocolVersion_GetHttpHeaderVersion(version));
     }
     NH_CATCH_RT_ONLY(nullptr)

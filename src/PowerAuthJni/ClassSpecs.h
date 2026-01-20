@@ -84,6 +84,45 @@ struct ClassSpecs
         Methods methods;
     };
 
+    // io.getlime.security.powerauth.core.response.CoreActivationResult
+    struct RespActivationResult
+    {
+        struct Methods
+        {
+            // constructor (String activationFingerprint, Map<String, Object> customAttributes, Map<String, Object> userInfo)
+            cc7::jni::JniInitMethod init;
+        };
+        static constexpr JniMethodSpec methodSpecs[] = {
+                JniMethodSpec::constructor("(Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;)V", offsetof(Methods, init))
+        };
+
+        jclass classRef;
+        Methods methods;
+    };
+
+    // io.getlime.security.powerauth.core.response.CoreActivationStatus
+    struct RespActivationStatus
+    {
+        struct Methods
+        {
+            // constructor (int state,
+            //              int failCount,
+            //              int maxFailCount,
+            //              int remainingAttempts,
+            //              boolean isProtocolUpgradeAvailable,
+            //              boolean isCounterSynchronizationRecommended,
+            //              boolean isSessionSerializationNeeded,
+            //              Map<String, Object> customObject)
+            cc7::jni::JniInitMethod init;
+        };
+        static constexpr JniMethodSpec methodSpecs[] = {
+                JniMethodSpec::constructor("(IIIIZZZLjava/util/Map;)V", offsetof(Methods, init))
+        };
+
+        jclass classRef;
+        Methods methods;
+    };
+
     // io.getlime.security.powerauth.core.CoreDevicePublicKeyData
     struct CoreDevicePublicKeyData
     {
@@ -237,14 +276,17 @@ struct ClassSpecs
     CoreEncryptedResponse coreEncryptedResponse;
     // response
     RespServerStatus respServerStatus;
+    RespActivationResult respActivationResult;
+    RespActivationStatus respActivationStatus;
 
     // enums
     JniCommon::ConstantRangeSpec coreAlgorithm;
     JniCommon::ConstantSetSpec coreSignatureKeyId;
     JniCommon::ConstantRangeSpec coreSignatureKeyType;
     JniCommon::ConstantRangeSpec coreDevicePublicKeyFormat;
-    JniCommon::ConstantSetSpec protocolVersion;
+    JniCommon::ConstantSetSpec coreProtocolVersion;
     JniCommon::ConstantRangeSpec coreEncryptorScope;
+    JniCommon::ConstantRangeSpec coreActivationState;
 
     // handle based objects
     JniCommon::NativeHandleClass password;

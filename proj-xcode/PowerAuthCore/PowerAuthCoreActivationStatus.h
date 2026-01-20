@@ -22,7 +22,7 @@
 typedef NS_ENUM(int, PowerAuthCoreActivationState) {
     /// The activation is not completed yet on the server.
     PowerAuthCoreActivationState_PendingCommit = 0,
-    /// The shared secure context is valid and active.
+    /// The activation is valid and active.
     PowerAuthCoreActivationState_Active   = 1,
     /// The activation is blocked.
     PowerAuthCoreActivationState_Blocked  = 2,
@@ -58,7 +58,7 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
 @property (nonatomic, assign, readonly) BOOL needsSerializeSessionState;
 
 
-///  Contains custom object returned from the server. The value is optional and PowerAuth Application Server
+/// Contains custom object returned from the server. The value is optional and PowerAuth Application Server
 /// must support this custom object.
 @property (nonatomic, strong, nullable, readonly) NSDictionary<NSString*, NSObject*>* customObject;
 

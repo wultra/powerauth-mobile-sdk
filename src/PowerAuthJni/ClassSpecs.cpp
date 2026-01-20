@@ -49,9 +49,10 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         spec.coreTask.native = jni.buildNativeHandleSpec("io/getlime/security/powerauth/core/CoreTask");
         auto task = jni.fromJava(spec.coreTask.native.classRef);
         spec.coreTask.responseIsCaptured = task.findField("responseIsCaptured", "Z");
-        spec.coreRequest.responseBuilderHandle = request.findField("responseBuilderHandle", "J");
+        spec.coreTask.responseBuilderHandle = task.findField("responseBuilderHandle", "J");
         spec.coreTask.responseObject = task.findField("responseObject", "Ljava/lang/Object;");
         spec.coreTask.responseJson = task.findField("responseJson", "Ljava/lang/Object;");
+
         // Custom objects
         spec.secureData = jni.buildClassSpec<SecureData>("io/getlime/security/powerauth/core/SecureData");
         spec.coreHttpHeader = jni.buildClassSpec<CoreHttpHeader>("io/getlime/security/powerauth/core/CoreHttpHeader");
@@ -61,9 +62,11 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
 
         // Response
         spec.respServerStatus = jni.buildClassSpec<RespServerStatus>("io/getlime/security/powerauth/core/response/CoreServerStatus");
+        spec.respActivationResult = jni.buildClassSpec<RespActivationResult>("io/getlime/security/powerauth/core/response/CoreActivationResult");
+        spec.respActivationStatus = jni.buildClassSpec<RespActivationStatus>("io/getlime/security/powerauth/core/response/CoreActivationStatus");
 
         // Enums
-        spec.protocolVersion = jni.buildConstantSetSpec("io/getlime/security/powerauth/core/ProtocolVersion", {
+        spec.coreProtocolVersion = jni.buildConstantSetSpec("io/getlime/security/powerauth/core/CoreProtocolVersion", {
             "NA",
             "V2",
             "V3",
@@ -99,6 +102,13 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
             "NONE",
             "APPLICATION",
             "ACTIVATION"
+        });
+        spec.coreActivationState = jni.buildConstantRangeSpec("io/getlime/security/powerauth/core/CoreActivationState", {
+            "PENDING_COMMIT",
+            "ACTIVE",
+            "BLOCKED",
+            "REMOVED",
+            "DEADLOCK"
         });
 
         // Exceptions
@@ -144,13 +154,16 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         jni.releaseSpec(spec.secureData);
         // response
         jni.releaseSpec(spec.respServerStatus);
+        jni.releaseSpec(spec.respActivationResult);
+        jni.releaseSpec(spec.respActivationStatus);
         // enums
-        jni.releaseSpec(spec.protocolVersion);
+        jni.releaseSpec(spec.coreProtocolVersion);
         jni.releaseSpec(spec.coreAlgorithm);
         jni.releaseSpec(spec.coreSignatureKeyId);
         jni.releaseSpec(spec.coreSignatureKeyType);
         jni.releaseSpec(spec.coreDevicePublicKeyFormat);
         jni.releaseSpec(spec.coreEncryptorScope);
+        jni.releaseSpec(spec.coreActivationState);
         // exception
         jni.releaseSpec(spec.coreErrorCode);
         jni.releaseSpec(spec.coreException);

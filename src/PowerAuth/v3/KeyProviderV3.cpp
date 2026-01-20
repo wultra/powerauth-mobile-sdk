@@ -73,7 +73,7 @@ cc7::crypto::ConstPublicKeyPtr KeyProviderV3::getDevicePublicKeyPtr()
     if (!_device_public_key) {
         if (_session_data->hasPersistentData()) {
             _device_public_key = signingKeyFactory().newPublicKey(_session_data->persistentData().v3().devicePublicKey, cc7::crypto::KEY_FORMAT_X963);
-        } else if (_session_data->hasRegistrationData()) {
+        } else if (_session_data->hasRegistrationData() && _session_data->registrationData().isKeyExchangeComplete()) {
             _device_public_key = _session_data->registrationData().v3().deviceKeyPair->getPublicKeyPtr();
         } else {
             throw Exception(EC_NotAllowed, "Device public key is not available");
@@ -88,7 +88,7 @@ cc7::crypto::ConstPublicKeyPtr KeyProviderV3::getServerPublicKeyPtr()
     if (!_server_public_key) {
         if (_session_data->hasPersistentData()) {
             _server_public_key = signingKeyFactory().newPublicKey(_session_data->persistentData().v3().serverPublicKey, cc7::crypto::KEY_FORMAT_X963);
-        } else if (_session_data->hasRegistrationData()) {
+        } else if (_session_data->hasRegistrationData() && _session_data->registrationData().isKeyExchangeComplete()) {
             _server_public_key = _session_data->registrationData().v3().serverPublicKey;
         } else {
             throw Exception(EC_NotAllowed, "Server public key is not available");

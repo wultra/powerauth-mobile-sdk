@@ -25,13 +25,17 @@ import androidx.fragment.app.FragmentActivity;
 import com.google.gson.reflect.TypeToken;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.getlime.security.powerauth.BuildConfig;
 import io.getlime.security.powerauth.biometry.*;
 import io.getlime.security.powerauth.core.*;
+import io.getlime.security.powerauth.core.response.CoreActivationResult;
+import io.getlime.security.powerauth.core.response.CoreActivationStatus;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.keychain.Keychain;
@@ -568,122 +572,59 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the running HTTP request.
      */
     public @Nullable ICancelable createActivation(@NonNull final PowerAuthActivation activation, @NonNull final ICreateActivationListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
-        return null;
-//        // Initial validation
-//        checkForValidSetup();
-//
-//        // Check if activation may be started
-//        if (!canStartActivation()) {
-//            dispatchCallback(new Runnable() {
-//                @Override
-//                public void run() {
-//                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
-//                }
-//            });
-//            return null;
-//        }
-//
-//        final IPrivateCryptoHelper cryptoHelper = getCryptoHelper(null);
-//        final JsonSerialization serialization = new JsonSerialization();
-//
-//        // Prepare low level activation parameters
-//        final ActivationStep1Param step1Param;
-//        if (activation.activationCode != null) {
-//            step1Param = new ActivationStep1Param(activation.activationCode.activationCode, activation.activationCode.activationSignature);
-//        } else {
-//            step1Param = null;
-//        }
-//
-//        // Start the activation
-//        final ActivationStep1Result step1Result = mSession.startActivation(step1Param);
-//        if (step1Result.errorCode != ErrorCode.OK) {
-//            // Looks like create activation failed
-//            final int errorCode = step1Result.errorCode == ErrorCode.Encryption
-//                    ? PowerAuthErrorCodes.SIGNATURE_ERROR
-//                    : PowerAuthErrorCodes.INVALID_ACTIVATION_DATA;
-//            dispatchCallback(new Runnable() {
-//                @Override
-//                public void run() {
-//                    listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
-//                }
-//            });
-//            return null;
-//        }
-//
-//        // Prepare level 2 payload
-//        final ActivationLayer2Request privateData = new ActivationLayer2Request();
-//        privateData.setActivationName(activation.activationName);
-//        privateData.setExtras(activation.extras);
-//        privateData.setActivationOtp(activation.additionalActivationOtp);
-//        privateData.setDevicePublicKey(step1Result.devicePublicKey);
-//        privateData.setPlatform(PowerAuthSystem.getPlatform());
-//        privateData.setDeviceInfo(PowerAuthSystem.getDeviceInfo());
-//
-//        // Prepare level 1 payload
-//        final ActivationLayer1Request request = new ActivationLayer1Request();
-//        request.setType(activation.activationType);
-//        request.setIdentityAttributes(activation.identityAttributes);
-//        request.setCustomAttributes(activation.customAttributes);
-//
-//        // The create activation endpoint needs a custom object processing where we encrypt the inner data
-//        // with a different encryptor. We have to do this in the HTTP client's queue to guarantee that time
-//        // service is already synchronized.
-//        final CreateActivationEndpoint endpointDefinition = new CreateActivationEndpoint((endpoint) -> {
-//            // Set encrypted level 2 activation data to the request.
-//            // Prepare cryptographic helper & Layer2 ECIES encryptor
-//            final EciesEncryptor encryptor = cryptoHelper.getEciesEncryptor(EciesEncryptorId.ACTIVATION_PAYLOAD);
-//            request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
-//            ((CreateActivationEndpoint) endpoint).setLayer2Encryptor(encryptor);
-//        });
-//
-//        // Fire HTTP request
-//        return mClient.post(
-//                request,
-//                endpointDefinition,
-//                cryptoHelper,
-//                new INetworkResponseListener<>() {
-//                    @Override
-//                    public void onNetworkResponse(@NonNull ActivationLayer1Response response) {
-//                        // Process response from the server
-//                        try {
-//                            // Try to decrypt Layer2 object from response
-//                            final EciesEncryptor encryptor = endpointDefinition.getLayer2Encryptor();
-//                            final ActivationLayer2Response layer2Response = serialization.decryptObjectFromResponse(response.getActivationData(), encryptor, TypeToken.get(ActivationLayer2Response.class));
-//                            // Prepare Step2 param for low level session
-//                            final ActivationStep2Param step2Param = new ActivationStep2Param(layer2Response.getActivationId(), layer2Response.getServerPublicKey(), layer2Response.getCtrData());
-//                            // Validate the response
-//                            final ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
-//                            //
-//                            if (step2Result.errorCode == ErrorCode.OK) {
-//                                final UserInfo userInfo = response.getUserInfo() != null ? new UserInfo(response.getUserInfo()) : null;
-//                                final CreateActivationResult result = new CreateActivationResult(step2Result.activationFingerprint, response.getCustomAttributes(), userInfo);
-//                                setLastFetchedUserInfo(userInfo);
-//                                listener.onActivationCreateSucceed(result);
-//                                return;
-//                            }
-//                            throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, "Invalid activation data received from the server.");
-//
-//                        } catch (PowerAuthErrorException e) {
-//                            // In case of error, reset the session & report that exception
-//                            mSession.resetSession(false);
-//                            listener.onActivationCreateFailed(e);
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onNetworkError(@NonNull Throwable throwable) {
-//                        // In case of error, reset the session & report that exception
-//                        mSession.resetSession(false);
-//                        listener.onActivationCreateFailed(throwable);
-//                    }
-//
-//                    @Override
-//                    public void onCancel() {
-//                        // In case of cancel, reset the session
-//                        mSession.resetSession(false);
-//                    }
-//                });
+        try {
+            // Prepare both layers of activation data
+            Map<String, Object> L1Data = new HashMap<>(3);
+            L1Data.put("type", activation.activationType);
+            L1Data.put("identityAttributes", activation.identityAttributes);
+            if (activation.customAttributes != null) {
+                L1Data.put("customAttributes", activation.customAttributes);
+            }
+
+            Map<String, Object> L2Data = new HashMap<>(5);
+            if (activation.activationName != null) {
+                L2Data.put("activationName", activation.activationName);
+            }
+            if (activation.extras != null) {
+                L2Data.put("extras", activation.extras);
+            }
+            if (activation.additionalActivationOtp != null) {
+                L2Data.put("activationOtp", activation.additionalActivationOtp);
+            }
+            L2Data.put("platform", PowerAuthSystem.getPlatform());
+            L2Data.put("deviceInfo", PowerAuthSystem.getDeviceInfo());
+
+            // Create HTTP request
+            final CoreRequest<CoreActivationResult> request = mSession.createActivation(L1Data, L2Data);
+
+            // Post request.
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable CoreActivationResult coreActivationResult) {
+                    CoreActivationResult coreResult = Objects.requireNonNull(coreActivationResult);
+                    listener.onActivationCreateSucceed(
+                            new CreateActivationResult(
+                                    coreResult.getActivationFingerprint(),
+                                    coreResult.getCustomAttributes(),
+                                    new UserInfo(coreResult.getUserInfo())
+                            )
+                    );
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onActivationCreateFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+
+        } catch (CoreException exception) {
+            dispatchCallback(() -> listener.onActivationCreateFailed(PowerAuthErrorException.wrapException(exception)));
+            return null;
+        }
     }
 
     /**
@@ -790,44 +731,81 @@ public class PowerAuthSDK {
      *         If {@code null} is returned, then the operation failed or completed immediately.
      */
     public @Nullable ICancelable persistActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, @NonNull IPersistActivationListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onPersistActivationFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
-        return null;
+        final Password password = authentication.getPassword();
+        final PowerAuthBiometricPrompt biometricPrompt = authentication.getBiometricPrompt();
+        if (biometricPrompt == null || password == null) {
+            // Persist operation doesn't require biometric dialog to display, so no composite cancelable
+            // operation is required.
+            //
+            // If password is null, then "persistActivationImpl()" will fail at input validation.
+            try {
+                return persistActivationImpl(authentication, listener);
+            } catch (PowerAuthErrorException e) {
+                dispatchCallback(() -> listener.onPersistActivationFailed(e));
+                return null;
+            }
+        }
+        // It seems that we have to resolve biometric key before we persist. In this case, the
+        // cancelable composite operation is required.
+        final CompositeCancelableTask composite = new CompositeCancelableTask(true);
+        composite.setCancelCallback(() -> {
+            // Application canceled the task
+            dispatchCallback(() -> listener.onPersistActivationCancelled(false));
+        });
+        ICancelable resolveTask = authenticateUsingBiometrics(context, biometricPrompt, true, new IBiometricAuthenticationCallback() {
+            @Override
+            public void onBiometricDialogCancelled(boolean userCancel) {
+                if (composite.setCompleted()) {
+                    listener.onPersistActivationCancelled(userCancel);
+                }
+            }
 
-//        final Password password = authentication.getPassword();
-//        final PowerAuthBiometricPrompt biometricPrompt = authentication.getBiometricPrompt();
-//        if (biometricPrompt == null || password == null) {
-//            // Persist operation doesn't require biometric dialog to display.
-//            // If password is null, then "persistActivationImpl()" will fail at input validation
-//            try {
-//                persistActivationImpl(context, authentication);
-//                dispatchCallback(listener::onPersistActivationSucceeded);
-//            } catch (PowerAuthErrorException e) {
-//                dispatchCallback(() -> listener.onPersistActivationFailed(e));
-//            }
-//            return new DummyCancelable();
-//        }
-//        return authenticateUsingBiometrics(context, biometricPrompt, true, new IBiometricAuthenticationCallback() {
-//            @Override
-//            public void onBiometricDialogCancelled(boolean userCancel) {
-//                listener.onPersistActivationCancelled(userCancel);
-//            }
-//
-//            @Override
-//            public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
-//                try {
-//                    final PowerAuthAuthentication resolvedAuthentication = PowerAuthAuthentication.persistWithPasswordAndBiometry(password, biometricKeyData.getDerivedData());
-//                    persistActivationImpl(context, resolvedAuthentication);
-//                    listener.onPersistActivationSucceeded();
-//                } catch (PowerAuthErrorException e) {
-//                    listener.onPersistActivationFailed(e);
-//                }
-//            }
-//
-//            @Override
-//            public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
-//                listener.onPersistActivationFailed(error);
-//            }
-//        });
+            @Override
+            public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
+                try {
+                    final PowerAuthAuthentication resolvedAuthentication = PowerAuthAuthentication.persistWithPasswordAndBiometry(password, biometricKeyData.getDerivedData());
+                    ICancelable persistTask = persistActivationImpl(resolvedAuthentication, new IPersistActivationListener() {
+                        @Override
+                        public void onPersistActivationSucceeded() {
+                            if (composite.setCompleted()) {
+                                listener.onPersistActivationSucceeded();
+                            }
+                        }
+
+                        @Override
+                        public void onPersistActivationFailed(@NonNull Throwable throwable) {
+                            if (composite.setCompleted()) {
+                                listener.onPersistActivationFailed(throwable);
+                            }
+                        }
+
+                        @Override
+                        public void onPersistActivationCancelled(boolean userCancel) {
+                            // cancel is already handled in composite's cancel callback
+                        }
+                    });
+                    if (persistTask != null) {
+                        // V4, asynchronous operation
+                        composite.addCancelable(persistTask);
+                    } else {
+                        // V3, synchronous, report success
+                        if (composite.setCompleted()) {
+                            listener.onPersistActivationSucceeded();
+                        }
+                    }
+
+                } catch (PowerAuthErrorException e) {
+                    listener.onPersistActivationFailed(e);
+                }
+            }
+
+            @Override
+            public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
+                listener.onPersistActivationFailed(error);
+            }
+        });
+        composite.addCancelable(resolveTask);
+        return composite;
     }
 
     /**
@@ -859,53 +837,59 @@ public class PowerAuthSDK {
     /**
      * Persist activation in the low level Session object with provided authentication object. Note that the authentication object
      * must have biometric factor key already resolved.
-     * @param context Android context object.
      * @param authentication Instance of authentication object with required password and optional key for biometric factor.
+     * @param listener Callback to
+     * @return Asynchronous operation in case persist is asynchronous, otherwise null.
      * @throws PowerAuthErrorException Thrown in case of failure.
      */
-    private void persistActivationImpl(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) throws PowerAuthErrorException {
-        throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented");
+    @Nullable
+    private ICancelable persistActivationImpl(@NonNull PowerAuthAuthentication authentication, @Nullable IPersistActivationListener listener) throws PowerAuthErrorException {
+        try {
+            authentication.validateAuthenticationUsage(true);
 
-//        // Input validations
-//        // Check if there is a pending activation present and not an already existing valid activation
-//        if (!mSession.hasPendingActivation()) {
-//            throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE);
-//        }
-//        if (authentication.getPassword() == null) {
-//            PowerAuthLog.e("Password is required to persist activation");
-//            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER);
-//        }
-//
-//        // Validate authentication usage for persist.
-//        authentication.validateAuthenticationUsage(true);
-//
-//        // Prepare key encryption keys
-//        final SecureData possessionKey = deviceRelatedKey(context);
-//        final SecureData biometryKey = authentication.getBiometryFactorRelatedKey();
-//
-//        // Prepare signature unlock keys structure
-//        final SignatureUnlockKeys keys = new SignatureUnlockKeys(possessionKey, biometryKey, authentication.getPassword());
-//
-//        // Complete the activation
-//        final int result = mSession.completeActivation(keys);
-//        @PowerAuthErrorCodes int errorCode;
-//        switch (result) {
-//            case ErrorCode.OK:
-//                // Save activation state and clear TokenStore
-//                saveSerializedState();
-//                getTokenStore().removeAllLocalTokens(context);
-//                return;
-//            case ErrorCode.WrongParam:
-//                errorCode = PowerAuthErrorCodes.WRONG_PARAMETER;
-//                break;
-//            default:
-//                // ErrorCode.Encryption
-//                // ErrorCode.WrongState
-//                errorCode = PowerAuthErrorCodes.INVALID_ACTIVATION_STATE;
-//                break;
-//        }
-//        PowerAuthLog.e("Failed to persist activation. Error code " + result);
-//        throw new PowerAuthErrorException(errorCode);
+            final Password password = authentication.getPassword();
+            if (password == null) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Password must be set for persist activation operation");
+            }
+            final CoreRequest<Object> request = mSession.confirmActivation(password, authentication.getBiometryFactorRelatedKey());
+            if (listener == null) {
+                // @Deprecated 2.0.0
+                // Listener is not provided, so application is still using deprecated synchronous API.
+                if (request != null) {
+                    // Persist is unfortunately asynchronous, so we cannot continue. Cancel the request and report error.
+                    request.cancel();
+                    throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Synchronous persist is not supported at this protocol version");
+                }
+                return null;
+            }
+            if (request == null) {
+                // This is legit for V3 activations. Persist doesn't require HTTP communication with the server.
+                dispatchCallback(listener::onPersistActivationSucceeded);
+                return null;
+            }
+            // So far, so good, execute the request.
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable Object o) {
+                    listener.onPersistActivationSucceeded();
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onPersistActivationFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                    // Canceled by application itself
+                    dispatchCallback(() -> listener.onPersistActivationCancelled(false));
+                }
+            });
+
+        } catch (CoreException exception) {
+            // Wrap core exception into PowerAuthErrorException
+            throw PowerAuthErrorException.wrapException(exception);
+        }
     }
 
     /**
@@ -1135,7 +1119,7 @@ public class PowerAuthSDK {
     @Deprecated // 2.0.0
     public int persistActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) {
         try {
-            persistActivationImpl(context, authentication);
+            persistActivationImpl(authentication, null);
             return PowerAuthErrorCodes.SUCCEED;
         } catch (PowerAuthErrorException e) {
             return e.getPowerAuthErrorCode();
@@ -1206,25 +1190,16 @@ public class PowerAuthSDK {
     private GetActivationStatusTask mGetActivationStatusTask;
 
     /**
-     * Contains last fetched {@link ActivationStatus} object.
-     */
-    private ActivationStatus mLastFetchedActivationStatus;
-
-    /**
-     * Return {@link ActivationStatus} recently received from the server. You need to call
+     * Return {@link PowerAuthActivationStatus} recently received from the server. You need to call
      * {@link #fetchActivationStatusWithCallback(Context, IActivationStatusListener)} method to
      * update result from this method.
      *
-     * @return {@link ActivationStatus} object recently received from the server or null, if
+     * @return {@link PowerAuthActivationStatus} object recently received from the server or null, if
      *         there's no activation, or status was not received yet.
      */
-    public @Nullable ActivationStatus getLastFetchedActivationStatus() {
-        try {
-            mLock.lock();
-            return mLastFetchedActivationStatus;
-        } finally {
-            mLock.unlock();
-        }
+    public @Nullable PowerAuthActivationStatus getLastFetchedActivationStatus() {
+        final CoreActivationStatus coreStatus = mSession.getLastActivationStatus();
+        return  coreStatus == null ? null : new PowerAuthActivationStatus(coreStatus);
     }
 
     /**
@@ -1238,68 +1213,48 @@ public class PowerAuthSDK {
      */
     public @Nullable
     ICancelable fetchActivationStatusWithCallback(@NonNull final Context context, @NonNull final IActivationStatusListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onActivationStatusFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
-        return null;
-//        // Check if there is an activation present, valid or pending
-//        if (!mSession.hasValidActivation()) {
-//            final int errorCode = mSession.hasPendingActivation()
-//                                    ? PowerAuthErrorCodes.PENDING_ACTIVATION
-//                                    : PowerAuthErrorCodes.MISSING_ACTIVATION;
-//            dispatchCallback(new Runnable() {
-//                @Override
-//                public void run() {
-//                    listener.onActivationStatusFailed(new PowerAuthErrorException(errorCode));
-//                }
-//            });
-//            return null;
-//        }
-//
-//        // Cancelable object returned to the application
-//        ICancelable task = null;
-//
-//        final ITaskCompletion<ActivationStatus> completion = new ITaskCompletion<ActivationStatus>() {
-//            @Override
-//            public void onSuccess(@NonNull ActivationStatus activationStatus) {
-//                listener.onActivationStatusSucceed(activationStatus);
-//            }
-//
-//            @Override
-//            public void onFailure(@NonNull Throwable failure) {
-//                listener.onActivationStatusFailed(failure);
-//            }
-//        };
-//
-//        try {
-//            mLock.lock();
-//            if (mGetActivationStatusTask != null) {
-//                // There's already some pending task, try to add this listener to it.
-//                task = mGetActivationStatusTask.createChildTask(completion);
-//            }
-//            if (task == null) {
-//                mGetActivationStatusTask = new GetActivationStatusTask(mClient, getCryptoHelper(context), mSession, mLock, mCallbackDispatcher, mConfiguration.isAutomaticProtocolUpgradeDisabled(), new GetActivationStatusTask.ICompletionListener() {
-//                    @Override
-//                    public void onSessionStateChange() {
-//                        saveSerializedState();
-//                    }
-//
-//                    @Override
-//                    public void onTaskCompletion(@NonNull GetActivationStatusTask task, @Nullable ActivationStatus status) {
-//                        // The mLock is already locked, because GetActivationStatusTask uses shared lock.
-//                        if (task == mGetActivationStatusTask) {
-//                            if (status != null) {
-//                                mLastFetchedActivationStatus = status;
-//                            }
-//                            mGetActivationStatusTask = null;
-//                        }
-//                    }
-//                });
-//                task = mGetActivationStatusTask.createChildTask(completion);
-//            }
-//        } finally {
-//            mLock.unlock();
-//        }
-//
-//        return task;
+        // Cancelable object returned to the application
+        ICancelable task = null;
+
+        final ITaskCompletion<PowerAuthActivationStatus> completion = new ITaskCompletion<>() {
+            @Override
+            public void onSuccess(@NonNull PowerAuthActivationStatus activationStatus) {
+                listener.onActivationStatusSucceed(activationStatus);
+            }
+
+            @Override
+            public void onFailure(@NonNull Throwable failure) {
+                listener.onActivationStatusFailed(failure);
+            }
+        };
+
+        try {
+            mLock.lock();
+            if (mGetActivationStatusTask != null) {
+                // There's already some pending task, try to add this listener to it.
+                task = mGetActivationStatusTask.createChildTask(completion);
+            }
+            if (task == null) {
+                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, mLock, mCallbackDispatcher, new GetActivationStatusTask.ICompletionListener() {
+                    @Override
+                    public void onSessionStateChange() {
+                        saveSerializedState();
+                    }
+
+                    @Override
+                    public void onTaskCompletion(@NonNull GetActivationStatusTask task, @Nullable PowerAuthActivationStatus status) {
+                        // The mLock is already locked, because GetActivationStatusTask uses shared lock.
+                        if (task == mGetActivationStatusTask) {
+                            mGetActivationStatusTask = null;
+                        }
+                    }
+                });
+                task = mGetActivationStatusTask.createChildTask(completion);
+            }
+        } finally {
+            mLock.unlock();
+        }
+        return task;
     }
 
     /**
@@ -1327,7 +1282,29 @@ public class PowerAuthSDK {
      */
     public @Nullable
     ICancelable removeActivationWithAuthentication(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final IActivationRemoveListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onActivationRemoveFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
+        try {
+            final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
+            final CoreRequest<Object> request = mSession.removeActivation(credentials);
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable Object o) {
+                    listener.onActivationRemoveSucceed();
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onActivationRemoveFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+        } catch (CoreException e) {
+            dispatchCallback(() -> listener.onActivationRemoveFailed(PowerAuthErrorException.wrapException(e)));
+        } catch (PowerAuthErrorException e) {
+            dispatchCallback(() -> listener.onActivationRemoveFailed(e));
+        }
         return null;
     }
 
@@ -1391,7 +1368,6 @@ public class PowerAuthSDK {
     private void clearCachedData() {
         try {
             mLock.lock();
-            mLastFetchedActivationStatus = null;
             mLastFetchedUserInfo = null;
         } finally {
             mLock.unlock();
@@ -2253,35 +2229,27 @@ public class PowerAuthSDK {
      */
     public @Nullable
     ICancelable validatePassword(@NonNull Context context, @NonNull Password password, @NonNull final IValidatePasswordListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onPasswordValidationFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
+        try {
+            final CoreRequest<Object> request = mSession.verifyPassword(password);
+            return mClient.post(request, new INetworkResponseListener<Object>() {
+                @Override
+                public void onNetworkResponse(@Nullable Object o) {
+                    listener.onPasswordValid();
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onPasswordValidationFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+        } catch (CoreException e) {
+            dispatchCallback(() -> listener.onPasswordValidationFailed(PowerAuthErrorException.wrapException(e)));
+        }
         return null;
-//        // Prepare authentication object
-//        PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword(password);
-//        // Prepare request object
-//        final ValidateSignatureRequest request = new ValidateSignatureRequest();
-//        request.setReason("VALIDATE_PASSWORD");
-//
-//        // Execute HTTP request
-//        return mClient.post(
-//                request,
-//                new ValidateSignatureEndpoint(),
-//                getCryptoHelper(context),
-//                authentication,
-//                new INetworkResponseListener<Void>() {
-//                    @Override
-//                    public void onNetworkResponse(@NonNull Void aVoid) {
-//                        listener.onPasswordValid();
-//                    }
-//
-//                    @Override
-//                    public void onNetworkError(@NonNull Throwable t) {
-//                        listener.onPasswordValidationFailed(t);
-//                    }
-//
-//                    @Override
-//                    public void onCancel() {
-//                    }
-//                });
     }
 
     /**
@@ -2456,7 +2424,6 @@ public class PowerAuthSDK {
 
             @Override
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
-                // TODO: missing impl.
                 callback.onBiometricDialogFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented"));
 //                // Store the new key, if a new key was generated
 //                if (biometricKeyData.isNewKey()) {
@@ -2573,8 +2540,23 @@ public class PowerAuthSDK {
      *         present, then returns {@code null}.
      */
     private @Nullable ICancelable createEncryptor(@NonNull final IGetEncryptorListener listener, final boolean applicationScope) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onGetEncryptorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
-        return null;
+        final @CoreEncryptorScope int scope = applicationScope ? CoreEncryptorScope.APPLICATION : CoreEncryptorScope.ACTIVATION;
+        return mKeystoreService.createKeyForEncryptor(scope, new ICreateKeyListener() {
+            @Override
+            public void onCreateKeySucceeded() {
+                try {
+                    final CoreEncryptor encryptor = mSession.getEncryptorFactory().createEncryptorWithScope(scope);
+                    listener.onGetEncryptorSuccess(encryptor);
+                } catch (CoreException exception) {
+                    listener.onGetEncryptorFailed(PowerAuthErrorException.wrapException(exception));
+                }
+            }
+
+            @Override
+            public void onCreateKeyFailed(@NonNull Throwable throwable) {
+                listener.onGetEncryptorFailed(throwable);
+            }
+        });
     }
     
     // Request synchronization

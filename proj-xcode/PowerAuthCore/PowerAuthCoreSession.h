@@ -240,7 +240,7 @@
                                                  withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
                                                error: (NSError*_Nullable*_Nullable)error;
 
-/// Confirm activation and complete the activation process with user's password.
+/// Confirm activation and complete the activation process with user's password and optional biometry KEK.
 ///
 /// This function changes the session's state, so write access must be guaranteed.
 ///

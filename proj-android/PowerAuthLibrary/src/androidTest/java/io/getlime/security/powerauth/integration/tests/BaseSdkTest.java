@@ -27,6 +27,8 @@ import io.getlime.security.powerauth.core.CoreEncryptor;
 import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.integration.support.model.SignatureFormat;
 import io.getlime.security.powerauth.integration.support.model.SignatureType;
+import io.getlime.security.powerauth.sdk.PowerAuthActivationState;
+import io.getlime.security.powerauth.sdk.PowerAuthActivationStatus;
 import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
 import io.getlime.security.powerauth.sdk.impl.JsonSerialization;
 import io.getlime.security.powerauth.networking.response.*;
@@ -42,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
@@ -52,6 +53,7 @@ import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.PowerAuthActivation;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
 import static org.junit.Assert.*;
@@ -76,6 +78,8 @@ public class BaseSdkTest {
 
     @Before
     public void setUp() throws Exception {
+        PowerAuthLog.setEnabled(true);
+        PowerAuthLog.setVerbose(true);
         testHelper = new PowerAuthTestHelper.Builder()
                 .powerAuthAlgorithm(getAlgorithmForTest())
                 .build();
@@ -251,7 +255,7 @@ public class BaseSdkTest {
                 }
 
                 @Override
-                public void onPersistActivationFailed(@NonNull PowerAuthErrorException error) {
+                public void onPersistActivationFailed(@NonNull Throwable error) {
                     resultCatcher.completeWithError(error);
                 }
 
@@ -269,10 +273,10 @@ public class BaseSdkTest {
 
         // Fetch status to test whether it's in "pending commit" state.
         final boolean isAutoCommit = testHelper.getTestConfig().isServerAutoCommit();
-        final @ActivationStatus.ActivationState int expectedState = isAutoCommit ? ActivationStatus.State_Active : ActivationStatus.State_Pending_Commit;
-        ActivationStatus activationStatus = activationHelper.fetchActivationStatus();
-        if (activationStatus.state != expectedState) {
-            throw new Exception("Activation is in invalid state after creation. State = " + activationStatus.state + ", Expected = " + expectedState);
+        final @PowerAuthActivationState int expectedState = isAutoCommit ? PowerAuthActivationState.ACTIVE : PowerAuthActivationState.PENDING_COMMIT;
+        PowerAuthActivationStatus activationStatus = activationHelper.fetchActivationStatus();
+        if (activationStatus.getState() != expectedState) {
+            throw new Exception("Activation is in invalid state after creation. State = " + activationStatus.getState() + ", Expected = " + expectedState);
         }
 
         // Compare public key fingerprints
@@ -287,8 +291,8 @@ public class BaseSdkTest {
 
             // Fetch status to validate whether activation is now active
             activationStatus = activationHelper.fetchActivationStatus();
-            if (activationStatus.state != ActivationStatus.State_Active) {
-                throw new Exception("Activation is in invalid state after commit. State = " + activationStatus.state);
+            if (activationStatus.getState() != PowerAuthActivationState.ACTIVE) {
+                throw new Exception("Activation is in invalid state after commit. State = " + activationStatus.getState());
             }
         }
     }
@@ -311,22 +315,19 @@ public class BaseSdkTest {
 
         activationHelper.createStandardActivation(true, null);
 
-        boolean removed = AsyncHelper.await(new AsyncHelper.Execution<Boolean>() {
-            @Override
-            public void execute(@NonNull final AsyncHelper.ResultCatcher<Boolean> resultCatcher) throws Exception {
-                // Now remove activation
-                powerAuthSDK.removeActivationWithAuthentication(testHelper.getContext(), activationHelper.getValidAuthentication(), new IActivationRemoveListener() {
-                    @Override
-                    public void onActivationRemoveSucceed() {
-                        resultCatcher.completeWithResult(true);
-                    }
+        boolean removed = AsyncHelper.await(resultCatcher -> {
+            // Now remove activation
+            powerAuthSDK.removeActivationWithAuthentication(testHelper.getContext(), activationHelper.getValidAuthentication(), new IActivationRemoveListener() {
+                @Override
+                public void onActivationRemoveSucceed() {
+                    resultCatcher.completeWithResult(true);
+                }
 
-                    @Override
-                    public void onActivationRemoveFailed(@NonNull Throwable t) {
-                        resultCatcher.completeWithError(t);
-                    }
-                });
-            }
+                @Override
+                public void onActivationRemoveFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
         });
         assertTrue(removed);
 
@@ -341,20 +342,20 @@ public class BaseSdkTest {
     @Test
     public void testGetActivationStatus() throws Exception {
         activationHelper.createStandardActivation(true, null);
-        ActivationStatus status = activationHelper.fetchActivationStatus();
-        assertEquals(ActivationStatus.State_Active, status.state);
+        PowerAuthActivationStatus status = activationHelper.fetchActivationStatus();
+        assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
 
         testHelper.getServerApi().activationBlock(activationHelper.getActivation());
         status = activationHelper.fetchActivationStatus();
-        assertEquals(ActivationStatus.State_Blocked, status.state);
+        assertEquals(PowerAuthActivationState.BLOCKED, status.getState());
 
         testHelper.getServerApi().activationUnblock(activationHelper.getActivation());
         status = activationHelper.fetchActivationStatus();
-        assertEquals(ActivationStatus.State_Active, status.state);
+        assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
 
         testHelper.getServerApi().activationRemove(activationHelper.getActivation());
         status = activationHelper.fetchActivationStatus();
-        assertEquals(ActivationStatus.State_Removed, status.state);
+        assertEquals(PowerAuthActivationState.REMOVED, status.getState());
 
         assertNotNull(powerAuthSDK.getLastFetchedActivationStatus());
         powerAuthSDK.removeActivationLocal(testHelper.getContext());
@@ -365,16 +366,16 @@ public class BaseSdkTest {
     public void testGetActivationStatusConcurrent() throws Exception {
         activationHelper.createStandardActivation(true, null);
 
-        final ActivationStatus[] status1 = new ActivationStatus[1];
-        final ActivationStatus[] status2 = new ActivationStatus[1];
-        final ActivationStatus[] status3 = new ActivationStatus[1];
+        final PowerAuthActivationStatus[] status1 = new PowerAuthActivationStatus[1];
+        final PowerAuthActivationStatus[] status2 = new PowerAuthActivationStatus[1];
+        final PowerAuthActivationStatus[] status3 = new PowerAuthActivationStatus[1];
         final AtomicInteger counter = new AtomicInteger(0);
 
         AsyncHelper.await((AsyncHelper.Execution<Boolean>) resultCatcher -> {
             final ICancelable task1, task2, task3, task4;
             task1 = powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
                 @Override
-                public void onActivationStatusSucceed(ActivationStatus status) {
+                public void onActivationStatusSucceed(@NonNull PowerAuthActivationStatus status) {
                     status1[0] = status;
                     if (counter.addAndGet(1) == 3) {
                         resultCatcher.completeWithResult(true);
@@ -389,7 +390,7 @@ public class BaseSdkTest {
             assertNotNull(task1);
             task4 = powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
                 @Override
-                public void onActivationStatusSucceed(ActivationStatus status) {
+                public void onActivationStatusSucceed(@NonNull PowerAuthActivationStatus status) {
                     fail();
                 }
 
@@ -401,7 +402,7 @@ public class BaseSdkTest {
             assertNotNull(task4);
             task2 = powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
                 @Override
-                public void onActivationStatusSucceed(ActivationStatus status) {
+                public void onActivationStatusSucceed(@NonNull PowerAuthActivationStatus status) {
                     status2[0] = status;
                     if (counter.addAndGet(1) == 3) {
                         resultCatcher.completeWithResult(true);
@@ -416,7 +417,7 @@ public class BaseSdkTest {
             assertNotNull(task2);
             task3 = powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
                 @Override
-                public void onActivationStatusSucceed(ActivationStatus status) {
+                public void onActivationStatusSucceed(@NonNull PowerAuthActivationStatus status) {
                     status3[0] = status;
                     if (counter.addAndGet(1) == 3) {
                         resultCatcher.completeWithResult(true);
@@ -448,8 +449,10 @@ public class BaseSdkTest {
                 }
 
                 @Override
-                public void onPersistActivationFailed(@NonNull PowerAuthErrorException error) {
-                    assertEquals(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, error.getPowerAuthErrorCode());
+                public void onPersistActivationFailed(@NonNull Throwable error) {
+                    if (error instanceof PowerAuthErrorException) {
+                        assertEquals(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, ((PowerAuthErrorException)error).getPowerAuthErrorCode());
+                    }
                     resultCatcher.completeWithSuccess();
                 }
 
@@ -570,8 +573,8 @@ public class BaseSdkTest {
     }
 
     @Test
-    public void testEncryptors() throws Exception {
-        CoreEncryptor encryptor = AsyncHelper.await(resultCatcher -> {
+    public void testGetCoreEncryptors() throws Exception {
+        CoreEncryptor appEncryptor = AsyncHelper.await(resultCatcher -> {
             powerAuthSDK.getEncryptorForApplicationScope(new IGetEncryptorListener() {
                 @Override
                 public void onGetEncryptorSuccess(@NonNull CoreEncryptor encryptor) {
@@ -584,18 +587,29 @@ public class BaseSdkTest {
                 }
             });
         });
-        assertNotNull(encryptor);
+        assertNotNull(appEncryptor);
+        assertTrue(appEncryptor.canEncryptRequest());
+
+        boolean success = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.getEncryptorForActivationScope(new IGetEncryptorListener() {
+                @Override
+                public void onGetEncryptorSuccess(@NonNull CoreEncryptor encryptor) {
+                    assertTrue(encryptor.canEncryptRequest());
+                    resultCatcher.completeWithResult(true);
+                }
+
+                @Override
+                public void onGetEncryptorFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithResult(false);
+                }
+            });
+        });
+        assertFalse(success);
 
         // Now create activation
-        activationHelper.createStandardActivation(true, null);
-        final ActivationHelper.HelperState activationHelperState = activationHelper.getHelperState();
+        activationHelper.createStandardActivation(false, null);
 
-        // Now re-instantiate PowerAuthSDK (e.g. with no-EEK in configuration)
-        testHelper = new PowerAuthTestHelper.Builder().build(true);
-        powerAuthSDK = testHelper.getSharedSdk();
-        activationHelper = new ActivationHelper(testHelper, activationHelperState);
-
-        encryptor = AsyncHelper.await(resultCatcher -> {
+        appEncryptor = AsyncHelper.await(resultCatcher -> {
             powerAuthSDK.getEncryptorForApplicationScope(new IGetEncryptorListener() {
                 @Override
                 public void onGetEncryptorSuccess(@NonNull CoreEncryptor encryptor) {
@@ -608,7 +622,24 @@ public class BaseSdkTest {
                 }
             });
         });
-        assertNotNull(encryptor);
+        assertNotNull(appEncryptor);
+        assertTrue(appEncryptor.canEncryptRequest());
+
+        CoreEncryptor actEncryptor = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.getEncryptorForActivationScope(new IGetEncryptorListener() {
+                @Override
+                public void onGetEncryptorSuccess(@NonNull CoreEncryptor encryptor) {
+                    resultCatcher.completeWithResult(encryptor);
+                }
+
+                @Override
+                public void onGetEncryptorFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+        assertNotNull(actEncryptor);
+        assertTrue(actEncryptor.canEncryptRequest());
     }
 
     @Test

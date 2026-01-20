@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
-import io.getlime.security.powerauth.networking.model.entity.ActivationType;
 
 import static org.junit.Assert.*;
 
@@ -40,7 +39,7 @@ public class PowerAuthActivationBuilderTest {
                 .build();
 
         assertNotNull(activation);
-        assertEquals(ActivationType.CODE, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_CODE, activation.activationType);
         assertNotNull(activation.activationCode);
         assertNotNull(activation.identityAttributes);
         assertEquals("W65WE-3T7VI-7FBS2-A4OYA", activation.identityAttributes.get("code"));
@@ -56,7 +55,7 @@ public class PowerAuthActivationBuilderTest {
                 .build();
 
         assertNotNull(activation);
-        assertEquals(ActivationType.CODE, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_CODE, activation.activationType);
         assertNotNull(activation.activationCode);
         assertNotNull(activation.identityAttributes);
         assertEquals("W65WE-3T7VI-7FBS2-A4OYA", activation.identityAttributes.get("code"));
@@ -72,7 +71,7 @@ public class PowerAuthActivationBuilderTest {
                 .build();
 
         assertNotNull(activation);
-        assertEquals(ActivationType.CODE, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_CODE, activation.activationType);
         assertNotNull(activation.activationCode);
         assertNotNull(activation.identityAttributes);
         assertEquals("W65WE-3T7VI-7FBS2-A4OYA", activation.activationCode.activationCode);
@@ -93,7 +92,7 @@ public class PowerAuthActivationBuilderTest {
                 .build();
 
         assertNotNull(activation);
-        assertEquals(ActivationType.CODE, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_CODE, activation.activationType);
         assertNotNull(activation.activationCode);
         assertNotNull(activation.identityAttributes);
         assertEquals("W65WE-3T7VI-7FBS2-A4OYA", activation.activationCode.activationCode);
@@ -113,7 +112,7 @@ public class PowerAuthActivationBuilderTest {
                 .build();
 
         assertNotNull(activation);
-        assertEquals(ActivationType.CODE, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_CODE, activation.activationType);
         assertNotNull(activation.activationCode);
         assertNotNull(activation.identityAttributes);
         assertEquals("W65WE-3T7VI-7FBS2-A4OYA", activation.activationCode.activationCode);
@@ -140,7 +139,7 @@ public class PowerAuthActivationBuilderTest {
                 .build();
 
         assertNotNull(activation);
-        assertEquals(ActivationType.DIRECT, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_DIRECT, activation.activationType);
         assertNotNull(activation.identityAttributes);
         assertEquals("oidc", activation.identityAttributes.get("method"));
         assertEquals(providerId, activation.identityAttributes.get("providerId"));
@@ -153,7 +152,7 @@ public class PowerAuthActivationBuilderTest {
                 .build();
 
         assertNotNull(activation);
-        assertEquals(ActivationType.DIRECT, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_DIRECT, activation.activationType);
         assertNotNull(activation.identityAttributes);
         assertEquals("oidc", activation.identityAttributes.get("method"));
         assertEquals(providerId, activation.identityAttributes.get("providerId"));
@@ -174,7 +173,7 @@ public class PowerAuthActivationBuilderTest {
                 .build();
 
         assertNotNull(activation);
-        assertEquals(ActivationType.DIRECT, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_DIRECT, activation.activationType);
         assertNotNull(activation.identityAttributes);
         assertEquals("oidc", activation.identityAttributes.get("method"));
         assertEquals(providerId, activation.identityAttributes.get("providerId"));
@@ -188,7 +187,7 @@ public class PowerAuthActivationBuilderTest {
                 .build();
 
         assertNotNull(activation);
-        assertEquals(ActivationType.DIRECT, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_DIRECT, activation.activationType);
         assertNotNull(activation.identityAttributes);
         assertEquals("oidc", activation.identityAttributes.get("method"));
         assertEquals(providerId, activation.identityAttributes.get("providerId"));
@@ -215,7 +214,7 @@ public class PowerAuthActivationBuilderTest {
         assertEquals("juraj", activation.identityAttributes.get("login"));
         assertEquals("nbusr123", activation.identityAttributes.get("password"));
         assertNull(activation.activationName);
-        assertEquals(ActivationType.CUSTOM, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_CUSTOM, activation.activationType);
     }
 
     @Test
@@ -229,7 +228,7 @@ public class PowerAuthActivationBuilderTest {
                 .build();
 
         assertNotNull(activation);
-        assertEquals(ActivationType.CUSTOM, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_CUSTOM, activation.activationType);
         assertNull(activation.activationCode);
         assertNotNull(activation.identityAttributes);
         assertEquals("juraj", activation.identityAttributes.get("login"));
@@ -252,7 +251,7 @@ public class PowerAuthActivationBuilderTest {
                 .build();
 
         assertNotNull(activation);
-        assertEquals(ActivationType.CUSTOM, activation.activationType);
+        assertEquals(PowerAuthActivation.TYPE_CUSTOM, activation.activationType);
         assertNull(activation.activationCode);
         assertNotNull(activation.identityAttributes);
         assertEquals("juraj", activation.identityAttributes.get("login"));

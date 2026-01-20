@@ -33,10 +33,10 @@ public interface IPersistActivationListener {
     /**
      * Called when failed to persist activation on the device.
      *
-     * @param error error occurred during the operation
+     * @param throwable error occurred during the operation
      */
     @MainThread
-    void onPersistActivationFailed(@NonNull PowerAuthErrorException error);
+    void onPersistActivationFailed(@NonNull Throwable throwable);
 
     /**
      * Called when persist activation operation failed due to cancellation of biometric authentication dialog.

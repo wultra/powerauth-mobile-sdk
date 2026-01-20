@@ -27,7 +27,8 @@ public class CoreEncryptedResponse {
     private final byte[] responseBody;
 
     /**
-     * Create response object with body.
+     * Create response object with body. It's expected that the body contains JSON object with
+     * encrypted response.
      * @param responseBody Response body.
      */
     public CoreEncryptedResponse(@NonNull byte[] responseBody) {

@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.core.*;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -82,7 +83,7 @@ public class GetTemporaryKeyTask extends GroupedTask<Boolean> {
         super.onGroupedTaskStart();
         try {
             CoreRequest<Object> request = coreEncryptorFactory.fetchTemporaryKeyForScope(scope);
-            httpClient.post(request, new INetworkResponseListener<>() {
+            ICancelable cancelable = httpClient.post(request, new INetworkResponseListener<>() {
                 @Override
                 public void onNetworkResponse(@Nullable Object o) {
                     complete(true);
@@ -98,6 +99,7 @@ public class GetTemporaryKeyTask extends GroupedTask<Boolean> {
                     // Do nothing...
                 }
             });
+            addCancelableOperation(cancelable);
         } catch (Throwable t) {
             complete(PowerAuthErrorException.wrapException(t));
         }

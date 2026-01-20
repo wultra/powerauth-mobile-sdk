@@ -26,7 +26,7 @@ Notable changes on Android:
 
 ### API changes
 
-- The following methods or properties are now deprecated:
+- The following methods or properties are now deprecated or changed:
   - `PowerAuthSDK` class:
     - `changePasswordUnsafe()` - use asynchronous `changePassword()` as a replacement.
     - `persistActivationWithAuthentication()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
@@ -37,6 +37,8 @@ Notable changes on Android:
     - `authenticateUsingBiometrics()` - with "title" and "description" parameters, use variant with `PowerAuthBiometricPrompt` parameter instead.
     - `requestGetSignatureWithAuthentication()` - use `authenticationHeaderForRequestWithParams()` method instead which throws an exception in case of failure.
     - `requestSignatureWithAuthentication()` - use `authenticationHeaderForRequestWithBody()` method instead which throws an exception in case of failure.
+    - `saveSerializedState()` - method is now private
+    - `restoreState()` - method is now private
 
   - `PowerAuthConfiguration` class:
     - `getOfflineSignatureComponentLength()` - use `getOfflineAuthenticationCodeComponentLength()` instead.
@@ -45,6 +47,10 @@ Notable changes on Android:
   - `PowerAuthConfiguration.Builder` class:
     - `offlineSignatureComponentLength()` - use `offlineAuthenticationCodeComponentLength()` instead.
     - `disableAutomaticProtocolUpgrade()` - has no effect.
+    - `build()` - method now throws `PowerAuthErrorException` if wrong configuration is provided.
+
+  - `IPersistActivationListener` callback interface:
+    - `onPersistActivationFailed()` method now receives `Throwable` instead of `PowerAuthErrorException`. You can also expect `FailedApiException` and similar exceptions if communication with the server failed.
 
   - `PowerAuthKeychainConfiguration` class:
     - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
@@ -63,10 +69,44 @@ Notable changes on Android:
     - The value of `powerAuthErrorCode` property, or value returned in `getPowerAuthErrorCode()` is filled only in deprecated SDK functions, such as `requestSignatureWithAuthentication()`. To fix this, migrate to `authorizationHeaderForRequestWithBody()` that throws an exception in case of failure.
     - `isValid()` method is also deprecated, because the new methods, such as `authorizationHeaderForRequestWithBody()`, always returns the valid header.
 
+  - `PowerAuthMissingConfigException` is removed. The configuration is validated in `PowerAuthConfiguration.Builder.build()` method.
+
+  - `PowerAuthActivationStatus` is a new class that replaces `io.getlime.security.powerauth.core.ActivationStatus`. This change affects the following APIs:
+    - `IActivationStatusListener` callback interface now gets `PowerAuthActivationStatus` in success.
+    - `PowerAuthSDK.getLastFetchedActivationStatus()` now returns  `PowerAuthActivationStatus`.
+
+  - `PowerAuthActivationState` is a new enumeration that replaces `io.getlime.security.powerauth.core.ActivationStatus.ActivationState`:
+    - All new constants are uppercase as is usual in Java / Kotlin. For example `ActivationStatus.State_Pending_Commit` is now `PowerAuthActivationState.PENDING_COMMIT`.
+    - There's no "CREATED" state due to fact that such state is never returned from the server.
+
+- Changes in End-To-End encryption:
+  - `PowerAuthSDK.getEciesEncryptorForApplicationScope()` - method is replaced with `getEncryptorForApplicationScope()` and provides `CoreEncryptor` object in case of success.
+  - `PowerAuthSDK.getEciesEncryptorForActivationScope()` - method is replaced with `getEncryptorForActivationScope()` and provides `CoreEncryptor` object in case of success.
+  - `IGetEciesEncryptorListener` is replaced with `IGetEncryptorListener`
+  - `EciesEncryptor` is replaced with `CoreEncryptor`. The new class doesn't allow you to reuse its instance, so you have to create new encryptor for each encrypted request.
+  - `EciesCryptogram` is replaced with `CoreEncryptedRequest`
+  - `EciesMetadata` is no longer needed. All information required for request construction is now available in `CoreEncryptedRequest`.
+  - `CoreEncryptedResponse` now represents an encrypted response received from the server.
+
 - All methods in `Password` class now throws `IllegalStateException` when called on already destroyed object. In other words, if you call `destroy()` to force native C++ object cleanup, then the object is no longer available for use.
 
 - The following classes and interfaces are now deprecated:
   - `IPersistActivationWithBiometricsListener` - use `IPersistActivationListener` instead.
+
+- The following functions now takes or returns `SecureData` instead of `byte[]`:
+  - `PowerAuthSDK.persistActivationWithPassword()`
+  - `PowerAuthSDK.addBiometryFactor()`
+  - `PowerAuthSDK.setExternalEncryptionKey()`
+  - `PowerAuthSDK.addExternalEncryptionKey()`
+  - `PowerAuthConfiguration.getExternalEncryptionKey()`
+  - `PowerAuthConfiguration.Builder.externalEncryptionKey()`
+  - `PowerAuthAuthentication.getBiometryFactorRelatedKey()`
+  - `PowerAuthAuthentication.getOverriddenPossessionKey()`
+  - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
+  - `IFetchEncryptionKeyListener.onFetchEncryptionKeySucceed()`
+  - `CryptoUtils.ecdhComputeSharedSecret()`
+  - `BiometricKeyData.getDerivedData()`
+  - `BiometricKeyData.getDataToSave()`
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:
@@ -87,21 +127,6 @@ Notable changes on Android:
     - `IGetRecoveryDataListener`
     - `IConfirmRecoveryCodeListener`
     - `RecoveryData`
-
-- The following functions now takes or returns `SecureData` instead of `byte[]`:
-  - `PowerAuthSDK.persistActivationWithPassword()`
-  - `PowerAuthSDK.addBiometryFactor()`
-  - `PowerAuthSDK.setExternalEncryptionKey()`
-  - `PowerAuthSDK.addExternalEncryptionKey()`
-  - `PowerAuthConfiguration.getExternalEncryptionKey()`
-  - `PowerAuthConfiguration.Builder.externalEncryptionKey()`
-  - `PowerAuthAuthentication.getBiometryFactorRelatedKey()`
-  - `PowerAuthAuthentication.getOverriddenPossessionKey()`
-  - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
-  - `IFetchEncryptionKeyListener.onFetchEncryptionKeySucceed()`
-  - `CryptoUtils.ecdhComputeSharedSecret()`
-  - `BiometricKeyData.getDerivedData()`
-  - `BiometricKeyData.getDataToSave()`
 
 - Removed all interfaces deprecated in release `1.9.x`
 
@@ -133,8 +158,6 @@ Notable changes on iOS:
     - `verifyServerSignedData(_:signature:masterKey:)` - use `verifyDigitalSignature(signature:forData:withKey:)` method where you can specify the key for verification.
     - `signData(withDevicePrivateKey:data:callback:)` - use `calculateDigitalSignature(authentication:forData:withKey:callback:)` method where you can specify the key for signing.
     - `signJwt(withDevicePrivateKey:claims:callback:)` - use `calculateJwsSignature(authentication:forData:dataType:compact:withKey:callback:)` method where you can specify the key for signing and format of token.
-    - `eciesEncryptorForApplicationScope(callback:)` - method has been removed, use `encryptorForApplicationScope(callback:)` as replacement.
-    - `eciesEncryptorForActivationScope(callback:)` - method has been removed, use `encryptorForActivationScope(callback:)` as replacement.
     - `fetchEncryptionKey(_:index:callback:)` - method is effective only if PowerAuthSDK is running at protocol 3.3 and will be removed once we drop support for this legacy protocol. Meanwhile you can migrate to the new `fetchSecureVaultKey(authentication:keyIdentifier:callback:)` method providing a better flexibility for secure vault operations.
 
   - `PowerAuthConfiguration` class:
@@ -155,7 +178,28 @@ Notable changes on iOS:
   - `invalidateLocalAuthenticationContextAfterUse` - use new `PowerAuthBiometricConfiguration.invalidateLocalAuthenticationContextAfterUse` instead, with the same meaning.
   - Be aware that if you provide both, `PowerAuthBiometricConfiguration` and  `PowerAuthKeychainConfiguration` objects to initialize `PowerAuthSDK`, then the values from the biometric configuration takes precedence.
 
-- `PowerAuthCoreEciesEncryptor` class has been removed and replaced by `PowerAuthCoreEncryptor`. The new class doesn't allow you to reuse its instance, so you have to create new encryptor for each encrypted request.
+- `PowerAuthActivationState` enumeration no longer contains "created" case. The case is never returned from the server back to the mobile client.
+
+- Changes in End-To-End encryption:
+  - `PowerAuthSDK.eciesEncryptorForApplicationScope(callback:)` - method has been removed, use `encryptorForApplicationScope(callback:)` as replacement.
+  - `PowerAuthSDK.eciesEncryptorForActivationScope(callback:)` - method has been removed, use `encryptorForActivationScope(callback:)` as replacement.
+  - `PowerAuthCoreEciesEncryptor` class has been removed and replaced by `PowerAuthCoreEncryptor`. The new class doesn't allow you to reuse its instance, so you have to create new encryptor for each encrypted request.
+  - `PowerAuthCoreEciesCryptogram` is removed and replaced by `PowerAuthCoreEncryptedRequest` and `PowerAuthCoreEncryptedResponse`.
+  - `PowerAuthCoreEciesMetaData` is removed. You can get the encryption header in more straightforward way. Check the updated E2EE documentation for more details.
+
+- The following functions or properties now takes or returns `PowerAuthCoreData` instead of `Data`:
+  - `PowerAuthSDK.setExternalEncryptionKey()`
+  - `PowerAuthSDK.addExternalEncryptionKey()`
+  - `PowerAuthSDK.fetchEncryptionKey()`
+  - `PowerAuthConfiguration.externalEncryptionKey`
+  - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
+  - `PowerAuthAuthentication.overridenPossessionKey` property is now `customPossessionKey`
+  - `PowerAuthAuthentication.overridenBiometryKey` property is now `customBiometryKey`
+  - `PowerAuthCoreCryptoUtils.ecdhComputeSharedSecret()`
+
+- The following methods in `PowerAuthSDK` class now returns cancelable object allowing you to cancel the pending biometric authentication:
+  - `authenticateUsingBiometry(withPrompt:callback:)`
+  - `authenticateUsingBiometry(withContext:callback:)`
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:
@@ -171,20 +215,6 @@ Notable changes on iOS:
     - removed class `PowerAuthActivationRecoveryData`
     - removed property `PowerAuthActivationResult.activationRecovery`
     - removed constructor `PowerAuthActivation(recoveryCode:recoveryPuk:name:)`
-
-- The following functions or properties now takes or returns `PowerAuthCoreData` instead of `Data`:
-  - `PowerAuthSDK.setExternalEncryptionKey()`
-  - `PowerAuthSDK.addExternalEncryptionKey()`
-  - `PowerAuthSDK.fetchEncryptionKey()`
-  - `PowerAuthConfiguration.externalEncryptionKey`
-  - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
-  - `PowerAuthAuthentication.overridenPossessionKey` property is now `customPossessionKey`
-  - `PowerAuthAuthentication.overridenBiometryKey` property is now `customBiometryKey`
-  - `PowerAuthCoreCryptoUtils.ecdhComputeSharedSecret()`
-
-- The following methods in `PowerAuthSDK` class now returns cancelable object allowing you to cancel the pending biometric authentication:
-  - `authenticateUsingBiometry(withPrompt:callback:)`
-  - `authenticateUsingBiometry(withContext:callback:)`
 
 - Removed all interfaces deprecated in release `1.9.x`
 

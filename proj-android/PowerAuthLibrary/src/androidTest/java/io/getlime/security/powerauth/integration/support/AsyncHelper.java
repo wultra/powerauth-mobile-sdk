@@ -161,7 +161,7 @@ public class AsyncHelper {
         final CountDownLatch signal = new CountDownLatch(1);
         final ResultCatcher<TResult> resultCatcher = new ResultCatcher<>(signal);
         executionBlock.execute(resultCatcher);
-        final long awaitTimeout = Debug.isDebuggerConnected() ? 100 : 10; // give more time to developer to debug the things
+        final long awaitTimeout = Debug.isDebuggerConnected() ? 300 : 10; // give more time to developer to debug the things
         boolean completed = signal.await(awaitTimeout, TimeUnit.SECONDS);
         if (!completed) {
             throw new Exception("Asynchronous operation did not finish in time.");

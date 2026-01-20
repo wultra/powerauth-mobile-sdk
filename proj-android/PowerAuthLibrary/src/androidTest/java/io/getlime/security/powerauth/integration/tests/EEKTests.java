@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.RandomGenerator;
 
@@ -137,8 +136,8 @@ public class EEKTests {
         assertFalse(powerAuthSDK.hasExternalEncryptionKey());
 
         // Try to fetch activation status. This should work also without an EEK.
-        ActivationStatus status = activationHelper.fetchActivationStatus();
-        assertEquals(ActivationStatus.State_Active, status.state);
+        PowerAuthActivationStatus status = activationHelper.fetchActivationStatus();
+        assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
 
         // Now set an EEK
         powerAuthSDK.setExternalEncryptionKey(eek);

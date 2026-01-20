@@ -19,6 +19,11 @@ package io.getlime.security.powerauth.core;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Map;
+
+import io.getlime.security.powerauth.core.response.CoreActivationResult;
+import io.getlime.security.powerauth.core.response.CoreActivationStatus;
+
 /**
  * The {@code CoreSession} class provides Java interface for low-level C++ Session implementation.
  */
@@ -104,7 +109,7 @@ public class CoreSession extends NativeObject {
      * @return Version of protocol in which the session currently operates. If session has no
      *         activation, then the most up to date version is returned.
      */
-    @ProtocolVersion
+    @CoreProtocolVersion
     public native int getProtocolVersion();
 
     /**
@@ -182,12 +187,72 @@ public class CoreSession extends NativeObject {
     @Nullable
     public native String getActivationFingerprint();
 
+    /**
+     * Starts a new activation process. Once the activation is started you have to complete
+     * whole activation sequence or reset a whole session.
+     *
+     * @param L1Data JSON serializable map with L1 activation data.
+     * @param L2Data JSON serializable map with L2 activation data.
+     * @return {@link CoreRequest} object containing all required information for activation creation.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreRequest<CoreActivationResult> createActivation(@NonNull Map<String, Object> L1Data,
+                                                                     @NonNull Map<String, Object> L2Data) throws CoreException;
+
+    /**
+     * Fetch activation status from the server.
+     * @return {@link CoreTask} for getting activation status.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreTask<CoreActivationStatus> fetchActivationStatus() throws CoreException;
+
+    /**
+     * Get last activation status received from the server. This property provides the most recent
+     * activation status and does not trigger any server communication. If no such information has
+     * been received yet, {@code null} is returned.
+     * @return Last activation status received from the server
+     */
+    @Nullable
+    public native CoreActivationStatus getLastActivationStatus();
+
+    /**
+     * Confirm activation and complete the activation process with user's password and optional biometry KEK.
+     *
+     * @param password User's password.
+     * @param biometryKek Optional biometric factor KEK. If null then this session will not have biometry configured.
+     * @return {@link CoreRequest} object containing all required information for activation confirmation.
+     * @throws CoreException In case of failure.
+     */
+    @Nullable
+    public native CoreRequest<Object> confirmActivation(@NonNull Password password,
+                                                        @Nullable SecureData biometryKek) throws CoreException;
+
+    /**
+     * Remove activation from the server.
+     *
+     * @param credentials Credentials with at least two factors.
+     * @return {@link CoreRequest} object containing all required information for activation remove.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreRequest<Object> removeActivation(@NonNull CoreCredentials credentials) throws CoreException;
+
     // Factor keys management
 
     /**
      * @return {@code true} in case the biometric factor is set.
      */
     public native boolean hasBiometryFactor();
+
+    /**
+     * Verify user's password on the server.
+     * @param password User's password.
+     * @return {@link CoreRequest} object containing all required information for password verify.
+     * @throws CoreException In case of failure.
+     */
+    public native CoreRequest<Object> verifyPassword(@NonNull Password password) throws CoreException;
 
     // Services
 
@@ -228,7 +293,7 @@ public class CoreSession extends NativeObject {
      * @throws CoreException In case of failure.
      */
     @NonNull
-    public static native SecureData generateFactorKekForProtocolVersion(@ProtocolVersion int protocolVersion) throws CoreException;
+    public static native SecureData generateFactorKekForProtocolVersion(@CoreProtocolVersion int protocolVersion) throws CoreException;
 
     /**
      * Get textual representation for given protocol version. For example, for `ProtocolVersion.V3`
@@ -237,5 +302,5 @@ public class CoreSession extends NativeObject {
      * @return Textual representation for given protocol version.
      */
     @NonNull
-    public static native String maxSupportedHttpProtocolVersion(@ProtocolVersion int protocolVersion);
+    public static native String maxSupportedHttpProtocolVersion(@CoreProtocolVersion int protocolVersion);
 }

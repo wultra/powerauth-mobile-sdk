@@ -44,6 +44,11 @@
     return _status.remainingAttempts;
 }
 
+- (BOOL) isProtocolUpgradeAvailable
+{
+    return _status.isProtocolUpgradeAvailable;
+}
+
 - (NSDictionary<NSString*, NSObject*>*) customObject
 {
     return _status.customObject;

@@ -503,11 +503,6 @@ if powerAuthSDK.hasValidActivation() {
             case .deadlock:
                 print("Activation is technically blocked")
                 powerAuthSDK.removeActivationLocal()
-            case .created:
-                // Activation is just created. This is the internal
-                // state on the server and therefore can be ignored
-                // on the mobile application.
-                fallthrough
             default:
                 print("Unknown state")
             }
@@ -519,6 +514,9 @@ if powerAuthSDK.hasValidActivation() {
 
             if let customObject = status.customObject {
                 // Custom object contains any proprietary server-specific data
+            }
+            if status.isProtocolUpgradeAvailable {
+                // Upgrade to new protocol version is available
             }
 
         } else {

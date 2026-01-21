@@ -136,8 +136,8 @@ public @interface PowerAuthErrorCodes {
      * The biometric authentication did not recognize the biometric image (fingerprint, face, etc...)
      * <p>
      * Be aware that this error code is reported only during the biometric factor setup, but is never
-     * reported when PowerAuth authorization code with biometric factor is requested. This is because the
-     * PowerAuth SDK swallows this error code internally and generates a random authorization code
+     * reported when PowerAuth authentication code with biometric factor is requested. This is because the
+     * PowerAuth SDK swallows this error code internally and generates a random authentication code
      * and pretends that everything is OK. The result is that a counter of failed attempts on the server
      * is increased, so the attacker has a limited ability to fool the biometric sensor.
      */

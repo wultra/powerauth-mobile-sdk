@@ -151,7 +151,7 @@ public class BiometricAuthenticationRequest {
     /**
      * @return Application provided key which will be protected by the biometric key. The content
      * depends on whether the key is being encrypted (for key setup procedure) or decrypted (for
-     * a authorization code calculation).
+     * a authentication code calculation).
      */
     public @NonNull SecureData getRawKeyData() {
         return rawKeyData;

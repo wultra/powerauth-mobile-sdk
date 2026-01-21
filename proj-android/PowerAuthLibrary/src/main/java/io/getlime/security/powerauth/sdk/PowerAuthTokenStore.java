@@ -225,14 +225,14 @@ public class PowerAuthTokenStore {
     private @Nullable PowerAuthToken createAccessToken(@NonNull Context context, @NonNull PowerAuthPrivateTokenData tokenData, @NonNull PowerAuthAuthentication authentication) {
         if (tokenData.authenticationFactors != 0) {
             // Token data contains information about factors.
-            if (tokenData.authenticationFactors != authentication.getAuthorizationCodeFactorsMask()) {
+            if (tokenData.authenticationFactors != authentication.getAuthenticationCodeFactorsMask()) {
                 PowerAuthLog.e("Using different PowerAuthAuthentication for token '" + tokenData.name + "' creation is not allowed.");
                 return null;
             }
         } else {
             // Token was created in OLD SDK, so we should upgrade data and assign a currently requested authentication factors.
             PowerAuthLog.d("PowerAuthTokenStore: Upgrading authentication data for token '" + tokenData.name + "'");
-            tokenData = new PowerAuthPrivateTokenData(tokenData.name, tokenData.identifier, tokenData.secret, tokenData.activationId, authentication.getAuthorizationCodeFactorsMask());
+            tokenData = new PowerAuthPrivateTokenData(tokenData.name, tokenData.identifier, tokenData.secret, tokenData.activationId, authentication.getAuthenticationCodeFactorsMask());
             storeTokenData(context, tokenData, true);
         }
         return new PowerAuthToken(this, sdk.getTimeSynchronizationService(), tokenData);
@@ -266,7 +266,7 @@ public class PowerAuthTokenStore {
         // Try to find grouped task in task map.
         GetAccessTokenTask groupedTask = createTokenRequests.get(tokenName);
         if (groupedTask != null) {
-            if (groupedTask.authenticationFactors != authentication.getAuthorizationCodeFactorsMask()) {
+            if (groupedTask.authenticationFactors != authentication.getAuthenticationCodeFactorsMask()) {
                 PowerAuthLog.e("Using different PowerAuthAuthentication for token '" + tokenName + "' creation is not allowed.");
                 return null;
             }
@@ -277,10 +277,10 @@ public class PowerAuthTokenStore {
             // Prepare activationID in advance, to do not store null when activation is suddenly
             // removed during the operation.
             final String activationIdentifier = sdk.getActivationIdentifier();
-            final int authenticationFactors = authentication.getAuthorizationCodeFactorsMask();
+            final int authenticationFactors = authentication.getAuthenticationCodeFactorsMask();
 
             // Create new grouped task
-            groupedTask = new GetAccessTokenTask(authentication.getAuthorizationCodeFactorsMask(), lock, sdk.getCallbackDispatcher(), new GetAccessTokenTask.Listener() {
+            groupedTask = new GetAccessTokenTask(authentication.getAuthenticationCodeFactorsMask(), lock, sdk.getCallbackDispatcher(), new GetAccessTokenTask.Listener() {
 
                 @Override
                 public void onTaskStart(@NonNull final GetAccessTokenTask groupedTask) {
@@ -494,7 +494,7 @@ public class PowerAuthTokenStore {
     }
 
     /**
-     * Generate authorization header with token with given name. Unlike {@link PowerAuthToken#generateTokenHeader()}, this
+     * Generate authentication header with token with given name. Unlike {@link PowerAuthToken#generateTokenHeader()}, this
      * asynchronous function guarantees that time used for the token digest calculation is always synchronized
      * with the server.
      *
@@ -504,10 +504,10 @@ public class PowerAuthTokenStore {
      * @return {@code ICancelable} associated with the time synchronization.
      */
     @NonNull
-    public ICancelable generateAuthorizationHeader(@NonNull final Context context, @NonNull String tokenName, @NonNull IGenerateTokenHeaderListener listener) {
+    public ICancelable generateAuthenticationHeader(@NonNull final Context context, @NonNull String tokenName, @NonNull IGenerateTokenHeaderListener listener) {
         // Prepare cancelable task and completion closure.
         final CompositeCancelableTask cancelableTask = new CompositeCancelableTask(true);
-        final IBiConsumer<Throwable, PowerAuthAuthorizationHttpHeader> taskCompletion = (Throwable t, PowerAuthAuthorizationHttpHeader header) -> {
+        final IBiConsumer<Throwable, PowerAuthHttpHeader> taskCompletion = (Throwable t, PowerAuthHttpHeader header) -> {
             sdk.getCallbackDispatcher().dispatchCallback(() -> {
                 if (cancelableTask.setCompleted()) {
                     // Execute only if cancelable task is not canceled

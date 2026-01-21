@@ -45,6 +45,9 @@ import io.getlime.security.powerauth.system.PowerAuthSystem;
  */
 public class PowerAuthTestHelper {
 
+    public static final String PA_VERSION3_HEADER = "3.3";
+    public static final String PA_VERSION4_HEADER = "4.0";
+
     private final @NonNull Context context;
     private final @NonNull PowerAuthTestConfig testConfig;
     private final @NonNull PowerAuthServerApi serverApi;
@@ -588,7 +591,10 @@ public class PowerAuthTestHelper {
      * @return Expected protocol version for HTTP headers.
      */
     public @NonNull String getProtocolVersionForHeader() {
-        return testConfig.getServerVersion().maxProtocolVersion.versionForHeader;
+        if (sharedSdk.getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256) {
+            return PA_VERSION3_HEADER;
+        }
+        return PA_VERSION4_HEADER;
     }
 
     /**

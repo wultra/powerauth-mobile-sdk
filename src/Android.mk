@@ -220,7 +220,6 @@ LOCAL_SRC_FILES := \
 	PowerAuthJni/SecureDataJNI.cpp \
 	\
 	PowerAuthJni/ActivationCodeUtilJNI.cpp \
-	PowerAuthJni/TokenCalculatorJNI.cpp \
 	PowerAuthJni/CryptoUtilsJNI.cpp \
 	PowerAuthJni/EcPrivateKeyJNI.cpp \
 	PowerAuthJni/EcPublicKeyJNI.cpp

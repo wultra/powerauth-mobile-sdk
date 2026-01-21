@@ -313,6 +313,136 @@ CC7_JNI_METHOD_PARAMS(jobject, verifyPassword, jobject password)
     NH_CATCH(nullptr)
 }
 
+// Authentication
+
+CC7_JNI_METHOD_PARAMS(jobject, calculateOnlineAuthenticationHeader, jobject credentials, jstring uriIdentifier, jstring httpMethod, jbyteArray requestBody)
+{
+    NH_TRY
+    {
+        jni.requireParameter(credentials, "credentials");
+        jni.requireParameter(uriIdentifier, "uriIdentifier");
+        jni.requireParameter(httpMethod, "httpMethod");
+        auto& specs = NH_SPECS();
+        auto result = THIS_OBJ()->calculateOnlineAuthenticationHeader(
+                *jni.fromJava<Credentials>(specs.coreCredentials, credentials),
+                jni.fromJava(uriIdentifier),
+                jni.fromJava(httpMethod),
+                jni.fromJava(requestBody));
+        return jni.createObject(specs.coreHttpHeader.methods.init,
+                                jni.toJava(result.headerName),
+                                jni.toJava(result.headerValue));
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, calculateOfflineAuthenticationCode, jobject credentials, jstring uriIdentifier, jstring offlineNonce, jint codeLength, jbyteArray data)
+{
+    NH_TRY
+    {
+        jni.requireParameter(credentials, "credentials");
+        jni.requireParameter(uriIdentifier, "uriIdentifier");
+        jni.requireParameter(offlineNonce, "offlineNonce");
+        auto& specs = NH_SPECS();
+        auto result = THIS_OBJ()->calculateOfflineAuthenticationCode(
+                *jni.fromJava<Credentials>(specs.coreCredentials, credentials),
+                jni.fromJava(uriIdentifier),
+                jni.fromJava(offlineNonce),
+                jni.fromJava(data),
+                (size_t)codeLength);
+        return jni.toJava(result);
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jbyteArray, normalizeGetRequestParameters, jobject parameters)
+{
+    NH_TRY
+    {
+        if (parameters == nullptr) {
+            return nullptr;
+        }
+        // Convert Map<String, String> into std::map<std::string, std::string>
+        std::map<std::string, std::string> map;
+        auto& specs = jni.commonSpecs();
+        auto wrapped = jni.fromJava(parameters);
+        auto entry_set = jni.fromJava(wrapped.callObject(specs.specMap.methods.entrySet));
+        auto iterator = jni.fromJava(entry_set.callObject(specs.specSet.methods.iterator));
+        while (iterator.callBoolean(specs.specIterator.methods.hasNext)) {
+            auto entry = jni.fromJava(iterator.callObject(specs.specIterator.methods.next));
+            auto key = entry.callString(specs.specMapEntry.methods.getKey);
+            auto value = entry.callString(specs.specMapEntry.methods.getValue);
+            map[key] = value;
+            // cleanup
+            jni.releaseLocal(entry);
+        }
+
+        auto result = THIS_OBJ()->getAuthenticationService()->normalizeGetRequestParameters(map);
+        return jni.toJava(result);
+    }
+    NH_CATCH(nullptr)
+}
+
+// Tokens
+
+CC7_JNI_METHOD_PARAMS(jobject, calculateTokenHeader, jstring tokenIdentifier, jbyteArray tokenSecret)
+{
+    NH_TRY
+    {
+        jni.requireParameter(tokenIdentifier, "tokenIdentifier");
+        jni.requireParameter(tokenSecret, "tokenSecret");
+        auto result = THIS_OBJ()->calculateTokenHeader(jni.fromJava(tokenIdentifier), jni.fromJava(tokenSecret));
+        return jni.createObject(NH_SPECS().coreHttpHeader.methods.init,
+                                jni.toJava(result.headerName),
+                                jni.toJava(result.headerValue));
+    }
+    NH_CATCH(nullptr)
+}
+
+/// Convert auth factors to factor mask used in token data serialization. See PowerAuthPrivateTokenData impl.
+static jint FactorsToMask(AuthFactors factors)
+{
+    switch (factors) {
+        case powerAuth::AuthFactors::POSSESSION:
+            return 1;
+        case powerAuth::AuthFactors::POSSESSION_KNOWLEDGE:
+            return 1 | 2;
+        case powerAuth::AuthFactors::POSSESSION_BIOMETRY:
+            return 1 | 4;
+    }
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, createAccessToken, jobject credentials)
+{
+    NH_TRY
+    {
+        jni.requireParameter(credentials, "credentials");
+        auto& specs = NH_SPECS();
+        auto request = THIS_OBJ()->createAccessToken(jni.fromJava<Credentials>(specs.coreCredentials, credentials));
+        return BuildCoreRequest(jni, request, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            auto result = std::dynamic_pointer_cast<GetAccessTokenResponse>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No GetAccessTokenResponse object created");
+            }
+            return jni.createObject(specs.respTokenData.methods.init,
+                                    FactorsToMask(result->getFactors()),
+                                    jni.toJava(result->getIdentifier()),
+                                    jni.toJava(result->getSecret()));
+        });
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, removeAccessToken, jstring tokenIdentifier)
+{
+    NH_TRY
+    {
+        jni.requireParameter(tokenIdentifier, "tokenIdentifier");
+        auto request = THIS_OBJ()->removeAccessToken(jni.fromJava(tokenIdentifier));
+        return BuildCoreRequest(jni, request);
+    }
+    NH_CATCH(nullptr)
+}
+
 // Services
 
 CC7_JNI_METHOD(jobject, getEncryptorFactory)

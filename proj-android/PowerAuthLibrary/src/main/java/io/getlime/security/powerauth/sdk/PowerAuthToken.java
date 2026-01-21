@@ -19,14 +19,13 @@ package io.getlime.security.powerauth.sdk;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import io.getlime.security.powerauth.core.TokenCalculator;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
- * The <code>PowerAuthToken</code> class generates a token based authorization headers.
+ * The <code>PowerAuthToken</code> class generates a token based authentication headers.
  * You have to use {@code PowerAuthTokenStore} to get an instance of this class.
  * <p>
  * The whole interface is thread safe.
@@ -115,29 +114,29 @@ public class PowerAuthToken {
     }
 
     /**
-     * Generates a new HTTP header for token based authorization.
+     * Generates a new HTTP header for token based authentication.
      *
-     * @return calculated HTTP authorization header.
+     * @return calculated HTTP authentication header.
      *
      * @deprecated Use {@link #generateTokenHeader()} instead.
      */
     @Deprecated // 2.0.0
     public @NonNull PowerAuthAuthorizationHttpHeader generateHeader() {
         try {
-            return generateTokenHeader();
+            return new PowerAuthAuthorizationHttpHeader(generateTokenHeader());
         } catch (PowerAuthErrorException e) {
-            return PowerAuthAuthorizationHttpHeader.createError(e.getPowerAuthErrorCode());
+            return new PowerAuthAuthorizationHttpHeader(e.getPowerAuthErrorCode());
         }
     }
 
     /**
-     * Generates a new HTTP header for token based authorization.
+     * Generates a new HTTP header for token based authentication.
      *
-     * @return calculated HTTP authorization header.
+     * @return calculated HTTP authentication header.
      *
      * @throws PowerAuthErrorException In case the token header cannot be generated.
      */
-    public @NonNull PowerAuthAuthorizationHttpHeader generateTokenHeader() throws PowerAuthErrorException {
+    public @NonNull PowerAuthHttpHeader generateTokenHeader() throws PowerAuthErrorException {
         if (!this.isValid()) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_TOKEN);
         }
@@ -147,11 +146,7 @@ public class PowerAuthToken {
         if (!timeSynchronizationService.isTimeSynchronized()) {
             PowerAuthLog.w("PowerAuthToken: Time is not synchronized yet.");
         }
-        String headerValue = TokenCalculator.calculateTokenValue(tokenData, timeSynchronizationService.getCurrentTime());
-        if (headerValue == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.SIGNATURE_ERROR, "Failed to calculate token header.");
-        }
-        return PowerAuthAuthorizationHttpHeader.createTokenHeader(headerValue);
+        throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented");
     }
 
     /**

@@ -24,13 +24,12 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
+import io.getlime.security.powerauth.sdk.PowerAuthHttpHeader;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class SignatureHelper {
+public class AuthenticationHelper {
 
     /**
      * Normalize data for online signature verification.
@@ -86,8 +85,8 @@ public class SignatureHelper {
      * @param header Token header.
      * @return Key-Value components.
      */
-    public @NonNull Map<String, String> parseAuthorizationHeader(@NonNull PowerAuthAuthorizationHttpHeader header) {
-        String value = header.value;
+    public @NonNull Map<String, String> parseAuthenticationHeader(@NonNull PowerAuthHttpHeader header) {
+        String value = header.getValue();
         assertNotNull(value);
         assertTrue(value.startsWith("PowerAuth "));
         value = value.substring(10);

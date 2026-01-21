@@ -21,22 +21,22 @@ import androidx.annotation.NonNull;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
- * Listener for offline authorization code calculation.
+ * Listener for offline authentication code calculation.
  */
-public interface IOfflineAuthorizationCodeListener {
+public interface IOfflineAuthenticationCodeListener {
     /**
-     * Called when offline authorization code calculation succeeds.
+     * Called when offline authentication code calculation succeeds.
      *
-     * @param authorizationCode the calculated offline authorization code.
+     * @param authenticationCode the calculated offline authentication code.
      */
     @MainThread
-    void onOfflineAuthorizationCodeSucceed(@NonNull String authorizationCode);
+    void onOfflineAuthenticationCodeSucceed(@NonNull String authenticationCode);
 
     /**
-     * Called when offline authorization code calculation fails.
+     * Called when offline authentication code calculation fails.
      *
-     * @param error error that occurred during the authorization code calculation.
+     * @param error error that occurred during the authentication code calculation.
      */
     @MainThread
-    void onOfflineAuthorizationCodeFailed(@NonNull PowerAuthErrorException error);
+    void onOfflineAuthenticationCodeFailed(@NonNull PowerAuthErrorException error);
 }

@@ -24,13 +24,7 @@ import java.lang.annotation.RetentionPolicy;
 import static io.getlime.security.powerauth.core.CoreProtocolVersion.*;
 
 /**
- * The <code>CoreProtocolVersion</code> enum defines PowerAuth protocol version. The main difference
- * between V2 &amp; V3 is that V3 is using hash-based counter instead of linear one,
- * and all E2EE tasks are now implemented by ECIES.
- * <p>
- * This version of SDK is supporting V2 protocol in very limited scope, where only
- * the V2 authorization code calculations are supported. Basically, you cannot connect
- * to V2 servers with V3 SDK.
+ * The <code>CoreProtocolVersion</code> enum defines PowerAuth protocol version.
  */
 @Retention(RetentionPolicy.SOURCE)
 @IntDef({NA, V2, V3, V4})
@@ -42,7 +36,7 @@ public @interface CoreProtocolVersion {
     int NA = 0;
 
     /**
-     * Protocol version 2
+     * Protocol version 2 (not supported)
      */
     int V2 = 2;
 

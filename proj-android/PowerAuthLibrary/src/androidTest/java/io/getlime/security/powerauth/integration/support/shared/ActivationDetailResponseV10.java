@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.integration.support.shared;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -199,7 +200,11 @@ public class ActivationDetailResponseV10 {
         out.setEncryptedStatusBlob(encryptedStatusBlob);
         out.setEncryptedStatusBlobNonce(encryptedStatusBlobNonce);
         out.setActivationCode(activationCode);
-        out.setActivationSignatures(Map.of(Activation.SIG_ES256, activationSignature));
+        if (activationSignature != null) {
+            out.setActivationSignatures(Map.of(Activation.SIG_ES256, activationSignature));
+        } else {
+            out.setActivationSignatures(Collections.emptyMap());
+        }
         out.setDevicePublicKeyFingerprint(devicePublicKeyFingerprint);
         out.setProtocolVersion(protocolVersion);
         return out;

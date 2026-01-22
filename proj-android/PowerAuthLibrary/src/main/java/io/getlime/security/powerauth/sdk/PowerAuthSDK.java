@@ -351,7 +351,7 @@ public class PowerAuthSDK {
             // Biometry
             final SecureData biometricKek = authentication.getBiometryFactorRelatedKey();
             if (biometricKek == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Biometric factor key is not fetched in advance.");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Biometric factor key is not fetched in advance.");
             }
             return CoreCredentials.biometry(biometricKek);
         }
@@ -1378,7 +1378,6 @@ public class PowerAuthSDK {
      * It is recommended to call this method from the context of the SDK-provided serial executor to avoid counter
      * de-synchronization. See the documentation for {@link #getSerialExecutor()} for more details.
      *
-     * @param context        Context.
      * @param authentication An authentication instance specifying which factors should be used to authenticate the request.
      * @param method         HTTP method used for the authentication code computation.
      * @param uriId          URI identifier.
@@ -1388,8 +1387,7 @@ public class PowerAuthSDK {
      *                       returned in {@link PowerAuthErrorException#getPowerAuthErrorCode()} method.
      */
     @NonNull
-    public PowerAuthHttpHeader authenticationHeaderForRequestWithBody(@NonNull Context context,
-                                                                      @NonNull PowerAuthAuthentication authentication,
+    public PowerAuthHttpHeader authenticationHeaderForRequestWithBody(@NonNull PowerAuthAuthentication authentication,
                                                                       @NonNull String method,
                                                                       @NonNull String uriId,
                                                                       @Nullable byte[] body) throws PowerAuthErrorException {
@@ -1409,7 +1407,6 @@ public class PowerAuthSDK {
      * It is recommended to call this method from the context of the SDK-provided serial executor to avoid counter
      * de-synchronization. See the documentation for {@link #getSerialExecutor()} for more details.
      *
-     * @param context        Context.
      * @param authentication An authentication instance specifying which factors should be used to authenticate the request.
      * @param method         HTTP method used for the authentication code computation.
      * @param uriId          URI identifier.
@@ -1419,8 +1416,7 @@ public class PowerAuthSDK {
      *                       returned in {@link PowerAuthErrorException#getPowerAuthErrorCode()} method.
      */
     @NonNull
-    public PowerAuthHttpHeader authenticationHeaderForRequestWithParams(@NonNull Context context,
-                                                                        @NonNull PowerAuthAuthentication authentication,
+    public PowerAuthHttpHeader authenticationHeaderForRequestWithParams(@NonNull PowerAuthAuthentication authentication,
                                                                         @NonNull String method,
                                                                         @NonNull String uriId,
                                                                         @Nullable Map<String, String> params) throws PowerAuthErrorException {
@@ -1435,7 +1431,7 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Computes the offline authentication code for a given HTTP method, URI identifier, and HTTP request body using
+     * Computes the offline authentication code for a given URI identifier, and HTTP request body using
      * the provided authentication information.
      * <p>
      * Unlike methods for calculating an authentication header for an online HTTP request, you don't need to authenticate
@@ -1478,16 +1474,12 @@ public class PowerAuthSDK {
                         if (task.isCancelled()) {
                             return;
                         }
-                        final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
-                        final int codeLength = mConfiguration.getOfflineAuthenticationCodeComponentLength();
-                        final String code = mSession.calculateOfflineAuthenticationCode(credentials, uriId, nonce, codeLength, body);
-                        taskCompletion.accept(null, code);
+                        final String authCode = calculateOfflineAuthenticationCode(authentication, uriId, nonce, body);
+                        taskCompletion.accept(null, authCode);
                         throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented");
                     } catch (PowerAuthErrorException exception) {
                         // Authentication code calculation failed.
                         taskCompletion.accept(exception, null);
-                    } catch (CoreException exception) {
-                        taskCompletion.accept(PowerAuthErrorException.wrapException(exception), null);
                     }
                 });
             } catch (PowerAuthErrorException e) {
@@ -1525,6 +1517,30 @@ public class PowerAuthSDK {
         return task;
     }
 
+    /**
+     * Calculate offline authentication code.
+     *
+     * @param authentication Authentication object.
+     * @param uriId URI Identifier.
+     * @param nonce Offline nonce in Base64 format.
+     * @param body Data to sign.
+     * @return Human readable authentication code.
+     * @throws PowerAuthErrorException In case of failure.
+     */
+    @NonNull
+    private String calculateOfflineAuthenticationCode(@NonNull PowerAuthAuthentication authentication,
+                                                      @NonNull String uriId,
+                                                      @NonNull String nonce,
+                                                      @Nullable byte[] body) throws PowerAuthErrorException {
+        try {
+            final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
+            final int codeLength = mConfiguration.getOfflineAuthenticationCodeComponentLength();
+            return mSession.calculateOfflineAuthenticationCode(credentials, uriId, nonce, codeLength, body);
+        } catch (CoreException e) {
+            throw PowerAuthErrorException.wrapException(e);
+        }
+    }
+
     // Deprecated signatures
 
     /**
@@ -1535,12 +1551,12 @@ public class PowerAuthSDK {
      * @param uriId          URI identifier.
      * @param params         GET request query parameters
      * @return HTTP header with PowerAuth authentication code when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
-     * @deprecated Use {@link #authenticationHeaderForRequestWithParams(Context, PowerAuthAuthentication, String, String, Map)} for replacement.
+     * @deprecated Use {@link #authenticationHeaderForRequestWithParams(PowerAuthAuthentication, String, String, Map)} for replacement.
      */
     @Deprecated // 2.0.0
     public @NonNull PowerAuthAuthorizationHttpHeader requestGetSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, Map<String, String> params) {
         try {
-            return new PowerAuthAuthorizationHttpHeader(authenticationHeaderForRequestWithParams(context, authentication, "GET", uriId, params));
+            return new PowerAuthAuthorizationHttpHeader(authenticationHeaderForRequestWithParams(authentication, "GET", uriId, params));
         } catch (PowerAuthErrorException e) {
             return new PowerAuthAuthorizationHttpHeader(e.getPowerAuthErrorCode());
         }
@@ -1555,12 +1571,12 @@ public class PowerAuthSDK {
      * @param uriId          URI identifier.
      * @param body           HTTP request body.
      * @return HTTP header with PowerAuth authentication signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
-     * @deprecated Use {@link #authenticationHeaderForRequestWithBody(Context, PowerAuthAuthentication, String, String, byte[])} for replacement.
+     * @deprecated Use {@link #authenticationHeaderForRequestWithBody(PowerAuthAuthentication, String, String, byte[])} for replacement.
      */
     @Deprecated // 2.0.0
     public @NonNull PowerAuthAuthorizationHttpHeader requestSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String method, String uriId, byte[] body) {
         try {
-            return new PowerAuthAuthorizationHttpHeader(authenticationHeaderForRequestWithBody(context, authentication, method, uriId, body));
+            return new PowerAuthAuthorizationHttpHeader(authenticationHeaderForRequestWithBody(authentication, method, uriId, body));
         } catch (PowerAuthErrorException e) {
             return new PowerAuthAuthorizationHttpHeader(e.getPowerAuthErrorCode());
         }
@@ -1583,14 +1599,12 @@ public class PowerAuthSDK {
             PowerAuthLog.e("offlineSignatureWithAuthentication: 'nonce' parameter is required.");
             return null;
         }
-
+        if (uriId == null) {
+            PowerAuthLog.e("offlineSignatureWithAuthentication: 'uriId' parameter is required.");
+            return null;
+        }
         try {
-//            final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce, mConfiguration.getOfflineAuthorizationCodeComponentLength());
-//            final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, false);
-//            // In case of success, just return the signature code.
-//            return signatureResult.signatureCode;
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented");
-
+            return calculateOfflineAuthenticationCode(authentication, uriId, nonce, body);
         } catch (PowerAuthErrorException e) {
             PowerAuthLog.e("offlineSignatureWithAuthentication: Failed at: " + e.getMessage());
             return null;

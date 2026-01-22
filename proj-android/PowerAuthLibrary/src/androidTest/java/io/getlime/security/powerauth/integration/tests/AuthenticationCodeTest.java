@@ -214,7 +214,7 @@ public class AuthenticationCodeTest {
             final String method = (iteration & 1) == 0 ? "POST" : "GET";
 
             final byte[] dataToSign = testString.getBytes(Charset.defaultCharset());
-            final PowerAuthHttpHeader onlineSignature = powerAuthSDK.authenticationHeaderForRequestWithBody(context, authentication, method, uriId, dataToSign);
+            final PowerAuthHttpHeader onlineSignature = powerAuthSDK.authenticationHeaderForRequestWithBody(authentication, method, uriId, dataToSign);
             assertNotNull(onlineSignature);
             assertEquals("X-PowerAuth-Authorization", onlineSignature.getKey());
 

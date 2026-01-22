@@ -24,7 +24,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 /**
  * Object representing a HTTP authentication header.
  *
- * This class is deprecated. Please migrate your code to use new API producing
+ * This class is deprecated. Please migrate your code to use new API functions producing
  * {@link PowerAuthHttpHeader} at output.
  */
 @Deprecated // 2.0.0

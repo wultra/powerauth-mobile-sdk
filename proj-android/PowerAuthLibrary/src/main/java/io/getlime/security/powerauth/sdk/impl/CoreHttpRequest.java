@@ -88,6 +88,8 @@ public class CoreHttpRequest<TResult> implements ICancelable {
     @NonNull
     private final CoreRequest<TResult> coreRequest;
     @NonNull
+    private final Runnable saveSessionState;
+    @NonNull
     private final ICompletion<TResult> completion;
     private boolean canceled = false;
     private boolean done = false;
@@ -97,16 +99,19 @@ public class CoreHttpRequest<TResult> implements ICancelable {
      * @param baseUrl Base URL.
      * @param clientConfiguration HTTP client configuration.
      * @param coreRequest {@link CoreRequest} object.
+     * @param saveSessionState Callback called when session state needs to be saved.
      * @param completion Completion callback.
      */
     public CoreHttpRequest(
             @NonNull String baseUrl,
             @NonNull PowerAuthClientConfiguration clientConfiguration,
             @NonNull CoreRequest<TResult> coreRequest,
+            @NonNull Runnable saveSessionState,
             @NonNull ICompletion<TResult> completion) {
         this.baseUrl = baseUrl;
         this.clientConfiguration = clientConfiguration;
         this.coreRequest = coreRequest;
+        this.saveSessionState = saveSessionState;
         this.completion = completion;
     }
 
@@ -136,6 +141,11 @@ public class CoreHttpRequest<TResult> implements ICancelable {
             }
             // Prepare core request
             coreRequest.prepareRequest();
+
+            // Save session's state after signature calculation
+            if (coreRequest.isAuthenticated()) {
+                saveSessionState.run();
+            }
 
             final URL requestUrl = new URL(baseUrl + coreRequest.getRelativePath());
             final byte[] requestBody = coreRequest.getRequestBody();
@@ -294,7 +304,7 @@ public class CoreHttpRequest<TResult> implements ICancelable {
                 // If JSON root is available, then try to deserialize Error object from the response
                 final JsonElement responseObjectElement = jsonRoot.get("responseObject");
                 if (responseObjectElement != null && responseObjectElement.isJsonObject()) {
-                    final io.getlime.core.rest.model.base.entity.Error errorResponse = serialization.getGson().fromJson(responseObjectElement, TypeToken.get(Error.class).getType());
+                    final Error errorResponse = serialization.getGson().fromJson(responseObjectElement, TypeToken.get(Error.class).getType());
                     return new ErrorResponseApiException(errorResponse, responseCode, responseString, jsonRoot);
                 }
             } catch (JsonParseException e) {
@@ -400,10 +410,10 @@ public class CoreHttpRequest<TResult> implements ICancelable {
             final Map<String,List<String>> prop = hasConnection ? connection.getRequestProperties() : null;
             final String propStr = prop == null ? "<empty>" : prop.toString();
             if (encrypted) {
-                PowerAuthLog.d("HTTP %s request%s: %s\n- Headers: %s- Body: <encrypted>", method, signedEncrypted, url, propStr);
+                PowerAuthLog.d("HTTP %s request%s: -> %s\n- Headers: %s- Body: <encrypted>", method, signedEncrypted, url, propStr);
             } else {
                 final String bodyStr = requestData == null ? "<empty>" : new String(requestData, Charset.defaultCharset());
-                PowerAuthLog.d("HTTP %s request%s: %s\n- Headers: %s\n- Body: %s", method, signedEncrypted, url, propStr, bodyStr);
+                PowerAuthLog.d("HTTP %s request%s: -> %s\n- Headers: %s\n- Body: %s", method, signedEncrypted, url, propStr, bodyStr);
             }
         }
     }

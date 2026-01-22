@@ -20,9 +20,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.util.Base64;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+
+import io.getlime.security.powerauth.core.CoreProtocolVersion;
 
 
 /**
@@ -51,24 +52,33 @@ public class PowerAuthPrivateTokenData {
      * If value is equal to 0, then the token was created in older SDKs than 1.7.0.
      */
     public final int authenticationFactors;
+    /**
+     * Protocol version.
+     */
+    @CoreProtocolVersion
+    public final int protocolVersion;
 
-    private static final int SECRET_LENGTH = 16;
+    private static final int SECRET_LENGTH_V3 = 16;
+    private static final int SECRET_LENGTH_V4 = 32;
 
     public PowerAuthPrivateTokenData(
             @NonNull String name,
             @NonNull String identifier,
             @NonNull byte[] secret,
             @Nullable String activationId,
-            int authenticationFactors) {
+            int authenticationFactors,
+            @CoreProtocolVersion int protocolVersion) {
         this.name = name;
         this.identifier = identifier;
         this.secret = secret;
         this.activationId = activationId;
         this.authenticationFactors = authenticationFactors;
+        this.protocolVersion = protocolVersion;
     }
 
     public boolean hasValidData() {
-        return secret.length == SECRET_LENGTH &&
+        final int secretLength = protocolVersion >= CoreProtocolVersion.V4 ? SECRET_LENGTH_V4 : SECRET_LENGTH_V3;
+        return secret.length == secretLength &&
                !identifier.isEmpty() &&
                !name.isEmpty();
     }
@@ -150,7 +160,15 @@ public class PowerAuthPrivateTokenData {
             authenticationFactors = 0;
         }
 
-        final PowerAuthPrivateTokenData tokenData = new PowerAuthPrivateTokenData(name, identifier, secret, activationId, authenticationFactors);
+        final int protocolVersion;
+        if (secret.length == SECRET_LENGTH_V3) {
+            protocolVersion = CoreProtocolVersion.V3;
+        } else if (secret.length == SECRET_LENGTH_V4) {
+            protocolVersion = CoreProtocolVersion.V4;
+        } else {
+            return null;
+        }
+        final PowerAuthPrivateTokenData tokenData = new PowerAuthPrivateTokenData(name, identifier, secret, activationId, authenticationFactors, protocolVersion);
         return tokenData.hasValidData() ? tokenData : null;
     }
 }

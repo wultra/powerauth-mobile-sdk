@@ -54,6 +54,9 @@ Notable changes on Android:
   - `IPersistActivationListener` callback interface:
     - `onPersistActivationFailed()` method now receives `Throwable` instead of `PowerAuthErrorException`. You can also expect `FailedApiException` and similar exceptions if communication with the server failed.
 
+  - `IGenerateTokenHeaderListener` callback interface:
+    - `onGenerateTokenHeaderSucceeded()` method now receives `PowerAuthHttpHeader` object.
+
   - `PowerAuthKeychainConfiguration` class:
     - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
     - `isConfirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration` instead.

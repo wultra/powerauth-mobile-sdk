@@ -245,6 +245,9 @@ public class PowerAuthSDK {
                     timeSynchronizationService,
                     keystoreService);
 
+            // Connect HTTP client with function for save the session's state.
+            httpClient.setSaveStateCallback(instance::saveSerializedState);
+
             // Register time service for automatic reset.
             PowerAuthAppLifecycleListener.getInstance().registerTimeSynchronizationService(context, timeSynchronizationService);
             // Restore state of this SDK instance.
@@ -316,7 +319,7 @@ public class PowerAuthSDK {
         this.mBiometryKeychain = biometryKeychain;
         this.mBiometricDataMapper = biometricDataMapper;
         this.mCallbackDispatcher = callbackDispatcher;
-        this.mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, client);
+        this.mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, session, client, this::resolveCredentialsWithAuthentication);
         this.mTimeSynchronizationService = timeSynchronizationService;
         this.mServerStatusProvider = serverStatusProvider;
         this.mKeystoreService = keystoreService;
@@ -859,6 +862,7 @@ public class PowerAuthSDK {
             }
             if (request == null) {
                 // This is legit for V3 activations. Persist doesn't require HTTP communication with the server.
+                saveSerializedState();
                 dispatchCallback(listener::onPersistActivationSucceeded);
                 return null;
             }
@@ -866,6 +870,7 @@ public class PowerAuthSDK {
             return mClient.post(request, new INetworkResponseListener<>() {
                 @Override
                 public void onNetworkResponse(@Nullable Object o) {
+                    saveSerializedState();
                     listener.onPersistActivationSucceeded();
                 }
 

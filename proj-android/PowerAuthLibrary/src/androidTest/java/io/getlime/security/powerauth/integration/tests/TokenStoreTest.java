@@ -393,11 +393,11 @@ public class TokenStoreTest {
      * Calculate and validate token digest.
      *
      * @param token Token to be tested.
-     * @param expectedSignatureType Expected signature type.
+     * @param expectedAuthCodeType Expected authentication code type.
      * @return Always return true.
      * @throws Exception In case of failure.
      */
-    private boolean calculateAndValidateTokenDigest(@NonNull PowerAuthToken token, @NonNull AuthCodeType expectedSignatureType) throws Exception {
+    private boolean calculateAndValidateTokenDigest(@NonNull PowerAuthToken token, @NonNull AuthCodeType expectedAuthCodeType) throws Exception {
         assertTrue(token.canGenerateHeader());
         assertNotNull(token.getTokenName());
 
@@ -435,7 +435,7 @@ public class TokenStoreTest {
         TokenInfo tokenInfo = testHelper.getServerApi().validateToken(tokenId, digest, nonce, timestamp, version);
         assertNotNull(tokenInfo);
         assertTrue(tokenInfo.isTokenValid());
-        assertEquals(expectedSignatureType, tokenInfo.getSignatureType());
+        assertEquals(expectedAuthCodeType, tokenInfo.getAuthenticationCodeType());
 
         return true;
     }

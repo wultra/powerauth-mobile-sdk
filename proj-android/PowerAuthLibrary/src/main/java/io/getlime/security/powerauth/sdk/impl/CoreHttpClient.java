@@ -32,10 +32,12 @@ import io.getlime.security.powerauth.sdk.IPowerAuthTimeSynchronizationService;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
 
 public class CoreHttpClient {
+
     private final @NonNull PowerAuthClientConfiguration configuration;
     private final @NonNull String baseUrl;
     private final @NonNull IExecutorProvider executorProvider;
     private final @NonNull ICallbackDispatcher callbackDispatcher;
+    private Runnable saveStateCallback;
     private IPowerAuthTimeSynchronizationService timeSynchronizationService;
     private IKeystoreService keystoreService;
 
@@ -83,6 +85,21 @@ public class CoreHttpClient {
             throw new IllegalStateException();
         }
         this.timeSynchronizationService = timeSynchronizationService;
+    }
+
+    public void setSaveStateCallback(@NonNull Runnable saveStateCallback) {
+        if (this.saveStateCallback != null) {
+            throw new IllegalStateException();
+        }
+        this.saveStateCallback = saveStateCallback;
+    }
+
+    @NonNull
+    Runnable getSaveStateCallback() {
+        if (saveStateCallback == null) {
+            throw new IllegalStateException("Save state callback is not set");
+        }
+        return saveStateCallback;
     }
 
     @NonNull
@@ -192,7 +209,7 @@ public class CoreHttpClient {
     private <TResponse> ICancelable postImpl(@NonNull CoreRequest<TResponse> request,
                                              @NonNull INetworkResponseListener<TResponse> listener) {
         // Create CoreHttpTask
-        final CoreHttpRequest<TResponse> task = new CoreHttpRequest<>(baseUrl, configuration, request, new CoreHttpRequest.ICompletion<>() {
+        final CoreHttpRequest<TResponse> task = new CoreHttpRequest<>(baseUrl, configuration, request, getSaveStateCallback(), new CoreHttpRequest.ICompletion<>() {
             @Override
             public void onSuccess(@Nullable TResponse tResponse) {
                 callbackDispatcher.dispatchCallback(() -> listener.onNetworkResponse(tResponse));

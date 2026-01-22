@@ -19,6 +19,8 @@ package io.getlime.security.powerauth.sdk;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import io.getlime.security.powerauth.core.CoreException;
+import io.getlime.security.powerauth.core.CoreHttpHeader;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
@@ -146,7 +148,12 @@ public class PowerAuthToken {
         if (!timeSynchronizationService.isTimeSynchronized()) {
             PowerAuthLog.w("PowerAuthToken: Time is not synchronized yet.");
         }
-        throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented");
+        try {
+            CoreHttpHeader header = tokenStore.getSession().calculateTokenHeader(tokenData.identifier, tokenData.secret);
+            return PowerAuthHttpHeader.fromCoreObject(header);
+        } catch (CoreException e) {
+            throw PowerAuthErrorException.wrapException(e);
+        }
     }
 
     /**

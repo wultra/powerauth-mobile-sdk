@@ -330,7 +330,7 @@ public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
         request.setNonce(nonce);
         request.setTimestamp(timestamp);
         request.setProtocolVersion(protocolVersion);
-        return restClient.send(request, new ValidateTokenEndpoint());
+        return restClient.send(request, new ValidateTokenEndpoint()).toTokenInfo();
     }
 
     @NonNull

@@ -24,7 +24,6 @@ import com.google.gson.reflect.TypeToken;
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
 import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
-import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 import io.getlime.security.powerauth.integration.support.shared.AuthenticationResponseV20;
 
 public class VerifyOnlineAuthCodeEndpoint implements IServerApiEndpoint<VerifyOnlineAuthCodeEndpoint.Response> {

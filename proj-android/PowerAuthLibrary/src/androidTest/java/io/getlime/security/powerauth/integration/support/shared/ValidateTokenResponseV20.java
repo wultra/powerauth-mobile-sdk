@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.integration.support.model;
+package io.getlime.security.powerauth.integration.support.shared;
+
+import androidx.annotation.NonNull;
 
 import java.util.List;
 
-public class TokenInfo {
+import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
+import io.getlime.security.powerauth.integration.support.model.TokenInfo;
 
+public class ValidateTokenResponseV20 {
     private String activationId;
     private String applicationId;
     private String userId;
@@ -73,5 +77,17 @@ public class TokenInfo {
 
     public void setTokenValid(boolean tokenValid) {
         this.tokenValid = tokenValid;
+    }
+
+    @NonNull
+    public TokenInfo toTokenInfo() {
+        TokenInfo info = new TokenInfo();
+        info.setActivationId(activationId);
+        info.setApplicationId(applicationId);
+        info.setUserId(userId);
+        info.setAuthenticationCodeType(authenticationCodeType);
+        info.setApplicationRoles(applicationRoles);
+        info.setTokenValid(tokenValid);
+        return info;
     }
 }

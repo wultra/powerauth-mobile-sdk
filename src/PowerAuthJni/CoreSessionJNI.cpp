@@ -477,4 +477,28 @@ CC7_JNI_STATIC_METHOD_PARAMS(jstring, maxSupportedHttpProtocolVersion, jint prot
     NH_CATCH_RT_ONLY(nullptr)
 }
 
+// User Info
+
+CC7_JNI_METHOD(jobject, fetchUserInfo)
+{
+    NH_TRY
+    {
+        auto request = THIS_OBJ()->fetchUserInfo();
+        return BuildCoreRequest(jni, request, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            return JsonValueToJava(jni, response_json);
+        });
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD(jobject, getLastUserInfo)
+{
+    NH_TRY
+    {
+        auto userInfo = THIS_OBJ()->lastUserInfo();
+        return cc7::jni::JsonValueToJava(jni, userInfo);
+    }
+    NH_CATCH_RT_ONLY(nullptr)
+}
+
 CC7_JNI_MODULE_CLASS_END()

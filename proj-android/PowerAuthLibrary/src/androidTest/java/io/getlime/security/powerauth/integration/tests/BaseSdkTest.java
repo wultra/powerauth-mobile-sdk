@@ -494,17 +494,24 @@ public class BaseSdkTest {
         assertTrue(powerAuthSDK.hasValidActivation());
     }
 
-    // JWT
+    // User Info
 
     @Test
     public void testUserInfo() throws Exception {
+
+        // Test the `lastFetchedUserInfo` is null before the data are fetched.
+        assertNull(powerAuthSDK.getLastFetchedUserInfo());
+
         activationHelper.createStandardActivation(true, null);
 
+        // Test that the User Info from the Activation response is stored as last fetched.
+        final UserInfo infoFromActivation = activationHelper.getCreateActivationResult().getUserInfo();
         final String userId = activationHelper.getUserId();
-        assertNotNull(activationHelper.getCreateActivationResult().getUserInfo());
+        assertNotNull(infoFromActivation);
         assertNotNull(powerAuthSDK.getLastFetchedUserInfo());
         assertEquals(userId, powerAuthSDK.getLastFetchedUserInfo().getSubject());
-        assertEquals(userId, activationHelper.getCreateActivationResult().getUserInfo().getSubject());
+        assertEquals(userId, infoFromActivation.getSubject());
+        assertEquals(infoFromActivation.getAllClaims().get("jti"), powerAuthSDK.getLastFetchedUserInfo().getAllClaims().get("jti"));
 
         // Now fetch user info from the server
         UserInfo info = AsyncHelper.await(resultCatcher -> {
@@ -521,9 +528,15 @@ public class BaseSdkTest {
             });
             assertNotNull(task);
         });
+        assertNotNull(info);
         assertEquals(userId, info.getSubject());
-        assertEquals(info, powerAuthSDK.getLastFetchedUserInfo());
+
+        // Check the last fetched User Info was updated (i.e. JWT ID was changed).
+        assertNotEquals(info.getAllClaims().get("jti"), infoFromActivation.getAllClaims().get("jti"));
+        assertEquals(info.getAllClaims().get("jti"), powerAuthSDK.getLastFetchedUserInfo().getAllClaims().get("jti"));
     }
+
+    // JWT
 
     @Test
     public void testJwtSignature() throws Exception {

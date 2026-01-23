@@ -16,15 +16,13 @@
 
 package io.getlime.security.powerauth.sdk;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.util.Base64;
+
 import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
-import com.google.gson.reflect.TypeToken;
-
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -41,12 +39,9 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.keychain.Keychain;
 import io.getlime.security.powerauth.keychain.KeychainFactory;
 import io.getlime.security.powerauth.keychain.KeychainProtection;
-import io.getlime.security.powerauth.sdk.impl.JsonSerialization;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.IExecutorProvider;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
-import io.getlime.security.powerauth.networking.model.request.*;
-import io.getlime.security.powerauth.networking.model.response.*;
 import io.getlime.security.powerauth.networking.response.*;
 import io.getlime.security.powerauth.sdk.impl.*;
 import io.getlime.security.powerauth.system.PowerAuthLog;
@@ -250,6 +245,9 @@ public class PowerAuthSDK {
                     timeSynchronizationService,
                     keystoreService);
 
+            // Connect HTTP client with function for save the session's state.
+            httpClient.setSaveStateCallback(instance::saveSerializedState);
+
             // Register time service for automatic reset.
             PowerAuthAppLifecycleListener.getInstance().registerTimeSynchronizationService(context, timeSynchronizationService);
             // Restore state of this SDK instance.
@@ -321,7 +319,7 @@ public class PowerAuthSDK {
         this.mBiometryKeychain = biometryKeychain;
         this.mBiometricDataMapper = biometricDataMapper;
         this.mCallbackDispatcher = callbackDispatcher;
-        this.mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, client);
+        this.mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, session, client, this::resolveCredentialsWithAuthentication);
         this.mTimeSynchronizationService = timeSynchronizationService;
         this.mServerStatusProvider = serverStatusProvider;
         this.mKeystoreService = keystoreService;
@@ -349,14 +347,14 @@ public class PowerAuthSDK {
      */
     private @NonNull CoreCredentials resolveCredentialsWithAuthentication(@NonNull PowerAuthAuthentication authentication) throws PowerAuthErrorException {
 
-        // Validate authentication usage for authorization code calculation.
+        // Validate authentication usage for authentication code calculation.
         authentication.validateAuthenticationUsage(false);
 
         if (authentication.useBiometricFactor()) {
             // Biometry
             final SecureData biometricKek = authentication.getBiometryFactorRelatedKey();
             if (biometricKek == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Biometric factor key is not fetched in advance.");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Biometric factor key is not fetched in advance.");
             }
             return CoreCredentials.biometry(biometricKek);
         }
@@ -446,6 +444,7 @@ public class PowerAuthSDK {
      * equal to algorithm provided in the configuration.
      * @return Current {@link PowerAuthAlgorithm}.
      */
+    @SuppressLint("WrongConstant")
     @PowerAuthAlgorithm
     public int getCurrentAlgorithm() {
         return mSession.getCurrentAlgorithm();
@@ -498,7 +497,6 @@ public class PowerAuthSDK {
      * Restores previously saved PA state.
      * @param state saved CoreSession state.
      */
-    @CheckResult
     private void restoreState(@Nullable byte[] state) throws PowerAuthErrorException {
         try {
             mSession.resetSession();
@@ -864,6 +862,7 @@ public class PowerAuthSDK {
             }
             if (request == null) {
                 // This is legit for V3 activations. Persist doesn't require HTTP communication with the server.
+                saveSerializedState();
                 dispatchCallback(listener::onPersistActivationSucceeded);
                 return null;
             }
@@ -871,6 +870,7 @@ public class PowerAuthSDK {
             return mClient.post(request, new INetworkResponseListener<>() {
                 @Override
                 public void onNetworkResponse(@Nullable Object o) {
+                    saveSerializedState();
                     listener.onPersistActivationSucceeded();
                 }
 
@@ -1374,68 +1374,72 @@ public class PowerAuthSDK {
         }
     }
 
-    // Authorization codes
+    // Authentication codes
 
     /**
-     * Computes the HTTP header containing the authorization code for an HTTP method, URI identifier, and HTTP body
+     * Computes the HTTP header containing the authentication code for an HTTP method, URI identifier, and HTTP body
      * using the provided authentication information.
      * <p>
      * It is recommended to call this method from the context of the SDK-provided serial executor to avoid counter
      * de-synchronization. See the documentation for {@link #getSerialExecutor()} for more details.
      *
-     * @param context        Context.
      * @param authentication An authentication instance specifying which factors should be used to authenticate the request.
-     * @param method         HTTP method used for the authorization code computation.
+     * @param method         HTTP method used for the authentication code computation.
      * @param uriId          URI identifier.
      * @param body           HTTP request body.
-     * @return HTTP header with PowerAuth authorization code.
+     * @return HTTP header with PowerAuth authentication code.
      * @throws PowerAuthErrorException thrown in case the failure. The reason of failure is indicated in value
      *                       returned in {@link PowerAuthErrorException#getPowerAuthErrorCode()} method.
      */
     @NonNull
-    public PowerAuthAuthorizationHttpHeader authorizationHeaderForRequestWithBody(@NonNull Context context,
-                                                                                  @NonNull PowerAuthAuthentication authentication,
-                                                                                  @NonNull String method,
-                                                                                  @NonNull String uriId,
-                                                                                  @Nullable byte[] body) throws PowerAuthErrorException {
-        throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented");
-//        final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, null, 0);
-//        final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, false);
-//        return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.getAuthHeaderValue());
+    public PowerAuthHttpHeader authenticationHeaderForRequestWithBody(@NonNull PowerAuthAuthentication authentication,
+                                                                      @NonNull String method,
+                                                                      @NonNull String uriId,
+                                                                      @Nullable byte[] body) throws PowerAuthErrorException {
+        try {
+            final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
+            final CoreHttpHeader header = mSession.calculateOnlineAuthenticationHeader(credentials, uriId, method, body);
+            return PowerAuthHttpHeader.fromCoreObject(header);
+        } catch (CoreException exception) {
+            throw PowerAuthErrorException.wrapException(exception);
+        }
     }
 
     /**
-     * Compute the HTTP header containing authorization code for HTTP method, URI identifier and HTTP query parameters
+     * Compute the HTTP header containing authentication code for HTTP method, URI identifier and HTTP query parameters
      * using provided authentication information.
      * <p>
      * It is recommended to call this method from the context of the SDK-provided serial executor to avoid counter
      * de-synchronization. See the documentation for {@link #getSerialExecutor()} for more details.
      *
-     * @param context        Context.
      * @param authentication An authentication instance specifying which factors should be used to authenticate the request.
-     * @param method         HTTP method used for the authorization code computation.
+     * @param method         HTTP method used for the authentication code computation.
      * @param uriId          URI identifier.
      * @param params         HTTP request query parameters
-     * @return HTTP header with PowerAuth authorization code.
+     * @return HTTP header with PowerAuth authentication code.
      * @throws PowerAuthErrorException thrown in case the failure. The reason of failure is indicated in value
      *                       returned in {@link PowerAuthErrorException#getPowerAuthErrorCode()} method.
      */
     @NonNull
-    public PowerAuthAuthorizationHttpHeader authorizationHeaderForRequestWithParams(@NonNull Context context,
-                                                                                    @NonNull PowerAuthAuthentication authentication,
-                                                                                    @NonNull String method,
-                                                                                    @NonNull String uriId,
-                                                                                    @Nullable Map<String, String> params) throws PowerAuthErrorException {
-        throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented");
-//        byte[] body = this.mSession.prepareKeyValueDictionaryForDataSigning(params);
-//        return authorizationHeaderForRequestWithBody(context, authentication, method, uriId, body);
+    public PowerAuthHttpHeader authenticationHeaderForRequestWithParams(@NonNull PowerAuthAuthentication authentication,
+                                                                        @NonNull String method,
+                                                                        @NonNull String uriId,
+                                                                        @Nullable Map<String, String> params) throws PowerAuthErrorException {
+        try {
+            final byte[] normalizedParams = mSession.normalizeGetRequestParameters(params);
+            final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
+            final CoreHttpHeader header = mSession.calculateOnlineAuthenticationHeader(credentials, uriId, method, normalizedParams);
+            return PowerAuthHttpHeader.fromCoreObject(header);
+        } catch (CoreException exception) {
+            throw PowerAuthErrorException.wrapException(exception);
+        }
     }
 
     /**
-     * Computes the offline authorization code for a given HTTP method, URI identifier, and HTTP request body using
+     * Computes the offline authentication code for a given URI identifier, and HTTP request body using
      * the provided authentication information.
      * <p>
-     * Unlike methods for calculating an authorization header for an online HTTP request, you don't need to authenticate
+     * Unlike methods for calculating an authentication header for an online HTTP request, you don't need to authenticate
      * with biometry in advance. This method properly handles biometric authentication if the biometric factor is requested.
      * @param context        Context.
      * @param authentication An authentication instance specifying which factors should be used to authenticate the request.
@@ -1446,27 +1450,27 @@ public class PowerAuthSDK {
      * @return Cancelable object associated with the pending biometric authentication.
      */
     @NonNull
-    public ICancelable offlineAuthorizationCode(@NonNull Context context,
-                                                @NonNull PowerAuthAuthentication authentication,
-                                                @NonNull String uriId,
-                                                @Nullable byte[] body,
-                                                @NonNull String nonce,
-                                                @NonNull IOfflineAuthorizationCodeListener listener) {
+    public ICancelable offlineAuthenticationCode(@NonNull Context context,
+                                                 @NonNull PowerAuthAuthentication authentication,
+                                                 @NonNull String uriId,
+                                                 @Nullable byte[] body,
+                                                 @NonNull String nonce,
+                                                 @NonNull IOfflineAuthenticationCodeListener listener) {
         // Prepare composite task that will cover the whole operation
         final CompositeCancelableTask task = new CompositeCancelableTask(true);
         // Prepare a completion function that dispatch result to the main thread.
-        final IBiConsumer<PowerAuthErrorException, String> taskCompletion = (PowerAuthErrorException exception, String authorizationCode) -> {
+        final IBiConsumer<PowerAuthErrorException, String> taskCompletion = (PowerAuthErrorException exception, String authenticationCode) -> {
             dispatchCallback(() -> {
                 if (task.setCompleted()) {
-                    if (authorizationCode != null) {
-                        listener.onOfflineAuthorizationCodeSucceed(authorizationCode);
+                    if (authenticationCode != null) {
+                        listener.onOfflineAuthenticationCodeSucceed(authenticationCode);
                     } else {
-                        listener.onOfflineAuthorizationCodeFailed(exception);
+                        listener.onOfflineAuthenticationCodeFailed(exception);
                     }
                 }
             });
         };
-        // Prepare execution function that compute authorization code in the serial queue
+        // Prepare execution function that compute authentication code in the serial queue
         final IConsumer<PowerAuthAuthentication> taskExecution = (PowerAuthAuthentication auth) -> {
             try {
                 // Execute calculation in the serial executor.
@@ -1475,12 +1479,11 @@ public class PowerAuthSDK {
                         if (task.isCancelled()) {
                             return;
                         }
-//                        final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce, mConfiguration.getOfflineAuthorizationCodeComponentLength());
-//                        final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, false);
-//                        taskCompletion.accept(null, signatureResult.signatureCode);
+                        final String authCode = calculateOfflineAuthenticationCode(authentication, uriId, nonce, body);
+                        taskCompletion.accept(null, authCode);
                         throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented");
                     } catch (PowerAuthErrorException exception) {
-                        // Authorization code calculation failed.
+                        // Authentication code calculation failed.
                         taskCompletion.accept(exception, null);
                     }
                 });
@@ -1513,10 +1516,34 @@ public class PowerAuthSDK {
             );
         } else {
             // Seems that authentication object is already resolved, no additional tasks are required. So execute the
-            // authorization code computation.
+            // authentication code computation.
             taskExecution.accept(authentication);
         }
         return task;
+    }
+
+    /**
+     * Calculate offline authentication code.
+     *
+     * @param authentication Authentication object.
+     * @param uriId URI Identifier.
+     * @param nonce Offline nonce in Base64 format.
+     * @param body Data to sign.
+     * @return Human readable authentication code.
+     * @throws PowerAuthErrorException In case of failure.
+     */
+    @NonNull
+    private String calculateOfflineAuthenticationCode(@NonNull PowerAuthAuthentication authentication,
+                                                      @NonNull String uriId,
+                                                      @NonNull String nonce,
+                                                      @Nullable byte[] body) throws PowerAuthErrorException {
+        try {
+            final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
+            final int codeLength = mConfiguration.getOfflineAuthenticationCodeComponentLength();
+            return mSession.calculateOfflineAuthenticationCode(credentials, uriId, nonce, codeLength, body);
+        } catch (CoreException e) {
+            throw PowerAuthErrorException.wrapException(e);
+        }
     }
 
     // Deprecated signatures
@@ -1528,15 +1555,15 @@ public class PowerAuthSDK {
      * @param authentication An authentication instance specifying what factors should be used to sign the request.
      * @param uriId          URI identifier.
      * @param params         GET request query parameters
-     * @return HTTP header with PowerAuth authorization signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
-     * @deprecated Use {@link #authorizationHeaderForRequestWithParams(Context, PowerAuthAuthentication, String, String, Map)} for replacement.
+     * @return HTTP header with PowerAuth authentication code when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
+     * @deprecated Use {@link #authenticationHeaderForRequestWithParams(PowerAuthAuthentication, String, String, Map)} for replacement.
      */
     @Deprecated // 2.0.0
     public @NonNull PowerAuthAuthorizationHttpHeader requestGetSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, Map<String, String> params) {
         try {
-            return authorizationHeaderForRequestWithParams(context, authentication, "GET", uriId, params);
+            return new PowerAuthAuthorizationHttpHeader(authenticationHeaderForRequestWithParams(authentication, "GET", uriId, params));
         } catch (PowerAuthErrorException e) {
-            return PowerAuthAuthorizationHttpHeader.createError(e.getPowerAuthErrorCode());
+            return new PowerAuthAuthorizationHttpHeader(e.getPowerAuthErrorCode());
         }
     }
 
@@ -1548,15 +1575,15 @@ public class PowerAuthSDK {
      * @param method         HTTP method used for the signature computation.
      * @param uriId          URI identifier.
      * @param body           HTTP request body.
-     * @return HTTP header with PowerAuth authorization signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
-     * @deprecated Use {@link #authorizationHeaderForRequestWithBody(Context, PowerAuthAuthentication, String, String, byte[])} for replacement.
+     * @return HTTP header with PowerAuth authentication signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
+     * @deprecated Use {@link #authenticationHeaderForRequestWithBody(PowerAuthAuthentication, String, String, byte[])} for replacement.
      */
     @Deprecated // 2.0.0
     public @NonNull PowerAuthAuthorizationHttpHeader requestSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String method, String uriId, byte[] body) {
         try {
-            return authorizationHeaderForRequestWithBody(context, authentication, method, uriId, body);
+            return new PowerAuthAuthorizationHttpHeader(authenticationHeaderForRequestWithBody(authentication, method, uriId, body));
         } catch (PowerAuthErrorException e) {
-            return PowerAuthAuthorizationHttpHeader.createError(e.getPowerAuthErrorCode());
+            return new PowerAuthAuthorizationHttpHeader(e.getPowerAuthErrorCode());
         }
     }
 
@@ -1569,7 +1596,7 @@ public class PowerAuthSDK {
      * @param body           HTTP request body.
      * @param nonce          NONCE in Base64 format
      * @return String representing a calculated signature for all involved factors. In case of error, this method returns null.
-     * @deprecated Use {@link #offlineAuthorizationCode(Context, PowerAuthAuthentication, String, byte[], String, IOfflineAuthorizationCodeListener)}
+     * @deprecated Use {@link #offlineAuthenticationCode(Context, PowerAuthAuthentication, String, byte[], String, IOfflineAuthenticationCodeListener)}
      */
     @Deprecated // 2.0.0
     public @Nullable String offlineSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, byte[] body, String nonce) {
@@ -1577,14 +1604,12 @@ public class PowerAuthSDK {
             PowerAuthLog.e("offlineSignatureWithAuthentication: 'nonce' parameter is required.");
             return null;
         }
-
+        if (uriId == null) {
+            PowerAuthLog.e("offlineSignatureWithAuthentication: 'uriId' parameter is required.");
+            return null;
+        }
         try {
-//            final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce, mConfiguration.getOfflineAuthorizationCodeComponentLength());
-//            final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, false);
-//            // In case of success, just return the signature code.
-//            return signatureResult.signatureCode;
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented");
-
+            return calculateOfflineAuthenticationCode(authentication, uriId, nonce, body);
         } catch (PowerAuthErrorException e) {
             PowerAuthLog.e("offlineSignatureWithAuthentication: Failed at: " + e.getMessage());
             return null;
@@ -2569,13 +2594,13 @@ public class PowerAuthSDK {
      * <h3>Why this matters</h3>
      *
      * The PowerAuth SDK is using that executor for serialization of signed HTTP requests, to guarantee, that only one request is processed
-     * at the time. The PowerAuth authorization codes are based on a logical counter, so this technique makes that all requests are delivered
+     * at the time. The PowerAuth authentication codes are based on a logical counter, so this technique makes that all requests are delivered
      * to the server in the right order. So, if the application is creating its own signed requests, then it's recommended to synchronize
      * them with the SDK.
      *
      * <h3>Recommended practices</h3>
      * <ul>
-     *     <li>You should calculate PowerAuth authorization code from the {@link Runnable#run()} method.
+     *     <li>You should calculate PowerAuth authentication code from the {@link Runnable#run()} method.
      *     <li>{@link Runnable#run()} should return from its execution after the HTTP request is fully processed, or at least after
      *         the response headers are received (e.g. you know that the server already did process the request)
      * </ul>

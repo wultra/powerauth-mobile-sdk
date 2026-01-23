@@ -103,12 +103,12 @@ public class PowerAuthAuthenticationTests {
     public void testPossessionOnly() throws Exception {
         PowerAuthAuthentication authentication = PowerAuthAuthentication.possession();
         assertTrue(authentication.validateAuthenticationUsage(false));
-        assertEquals(1, authentication.getAuthorizationCodeFactorsMask());
+        assertEquals(1, authentication.getAuthenticationCodeFactorsMask());
         
         authentication = PowerAuthAuthentication.possession(customPossessionKey);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
-        assertEquals(1, authentication.getAuthorizationCodeFactorsMask());
+        assertEquals(1, authentication.getAuthenticationCodeFactorsMask());
     }
 
     @Test
@@ -116,24 +116,24 @@ public class PowerAuthAuthenticationTests {
         PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword(password);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(password, authentication.getPassword());
-        assertEquals(1 + 2, authentication.getAuthorizationCodeFactorsMask());
+        assertEquals(1 + 2, authentication.getAuthenticationCodeFactorsMask());
 
         authentication = PowerAuthAuthentication.possessionWithPassword(password, customPossessionKey);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(password, authentication.getPassword());
         assertEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
-        assertEquals(1 + 2, authentication.getAuthorizationCodeFactorsMask());
+        assertEquals(1 + 2, authentication.getAuthenticationCodeFactorsMask());
 
         authentication = PowerAuthAuthentication.possessionWithPassword(stringPassword);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(password, authentication.getPassword());
-        assertEquals(1 + 2, authentication.getAuthorizationCodeFactorsMask());
+        assertEquals(1 + 2, authentication.getAuthenticationCodeFactorsMask());
 
         authentication = PowerAuthAuthentication.possessionWithPassword(stringPassword, customPossessionKey);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(password, authentication.getPassword());
         assertEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
-        assertEquals(1 + 2, authentication.getAuthorizationCodeFactorsMask());
+        assertEquals(1 + 2, authentication.getAuthenticationCodeFactorsMask());
     }
 
     @Test
@@ -141,12 +141,12 @@ public class PowerAuthAuthenticationTests {
         PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithBiometry(biometryKey);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(biometryKey, authentication.getBiometryFactorRelatedKey());
-        assertEquals(1 + 4, authentication.getAuthorizationCodeFactorsMask());
+        assertEquals(1 + 4, authentication.getAuthenticationCodeFactorsMask());
 
         authentication = PowerAuthAuthentication.possessionWithBiometry(biometryKey, customPossessionKey);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(biometryKey, authentication.getBiometryFactorRelatedKey());
         assertEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
-        assertEquals(1 + 4, authentication.getAuthorizationCodeFactorsMask());
+        assertEquals(1 + 4, authentication.getAuthenticationCodeFactorsMask());
     }
 }

@@ -58,7 +58,7 @@ public class PowerAuthConfigurationBuilderTest {
         assertEquals("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", configuration.getConfiguration());
         assertNull(configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
-        assertEquals(8, configuration.getOfflineAuthorizationCodeComponentLength());
+        assertEquals(8, configuration.getOfflineAuthenticationCodeComponentLength());
     }
 
     @Test
@@ -82,27 +82,27 @@ public class PowerAuthConfigurationBuilderTest {
     }
 
     @Test
-    public void testOfflineAuthorizationCodeComponentLength() throws Exception {
+    public void testOfflineAuthenticationCodeComponentLength() throws Exception {
         PowerAuthConfiguration configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",
                 "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
-                .offlineAuthorizationCodeComponentLength(4)
+                .offlineAuthenticationCodeComponentLength(4)
                 .build();
-        assertEquals(4, configuration.getOfflineAuthorizationCodeComponentLength());
+        assertEquals(4, configuration.getOfflineAuthenticationCodeComponentLength());
         // Invalid values
         configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",
                 "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
-                .offlineAuthorizationCodeComponentLength(3)
+                .offlineAuthenticationCodeComponentLength(3)
                 .build();
         assertFalse(configuration.validateConfiguration());
         configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",
                 "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
-                .offlineAuthorizationCodeComponentLength(9)
+                .offlineAuthenticationCodeComponentLength(9)
                 .build();
         assertFalse(configuration.validateConfiguration());
     }

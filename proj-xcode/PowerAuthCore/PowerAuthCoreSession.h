@@ -359,6 +359,7 @@
 ///   - uriIdentifier: URI identifier.
 ///   - offlineNonce: Offline nonce.
 ///   - codeLength: Length of calculated code.
+///   - data: Data for authentication.
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: Human readable authentication code if succeeds.
 - (nullable NSString*) calculateOfflineAuthenticationCode:(nonnull PowerAuthCoreCredentials*)credentials
@@ -373,7 +374,7 @@
 /// This function doesn't use session's state, so it doesn't require any granted access.
 ///
 /// - Parameters:
-///   - parameters: Dictionary with get parameters.
+///   - parameters: Dictionary with GET parameters.
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: Normalized data.
 - (nullable NSData*) normalizeGetRequestParameters:(nonnull NSDictionary<NSString*, NSString*>*)parameters

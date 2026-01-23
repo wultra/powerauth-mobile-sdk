@@ -22,7 +22,7 @@ import androidx.annotation.Nullable;
 import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
-import io.getlime.security.powerauth.integration.support.model.TokenInfo;
+import io.getlime.security.powerauth.integration.support.shared.ValidateTokenResponseV10;
 
 public class ValidateTokenEndpoint implements IServerApiEndpoint<ValidateTokenEndpoint.Response> {
 
@@ -91,6 +91,6 @@ public class ValidateTokenEndpoint implements IServerApiEndpoint<ValidateTokenEn
 
     // Response
 
-    public static class Response extends TokenInfo {
+    public static class Response extends ValidateTokenResponseV10 {
     }
 }

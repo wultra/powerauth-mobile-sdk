@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.integration.support.model;
+package io.getlime.security.powerauth.integration.support.shared;
 
 import java.util.List;
 
-public class AuthenticationResult {
+import io.getlime.security.powerauth.integration.support.model.ActivationStatus;
+import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
+
+public class AuthenticationResponseV20 {
 
     private String activationId;
     private ActivationStatus activationStatus;
@@ -100,5 +104,18 @@ public class AuthenticationResult {
 
     public void setAuthenticationValid(boolean authenticationValid) {
         this.authenticationValid = authenticationValid;
+    }
+
+    public AuthenticationResult copyToAuthResult() {
+        AuthenticationResult res = new AuthenticationResult();
+        res.setActivationId(activationId);
+        res.setActivationStatus(activationStatus);
+        res.setApplicationRoles(applicationRoles);
+        res.setUserId(userId);
+        res.setBlockedReason(blockedReason);
+        res.setRemainingAttempts(remainingAttempts);
+        res.setAuthenticationCodeType(authenticationCodeType);
+        res.setAuthenticationValid(authenticationValid);
+        return res;
     }
 }

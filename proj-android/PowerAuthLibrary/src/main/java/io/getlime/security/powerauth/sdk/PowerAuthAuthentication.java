@@ -47,14 +47,14 @@ public class PowerAuthAuthentication {
 
     /**
      * Contains {@code true} if authentication object should be used to persist activation, {@code false}
-     * if object is for authorization code calculation or {@code null} if this is a legacy object with no usage
+     * if object is for authentication code calculation or {@code null} if this is a legacy object with no usage
      * specified.
      */
     private final Boolean persistActivation;
 
     /**
      * Construct object with desired combination of factors. Such authentication object can be used
-     * either to persist activation and for the authorization code calculation.
+     * either to persist activation and for the authentication code calculation.
      * <p>
      * Note that you should prefer static construction functions instead of this constructor, unless
      * you have a special reason for it.
@@ -65,8 +65,8 @@ public class PowerAuthAuthentication {
      *
      *
      * @param persistActivation If true, then authentication can be used to persist activation.
-     * @param password If set, then knowledge factor will be used to persist activation or authorization code calculation.
-     * @param biometryFactorRelatedKey If set, then biometry factor will be used to persist activation or the authorization code calculation.
+     * @param password If set, then knowledge factor will be used to persist activation or authentication code calculation.
+     * @param biometryFactorRelatedKey If set, then biometry factor will be used to persist activation or the authentication code calculation.
      * @param overriddenPossessionKey Custom possession factor related key.
      */
     PowerAuthAuthentication(
@@ -225,64 +225,64 @@ public class PowerAuthAuthentication {
     // Authenticate
 
     /**
-     * Construct authentication object for authorization code calculation purposes. The authorization code is calculated with possession factor only.
-     * @return Authentication object constructed to calculate authorization code with possession factor only.
+     * Construct authentication object for authentication code calculation purposes. The authentication code is calculated with possession factor only.
+     * @return Authentication object constructed to calculate authentication code with possession factor only.
      */
     public static PowerAuthAuthentication possession() {
         return new PowerAuthAuthentication(false, null, null, null, null);
     }
 
     /**
-     * Construct authentication object for authorization code calculation purposes. The authorization code is calculated with possession factor only, with using custom possession key.
-     * @param overriddenPossessionKey Custom possession key to use for the authorization code calculation.
-     * @return Authentication object constructed to calculate authorization code with possession factor with custom possession key.
+     * Construct authentication object for authentication code calculation purposes. The authentication code is calculated with possession factor only, with using custom possession key.
+     * @param overriddenPossessionKey Custom possession key to use for the authentication code calculation.
+     * @return Authentication object constructed to calculate authentication code with possession factor with custom possession key.
      */
     public static PowerAuthAuthentication possession(@NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, null, null, null, overriddenPossessionKey);
     }
 
     /**
-     * Construct authentication object for authorization code calculation purposes. The authorization code is calculated with possession and knowledge factors.
-     * @param password Password to use for the authorization code calculation.
-     * @return Authentication object constructed to calculate authorization code with possession and knowledge factors.
+     * Construct authentication object for authentication code calculation purposes. The authentication code is calculated with possession and knowledge factors.
+     * @param password Password to use for the authentication code calculation.
+     * @return Authentication object constructed to calculate authentication code with possession and knowledge factors.
      */
     public static PowerAuthAuthentication possessionWithPassword(@NonNull String password) {
         return new PowerAuthAuthentication(false, new Password(password), null, null, null);
     }
 
     /**
-     * Construct authentication object for authorization code calculation purposes. The authorization code is calculated with possession and knowledge factors, with using custom possession key.
-     * @param password Password to use for the authorization code calculation.
-     * @param overriddenPossessionKey Custom possession key to use for the authorization code calculation.
-     * @return Authentication object constructed to calculate authorization code with possession and knowledge factors, with using custom possession key.
+     * Construct authentication object for authentication code calculation purposes. The authentication code is calculated with possession and knowledge factors, with using custom possession key.
+     * @param password Password to use for the authentication code calculation.
+     * @param overriddenPossessionKey Custom possession key to use for the authentication code calculation.
+     * @return Authentication object constructed to calculate authentication code with possession and knowledge factors, with using custom possession key.
      */
     public static PowerAuthAuthentication possessionWithPassword(@NonNull String password, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, new Password(password), null, null, overriddenPossessionKey);
     }
 
     /**
-     * Construct authentication object for authorization code calculation purposes. The authorization code is calculated with possession and biometry factors.
+     * Construct authentication object for authentication code calculation purposes. The authentication code is calculated with possession and biometry factors.
      * @param biometricPrompt Prompt displayed during the biometric authentication.
-     * @return Authentication object constructed to calculate authorization code with possession and biometry factors
+     * @return Authentication object constructed to calculate authentication code with possession and biometry factors
      */
     public static PowerAuthAuthentication possessionWithBiometry(@NonNull PowerAuthBiometricPrompt biometricPrompt) {
         return new PowerAuthAuthentication(false, null, biometricPrompt, null, null);
     }
 
     /**
-     * Construct authentication object for authorization code calculation purposes. The authorization code is calculated with possession and biometry factors.
-     * @param biometryFactorRelatedKey Biometry key data to use for the authorization code calculation.
-     * @return Authentication object constructed to calculate authorization code with possession and biometry factors
+     * Construct authentication object for authentication code calculation purposes. The authentication code is calculated with possession and biometry factors.
+     * @param biometryFactorRelatedKey Biometry key data to use for the authentication code calculation.
+     * @return Authentication object constructed to calculate authentication code with possession and biometry factors
      */
     public static PowerAuthAuthentication possessionWithBiometry(@NonNull SecureData biometryFactorRelatedKey) {
         return new PowerAuthAuthentication(false, null, null, biometryFactorRelatedKey, null);
     }
 
     /**
-     * Construct authentication object for authorization code calculation purposes. The authorization code is calculated with possession and biometry factors, with using custom possession key.
-     * @param biometryFactorRelatedKey Biometry key data to use for the authorization code calculation.
-     * @param overriddenPossessionKey Custom possession key to use for the authorization code calculation.
-     * @return Authentication object constructed to calculate authorization code with possession and biometry factors, with using custom possession key.
+     * Construct authentication object for authentication code calculation purposes. The authentication code is calculated with possession and biometry factors, with using custom possession key.
+     * @param biometryFactorRelatedKey Biometry key data to use for the authentication code calculation.
+     * @param overriddenPossessionKey Custom possession key to use for the authentication code calculation.
+     * @return Authentication object constructed to calculate authentication code with possession and biometry factors, with using custom possession key.
      */
     public static PowerAuthAuthentication possessionWithBiometry(@NonNull SecureData biometryFactorRelatedKey, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, null, null, biometryFactorRelatedKey, overriddenPossessionKey);
@@ -291,26 +291,26 @@ public class PowerAuthAuthentication {
     // core/Password variants
     
     /**
-     * Construct authentication object for authorization code calculation purposes. The authorization code is calculated with possession and knowledge factors.
-     * @param password Password to use for the authorization code calculation.
-     * @return Authentication object constructed to calculate authorization code with possession and knowledge factors.
+     * Construct authentication object for authentication code calculation purposes. The authentication code is calculated with possession and knowledge factors.
+     * @param password Password to use for the authentication code calculation.
+     * @return Authentication object constructed to calculate authentication code with possession and knowledge factors.
      */
     public static PowerAuthAuthentication possessionWithPassword(@NonNull Password password) {
         return new PowerAuthAuthentication(false, password, null, null, null);
     }
 
     /**
-     * Construct authentication object for authorization code calculation purposes. The authorization code is calculated with possession and knowledge factors, with using custom possession key.
-     * @param password Password to use for the authorization code calculation.
-     * @param overriddenPossessionKey Custom possession key to use for the authorization code calculation.
-     * @return Authentication object constructed to calculate authorization code with possession and knowledge factors, with using custom possession key.
+     * Construct authentication object for authentication code calculation purposes. The authentication code is calculated with possession and knowledge factors, with using custom possession key.
+     * @param password Password to use for the authentication code calculation.
+     * @param overriddenPossessionKey Custom possession key to use for the authentication code calculation.
+     * @return Authentication object constructed to calculate authentication code with possession and knowledge factors, with using custom possession key.
      */
     public static PowerAuthAuthentication possessionWithPassword(@NonNull Password password, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, password, null, null, overriddenPossessionKey);
     }
 
     /**
-     * Determines whether the authorization code should be calculated using the biometric factor.
+     * Determines whether the authentication code should be calculated using the biometric factor.
      * Biometric authentication is required if either a custom biometric key
      * ({@link #getBiometryFactorRelatedKey()}) or biometric prompt data
      * ({@link #getBiometricPrompt()}) is present.
@@ -366,7 +366,7 @@ public class PowerAuthAuthentication {
      * Calculate numeric value representing a combination of used factors.
      * @return Numeric value representing a combination of factors.
      */
-    int getAuthorizationCodeFactorsMask() {
+    int getAuthenticationCodeFactorsMask() {
         int factors = 1;
         if (password != null) {
             factors |= 2;
@@ -422,7 +422,7 @@ public class PowerAuthAuthentication {
                 if (forPersist) {
                     PowerAuthLog.w("Using PowerAuthAuthentication object for a different purpose. The object to persist activation is expected.");
                 } else {
-                    PowerAuthLog.w("Using PowerAuthAuthentication object for a different purpose. The object for authorization code calculation is expected.");
+                    PowerAuthLog.w("Using PowerAuthAuthentication object for a different purpose. The object for authentication code calculation is expected.");
                 }
                 return false;
             }

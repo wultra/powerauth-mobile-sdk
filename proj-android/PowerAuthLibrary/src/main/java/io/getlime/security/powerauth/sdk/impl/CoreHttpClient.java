@@ -31,14 +31,27 @@ import io.getlime.security.powerauth.networking.response.ITimeSynchronizationLis
 import io.getlime.security.powerauth.sdk.IPowerAuthTimeSynchronizationService;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
 
+/**
+ * The {@code CoreHttpClient} class communication with the server over HTTP protocol.
+ * The target endpoint is specified by {@link CoreRequest} or {@link CoreTask} objects.
+ */
 public class CoreHttpClient {
+
     private final @NonNull PowerAuthClientConfiguration configuration;
     private final @NonNull String baseUrl;
     private final @NonNull IExecutorProvider executorProvider;
     private final @NonNull ICallbackDispatcher callbackDispatcher;
+    private Runnable saveStateCallback;
     private IPowerAuthTimeSynchronizationService timeSynchronizationService;
     private IKeystoreService keystoreService;
 
+    /**
+     * Construct client with required parameters.
+     * @param configuration HTTP client configuration.
+     * @param baseUrl Base URL.
+     * @param executorProvider Interface providing serial or concurrent executors.
+     * @param callbackDispatcher Interface for dispatching callbacks back to application.
+     */
     public CoreHttpClient(@NonNull PowerAuthClientConfiguration configuration,
                           @NonNull String baseUrl,
                           @NonNull IExecutorProvider executorProvider,
@@ -50,11 +63,19 @@ public class CoreHttpClient {
         this.callbackDispatcher = callbackDispatcher;
     }
 
+    /**
+     * @return {@link PowerAuthClientConfiguration} provided in object's initialization.
+     */
     @NonNull
     public PowerAuthClientConfiguration getConfiguration() {
         return configuration;
     }
 
+    /**
+     * Connect {@link IKeystoreService} with this HTTP client. The keystore service has to be
+     * connected before the first HTTP request is executed.
+     * @param keystoreService Object implementing {@link IKeystoreService}.
+     */
     public void setKeystoreService(@NonNull IKeystoreService keystoreService) {
         if (this.keystoreService != null) {
             throw new IllegalStateException();
@@ -62,6 +83,9 @@ public class CoreHttpClient {
         this.keystoreService = keystoreService;
     }
 
+    /**
+     * @return {@link IKeystoreService} connected with this client.
+     */
     @NonNull
     public IKeystoreService getKeystoreService() {
         if (keystoreService == null) {
@@ -70,6 +94,21 @@ public class CoreHttpClient {
         return keystoreService;
     }
 
+    /**
+     * Connect {@link IPowerAuthTimeSynchronizationService} with this HTTP client. The time synchronization
+     * service has to be connected before the first HTTP request is executed.
+     * @param timeSynchronizationService Object implementing {@link IPowerAuthTimeSynchronizationService}.
+     */
+    public void setTimeSynchronizationService(@NonNull IPowerAuthTimeSynchronizationService timeSynchronizationService) {
+        if (this.timeSynchronizationService != null) {
+            throw new IllegalStateException();
+        }
+        this.timeSynchronizationService = timeSynchronizationService;
+    }
+
+    /**
+     * @return {@link IPowerAuthTimeSynchronizationService} connected with this HTTP client.
+     */
     @NonNull
     public IPowerAuthTimeSynchronizationService getTimeSynchronizationService() {
         if (timeSynchronizationService == null) {
@@ -78,13 +117,36 @@ public class CoreHttpClient {
         return timeSynchronizationService;
     }
 
-    public void setTimeSynchronizationService(@NonNull IPowerAuthTimeSynchronizationService timeSynchronizationService) {
-        if (this.timeSynchronizationService != null) {
+    /**
+     * Set callback that has to be called when state of the underlying session is changed and
+     * needs to be saved. The callback has to be set before the first HTTP request is executed.
+     * @param saveStateCallback Callback to set.
+     */
+    public void setSaveStateCallback(@NonNull Runnable saveStateCallback) {
+        if (this.saveStateCallback != null) {
             throw new IllegalStateException();
         }
-        this.timeSynchronizationService = timeSynchronizationService;
+        this.saveStateCallback = saveStateCallback;
     }
 
+    /**
+     * @return Callback that has to be executed when state of underlying session is changed.
+     */
+    @NonNull
+    Runnable getSaveStateCallback() {
+        if (saveStateCallback == null) {
+            throw new IllegalStateException("Save state callback is not set");
+        }
+        return saveStateCallback;
+    }
+
+    /**
+     * Execute HTTP request specified in {@link CoreRequest} object.
+     * @param request Request to execute.
+     * @param listener Callback listener called when the request execution is finished.
+     * @return {@link ICancelable} object representing an asynchronous operation.
+     * @param <TResponse> Type of response object. If no response is provided, use {@link Object}.
+     */
     @NonNull
     public <TResponse> ICancelable post(@NonNull CoreRequest<TResponse> request, @NonNull INetworkResponseListener<TResponse> listener) {
         final IKeystoreService kss = getKeystoreService();
@@ -150,6 +212,12 @@ public class CoreHttpClient {
         return postImpl(request, listener);
     }
 
+    /**
+     * Set instance of {@link CoreRequest} as unexpectedly finished.
+     * @param request Request to set.
+     * @param isFailed If true, request is set as failed, otherwise canceled.
+     * @param <TResponse> Type of response.
+     */
     private <TResponse> void setCoreRequestFinished(CoreRequest<TResponse> request, boolean isFailed) {
         if (request != null && !request.isDone()) {
             if (isFailed) {
@@ -160,6 +228,14 @@ public class CoreHttpClient {
         }
     }
 
+    /**
+     * Executes the HTTP request specified by the {@link CoreRequest} object in the context of
+     * composite cancelable operation.
+     * @param request {@link CoreRequest} to execute.
+     * @param compositeTask Parent {@link CompositeCancelableTask}.
+     * @param listener Callback interface.
+     * @param <TResponse> Type of response.
+     */
     private <TResponse> void compositePostImpl(@NonNull CoreRequest<TResponse> request,
                                                @NonNull CompositeCancelableTask compositeTask,
                                                @NonNull INetworkResponseListener<TResponse> listener) {
@@ -188,11 +264,20 @@ public class CoreHttpClient {
         compositeTask.addCancelable(actualTask);
     }
 
+    /**
+     * Executes the HTTP request specified by the {@link CoreRequest} object on the appropriate
+     * task executor. If the request must be executed on a serial queue, the serial executor is used;
+     * otherwise, a concurrent executor is used.
+     * @param request {@link CoreRequest} to execute.
+     * @param listener Callback interface.
+     * @return {@link CoreHttpRequest} wrapping the request.
+     * @param <TResponse> Type of response.
+     */
     @NonNull
-    private <TResponse> ICancelable postImpl(@NonNull CoreRequest<TResponse> request,
-                                             @NonNull INetworkResponseListener<TResponse> listener) {
+    private <TResponse> CoreHttpRequest<TResponse> postImpl(@NonNull CoreRequest<TResponse> request,
+                                                            @NonNull INetworkResponseListener<TResponse> listener) {
         // Create CoreHttpTask
-        final CoreHttpRequest<TResponse> task = new CoreHttpRequest<>(baseUrl, configuration, request, new CoreHttpRequest.ICompletion<>() {
+        final CoreHttpRequest<TResponse> task = new CoreHttpRequest<>(baseUrl, configuration, request, getSaveStateCallback(), new CoreHttpRequest.ICompletion<>() {
             @Override
             public void onSuccess(@Nullable TResponse tResponse) {
                 callbackDispatcher.dispatchCallback(() -> listener.onNetworkResponse(tResponse));
@@ -211,11 +296,17 @@ public class CoreHttpClient {
         return task;
     }
 
+    /**
+     * Execute series of HTTP requests specified in {@link CoreTask} object.
+     * @param task {@link CoreTask} object to execute.
+     * @param listener Callback listener called when the task execution is finished.
+     * @return {@link ICancelable} object representing an asynchronous operation.
+     * @param <TResponse> Type of response.
+     */
     @NonNull
     public <TResponse> ICancelable post(@NonNull CoreTask<TResponse> task, @NonNull INetworkResponseListener<TResponse> listener) {
         final CoreHttpTask<TResponse> wrapper = new CoreHttpTask<>(task, this, listener);
         wrapper.start();
         return wrapper;
     }
-
 }

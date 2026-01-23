@@ -107,6 +107,14 @@ public class BaseSdkTest {
     // Using PowerAuthActivation
 
     @Test
+    public void testRestoreSdkState() throws Exception {
+        activationHelper.createStandardActivation(false, null);
+        assertTrue(powerAuthSDK.hasValidActivation());
+        powerAuthSDK = testHelper.reCreateSdk(null, null, null);
+        assertTrue(powerAuthSDK.hasValidActivation());
+    }
+
+    @Test
     public void testCreateWithActivationCode() throws Exception {
         activationHelper.createStandardActivation(false, null);
         // Validate valid and invalid password

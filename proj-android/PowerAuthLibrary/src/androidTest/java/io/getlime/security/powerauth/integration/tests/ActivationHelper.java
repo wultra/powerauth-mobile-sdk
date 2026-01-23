@@ -157,6 +157,7 @@ public class ActivationHelper {
         if (activation != null) {
             throw new Exception("ActivationHelper already has an activation. Use removeActivation() before you initialize new activation.");
         }
+        updateServerApiProtocolAfterAlgorithmChange();
         activation = testHelper.getServerApi().activationInit(application, userId);
         return activation;
     }
@@ -215,7 +216,7 @@ public class ActivationHelper {
 
     /**
      * Fetch activation status with using internal instance of {@link PowerAuthSDK}.
-     * @return {@link ActivationStatus} object.
+     * @return {@link PowerAuthActivationStatus} object.
      * @throws Exception In case of failure.
      */
     public @NonNull PowerAuthActivationStatus fetchActivationStatus() throws Exception {
@@ -288,6 +289,9 @@ public class ActivationHelper {
 
         // Initialize activation on the server
         initActivation();
+
+        // Update client protocol version in server API
+        testHelper.getServerApi().setClientAlgorithm(powerAuthSDK.getCurrentAlgorithm());
 
         // Create activation locally
         final String activationCode;
@@ -537,6 +541,14 @@ public class ActivationHelper {
                 resultCatcher.completeWithError(t);
             }
         }));
+    }
+
+    /**
+     * Updates client protocol version in {@link io.getlime.security.powerauth.integration.support.PowerAuthServerApi}
+     * after algorithm change in {@link PowerAuthSDK} instance.
+     */
+    public void updateServerApiProtocolAfterAlgorithmChange() {
+        testHelper.getServerApi().setClientAlgorithm(powerAuthSDK.getCurrentAlgorithm());
     }
 
     /**

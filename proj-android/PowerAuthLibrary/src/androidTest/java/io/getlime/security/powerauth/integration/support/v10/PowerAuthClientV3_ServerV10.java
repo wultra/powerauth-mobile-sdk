@@ -329,21 +329,21 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
         request.setTokenDigest(tokenDigest);
         request.setNonce(nonce);
         request.setTimestamp(timestamp);
-        return restClient.send(request, new ValidateTokenEndpoint());
+        return restClient.send(request, new ValidateTokenEndpoint()).toTokenInfo();
     }
 
     @NonNull
     @Override
     public AuthenticationResult verifyOnlineAuthenticationCode(@NonNull AuthenticationCodeData authenticationCodeData) throws Exception {
         final VerifyOnlineSignatureEndpoint.Request request = new VerifyOnlineSignatureEndpoint.Request(authenticationCodeData);
-        return restClient.send(request, new VerifyOnlineSignatureEndpoint());
+        return restClient.send(request, new VerifyOnlineSignatureEndpoint()).copyToAuthResult();
     }
 
     @NonNull
     @Override
     public AuthenticationResult verifyOfflineAuthenticationCode(@NonNull AuthenticationCodeData authenticationCodeData) throws Exception {
         final VerifyOfflineSignatureEndpoint.Request request = new VerifyOfflineSignatureEndpoint.Request(authenticationCodeData);
-        return restClient.send(request, new VerifyOfflineSignatureEndpoint());
+        return restClient.send(request, new VerifyOfflineSignatureEndpoint()).copyToAuthResult();
     }
 
     @Override

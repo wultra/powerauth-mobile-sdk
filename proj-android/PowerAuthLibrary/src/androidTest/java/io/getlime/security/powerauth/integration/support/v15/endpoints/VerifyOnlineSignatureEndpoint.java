@@ -24,7 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
 import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
-import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
+import io.getlime.security.powerauth.integration.support.shared.AuthenticationResponseV10;
 
 public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyOnlineSignatureEndpoint.Response> {
     @NonNull
@@ -116,6 +116,6 @@ public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyO
         }
     }
 
-    public static class Response extends AuthenticationResult {
+    public static class Response extends AuthenticationResponseV10 {
     }
 }

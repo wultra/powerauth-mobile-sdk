@@ -23,13 +23,13 @@ import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
-import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
+import io.getlime.security.powerauth.integration.support.shared.AuthenticationResponseV10;
 
 public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<VerifyOfflineSignatureEndpoint.Response> {
     @NonNull
     @Override
     public String getRelativePath() {
-        return "/rest/v4/auth/offline/verify";
+        return "/rest/v3/signature/offline/verify";
     }
 
     @Nullable
@@ -42,14 +42,14 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
 
         private String activationId;
         private String data;
-        private String authenticationCode;
+        private String signature;
         private boolean allowBiometry;
         private Long componentLength;
 
         public Request(@NonNull AuthenticationCodeData sd) {
             activationId = sd.getActivationId();
             data = sd.getData();
-            authenticationCode = sd.getAuthenticationCode();
+            signature = sd.getAuthenticationCode();
             allowBiometry = sd.getAllowBiometry() != null ? sd.getAllowBiometry() : false;
             componentLength = sd.getOfflineAuthenticationCodeComponentLength();
         }
@@ -70,12 +70,12 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
             this.data = data;
         }
 
-        public String getAuthenticationCode() {
-            return authenticationCode;
+        public String getSignature() {
+            return signature;
         }
 
-        public void setAuthenticationCode(String authenticationCode) {
-            this.authenticationCode = authenticationCode;
+        public void setSignature(String signature) {
+            this.signature = signature;
         }
 
         public boolean isAllowBiometry() {
@@ -95,6 +95,6 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
         }
     }
 
-    public static class Response extends AuthenticationResult {
+    public static class Response extends AuthenticationResponseV10 {
     }
 }

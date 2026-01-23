@@ -37,8 +37,10 @@ Notable changes on Android:
     - `authenticateUsingBiometrics()` - with "title" and "description" parameters, use variant with `PowerAuthBiometricPrompt` parameter instead.
     - `requestGetSignatureWithAuthentication()` - use `authenticationHeaderForRequestWithParams()` method instead which throws an exception in case of failure.
     - `requestSignatureWithAuthentication()` - use `authenticationHeaderForRequestWithBody()` method instead which throws an exception in case of failure.
+    - `offlineSignatureWithAuthentication()` - use asynchronous `offlineAuthenticationCode()` method instead.
     - `saveSerializedState()` - method is now private
     - `restoreState()` - method is now private
+    - `getSession()` - access to a low-level session object is no longer available. Let us know if you have a problem with this.
 
   - `PowerAuthConfiguration` class:
     - `getOfflineSignatureComponentLength()` - use `getOfflineAuthenticationCodeComponentLength()` instead.
@@ -51,6 +53,9 @@ Notable changes on Android:
 
   - `IPersistActivationListener` callback interface:
     - `onPersistActivationFailed()` method now receives `Throwable` instead of `PowerAuthErrorException`. You can also expect `FailedApiException` and similar exceptions if communication with the server failed.
+
+  - `IGenerateTokenHeaderListener` callback interface:
+    - `onGenerateTokenHeaderSucceeded()` method now receives `PowerAuthHttpHeader` object.
 
   - `PowerAuthKeychainConfiguration` class:
     - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
@@ -65,9 +70,7 @@ Notable changes on Android:
   - `PowerAuthToken` class:
     - `generateHeader()` - use `generateTokenHeader()` as a replacement. Note that you should use `PowerAuthTokenStore.generateAuthenticationHeader()` to make sure the PowerAuth SDK synchronize the time with the server properly.
 
-  - `PowerAuthAuthorizationHttpHeader` class:
-    - The value of `powerAuthErrorCode` property, or value returned in `getPowerAuthErrorCode()` is filled only in deprecated SDK functions, such as `requestSignatureWithAuthentication()`. To fix this, migrate to `authorizationHeaderForRequestWithBody()` that throws an exception in case of failure.
-    - `isValid()` method is also deprecated, because the new methods, such as `authorizationHeaderForRequestWithBody()`, always returns the valid header.
+  - `PowerAuthAuthorizationHttpHeader` is deprecated, use functions that provide `PowerAuthHttpHeader` instead.
 
   - `PowerAuthMissingConfigException` is removed. The configuration is validated in `PowerAuthConfiguration.Builder.build()` method.
 

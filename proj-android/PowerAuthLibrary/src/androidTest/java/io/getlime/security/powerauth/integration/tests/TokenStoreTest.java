@@ -42,7 +42,7 @@ import io.getlime.security.powerauth.networking.response.IGetTokenListener;
 import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
 import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
-import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
+import io.getlime.security.powerauth.sdk.PowerAuthHttpHeader;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.sdk.PowerAuthToken;
 import io.getlime.security.powerauth.sdk.PowerAuthTokenStore;
@@ -67,7 +67,7 @@ public class TokenStoreTest {
     private PowerAuthSDK powerAuthSDK;
     private PowerAuthTokenStore tokenStore;
     private ActivationHelper activationHelper;
-    private SignatureHelper signatureHelper;
+    private AuthenticationHelper authenticationHelper;
 
     private static final String TOKEN_NAME_POSSESSION = "TestToken_POSSESSION";
     private static final String TOKEN_NAME_POSSESSION_KNOWLEDGE = "TestToken_POSSESSION_KNOWLEDGE";
@@ -81,7 +81,7 @@ public class TokenStoreTest {
         powerAuthSDK = testHelper.getSharedSdk();
         tokenStore = powerAuthSDK.getTokenStore();
         activationHelper = new ActivationHelper(testHelper);
-        signatureHelper = new SignatureHelper();
+        authenticationHelper = new AuthenticationHelper();
     }
 
     @After
@@ -393,18 +393,18 @@ public class TokenStoreTest {
      * Calculate and validate token digest.
      *
      * @param token Token to be tested.
-     * @param expectedSignatureType Expected signature type.
+     * @param expectedAuthCodeType Expected authentication code type.
      * @return Always return true.
      * @throws Exception In case of failure.
      */
-    private boolean calculateAndValidateTokenDigest(@NonNull PowerAuthToken token, @NonNull AuthCodeType expectedSignatureType) throws Exception {
+    private boolean calculateAndValidateTokenDigest(@NonNull PowerAuthToken token, @NonNull AuthCodeType expectedAuthCodeType) throws Exception {
         assertTrue(token.canGenerateHeader());
         assertNotNull(token.getTokenName());
 
-        PowerAuthAuthorizationHttpHeader header = AsyncHelper.await(resultCatcher -> {
-            ICancelable task = token.tokenStore.generateAuthorizationHeader(testHelper.getContext(), token.getTokenName(), new IGenerateTokenHeaderListener() {
+        PowerAuthHttpHeader header = AsyncHelper.await(resultCatcher -> {
+            ICancelable task = token.tokenStore.generateAuthenticationHeader(testHelper.getContext(), token.getTokenName(), new IGenerateTokenHeaderListener() {
                 @Override
-                public void onGenerateTokenHeaderSucceeded(@NonNull PowerAuthAuthorizationHttpHeader header) {
+                public void onGenerateTokenHeaderSucceeded(@NonNull PowerAuthHttpHeader header) {
                     try {
                         resultCatcher.completeWithResult(header);
                     } catch (Throwable t) {
@@ -420,9 +420,8 @@ public class TokenStoreTest {
             assertNotNull(task);
         });
 
-        assertTrue(header.isValid());
         assertEquals("X-PowerAuth-Token", header.getKey());
-        Map<String, String> headerComponents = signatureHelper.parseAuthorizationHeader(header);
+        Map<String, String> headerComponents = authenticationHelper.parseAuthenticationHeader(header);
         // Validate values
         assertEquals(testHelper.getProtocolVersionForHeader(), headerComponents.get("version"));
         assertEquals(token.getTokenIdentifier(), headerComponents.get("token_id"));
@@ -436,7 +435,7 @@ public class TokenStoreTest {
         TokenInfo tokenInfo = testHelper.getServerApi().validateToken(tokenId, digest, nonce, timestamp, version);
         assertNotNull(tokenInfo);
         assertTrue(tokenInfo.isTokenValid());
-        assertEquals(expectedSignatureType, tokenInfo.getSignatureType());
+        assertEquals(expectedAuthCodeType, tokenInfo.getAuthenticationCodeType());
 
         return true;
     }

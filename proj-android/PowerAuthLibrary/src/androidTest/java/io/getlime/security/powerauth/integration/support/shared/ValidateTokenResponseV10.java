@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.integration.support.model;
+package io.getlime.security.powerauth.integration.support.shared;
+
+import androidx.annotation.NonNull;
 
 import java.util.List;
 
-public class TokenInfo {
+import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
+import io.getlime.security.powerauth.integration.support.model.TokenInfo;
 
+public class ValidateTokenResponseV10 {
     private String activationId;
     private String applicationId;
     private String userId;
-    private AuthCodeType authenticationCodeType;
+    private AuthCodeType signatureType;
     private List<String> applicationRoles;
     private boolean tokenValid;
 
@@ -51,12 +55,12 @@ public class TokenInfo {
         this.userId = userId;
     }
 
-    public AuthCodeType getAuthenticationCodeType() {
-        return authenticationCodeType;
+    public AuthCodeType getSignatureType() {
+        return signatureType;
     }
 
-    public void setAuthenticationCodeType(AuthCodeType authenticationCodeType) {
-        this.authenticationCodeType = authenticationCodeType;
+    public void setSignatureType(AuthCodeType signatureType) {
+        this.signatureType = signatureType;
     }
 
     public List<String> getApplicationRoles() {
@@ -73,5 +77,17 @@ public class TokenInfo {
 
     public void setTokenValid(boolean tokenValid) {
         this.tokenValid = tokenValid;
+    }
+
+    @NonNull
+    public TokenInfo toTokenInfo() {
+        TokenInfo info = new TokenInfo();
+        info.setActivationId(activationId);
+        info.setApplicationId(applicationId);
+        info.setUserId(userId);
+        info.setAuthenticationCodeType(signatureType);
+        info.setApplicationRoles(applicationRoles);
+        info.setTokenValid(tokenValid);
+        return info;
     }
 }

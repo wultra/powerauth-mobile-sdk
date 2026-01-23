@@ -356,7 +356,7 @@ public class PowerAuthClientV4_ServerV20 implements PowerAuthServerApi {
         request.setNonce(nonce);
         request.setTimestamp(timestamp);
         request.setProtocolVersion(protocolVersion);
-        return restClient.send(request, new ValidateTokenEndpoint());
+        return restClient.send(request, new ValidateTokenEndpoint()).toTokenInfo();
     }
 
     @NonNull
@@ -366,7 +366,7 @@ public class PowerAuthClientV4_ServerV20 implements PowerAuthServerApi {
             return legacyApi.verifyOnlineAuthenticationCode(authenticationCodeData);
         }
         final VerifyOnlineAuthCodeEndpoint.Request request = new VerifyOnlineAuthCodeEndpoint.Request(authenticationCodeData);
-        return restClient.send(request, new VerifyOnlineAuthCodeEndpoint());
+        return restClient.send(request, new VerifyOnlineAuthCodeEndpoint()).copyToAuthResult();
     }
 
     @NonNull
@@ -376,7 +376,7 @@ public class PowerAuthClientV4_ServerV20 implements PowerAuthServerApi {
             return legacyApi.verifyOfflineAuthenticationCode(authenticationCodeData);
         }
         final VerifyOfflineAuthCodeEndpoint.Request request = new VerifyOfflineAuthCodeEndpoint.Request(authenticationCodeData);
-        return restClient.send(request, new VerifyOfflineAuthCodeEndpoint());
+        return restClient.send(request, new VerifyOfflineAuthCodeEndpoint()).copyToAuthResult();
     }
 
     @Override

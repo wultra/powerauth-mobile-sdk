@@ -36,6 +36,8 @@ import io.getlime.security.powerauth.integration.support.model.ServerVersion;
 import io.getlime.security.powerauth.integration.support.model.SignatureFormat;
 import io.getlime.security.powerauth.integration.support.model.SignatureType;
 import io.getlime.security.powerauth.integration.support.model.TokenInfo;
+import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
+import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 
 public interface PowerAuthServerApi {
 
@@ -56,6 +58,18 @@ public interface PowerAuthServerApi {
      *                        Server API will use highest protocol version supported on the server.
      */
     void setClientProtocolVersion(@Nullable ProtocolVersion protocolVersion);
+
+    /**
+     * Update client's protocol version depending on actual algorithm used in the SDK instance.
+     * @param algorithm PowerAuth algorithm used in the instance.
+     */
+    default void setClientAlgorithm(@PowerAuthAlgorithm int algorithm) {
+        if (algorithm == PowerAuthAlgorithm.LEGACY_P256) {
+            setClientProtocolVersion(ProtocolVersion.V3_3);
+        } else {
+            setClientProtocolVersion(ProtocolVersion.V4_0);
+        }
+    }
 
     /**
      * Get protocol version used in the mobile client.

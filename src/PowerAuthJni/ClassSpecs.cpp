@@ -64,6 +64,7 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         spec.respServerStatus = jni.buildClassSpec<RespServerStatus>("io/getlime/security/powerauth/core/response/CoreServerStatus");
         spec.respActivationResult = jni.buildClassSpec<RespActivationResult>("io/getlime/security/powerauth/core/response/CoreActivationResult");
         spec.respActivationStatus = jni.buildClassSpec<RespActivationStatus>("io/getlime/security/powerauth/core/response/CoreActivationStatus");
+        spec.respTokenData = jni.buildClassSpec<RespTokenData>("io/getlime/security/powerauth/core/response/CoreTokenData");
 
         // Enums
         spec.coreProtocolVersion = jni.buildConstantSetSpec("io/getlime/security/powerauth/core/CoreProtocolVersion", {
@@ -156,6 +157,7 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         jni.releaseSpec(spec.respServerStatus);
         jni.releaseSpec(spec.respActivationResult);
         jni.releaseSpec(spec.respActivationStatus);
+        jni.releaseSpec(spec.respTokenData);
         // enums
         jni.releaseSpec(spec.coreProtocolVersion);
         jni.releaseSpec(spec.coreAlgorithm);

@@ -23,6 +23,8 @@ import java.util.Map;
 
 import io.getlime.security.powerauth.core.response.CoreActivationResult;
 import io.getlime.security.powerauth.core.response.CoreActivationStatus;
+import io.getlime.security.powerauth.core.response.CoreTokenData;
+import jakarta.validation.constraints.Null;
 
 /**
  * The {@code CoreSession} class provides Java interface for low-level C++ Session implementation.
@@ -253,6 +255,84 @@ public class CoreSession extends NativeObject {
      * @throws CoreException In case of failure.
      */
     public native CoreRequest<Object> verifyPassword(@NonNull Password password) throws CoreException;
+
+    // Authentication
+
+    /**
+     * Calculate online authentication header for HTTP request.
+     *
+     * @param credentials Credentials used for authentication.
+     * @param uriIdentifier URI identifier.
+     * @param httpMethod HTTP method.
+     * @param requestBody Request body.
+     * @return HTTP header with authentication code.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreHttpHeader calculateOnlineAuthenticationHeader(@NonNull CoreCredentials credentials,
+                                                                     @NonNull String uriIdentifier,
+                                                                     @NonNull String httpMethod,
+                                                                     @Nullable byte[] requestBody) throws CoreException;
+
+    /**
+     * Calculate human readable authentication code for offline authentication.
+     *
+     * @param credentials Credentials used for authentication.
+     * @param uriIdentifier URI identifier.
+     * @param offlineNonce Offline nonce.
+     * @param codeLength Length of calculated code.
+     * @param data Data for authentication.
+     * @return Human readable authentication code.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native String calculateOfflineAuthenticationCode(@NonNull CoreCredentials credentials,
+                                                            @NonNull String uriIdentifier,
+                                                            @NonNull String offlineNonce,
+                                                            int codeLength,
+                                                            @Nullable byte[] data) throws CoreException;
+
+    /**
+     * Normalize parameters of GET HTTP request into data suitable for function that calculate online authentication header.
+     *
+     * @param parameters Map with GET parameters.
+     * @return Normalized data crated from GET parameters.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native byte[] normalizeGetRequestParameters(@Nullable Map<String, String> parameters) throws CoreException;
+
+    // Tokens
+
+    /**
+     * Calculate HTTP header for token authentication.
+     *
+     * @param tokenIdentifier Token's identifier.
+     * @param tokenSecret Token's secret.
+     * @return {@link CoreHttpHeader} authentication header.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreHttpHeader calculateTokenHeader(@NonNull String tokenIdentifier, @NonNull byte[] tokenSecret) throws CoreException;
+
+    /**
+     * Create access token on the server.
+     *
+     * @param credentials Credentials used for token creation.
+     * @return {@link CoreRequest} object containing all required information for token creation.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreRequest<CoreTokenData> createAccessToken(@NonNull CoreCredentials credentials) throws CoreException;
+
+    /**
+     * Remove access token from the server.
+     *
+     * @param tokenIdentifier Token's identifier.
+     * @return {@link CoreRequest} object containing all required information for token removal.
+     * @throws CoreException In case of failure.
+     */
+    public native CoreRequest<Object> removeAccessToken(@NonNull String tokenIdentifier) throws CoreException;
 
     // Services
 

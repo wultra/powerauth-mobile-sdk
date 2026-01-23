@@ -26,7 +26,6 @@ import io.getlime.security.powerauth.core.CoreException;
 import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
-import io.getlime.security.powerauth.sdk.impl.CoreHttpClient;
 
 /**
  * Class representing a configuration of a single PowerAuthSDK instance.
@@ -36,7 +35,7 @@ public class PowerAuthConfiguration {
     private final @NonNull String instanceId;
     private final @NonNull String baseEndpointUrl;
     private final @NonNull String configuration;
-    private final int offlineAuthorizationCodeComponentLength;
+    private final int offlineAuthenticationCodeComponentLength;
     private final @PowerAuthAlgorithm int algorithm;
 
     /**
@@ -90,29 +89,29 @@ public class PowerAuthConfiguration {
     }
 
     /**
-     * @return Length of offline authorization code component.
+     * @return Length of offline authentication code component.
      */
-    public int getOfflineAuthorizationCodeComponentLength() {
-        return offlineAuthorizationCodeComponentLength;
+    public int getOfflineAuthenticationCodeComponentLength() {
+        return offlineAuthenticationCodeComponentLength;
     }
 
     /**
-     * @return Length of offline authorization code component.
+     * @return Length of offline authentication code component.
      */
     @Deprecated // 2.0.0
     public int getOfflineSignatureComponentLength() {
-        return offlineAuthorizationCodeComponentLength;
+        return offlineAuthenticationCodeComponentLength;
     }
 
     /**
-     * Minimum allowed length of offline authorization code component.
+     * Minimum allowed length of offline authentication code component.
      */
-    public static final int MIN_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH = 4;
+    public static final int MIN_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH = 4;
 
     /**
-     * Maximum allowed length of offline authorization code component.
+     * Maximum allowed length of offline authentication code component.
      */
-    public static final int MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH = 8;
+    public static final int MAX_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH = 8;
 
     /**
      * Validate the configuration. Be aware that the method performs just a formal validation, so it cannot detect if you
@@ -133,18 +132,18 @@ public class PowerAuthConfiguration {
      * @param baseEndpointUrl Base URL to the PowerAuth Standard REST API (the URL part before {@code "/pa/..."}).
      * @param configuration SDK configuration string.
      * @param algorithm Algorithm selected for communication with the server.
-     * @param offlineAuthorizationCodeComponentLength Length of component in offline authorization code.
+     * @param offlineAuthenticationCodeComponentLength Length of component in offline authentication code.
      */
     private PowerAuthConfiguration(
             @NonNull String instanceId,
             @NonNull String baseEndpointUrl,
             @NonNull String configuration,
-            int offlineAuthorizationCodeComponentLength,
+            int offlineAuthenticationCodeComponentLength,
             @PowerAuthAlgorithm int algorithm) {
         this.instanceId = instanceId;
         this.baseEndpointUrl = baseEndpointUrl;
         this.configuration = configuration;
-        this.offlineAuthorizationCodeComponentLength = offlineAuthorizationCodeComponentLength;
+        this.offlineAuthenticationCodeComponentLength = offlineAuthenticationCodeComponentLength;
         this.algorithm = algorithm;
     }
 
@@ -158,7 +157,7 @@ public class PowerAuthConfiguration {
         // optional
         private String instanceId;
         private SecureData externalEncryptionKey = null;    // TODO: EEK
-        private int offlineAuthorizationCodeComponentLength = MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH;
+        private int offlineAuthenticationCodeComponentLength = MAX_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH;
         private @PowerAuthAlgorithm int algorithm = PowerAuthAlgorithm.DEFAULT;
 
         /**
@@ -220,24 +219,24 @@ public class PowerAuthConfiguration {
         }
 
         /**
-         * Set the alternative length for offline authorization code component.
+         * Set the alternative length for offline authentication code component.
          * @param length New value for offline signature component length.
          * @return {@link Builder}
          */
-        public @NonNull Builder offlineAuthorizationCodeComponentLength(int length) {
-            this.offlineAuthorizationCodeComponentLength = length;
+        public @NonNull Builder offlineAuthenticationCodeComponentLength(int length) {
+            this.offlineAuthenticationCodeComponentLength = length;
             return this;
         }
 
         /**
-         * Set the alternative length for offline authorization code component.
+         * Set the alternative length for offline authentication code component.
          * @param length New value for offline signature component length.
          * @return {@link Builder}
-         * @deprecated Use {@link #offlineAuthorizationCodeComponentLength(int)} as replacement.
+         * @deprecated Use {@link #offlineAuthenticationCodeComponentLength(int)} as replacement.
          */
         @Deprecated // 2.0.0
         public @NonNull Builder offlineSignatureComponentLength(int length) {
-            this.offlineAuthorizationCodeComponentLength = length;
+            this.offlineAuthenticationCodeComponentLength = length;
             return this;
         }
 
@@ -250,9 +249,9 @@ public class PowerAuthConfiguration {
             if (!CoreConfig.validateConfiguration(configuration, algorithm)) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid SDK configuration");
             }
-            if (offlineAuthorizationCodeComponentLength < MIN_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH ||
-                offlineAuthorizationCodeComponentLength > MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "offlineAuthorizationCodeComponentLength is out of supported range");
+            if (offlineAuthenticationCodeComponentLength < MIN_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH ||
+                offlineAuthenticationCodeComponentLength > MAX_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "offlineAuthenticationCodeComponentLength is out of supported range");
             }
             if (instanceId == null) {
                 instanceId = DEFAULT_INSTANCE_ID;
@@ -267,7 +266,7 @@ public class PowerAuthConfiguration {
                     instanceId,
                     baseEndpointUrl,
                     configuration,
-                    offlineAuthorizationCodeComponentLength,
+                    offlineAuthenticationCodeComponentLength,
                     algorithm);
         }
     }

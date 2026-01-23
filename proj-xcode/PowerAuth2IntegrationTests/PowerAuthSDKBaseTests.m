@@ -2348,6 +2348,30 @@
     XCTAssertFalse(_sdk.tokenStore.canRequestForAccessToken);
 }
 
+- (void) createTokenAndValidateTokenHeader:(NSString*)tokenName createToken:(BOOL)createToken
+{
+    if (createToken) {
+        [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk.tokenStore requestAccessTokenWithName:tokenName authentication:_helper.authPossession completion:^(PowerAuthToken * _Nullable token, NSError * _Nullable error) {
+                XCTAssertNotNil(token);
+                [waiting reportCompletion:@(token != nil)];
+            }];
+        }];
+    } else {
+        BOOL exists = [_sdk.tokenStore hasLocalTokenWithName:tokenName];
+        XCTAssertTrue(exists);
+    }
+    // Calculate header with asynchronous method
+    PowerAuthHttpHeader * header = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id operation = [_sdk.tokenStore generateAuthenticationHeaderWithName:tokenName completion:^(PowerAuthHttpHeader * _Nullable header, NSError * _Nullable error) {
+            [waiting reportCompletion:header];
+        }];
+        XCTAssertNotNil(operation);
+    }];
+    XCTAssertNotNil(header);
+    BOOL validateHeaderResult = [_helper validateTokenHeader:header activationId:_sdk.activationIdentifier expectedResult:YES];
+    XCTAssertTrue(validateHeaderResult);
+}
 
 #pragma mark - Other tests
 
@@ -2524,6 +2548,9 @@
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
     
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
+    
+    [self createTokenAndValidateTokenHeader:@"TestToken" createToken:YES];
+        
     PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
     
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
@@ -2536,6 +2563,8 @@
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     
+    [self createTokenAndValidateTokenHeader:@"TestToken" createToken:NO];
+        
     [_helper cleanup];
 }
 

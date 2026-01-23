@@ -123,6 +123,22 @@ struct ClassSpecs
         Methods methods;
     };
 
+    // io.getlime.security.powerauth.core.response.CoreTokenData
+    struct RespTokenData
+    {
+        struct Methods
+        {
+            // constructor (String tokenIdentifier, byte[] tokenSecret)
+            cc7::jni::JniInitMethod init;
+        };
+        static constexpr JniMethodSpec methodSpecs[] = {
+                JniMethodSpec::constructor("(Ljava/lang/String;[B)V", offsetof(Methods, init))
+        };
+
+        jclass classRef;
+        Methods methods;
+    };
+
     // io.getlime.security.powerauth.core.CoreDevicePublicKeyData
     struct CoreDevicePublicKeyData
     {
@@ -278,6 +294,7 @@ struct ClassSpecs
     RespServerStatus respServerStatus;
     RespActivationResult respActivationResult;
     RespActivationStatus respActivationStatus;
+    RespTokenData respTokenData;
 
     // enums
     JniCommon::ConstantRangeSpec coreAlgorithm;

@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import io.getlime.core.rest.model.base.entity.Error;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
@@ -44,6 +45,8 @@ import io.getlime.security.powerauth.integration.support.v10.endpoints.EmptyRequ
  * The {@code RestClient} class implements HTTP communication with PowerAuth Server REST API.
  */
 public class HttpRestClient {
+
+    public static boolean isVerboseLog = true;
 
     private final @NonNull String baseUrl;
     private final @Nullable String authorization;
@@ -113,7 +116,11 @@ public class HttpRestClient {
      */
     private @NonNull ResponseData sendAndReceiveData(@NonNull RequestData requestData) throws Exception {
 
-        Logger.d("Test HTTP Send " + requestData.method + " to: " + requestData.url);
+        if (isVerboseLog) {
+            Logger.d("Test HTTP Send " + requestData.method + " to: " + requestData.url + "\n- body: " + new String(requestData.body, StandardCharsets.UTF_8));
+        } else {
+            Logger.d("Test HTTP Send " + requestData.method + " to: " + requestData.url);
+        }
 
         final URL url = new URL(requestData.url);
         final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -134,7 +141,11 @@ public class HttpRestClient {
         InputStream inputStream = (responseCode == 200) ? urlConnection.getInputStream() : urlConnection.getErrorStream();
         final byte[] responseData = loadBytesFromInputStream(inputStream);
 
-        Logger.d("Test HTTP Recv " + responseCode + " from: " + requestData.url);
+        if (isVerboseLog) {
+            Logger.d("Test HTTP Recv " + responseCode + " from: " + requestData.url + "\n- body: " + new String(responseData, StandardCharsets.UTF_8));
+        } else {
+            Logger.d("Test HTTP Recv " + responseCode + " from: " + requestData.url);
+        }
 
         return new ResponseData(responseCode, responseData);
     }

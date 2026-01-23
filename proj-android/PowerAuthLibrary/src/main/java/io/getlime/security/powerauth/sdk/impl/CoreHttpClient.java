@@ -277,17 +277,7 @@ public class CoreHttpClient {
     private <TResponse> CoreHttpRequest<TResponse> postImpl(@NonNull CoreRequest<TResponse> request,
                                                             @NonNull INetworkResponseListener<TResponse> listener) {
         // Create CoreHttpTask
-        final CoreHttpRequest<TResponse> task = new CoreHttpRequest<>(baseUrl, configuration, request, getSaveStateCallback(), new CoreHttpRequest.ICompletion<>() {
-            @Override
-            public void onSuccess(@Nullable TResponse tResponse) {
-                callbackDispatcher.dispatchCallback(() -> listener.onNetworkResponse(tResponse));
-            }
-
-            @Override
-            public void onFailure(@NonNull Throwable failure) {
-                callbackDispatcher.dispatchCallback(() -> listener.onNetworkError(failure));
-            }
-        });
+        final CoreHttpRequest<TResponse> task = new CoreHttpRequest<>(baseUrl, configuration, request, getSaveStateCallback(), callbackDispatcher, listener);
         // Execute task on the right executor
         final Executor taskExecutor = request.isRequireSerialQueue()
                 ? executorProvider.getSerialExecutor()

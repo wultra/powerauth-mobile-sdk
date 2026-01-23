@@ -51,6 +51,7 @@ import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiExcep
 import io.getlime.security.powerauth.networking.exceptions.FailedApiException;
 import io.getlime.security.powerauth.networking.interceptors.HttpRequestInterceptor;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
+import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.ssl.HttpClientValidationStrategy;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
 import io.getlime.security.powerauth.system.PowerAuthLog;
@@ -63,24 +64,6 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
  */
 public class CoreHttpRequest<TResult> implements ICancelable {
 
-    /**
-     * Interface for HTTP request completion.
-     * @param <TResult> Result type.
-     */
-    public interface ICompletion<TResult> {
-        /**
-         * Called when task is complete with success result.
-         * @param result Result to report.
-         */
-        void onSuccess(@Nullable TResult result);
-
-        /**
-         * Called when task is complete with failure.
-         * @param failure Failure to report.
-         */
-        void onFailure(@NonNull Throwable failure);
-    }
-
     @NonNull
     private final String baseUrl;
     @NonNull
@@ -90,7 +73,9 @@ public class CoreHttpRequest<TResult> implements ICancelable {
     @NonNull
     private final Runnable saveSessionState;
     @NonNull
-    private final ICompletion<TResult> completion;
+    private final ICallbackDispatcher callbackDispatcher;
+    @NonNull
+    private final INetworkResponseListener<TResult> completion;
     private boolean canceled = false;
     private boolean done = false;
 
@@ -107,20 +92,25 @@ public class CoreHttpRequest<TResult> implements ICancelable {
             @NonNull PowerAuthClientConfiguration clientConfiguration,
             @NonNull CoreRequest<TResult> coreRequest,
             @NonNull Runnable saveSessionState,
-            @NonNull ICompletion<TResult> completion) {
+            @NonNull ICallbackDispatcher callbackDispatcher,
+            @NonNull INetworkResponseListener<TResult> completion) {
         this.baseUrl = baseUrl;
         this.clientConfiguration = clientConfiguration;
         this.coreRequest = coreRequest;
         this.saveSessionState = saveSessionState;
+        this.callbackDispatcher = callbackDispatcher;
         this.completion = completion;
     }
 
     @Override
-    public synchronized void cancel() {
-        if (!canceled) {
-            canceled = true;
-            coreRequest.cancel();
+    public void cancel() {
+        synchronized (this) {
+            if (!canceled) {
+                canceled = true;
+                coreRequest.cancel();
+            }
         }
+        reportCompletion(null, null);
     }
 
     @Override
@@ -340,26 +330,28 @@ public class CoreHttpRequest<TResult> implements ICancelable {
     }
 
     /**
-     * Set request as completed.
+     * Set request as completed and report completion back to the listener.
      * @param result Result to report. Null is accepted in requests with no actual result.
      * @param failure Failure to report. Non-null means that request failed.
      */
     private void reportCompletion(@Nullable TResult result, @Nullable Throwable failure) {
-        final boolean canceled;
+        final boolean isCanceled;
         synchronized (this) {
             if (done) {
                 return; // do nothing, result already presented
             }
             done = true;
-            canceled = this.canceled;
+            isCanceled = canceled;
         }
-        if (!canceled) {
-            if (failure != null) {
-                completion.onFailure(failure);
+        callbackDispatcher.dispatchCallback(() -> {
+            if (isCanceled) {
+                completion.onCancel();
+            } else if (failure != null) {
+                completion.onNetworkError(failure);
             } else {
-                completion.onSuccess(result);
+                completion.onNetworkResponse(result);
             }
-        }
+        });
     }
 
     /**

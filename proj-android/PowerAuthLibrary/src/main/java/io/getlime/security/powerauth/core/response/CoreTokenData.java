@@ -23,7 +23,6 @@ import androidx.annotation.NonNull;
  */
 public class CoreTokenData {
 
-    private final int factorMask;
     @NonNull
     private final String tokenIdentifier;
     @NonNull
@@ -34,27 +33,12 @@ public class CoreTokenData {
      * Construct response object with given parameters. The constructor is used from JNI wrapper to
      * construct response received from the server.
      *
-     * @param factorMask Integer representing factors used for the token construction.
      * @param tokenIdentifier Token's identifier.
      * @param tokenSecret Token's secret.
      */
-    public CoreTokenData(int factorMask, @NonNull String tokenIdentifier, @NonNull byte[] tokenSecret) {
-        this.factorMask = factorMask;
+    public CoreTokenData(@NonNull String tokenIdentifier, @NonNull byte[] tokenSecret) {
         this.tokenIdentifier = tokenIdentifier;
         this.tokenSecret = tokenSecret;
-    }
-
-    /**
-     * Get factors involved in the token construction:
-     * <ul>
-     *     <li>For {@code POSSESSION}, value is {@code 1}</li>
-     *     <li>For {@code POSSESSION_KNOWLEDGE}, value is {@code 1 + 2}</li>
-     *     <li>For {@code POSSESSION_BIOMETRY}, value is {@code 1 + 4}</li>
-     * </ul>
-     * @return factors involved in the token construction.
-     */
-    public int getFactorMask() {
-        return factorMask;
     }
 
     /**

@@ -398,19 +398,6 @@ CC7_JNI_METHOD_PARAMS(jobject, calculateTokenHeader, jstring tokenIdentifier, jb
     NH_CATCH(nullptr)
 }
 
-/// Convert auth factors to factor mask used in token data serialization. See PowerAuthPrivateTokenData impl.
-static jint FactorsToMask(AuthFactors factors)
-{
-    switch (factors) {
-        case powerAuth::AuthFactors::POSSESSION:
-            return 1;
-        case powerAuth::AuthFactors::POSSESSION_KNOWLEDGE:
-            return 1 | 2;
-        case powerAuth::AuthFactors::POSSESSION_BIOMETRY:
-            return 1 | 4;
-    }
-}
-
 CC7_JNI_METHOD_PARAMS(jobject, createAccessToken, jobject credentials)
 {
     NH_TRY
@@ -424,7 +411,6 @@ CC7_JNI_METHOD_PARAMS(jobject, createAccessToken, jobject credentials)
                 throw Exception(EC_InternalError, "No GetAccessTokenResponse object created");
             }
             return jni.createObject(specs.respTokenData.methods.init,
-                                    FactorsToMask(result->getFactors()),
                                     jni.toJava(result->getIdentifier()),
                                     jni.toJava(result->getSecret()));
         });

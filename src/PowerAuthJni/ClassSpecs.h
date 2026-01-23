@@ -128,13 +128,11 @@ struct ClassSpecs
     {
         struct Methods
         {
-            // constructor (int factorMask,
-            //              String tokenIdentifier,
-            //              byte[] tokenSecret
+            // constructor (String tokenIdentifier, byte[] tokenSecret)
             cc7::jni::JniInitMethod init;
         };
         static constexpr JniMethodSpec methodSpecs[] = {
-                JniMethodSpec::constructor("(ILjava/lang/String;[B)V", offsetof(Methods, init))
+                JniMethodSpec::constructor("(Ljava/lang/String;[B)V", offsetof(Methods, init))
         };
 
         jclass classRef;

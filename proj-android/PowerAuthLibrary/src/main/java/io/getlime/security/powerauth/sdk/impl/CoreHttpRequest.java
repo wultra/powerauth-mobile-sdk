@@ -41,6 +41,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 
 import io.getlime.core.rest.model.base.entity.Error;
+import io.getlime.security.powerauth.BuildConfig;
 import io.getlime.security.powerauth.core.CoreEncryptorScope;
 import io.getlime.security.powerauth.core.CoreException;
 import io.getlime.security.powerauth.core.CoreHttpHeader;
@@ -197,6 +198,11 @@ public class CoreHttpRequest<TResult> implements ICancelable {
 
             // Log request
             logRequest(urlConnection, requestBody);
+
+            // Request / Response failure simulator
+            if (BuildConfig.DEBUG) {
+                urlConnection = HttpConnectionFailureSimulator.wrap(urlConnection, coreRequest.getRelativePath());
+            }
 
             // Connect to endpoint
             urlConnection.getOutputStream().write(requestBody);

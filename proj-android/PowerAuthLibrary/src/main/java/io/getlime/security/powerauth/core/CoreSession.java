@@ -383,4 +383,24 @@ public class CoreSession extends NativeObject {
      */
     @NonNull
     public static native String maxSupportedHttpProtocolVersion(@CoreProtocolVersion int protocolVersion);
+
+    // User Info
+
+    /**
+     * Fetch user info from the server.
+     * @return {@link CoreRequest} for getting user info.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreRequest<Map<String, Object>> fetchUserInfo() throws CoreException;
+
+    /**
+     * Get last user info received from the server. This property provides the most recent
+     * user info and does not trigger any server communication. If no such information has
+     * been received yet, {@code null} is returned.
+     * @return Last user info received from the server.
+     */
+    @Nullable
+    public native Map<String, Object> getLastUserInfo();
+
 }

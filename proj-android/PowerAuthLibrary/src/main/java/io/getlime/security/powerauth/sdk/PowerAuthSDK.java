@@ -1131,11 +1131,6 @@ public class PowerAuthSDK {
     //
 
     /**
-     * Variable keeping last fetched information about user.
-     */
-    private UserInfo mLastFetchedUserInfo = null;
-
-    /**
      * Return last fetched information about the user. The information about user is optional and
      * must be supported by the server. The value is updated during the activation process or by
      * calling {@link #fetchUserInfo(Context, IUserInfoListener)}.
@@ -1143,25 +1138,8 @@ public class PowerAuthSDK {
      * @return {@link UserInfo} object or {@code null} if information is not retrieved yet.
      */
     public @Nullable UserInfo getLastFetchedUserInfo() {
-        try {
-            mLock.lock();
-            return mLastFetchedUserInfo;
-        } finally {
-            mLock.unlock();
-        }
-    }
-
-    /**
-     * Store retrieved information about the user.
-     * @param userInfo New instance of {@link UserInfo} object to keep.
-     */
-    private void setLastFetchedUserInfo(@Nullable UserInfo userInfo) {
-        try {
-            mLock.lock();
-            mLastFetchedUserInfo = userInfo;
-        } finally {
-            mLock.unlock();
-        }
+        final Map<String, Object> claims = mSession.getLastUserInfo();
+        return claims == null ? null : new UserInfo(claims);
     }
 
     /**
@@ -1175,7 +1153,26 @@ public class PowerAuthSDK {
      */
     @Nullable
     public ICancelable fetchUserInfo(@NonNull Context context, @NonNull IUserInfoListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onUserInfoFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
+        try {
+            final CoreRequest<Map<String, Object>> request = mSession.fetchUserInfo();
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable Map<String, Object> claims) {
+                    listener.onUserInfoSucceed(new UserInfo(claims));
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onUserInfoFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+        } catch (CoreException e) {
+            dispatchCallback(() -> listener.onUserInfoFailed(PowerAuthErrorException.wrapException(e)));
+        }
         return null;
     }
 
@@ -1339,8 +1336,6 @@ public class PowerAuthSDK {
         saveSerializedState();
         // Cancel possible pending activation status task
         cancelGetActivationStatusTask();
-        // Clear possible cached data
-        clearCachedData();
     }
 
     /**
@@ -1360,18 +1355,6 @@ public class PowerAuthSDK {
     @Deprecated // 1.7.10 - remove in 2.0.0
     public void removeActivationLocal(@NonNull Context context, boolean removeSharedBiometryKey) {
         removeActivationLocal(context);
-    }
-
-    /**
-     * Clear in-memory cached data.
-     */
-    private void clearCachedData() {
-        try {
-            mLock.lock();
-            mLastFetchedUserInfo = null;
-        } finally {
-            mLock.unlock();
-        }
     }
 
     // Authentication codes

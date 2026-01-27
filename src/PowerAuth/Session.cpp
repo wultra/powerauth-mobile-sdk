@@ -414,6 +414,44 @@ RequestPtr Session::jwsSignData(const CredentialsPtr& credentials,
     return _context->signatureService().jwsSignData(credentials, data_to_sign, data_type, key_to_use, use_compact_form);
 }
 
+// MARK: - Utilities
+
+cc7::ByteArray Session::generateFactorKek() const
+{
+    LOCK_GUARD();
+    return generateFactorKekForProtocol(_context->protocolVersion());
+}
+
+cc7::ByteArray Session::generateFactorKekFromData(const cc7::ByteRange& data) const
+{
+    LOCK_GUARD();
+    switch (_context->protocolVersion()) {
+        case Version_V4: {
+            return algorithms().v4.sha3_256().digest(data);
+        }
+        case Version_V3: {
+            // Compatible with 1.9.x, Session::normalizeSignatureUnlockKeyFromData()
+            auto kek = algorithms().v3.sha256().digest(data);
+            kek.resize(v3::FACTOR_KEY_SIZE);
+            return kek;
+        }
+        default:
+            throw Exception(EC_WrongParameter, "Unsupported protocol version");
+    }
+}
+
+cc7::ByteArray Session::generateFactorKekForProtocol(ProtocolVersion version)
+{
+    size_t kek_size;
+    switch (version) {
+        case Version_V4: kek_size = v4::FACTOR_KEY_SIZE; break;
+        case Version_V3: kek_size = v3::FACTOR_KEY_SIZE; break;
+        default:
+            throw Exception(EC_WrongParameter, "Unsupported protocol version");
+    }
+    return cc7::crypto::GetRandomData(kek_size);
+}
+
 // MARK: - Services
 
 const TimeServicePtr& Session::getTimeService() const noexcept

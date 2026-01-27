@@ -404,12 +404,34 @@ public:
                            const std::string& data_type,
                            SignatureKeyId key_to_use,
                            bool use_compact_form) const;
+
+public:
+    // --------------------------------------------------------------------------------------------
+    // Utilities
+    // --------------------------------------------------------------------------------------------
+
+    /// Generate new factor KEK. The size of KEK depends on the current protocol version.
+    /// - Returns: New factor KEK.
+    cc7::ByteArray generateFactorKek() const;
+    
+    /// Generates a factor KEK from the provided input data. This method is typically used to derive
+    /// a KEK for a biometric factor.
+    ///
+    /// If the activation is still using protocol V3, the method is compatible with the normalization
+    /// used in SDK 1.9.x and older (`Session.normalizeSignatureUnlockKeyFromData()`).
+    /// - Parameter data: Input data.
+    /// - Returns: KEK calculated from input data.
+    cc7::ByteArray generateFactorKekFromData(const cc7::ByteRange& data) const;
+    
+    /// Generate new factor KEK for selected protocol version.
+    /// - Parameter version: Protocol version.
+    /// - Returns: New factor KEK for the selected protocol version.
+    static cc7::ByteArray generateFactorKekForProtocol(ProtocolVersion version);
     
 public:
     // --------------------------------------------------------------------------------------------
     // Services
     // --------------------------------------------------------------------------------------------
-    
     
     /// Get smart pointer with the `TimeService` object, providing time synchronization tasks.
     const TimeServicePtr& getTimeService() const noexcept;

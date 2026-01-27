@@ -822,15 +822,22 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     if (![self requireReadAccess:error]) {
         return nil;
     }
-    return [[self class] generateFactorKekForProtocolVersion:(PowerAuthCoreProtocolVersion) _session->getProtocolVersion()
-                                                       error:error];
+    try {
+        auto kek = _session->generateFactorKek();
+        return [[PowerAuthCoreData alloc] initWithByteRange:kek];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
 }
 
 + (nullable PowerAuthCoreData*) generateFactorKekForProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
                                                               error:(NSError**)error
 {
     try {
-        auto kek = cc7::crypto::GetRandomData(protocolVersion == PowerAuthCoreProtocolVersion_V4 ? 32 : 16);
+        auto kek = Session::generateFactorKekForProtocol((ProtocolVersion)protocolVersion);
         return [[PowerAuthCoreData alloc] initWithByteRange:kek];
     } catch (...) {
         if (error) {

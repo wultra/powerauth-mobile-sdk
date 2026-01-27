@@ -366,6 +366,20 @@ public class CoreSession extends NativeObject {
     public native SecureData generateFactorKek() throws CoreException;
 
     /**
+     * Generates a factor KEK from the provided input data. This method is typically used to derive
+     * a KEK for a biometric factor.
+     * <p>
+     * If the activation is still using protocol V3, the method is compatible with the normalization
+     * used in SDK 1.9.x and older ({@code Session.normalizeSignatureUnlockKeyFromData()}).
+     *
+     * @param data Input data.
+     * @return KEK calculated from input data.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native SecureData generateFactorKekFromData(@NonNull SecureData data) throws CoreException;
+
+    /**
      * Generate new factor KEK for selected protocol version.
      *
      * @param protocolVersion Protocol version.

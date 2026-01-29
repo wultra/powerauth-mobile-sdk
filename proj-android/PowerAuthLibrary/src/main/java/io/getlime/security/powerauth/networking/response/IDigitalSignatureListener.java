@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,27 +20,22 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 
 /**
- * Listener for data signature.
- *
- * @author Petr Dvorak, petr@wultra.com
- * @deprecated Use methods using new {@link IDigitalSignatureListener} callback.
+ * Listener for calculating digital signatures.
  */
-@Deprecated // 2.0.0
-public interface IDataSignatureListener {
-
+public interface IDigitalSignatureListener {
     /**
-     * Called when data signature succeeds.
+     * Called when digital signature calculation succeeds.
      *
-     * @param signature the data signature.
+     * @param signature the calculated signature.
      */
     @MainThread
-    void onDataSignedSucceed(@NonNull byte[] signature);
+    void onDigitalSignatureSucceed(@NonNull byte[] signature);
 
     /**
-     * Called when data signature fails.
+     * Called when digital signature calculation fails.
      *
-     * @param t error that occurred during the data signature.
+     * @param throwable error that occurred during the data signature.
      */
     @MainThread
-    void onDataSignedFailed(@NonNull Throwable t);
+    void onDigitalSignatureFailed(@NonNull Throwable throwable);
 }

@@ -429,6 +429,107 @@ CC7_JNI_METHOD_PARAMS(jobject, removeAccessToken, jstring tokenIdentifier)
     NH_CATCH(nullptr)
 }
 
+// Digital signatures
+
+/// Enumeration identical to `io.getlime.security.powerauth.core.CoreDevicePublicKeyFormat`.
+/// We don't need to expose it as a public interface.
+enum class CoreDevicePublicKeyFormat
+{
+    SPKI = 0,
+    RAW = 1
+};
+
+CC7_JNI_METHOD_PARAMS(jobjectArray, exportDevicePublicKeys, jint format)
+{
+    NH_TRY
+    {
+        auto& specs = NH_SPECS();
+        auto key_format = jni.fromJava<CoreDevicePublicKeyFormat>(specs.coreDevicePublicKeyFormat, format);
+        auto keys = THIS_OBJ()->exportDevicePublicKeys(key_format == CoreDevicePublicKeyFormat::SPKI ? cc7::crypto::KEY_FORMAT_SPKI : cc7::crypto::KEY_FORMAT_RAW);
+        auto result = jni.createObjectArray(specs.coreDevicePublicKeyData.classRef, keys.size());
+        for (jsize index = 0; index < keys.size(); ++index) {
+            const auto& key = keys[index];
+            auto key_data = jni.createObject(specs.coreDevicePublicKeyData.methods.init,
+                                             jni.toJava(specs.coreSignatureKeyType, key.keyType),
+                                             jni.toJava(key.keyAlgorithm),
+                                             jni.toJava(key.keyData));
+            result.setObject(index, key_data);
+            key_data.releaseLocal();
+        }
+        return result;
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(void, verifySignature, jbyteArray signature, jbyteArray data, jint keyId)
+{
+    NH_TRY
+    {
+        jni.requireParameter(signature, "signature");
+        THIS_OBJ()->verifySignature(jni.fromJava(data),
+                                    jni.fromJava(signature),
+                                    jni.fromJava<SignatureKeyId>(NH_SPECS().coreSignatureKeyId, keyId));
+    }
+    NH_CATCH()
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, signData, jbyteArray data, jobject credentials, jint keyId)
+{
+    NH_TRY
+    {
+        jni.requireParameter(credentials, "credentials");
+        auto& specs = NH_SPECS();
+        auto request = THIS_OBJ()->signData(jni.fromJava<Credentials>(specs.coreCredentials, credentials),
+                                            jni.fromJava(data),
+                                            jni.fromJava<SignatureKeyId>(specs.coreSignatureKeyId, keyId));
+        return BuildCoreRequest(jni, request, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            auto result = std::dynamic_pointer_cast<DataResponse>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No DataResponse object created");
+            }
+            return jni.toJava(result->data());
+        });
+    }
+    NH_CATCH(nullptr)
+}
+
+// JWS
+
+CC7_JNI_METHOD_PARAMS(void, jwsVerifySignature, jstring signature, jboolean compactForm, jboolean strict, jint keyId)
+{
+    NH_TRY
+    {
+        jni.requireParameter(signature, "signature");
+        THIS_OBJ()->jwsVerifySignature(jni.fromJava(signature),
+                                       jni.fromJava<SignatureKeyId>(NH_SPECS().coreSignatureKeyId, keyId),
+                                       compactForm,
+                                       strict);
+    }
+    NH_CATCH()
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, jwsSignData, jbyteArray data, jstring dataType, jboolean compactForm, jobject credentials, jint keyId)
+{
+    NH_TRY
+    {
+        jni.requireParameter(credentials, "credentials");
+        auto& specs = NH_SPECS();
+        auto request = THIS_OBJ()->jwsSignData(jni.fromJava<Credentials>(specs.coreCredentials, credentials),
+                                               jni.fromJava(data),
+                                               jni.fromJava(dataType),
+                                               jni.fromJava<SignatureKeyId>(specs.coreSignatureKeyId, keyId),
+                                               compactForm);
+        return BuildCoreRequest(jni, request, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            auto result = std::dynamic_pointer_cast<StringResponse>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No StringResponse object created");
+            }
+            return jni.toJava(result->string());
+        });
+    }
+    NH_CATCH(nullptr)
+}
+
 // Services
 
 CC7_JNI_METHOD(jobject, getEncryptorFactory)

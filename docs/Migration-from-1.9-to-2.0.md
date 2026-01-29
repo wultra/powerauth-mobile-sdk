@@ -38,6 +38,9 @@ Notable changes on Android:
     - `requestGetSignatureWithAuthentication()` - use `authenticationHeaderForRequestWithParams()` method instead which throws an exception in case of failure.
     - `requestSignatureWithAuthentication()` - use `authenticationHeaderForRequestWithBody()` method instead which throws an exception in case of failure.
     - `offlineSignatureWithAuthentication()` - use asynchronous `offlineAuthenticationCode()` method instead.
+    - `signDataWithDevicePrivateKey()` - use `calculateDigitalSignature()` method where you can specify the key used for signing.
+    - `signJwtWithDevicePrivateKey()` - use `calculateJwsSignature()` method where you can specify the key used for signing.
+    - `verifyServerSignedData()` - use `verifyDigitalSignature()` method where you can specify the key used for verification.
     - `saveSerializedState()` - method is now private
     - `restoreState()` - method is now private
     - `getSession()` - access to a low-level session object is no longer available. Let us know if you have a problem with this.
@@ -53,6 +56,10 @@ Notable changes on Android:
 
   - `IPersistActivationListener` callback interface:
     - `onPersistActivationFailed()` method now receives `Throwable` instead of `PowerAuthErrorException`. You can also expect `FailedApiException` and similar exceptions if communication with the server failed.
+  
+  - `IDataSignatureListener` callback interface is deprecated, use API method that takes `IDigitalSignatureListener` listener at input.
+
+  - `IJwtSignatureListener` callback interface is deprecated, use API method that takes `IJwsSignatureListener` listener at input.
 
   - `IGenerateTokenHeaderListener` callback interface:
     - `onGenerateTokenHeaderSucceeded()` method now receives `PowerAuthHttpHeader` object.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,27 +20,24 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 
 /**
- * Listener for data signature.
- *
- * @author Petr Dvorak, petr@wultra.com
- * @deprecated Use methods using new {@link IDigitalSignatureListener} callback.
+ * Listener for calculating JWS or JWT signatures.
  */
-@Deprecated // 2.0.0
-public interface IDataSignatureListener {
-
+public interface IJwsSignatureListener {
     /**
-     * Called when data signature succeeds.
+     * Called when JWS or JWT signature calculation succeeds.
      *
-     * @param signature the data signature.
+     * @param signedData the signature calculated from claims.
+     * @param compactForm If {@code true}, the signed data is a compact JWT; otherwise, a full JWS
+     *                    object is provided.
      */
     @MainThread
-    void onDataSignedSucceed(@NonNull byte[] signature);
+    void onJwsSignatureSucceed(@NonNull String signedData, boolean compactForm);
 
     /**
      * Called when data signature fails.
      *
-     * @param t error that occurred during the data signature.
+     * @param throwable error that occurred during the data signature.
      */
     @MainThread
-    void onDataSignedFailed(@NonNull Throwable t);
+    void onJwsSignatureFailed(@NonNull Throwable throwable);
 }

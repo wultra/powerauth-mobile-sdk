@@ -332,7 +332,87 @@ public class CoreSession extends NativeObject {
      * @return {@link CoreRequest} object containing all required information for token removal.
      * @throws CoreException In case of failure.
      */
+    @NonNull
     public native CoreRequest<Object> removeAccessToken(@NonNull String tokenIdentifier) throws CoreException;
+
+    // Digital signatures
+
+    /**
+     * Export device public keys into the specified format.
+     * @param format Required format of the output public key data.
+     * @return Array of {@link CoreDevicePublicKeyData} objects.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreDevicePublicKeyData[] exportDevicePublicKeys(@CoreDevicePublicKeyFormat int format) throws CoreException;
+
+    /**
+     * Verify a digital signature over the given data.
+     * @param signature Signature calculated from signed data.
+     * @param data Signed data.
+     * @param keyId Key used for signature verification. The key must support signature verification.
+     * @throws CoreException In case of failure. If the signature is not valid, then exception with
+     *                       {@link CoreErrorCode#WRONG_SIGNATURE} code is raised.
+     */
+    public native void verifySignature(@NonNull byte[] signature,
+                                       @Nullable byte[] data,
+                                       @CoreSignatureKeyId int keyId) throws CoreException;
+
+
+    /**
+     * Create a digital signature over the given data. If the request succeeds, the response
+     * contains an array of bytes with the calculated signature.
+     * @param data Data to sign.
+     * @param credentials Credentials used for unlocking the device private key.
+     * @param keyId Key used for signature calculation. The key must support such operation.
+     * @return {@link CoreRequest} object containing all required information for unlocking device private key.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreRequest<byte[]> signData(@Nullable byte[] data,
+                                               @NonNull CoreCredentials credentials,
+                                               @CoreSignatureKeyId int keyId) throws CoreException;
+
+    // JWS
+
+    /**
+     * Verify server-signed data in JWS or JWT form.
+     * @param signedData JWS or JWT signed data.
+     * @param compactForm If {@code true}, the provided string is a JWT instead of a full JWS object.
+     * @param strict If {@code true}, all provided keys must be used to successfully verify
+     *               their corresponding signatures. If {@code false}, verification succeeds when at
+     *               least one provided key matches a valid signature; however, invalid or
+     *               mismatched signatures still result in an error.
+     * @param keyId Key used for signature verification. The key must support such operation.
+     * @throws CoreException In case of failure. If the signature is not valid, then exception with
+     *                       {@link CoreErrorCode#WRONG_SIGNATURE} code is raised.
+     */
+    public native void jwsVerifySignature(@NonNull String signedData,
+                                          boolean compactForm,
+                                          boolean strict,
+                                          @CoreSignatureKeyId int keyId) throws CoreException;
+
+    /**
+     * Create a JWS (or compact JWT) over the given data. If the request succeeds, the response
+     * contains a {@code String} with the calculated JWS or JWT.
+     *
+     * @param data Data to sign and embed into JWS.
+     * @param dataType Data type set to JOSE header. Use {@code "JWT"} or {@code null} if no type
+     *                 is set.
+     * @param compactForm If {@code true}, the result contains a compact JWT string instead of a JWS.
+     *                    If used with hybrid keys, an error is reported.
+     * @param credentials Credentials used for unlocking the device private key.
+     * @param keyId Key used for signature calculation. The key must support such operation.
+     * @return {@link CoreRequest} object containing all required information for unlocking device
+     *         private key.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreRequest<String> jwsSignData(@Nullable byte[] data,
+                                                  @Nullable String dataType,
+                                                  boolean compactForm,
+                                                  @NonNull CoreCredentials credentials,
+                                                  @CoreSignatureKeyId int keyId) throws CoreException;
 
     // Services
 

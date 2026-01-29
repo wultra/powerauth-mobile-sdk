@@ -117,9 +117,9 @@ public class HttpRestClient {
     private @NonNull ResponseData sendAndReceiveData(@NonNull RequestData requestData) throws Exception {
 
         if (isVerboseLog) {
-            Logger.d("Test HTTP Send " + requestData.method + " to: " + requestData.url + "\n- body: " + new String(requestData.body, StandardCharsets.UTF_8));
+            Logger.d("%s", "Test HTTP Send " + requestData.method + " to: " + requestData.url + "\n- body: " + new String(requestData.body, StandardCharsets.UTF_8));
         } else {
-            Logger.d("Test HTTP Send " + requestData.method + " to: " + requestData.url);
+            Logger.d("%s", "Test HTTP Send " + requestData.method + " to: " + requestData.url);
         }
 
         final URL url = new URL(requestData.url);
@@ -142,9 +142,9 @@ public class HttpRestClient {
         final byte[] responseData = loadBytesFromInputStream(inputStream);
 
         if (isVerboseLog) {
-            Logger.d("Test HTTP Recv " + responseCode + " from: " + requestData.url + "\n- body: " + new String(responseData, StandardCharsets.UTF_8));
+            Logger.d("%s", "Test HTTP Recv " + responseCode + " from: " + requestData.url + "\n- body: " + new String(responseData, StandardCharsets.UTF_8));
         } else {
-            Logger.d("Test HTTP Recv " + responseCode + " from: " + requestData.url);
+            Logger.d("%s", "Test HTTP Recv " + responseCode + " from: " + requestData.url);
         }
 
         return new ResponseData(responseCode, responseData);

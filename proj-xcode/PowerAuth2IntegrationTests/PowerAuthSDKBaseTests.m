@@ -1430,18 +1430,34 @@
     // This test checks whether SDK can verify data signed by server's master key
     //
     BOOL result;
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-    if (!activation) {
-        return;
-    }
-    PowerAuthAuthentication * auth = activation.credentials;
-    
     NSError *error = nil;
     PATSOfflineSignaturePayload *payload;
     {
         // Verify data signed with master key (non-personalized)
         NSString * dataForSigning = @"All your money are belong to us!";
-        payload = [_helper.testServerApi createNonPersonalizedOfflineSignaturePayload:activation.activationData.applicationId data:dataForSigning];
+        payload = [_helper.testServerApi createNonPersonalizedOfflineSignaturePayload:_helper.testServerApi.appDetail.applicationId data:dataForSigning];
+        XCTAssertNotNil(payload);
+        XCTAssertTrue([payload.parsedData isEqualToString:dataForSigning]);
+        XCTAssertTrue([payload.parsedSigningKey isEqualToString:@"0"]);
+        
+        NSData * signedData = [payload.parsedSignedData dataUsingEncoding:NSUTF8StringEncoding];
+        result = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:payload.parsedSignature options:0]
+                                   signedData:signedData
+                                keyIdentifier:PowerAuthSignatureKeyId_Master_EC
+                                        error:&error];
+        XCTAssertTrue(result);
+        XCTAssertNil(error);
+    }
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    PowerAuthAuthentication * auth = activation.credentials;
+    {
+        // Retry after activation creation
+        // Verify data signed with master key (non-personalized)
+        NSString * dataForSigning = @"All your money are belong to us!";
+        payload = [_helper.testServerApi createNonPersonalizedOfflineSignaturePayload:_helper.testServerApi.appDetail.applicationId data:dataForSigning];
         XCTAssertNotNil(payload);
         XCTAssertTrue([payload.parsedData isEqualToString:dataForSigning]);
         XCTAssertTrue([payload.parsedSigningKey isEqualToString:@"0"]);

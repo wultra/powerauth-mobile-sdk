@@ -2385,7 +2385,15 @@ public class PowerAuthSDK {
         if (forceGenerateNewKey) {
             // new key has to be generated
             try {
-                rawKeyData = mSession.generateFactorKek();
+                // Always generate a 256-bit key, even for the V3 protocol. This prepares the
+                // biometry data for a future activation upgrade to V4, where 256-bit keys are the
+                // default.
+                //
+                // If the activation is still using V3, the generated 256-bit key is later
+                // reduced to the actual KEK size during the normalization step (SHA-256,
+                // then truncated to 16 bytes). This ensures compatibility with both 128-bit
+                // and 256-bit key sizes.
+                rawKeyData = CoreSession.generateFactorKekForProtocolVersion(CoreProtocolVersion.V4);
             } catch (CoreException e) {
                 // This should never happen.
                 throw new IllegalStateException("Failed to generate random KEK", e);
@@ -2432,13 +2440,16 @@ public class PowerAuthSDK {
 
             @Override
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
-                callback.onBiometricDialogFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented"));
-//                // Store the new key, if a new key was generated
-//                if (biometricKeyData.isNewKey()) {
-//                    mBiometryKeychain.putSecureData(biometricKeyData.getDataToSave(), biometricDataMapping.keychainKey);
-//                }
-//                SecureData normalizedEncryptionKey = mSession.normalizeSignatureUnlockKeyFromData(biometricKeyData.getDerivedData().getSensitiveData());
-//                callback.onBiometricDialogSuccess(new BiometricKeyData(biometricKeyData.getDataToSave(), normalizedEncryptionKey, biometricKeyData.isNewKey()));
+                // Store the new key, if a new key was generated
+                if (biometricKeyData.isNewKey()) {
+                    mBiometryKeychain.putSecureData(biometricKeyData.getDataToSave(), biometricDataMapping.keychainKey);
+                }
+                try {
+                    SecureData normalizedEncryptionKey = mSession.generateFactorKekFromData(biometricKeyData.getDerivedData());
+                    callback.onBiometricDialogSuccess(new BiometricKeyData(biometricKeyData.getDataToSave(), normalizedEncryptionKey, biometricKeyData.isNewKey()));
+                } catch (CoreException exception) {
+                    callback.onBiometricDialogFailed(PowerAuthErrorException.wrapException(exception));
+                }
             }
 
             @Override

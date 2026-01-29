@@ -442,17 +442,23 @@ CC7_JNI_METHOD(jobject, getEncryptorFactory)
 
 // Utilities
 
-static jobject GenerateFactorKek(JNI& jni, ProtocolVersion protocol_version)
-{
-    auto kek = cc7::crypto::GetRandomData(protocol_version == Version_V4 ? 32 : 16);
-    return jni::CopyToSecureData(jni, kek);
-}
-
 CC7_JNI_METHOD(jobject, generateFactorKek)
 {
     NH_TRY
     {
-        return GenerateFactorKek(jni, THIS_OBJ()->getProtocolVersion());
+        return CopyToSecureData(jni, THIS_OBJ()->generateFactorKek());
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, generateFactorKekFromData, jobject data)
+{
+    NH_TRY
+    {
+        jni.requireParameter(data, "data");
+        auto input_data = CopyFromSecureData(jni, data);
+        auto kek = THIS_OBJ()->generateFactorKekFromData(input_data);
+        return CopyToSecureData(jni, kek);
     }
     NH_CATCH(nullptr)
 }
@@ -462,7 +468,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jobject, generateFactorKekForProtocolVersion, jint 
     NH_TRY
     {
         auto version = jni.fromJava<ProtocolVersion>(NH_SPECS().coreProtocolVersion, protocolVersion);
-        return GenerateFactorKek(jni, version);
+        return CopyToSecureData(jni, Session::generateFactorKekForProtocol(version));
     }
     NH_CATCH(nullptr)
 }

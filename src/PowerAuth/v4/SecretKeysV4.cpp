@@ -87,6 +87,10 @@ void SecretKeysV4::loadInitialCredentials(const SessionData& session_data,
     
     setupSessionData(session_data);
     
+    // generate vault keys
+    _pool.setKey(KDK_APP_VAULT_KNOWLEDGE, default_input, cc7::crypto::GetRandomData(v4::VAULT_KEY_SIZE));
+    _pool.setKey(KDK_APP_VAULT_2FA, default_input, cc7::crypto::GetRandomData(v4::VAULT_KEY_SIZE));
+    
     _factors = FM_POSSESSION | FM_KNOWLEDGE;
     if ((_has_biometry = credentials.hasBiometryKEK())) {
         _factors |= FM_BIOMETRY;
@@ -182,6 +186,8 @@ void SecretKeysV4::setupSessionData(const SessionData &session_data)
         _pool.setKey(CKDK_UTILITY, aead_generic_encrypted, pd.cKdkUtility);
         _pool.setKey(CKDK_ENCRYPTION, aead_generic_encrypted, pd.cKdkEncryption);
         _pool.setKey(CKEY_DEVICE_PRIVATE, any_input, pd.cDevicePrivateKey);
+        _pool.setKey(CKDK_APP_VAULT_KNOWLEDGE, uke_encrypted, pd.cKdkAppVaultKnowledge);
+        _pool.setKey(CKDK_APP_VAULT_2FA, uke_encrypted, pd.cKdkAppVault2FA);
         
         // other data
         _pool.setKey(IN_ACTIVATION_ID, any_input, MakeRange(pd.activationId));
@@ -242,10 +248,10 @@ void SecretKeysV4::setupVaultKey(VaultKeyType key_type, const cc7::ByteRange &ke
             _pool.setKey(KEK_DEVICE_PRIVATE, default_input, key_data);
             break;
         case VaultKeyType::KDK_APP_VAULT_KNOWLEDGE:
-            _pool.setKey(KDK_APP_VAULT_KNOWLEDGE, default_input, key_data);
+            _pool.setKey(KEK_APP_VAULT_KNOWLEDGE, default_input, key_data);
             break;
         case VaultKeyType::KDK_APP_VAULT_2FA:
-            _pool.setKey(KDK_APP_VAULT_2FA, default_input, key_data);
+            _pool.setKey(KEK_APP_VAULT_2FA, default_input, key_data);
             break;
     }
 }
@@ -538,6 +544,24 @@ cc7::ByteRange SecretKeysV4::deriveKdkVault(int key_id, const common::KT::KDF& k
     });
 }
 
+cc7::ByteRange SecretKeysV4::kekAppVaultKnowledge()
+{
+    // This was KDK_APP_VAULT_KNOWLEDGE originally. We have to keep this derivation,
+    // because PAS 2.0 was already released after the change.
+    // See ticket: https://github.com/wultra/powerauth-mobile-sdk/issues/781
+    static const KT::KDF derive { "vault/kdk-app-vault-knowledge" };
+    return deriveKdkVault(KEK_APP_VAULT_KNOWLEDGE, derive);
+}
+
+cc7::ByteRange SecretKeysV4::kekAppVault2FA()
+{
+    // This was KDK_APP_VAULT_2FA originally. We have to keep this derivation,
+    // because PAS 2.0 was already released after the change.
+    // See ticket: https://github.com/wultra/powerauth-mobile-sdk/issues/781
+    static const KT::KDF derive { "vault/kdk-app-vault-2fa" };
+    return deriveKdkVault(KEK_APP_VAULT_2FA, derive);
+}
+
 cc7::ByteRange SecretKeysV4::kekDevicePrivate()
 {
     static const KT::KDF derive { "vault/kek-device-private" };
@@ -546,14 +570,56 @@ cc7::ByteRange SecretKeysV4::kekDevicePrivate()
 
 cc7::ByteRange SecretKeysV4::kdkAppVaultKnowledge()
 {
-    static const KT::KDF derive { "vault/kdk-app-vault-knowledge" };
-    return deriveKdkVault(KDK_APP_VAULT_KNOWLEDGE, derive);
+    checkAccessLevel(KDK_APP_VAULT_KNOWLEDGE, AL_VAULT);
+    if (_pool.isSet(KDK_APP_VAULT_KNOWLEDGE)) {
+        // If key is set, then return it directly
+        return _pool.getKey(KDK_APP_VAULT_KNOWLEDGE, default_input);
+    } else {
+        // Otherwise decrypt key stored in CKDK_APP_VAULT_KNOWLEDGE
+        return _pool.getKey(KDK_APP_VAULT_KNOWLEDGE, uke_decrypt, [this]() -> KT::UKEKeys {
+            return {
+                kekAppVaultKnowledge(),                         // key - derived
+                _pool.getKey(CKDK_APP_VAULT_KNOWLEDGE, uke_encrypted)   // data - should be set
+            };
+        });
+    }
 }
 
 cc7::ByteRange SecretKeysV4::kdkAppVault2FA()
 {
-    static const KT::KDF derive { "vault/kdk-app-vault-2fa" };
-    return deriveKdkVault(KDK_APP_VAULT_2FA, derive);
+    checkAccessLevel(KDK_APP_VAULT_2FA, AL_VAULT);
+    if (_pool.isSet(KDK_APP_VAULT_2FA)) {
+        // If key is set, then return it directly
+        return _pool.getKey(KDK_APP_VAULT_2FA, default_input);
+    } else {
+        // Otherwise decrypt key stored in CKDK_APP_VAULT_2FA
+        return _pool.getKey(KDK_APP_VAULT_2FA, uke_decrypt, [this]() -> KT::UKEKeys {
+            return {
+                kekAppVault2FA(),                               // key - derived
+                _pool.getKey(CKDK_APP_VAULT_2FA, uke_encrypted)         // data - should be set
+            };
+        });
+    }
+}
+
+cc7::ByteRange SecretKeysV4::cKdkAppVaultKnowledge()
+{
+    return _pool.getKey(CKDK_APP_VAULT_KNOWLEDGE, uke_encrypt, [this]() -> KT::UKEKeys {
+        return {
+            kekAppVaultKnowledge(),                             // volatile vault KEK
+            kdkAppVaultKnowledge()                                      // vault key
+        };
+    });
+}
+
+cc7::ByteRange SecretKeysV4::cKdkAppVault2FA()
+{
+    return _pool.getKey(CKDK_APP_VAULT_2FA, uke_encrypt, [this]() -> KT::UKEKeys {
+        return {
+            kekAppVault2FA(),                                   // volatile vault KEK
+            kdkAppVault2FA()                                            // vault key
+        };
+    });
 }
 
 // MARK: - Utility

@@ -97,6 +97,11 @@ public:
         /// Encrypted biometry factor key.
         cc7::ByteArray  cBiometryKey;
         
+        /// Encrypted vault key accessible after successful auth with knowledge factor.
+        cc7::ByteArray  cKdkAppVaultKnowledge;
+        /// Encrypted vault key accessible after successful 2FA authentication.
+        cc7::ByteArray  cKdkAppVault2FA;
+        
         /// Encrypted `KDK_UTILITY`.
         cc7::ByteArray  cKdkUtility;
         /// Encrypted `KDK_ENCRYPTION`

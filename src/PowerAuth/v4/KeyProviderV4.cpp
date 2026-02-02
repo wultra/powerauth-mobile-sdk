@@ -273,6 +273,10 @@ std::unique_ptr<PersistentData> KeyProviderV4::fromRegistrationData(SecretKeysV4
     // auxiliary keys
     pd->cKdkUtility = secret_keys.ckdkUtility();
     pd->cKdkEncryption = secret_keys.ckdkEncryption();
+    
+    // vault keys
+    pd->cKdkAppVaultKnowledge = secret_keys.cKdkAppVaultKnowledge();
+    pd->cKdkAppVault2FA = secret_keys.cKdkAppVault2FA();
 
     // public and private keys
     updateKeyLocalData(&secret_keys);
@@ -306,6 +310,10 @@ std::unique_ptr<PersistentData> KeyProviderV4::fromUpgradeData(SecretKeysV4& sec
     // auxiliary keys
     pd->cKdkUtility = secret_keys.ckdkUtility();
     pd->cKdkEncryption = secret_keys.ckdkEncryption();
+    
+    // vault keys
+    pd->cKdkAppVaultKnowledge = secret_keys.cKdkAppVaultKnowledge();
+    pd->cKdkAppVault2FA = secret_keys.cKdkAppVault2FA();
 
     // public and private keys
     updateKeyLocalData(&secret_keys);

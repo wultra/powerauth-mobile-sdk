@@ -23,11 +23,16 @@ import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import java.io.Console;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Logger;
 
 import io.getlime.security.powerauth.BuildConfig;
 import io.getlime.security.powerauth.biometry.*;
@@ -1599,21 +1604,128 @@ public class PowerAuthSDK {
         }
     }
 
-    /***
+    // Digital signatures
+
+    /**
+     * Export device public key(s) into the specified format.
+     * @param format Required format of the output public key data.
+     * @return List with {@link PowerAuthDevicePublicKeyData} containing public key data.
+     * @throws PowerAuthErrorException In case of failure.
+     */
+    @NonNull
+    public List<PowerAuthDevicePublicKeyData> exportDevicePublicKeys(@PowerAuthDevicePublicKeyFormat int format) throws PowerAuthErrorException {
+        try {
+            final int coreFormat = format == PowerAuthDevicePublicKeyFormat.DER ? CoreDevicePublicKeyFormat.SPKI : CoreDevicePublicKeyFormat.RAW;
+            CoreDevicePublicKeyData[] coreKeys = mSession.exportDevicePublicKeys(coreFormat);
+            return PowerAuthDevicePublicKeyData.fromCoreObject(coreKeys);
+        } catch (CoreException exception) {
+            throw PowerAuthErrorException.wrapException(exception);
+        }
+    }
+
+    /**
+     * Convert {@link PowerAuthSignatureKeyId} into {@link CoreSignatureKeyId}.
+     * @param keyId Key identifier to convert.
+     * @return Converted key identifier.
+     */
+    @SuppressLint("WrongConstant")
+    @CoreSignatureKeyId
+    private static int convertPowerAuthSignatureKeyId(@PowerAuthSignatureKeyId int keyId) {
+        // @PowerAuthSignatureKeyId is defined from @CoreSignatureKeyId constants, so direct return
+        // with suppressed warning is OK.
+        return keyId;
+    }
+
+    /**
+     * Verifies a digital signature for the given data using the key specified by its identifier.
+     * <p>
+     * If the selected key identifier represents multiple key types, an error is reported.
+     * Hybrid signatures are not supported in this version of the library.
+     *
+     * @param signature The digital signature calculated for the data.
+     * @param signedData The data that was signed.
+     * @param keyIdentifier The identifier of the key used for verification.
+     * @throws PowerAuthErrorException In case of failure. If the signature is not valid, then
+     *      exception with {@link PowerAuthErrorCodes#WRONG_SIGNATURE} code is raised.
+     */
+    public void verifyDigitalSignature(@NonNull byte[] signature,
+                                       @Nullable byte[] signedData,
+                                       @PowerAuthSignatureKeyId int keyIdentifier) throws PowerAuthErrorException {
+        try {
+            mSession.verifySignature(signature, signedData, convertPowerAuthSignatureKeyId(keyIdentifier));
+        } catch (CoreException exception) {
+            throw PowerAuthErrorException.wrapException(exception);
+        }
+    }
+
+    /**
+     * Calculates a digital signature for the given data using the key specified by its identifier.
+     * <p>
+     * The selected key must support signature calculation; otherwise, an error is reported.
+     * If the key identifier represents multiple key types, an error is also reported.
+     * Hybrid signatures are not supported in this version of the library.
+     *
+     * @param authentication The authentication object used for vault unlocking.
+     * @param dataToSign The data to sign.
+     * @param keyIdentifier The identifier of the key used for signature calculation.
+     * @param listener The callback interface invoked with the resulting signature or an error.
+     * @return Cancelable object associated with the asynchronous operation, or {@code null} if
+     *         the error is detected immediately.
+     */
+    @Nullable
+    public ICancelable calculateDigitalSignature(@NonNull PowerAuthAuthentication authentication,
+                                                 @Nullable byte[] dataToSign,
+                                                 @PowerAuthSignatureKeyId int keyIdentifier,
+                                                 @NonNull IDigitalSignatureListener listener) {
+        try {
+            final int coreKeyId = convertPowerAuthSignatureKeyId(keyIdentifier);
+            final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
+            final CoreRequest<byte[]> request = mSession.signData(dataToSign, credentials, coreKeyId);
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable byte[] bytes) {
+                    byte[] response = Objects.requireNonNull(bytes);
+                    listener.onDigitalSignatureSucceed(response);
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onDigitalSignatureFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+        } catch (CoreException exception) {
+            dispatchCallback(() -> listener.onDigitalSignatureFailed(PowerAuthErrorException.wrapException(exception)));
+        } catch (PowerAuthErrorException exception) {
+            dispatchCallback(() -> listener.onDigitalSignatureFailed(exception));
+        }
+        return null;
+    }
+
+    /**
      * Validates whether the data has been signed with master server private key, or personalized server's private key.
      *
      * @param data An arbitrary data
      * @param signature A signature calculated for data
      * @param useMasterKey If true, then master server's public key is used for validation, otherwise personalized server's key.
      * @return true if signature is valid
+     * @deprecated Method is deprecated, please use {@link #verifyDigitalSignature(byte[], byte[], int)} instead.
      */
+    @Deprecated // 2.0.0
     public boolean verifyServerSignedData(byte[] data, byte[] signature, boolean useMasterKey) {
-
-//        // Verify signature
-//        final int signingKey = useMasterKey ? SigningDataKey.ECDSA_MASTER_SERVER_KEY : SigningDataKey.ECDSA_PERSONALIZED_KEY;
-//        final SignedData signedData = new SignedData(data, signature, signingKey, SignatureFormat.ECDSA_DER);
-//        return mSession.verifyServerSignedData(signedData) == ErrorCode.OK;
-        return false;
+        if (signature == null) {
+            return false;
+        }
+        try {
+            int keyId = useMasterKey ? PowerAuthSignatureKeyId.MASTER_EC : PowerAuthSignatureKeyId.SERVER_EC;
+            verifyDigitalSignature(signature, data, keyId);
+            return true;
+        } catch (PowerAuthErrorException exception) {
+            return false;
+        }
     }
 
     /**
@@ -1623,51 +1735,132 @@ public class PowerAuthSDK {
      * @param data Data to be signed.
      * @param listener Listener with callbacks to signature status.
      * @return Async task associated with vault unlock request.
+     * @deprecated Method is deprecated, please use {@link #calculateDigitalSignature(PowerAuthAuthentication, byte[], int, IDigitalSignatureListener)} instead.
      */
-    public @Nullable
-    ICancelable signDataWithDevicePrivateKey(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final byte[] data, @NonNull final IDataSignatureListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onDataSignedFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
-        return null;
-        //return signDataWithDevicePrivateKeyImpl(context, authentication, data, SignatureFormat.ECDSA_DER, listener);
+    @Deprecated // 2.0.0
+    @Nullable
+    public ICancelable signDataWithDevicePrivateKey(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final byte[] data, @NonNull final IDataSignatureListener listener) {
+        return calculateDigitalSignature(authentication, data, PowerAuthSignatureKeyId.DEVICE_EC, new IDigitalSignatureListener() {
+            @Override
+            public void onDigitalSignatureSucceed(@NonNull byte[] signature) {
+                listener.onDataSignedSucceed(signature);
+            }
+
+            @Override
+            public void onDigitalSignatureFailed(@NonNull Throwable throwable) {
+                listener.onDataSignedFailed(throwable);
+            }
+        });
+    }
+
+    // JWS
+
+    /**
+     * Verifies JWS or JWT signed data using the key specified by its identifier.
+     * <p>
+     * If the selected key identifier represents multiple key types, compact format cannot be used.
+     *
+     * @param signature A string containing JWS or JWT signed data.
+     * @param compactForm If {@code true}, the input string is a compact JWT; otherwise, a full JWS object is expected.
+     * @param strictVerify If {@code true}, all provided keys must be used to successfully verify their corresponding signatures.
+     *                     If {@code false}, verification succeeds when at least one provided key matches a valid signature; however,
+     *                     invalid or mismatched signatures still result in an error.
+     * @param keyIdentifier The identifier of the key used for verification.
+     * @throws PowerAuthErrorException In case of failure. If the signature is not valid, then
+     *          exception with {@link PowerAuthErrorCodes#WRONG_SIGNATURE} code is raised.
+     */
+    public void verifyJwsSignature(@NonNull String signature,
+                                   boolean compactForm,
+                                   boolean strictVerify,
+                                   @PowerAuthSignatureKeyId int keyIdentifier) throws PowerAuthErrorException {
+        try {
+            final int keyId = convertPowerAuthSignatureKeyId(keyIdentifier);
+            mSession.jwsVerifySignature(signature, compactForm, strictVerify, keyId);
+        } catch (CoreException exception) {
+            throw PowerAuthErrorException.wrapException(exception);
+        }
     }
 
     /**
-     * Sign provided data with a private key that is stored in secure vault.
-     * @param context Context.
-     * @param authentication Authentication object for vault unlock request.
-     * @param data Data to be signed.
-     * @param signatureFormat Format of output signature.
-     * @param listener Listener with callbacks to signature status.
-     * @return Async task associated with vault unlock request.
+     * Calculates a JWS signature for the given data using the key specified by its identifier.
+     * <p>
+     * The selected key must support signature calculation; otherwise, an error is reported.
+     * If the key identifier represents multiple key types, compact format cannot be used for output.
+     *
+     * @param authentication The authentication object used for vault unlocking.
+     * @param dataToSign The data to sign.
+     * @param dataType Data type set to JOSE header. Use {@code "JWT"} or {@code null} if no type is set.
+     * @param compactForm If {@code true}, the output string is a compact JWT; otherwise, a full JWS object is returned.
+     * @param keyIdentifier The identifier of the key used for signature calculation.
+     * @param listener The callback interface invoked with the resulting signature or an error.
+     * @return Cancelable object associated with the asynchronous operation, or {@code null} if
+     *         the error is detected immediately.
      */
-    private @Nullable
-    ICancelable signDataWithDevicePrivateKeyImpl(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final byte[] data, @SignatureFormat int signatureFormat, @NonNull final IDataSignatureListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onDataSignedFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
+    @Nullable
+    public ICancelable calculateJwsSignature(@NonNull PowerAuthAuthentication authentication,
+                                             @Nullable byte[] dataToSign,
+                                             @Nullable String dataType,
+                                             boolean compactForm,
+                                             @PowerAuthSignatureKeyId int keyIdentifier,
+                                             @NonNull IJwsSignatureListener listener) {
+        try {
+            final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
+            final int keyId = convertPowerAuthSignatureKeyId(keyIdentifier);
+            final CoreRequest<String> request = mSession.jwsSignData(dataToSign, dataType, compactForm, credentials, keyId);
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable String s) {
+                    String response = Objects.requireNonNull(s);
+                    listener.onJwsSignatureSucceed(response, compactForm);
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onJwsSignatureFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+        } catch (CoreException exception) {
+            dispatchCallback(() -> listener.onJwsSignatureFailed(PowerAuthErrorException.wrapException(exception)));
+        } catch (PowerAuthErrorException exception) {
+            dispatchCallback(() -> listener.onJwsSignatureFailed(exception));
+        }
         return null;
-//        // Fetch vault encryption key using vault unlock request.
-//        return this.fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.SIGN_WITH_DEVICE_PRIVATE_KEY, new IFetchEncryptedVaultUnlockKeyListener() {
-//            @Override
-//            public void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey) {
-//                if (encryptedEncryptionKey != null) {
-//                    // Let's sign the data
-//                    SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), null, null);
-//                    byte[] signature = mSession.signDataWithDevicePrivateKey(encryptedEncryptionKey, keys, data, signatureFormat);
-//                    // Propagate error
-//                    if (signature != null) {
-//                        listener.onDataSignedSucceed(signature);
-//                    } else {
-//                        listener.onDataSignedFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA));
-//                    }
-//                } else {
-//                    listener.onDataSignedFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
-//                }
-//            }
-//
-//            @Override
-//            public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
-//                listener.onDataSignedFailed(t);
-//            }
-//        });
+    }
+
+    /**
+     * Sign provided claims with the original device private key (asymmetric signature).
+     * <p>
+     * This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key
+     * used for private key decryption. Claims provided as a dictionary is then converted to Base64 encoded format and
+     * signed using ECDSA algorithm (ES256 or ES384) with the private key and converted to JWT representation that can be
+     * validated on the server side.
+     *
+     * @param context Android context.
+     * @param authentication Authentication object that must contain the possession factor.
+     * @param claims Claims to be signed with the private key.
+     * @param listener Listener with the callback methods
+     * @return {@link ICancelable} object associated with the underlying HTTP request.
+     * @deprecated Method is deprecated, please use {@link #calculateJwsSignature(PowerAuthAuthentication, byte[], String, boolean, int, IJwsSignatureListener)} instead.
+     */
+    @Deprecated // 2.0.0
+    @Nullable
+    public ICancelable signJwtWithDevicePrivateKey(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, @NonNull Map<String, Object> claims, @NonNull IJwtSignatureListener listener) {
+        byte[] dataForSign = new JsonSerialization().serializeObject(claims);
+        return calculateJwsSignature(authentication, dataForSign, "JWT", true, PowerAuthSignatureKeyId.DEVICE_EC, new IJwsSignatureListener() {
+            @Override
+            public void onJwsSignatureSucceed(@NonNull String signedData, boolean compactForm) {
+                listener.onJwtSignatureSucceed(signedData);
+            }
+
+            @Override
+            public void onJwsSignatureFailed(@NonNull Throwable throwable) {
+                listener.onJwtSignatureFailed(throwable);
+            }
+        });
     }
 
 
@@ -2475,47 +2668,6 @@ public class PowerAuthSDK {
                 }
             }
         });
-    }
-
-    // JWT
-
-    /**
-     * Sign provided claims with the original device private key (asymmetric signature).
-     * <p>
-     * This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key
-     * used for private key decryption. Claims provided as a dictionary is then converted to Base64 encoded format and
-     * signed using ECDSA algorithm (ES256) with the private key and converted to JWT representation that can be
-     * validated on the server side.
-     *
-     * @param context Android context.
-     * @param authentication Authentication object that must contain the possession factor.
-     * @param claims Claims to be signed with the private key.
-     * @param listener Listener with the callback methods
-     * @return {@link ICancelable} object associated with the underlying HTTP request.
-     */
-    @Nullable
-    public ICancelable signJwtWithDevicePrivateKey(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, @NonNull Map<String, Object> claims, @NonNull IJwtSignatureListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onJwtSignatureFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
-        return null;
-//        final JsonSerialization serialization = new JsonSerialization();
-//        final String jwtHeader = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9"; // {"alg":"ES256","typ":"JWT"}
-//        final String jwtClaims = serialization.serializeJwtObject(claims);
-//        final String jwtHeaderAndClaims = jwtHeader + "." + jwtClaims;
-//        return signDataWithDevicePrivateKeyImpl(context, authentication, jwtHeaderAndClaims.getBytes(StandardCharsets.US_ASCII), SignatureFormat.ECDSA_JOSE, new IDataSignatureListener() {
-//            @Override
-//            public void onDataSignedSucceed(@NonNull byte[] signature) {
-//                // Encoded signature
-//                final String jwtSignature = Base64.encodeToString(signature, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING);
-//                // Construct final JWT
-//                final String jwt = jwtHeaderAndClaims + "." + jwtSignature;
-//                listener.onJwtSignatureSucceed(jwt);
-//            }
-//
-//            @Override
-//            public void onDataSignedFailed(@NonNull Throwable t) {
-//                listener.onJwtSignatureFailed(t);
-//            }
-//        });
     }
 
     // E2EE

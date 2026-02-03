@@ -272,6 +272,9 @@ public class PowerAuthTestHelper {
                     Logger.e("Shared PowerAuthSDK doesn't have a valid activation at test initialization.");
                 }
             }
+            // Apply client API to server API
+            serverApi.setClientAlgorithm(sdk.getCurrentAlgorithm());
+            // Build helper
             return new PowerAuthTestHelper(
                     context,
                     testConfig,

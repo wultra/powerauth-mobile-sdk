@@ -35,7 +35,7 @@ public @interface PowerAuthDevicePublicKeyFormat {
     /**
      * DER key format, which corresponds to the SPKI or X.509 structure.
      */
-    int DER = CoreDevicePublicKeyFormat.DER;
+    int DER = CoreDevicePublicKeyFormat.SPKI;
     /**
      * RAW key format. The actual output depends on the key type:
      * <ul>

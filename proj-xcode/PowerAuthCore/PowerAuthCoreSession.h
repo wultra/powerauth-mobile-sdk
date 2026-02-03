@@ -467,7 +467,7 @@
 /// - Returns: `true` if signature is valid, otherwise `false`. If failure is caused by invalid signature,
 ///            then error with `PowerAuthCoreError_WrongSignature` is returned.
 - (BOOL) verifySignature:(nonnull NSData*)signature
-                    data:(nonnull NSData*)data
+                    data:(nullable NSData*)data
                    keyId:(PowerAuthCoreSignatureKeyId)keyId
                    error:(NSError *_Nullable*_Nullable)error;
 

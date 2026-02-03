@@ -29,7 +29,7 @@ public class CreateNonPersonalizedOfflineSignaturePayloadEndpoint implements ISe
     @NonNull
     @Override
     public String getRelativePath() {
-        return "/rest/v4/signature/offline/non-personalized/create";
+        return "/rest/v4/auth/offline/non-personalized/create";
     }
 
     @Nullable

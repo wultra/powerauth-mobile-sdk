@@ -699,7 +699,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 }
 
 - (BOOL) verifySignature:(nonnull NSData*)signature
-                    data:(nonnull NSData*)data
+                    data:(nullable NSData*)data
                    keyId:(PowerAuthCoreSignatureKeyId)keyId
                    error:(NSError *_Nullable*_Nullable)error
 {
@@ -707,9 +707,9 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
         return NO;
     }
     try {
-        _session->verifySignature(cc7::objc::CopyFromNSData(data),
-                                  cc7::objc::CopyFromNSData(signature),
-                                  static_cast<SignatureKeyId>(keyId));
+    _session->verifySignature(cc7::objc::CopyFromNSData(data),
+                              cc7::objc::CopyFromNSData(signature),
+                              static_cast<SignatureKeyId>(keyId));
         return YES;
     } catch (...) {
         if (error) {
@@ -788,7 +788,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
         return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
             auto stringResponse = std::dynamic_pointer_cast<powerAuth::StringResponse>(response);
             if (!stringResponse) {
-                throw Exception(EC_InternalError, "No DataResponse object created");
+                throw Exception(EC_InternalError, "No StringResponse object created");
             }
             return cc7::objc::CopyToNSString(stringResponse->string());
         }];

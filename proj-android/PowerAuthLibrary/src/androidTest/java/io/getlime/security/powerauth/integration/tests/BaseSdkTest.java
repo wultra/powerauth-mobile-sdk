@@ -16,21 +16,13 @@
 
 package io.getlime.security.powerauth.integration.tests;
 
-import android.text.TextUtils;
-import android.util.Base64;
-
 import androidx.annotation.NonNull;
-
-import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.core.CoreEncryptor;
 import io.getlime.security.powerauth.core.SecureData;
-import io.getlime.security.powerauth.integration.support.model.SignatureFormat;
-import io.getlime.security.powerauth.integration.support.model.SignatureType;
 import io.getlime.security.powerauth.sdk.PowerAuthActivationState;
 import io.getlime.security.powerauth.sdk.PowerAuthActivationStatus;
 import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
-import io.getlime.security.powerauth.sdk.impl.JsonSerialization;
 import io.getlime.security.powerauth.networking.response.*;
 import org.junit.After;
 import org.junit.Before;
@@ -38,10 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
@@ -534,63 +523,6 @@ public class BaseSdkTest {
         // Check the last fetched User Info was updated (i.e. JWT ID was changed).
         assertNotEquals(info.getAllClaims().get("jti"), infoFromActivation.getAllClaims().get("jti"));
         assertEquals(info.getAllClaims().get("jti"), powerAuthSDK.getLastFetchedUserInfo().getAllClaims().get("jti"));
-    }
-
-    // JWT
-
-    @Test
-    public void testJwtSignature() throws Exception {
-        activationHelper.createStandardActivation(true, null);
-
-        // Get JWT
-        final HashMap<String, Object> originalClaims = new HashMap<>();
-        originalClaims.put("sub", "1234567890");
-        originalClaims.put("name", "John Doe");
-        originalClaims.put("admin", true);
-        final String jwt = AsyncHelper.await(resultCatcher -> {
-            ICancelable task = powerAuthSDK.signJwtWithDevicePrivateKey(testHelper.getContext(), activationHelper.getValidAuthentication(), originalClaims, new IJwtSignatureListener() {
-                @Override
-                public void onJwtSignatureSucceed(@NonNull String jwt) {
-                    resultCatcher.completeWithResult(jwt);
-                }
-
-                @Override
-                public void onJwtSignatureFailed(@NonNull Throwable t) {
-                    resultCatcher.completeWithError(t);
-                }
-            });
-            assertNotNull(task);
-        });
-
-        // Parse JWT and validate result
-        final JsonSerialization jsonSerialization = new JsonSerialization();
-        final String[] jwtComponents = TextUtils.split(jwt, "\\.");
-        assertEquals(3, jwtComponents.length);
-        final String jwtHeader = jwtComponents[0];
-        final String jwtClaims = jwtComponents[1];
-        final String jwtSignature = jwtComponents[2];
-        // Validate header
-        Map<String, Object> headerObject = jsonSerialization.deserializeObject(Base64.decode(jwtHeader, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING), new TypeToken<Map<String, Object>>() {});
-        assertEquals("JWT", headerObject.get("typ"));
-        assertEquals("ES256", headerObject.get("alg"));
-        // Validate claims
-        Map<String, Object> claimsObject = jsonSerialization.deserializeObject(Base64.decode(jwtClaims, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING), new TypeToken<Map<String, Object>>() {});
-        assertEquals(originalClaims.size(), claimsObject.size());
-        claimsObject.forEach((key, value) -> {
-            assertEquals(originalClaims.get(key), value);
-        });
-        // Prepare signed data
-        final String jwtSignedDatasBase64 = Base64.encodeToString((jwtHeader + "." + jwtClaims).getBytes(StandardCharsets.US_ASCII), Base64.NO_WRAP);
-        // Decode signature and encode back to Base64
-        final String jwtSignatureBase64 = Base64.encodeToString(
-                Base64.decode(jwtSignature, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING),
-                Base64.NO_WRAP
-        );
-
-        // Validate signature
-        // Note that signature format is supported from PAS 1.9+
-        boolean result = testHelper.getServerApi().verifyDsaSignature(activationHelper.getActivation().getActivationId(), jwtSignedDatasBase64, jwtSignatureBase64, SignatureFormat.JOSE, SignatureType.ECDSA);
-        assertTrue(result);
     }
 
     @Test

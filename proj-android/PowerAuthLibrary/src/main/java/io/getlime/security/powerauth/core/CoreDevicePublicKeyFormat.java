@@ -28,12 +28,12 @@ import java.lang.annotation.Retention;
  * the device public key.
  */
 @Retention(SOURCE)
-@IntDef({DER, RAW})
+@IntDef({SPKI, RAW})
 public @interface CoreDevicePublicKeyFormat {
     /**
      * DER key format, which corresponds to the SPKI or X.509 structure.
      */
-    int DER = 0;
+    int SPKI = 0;
     /**
      * RAW key format. The actual output depends on the key type:
      * <ul>

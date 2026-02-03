@@ -96,7 +96,7 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
             "ML_DSA"
         });
         spec.coreDevicePublicKeyFormat = jni.buildConstantRangeSpec("io/getlime/security/powerauth/core/CoreDevicePublicKeyFormat", {
-            "DER",
+            "SPKI",
             "RAW"
         });
         spec.coreEncryptorScope = jni.buildConstantRangeSpec("io/getlime/security/powerauth/core/CoreEncryptorScope", {

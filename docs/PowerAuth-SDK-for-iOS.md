@@ -143,7 +143,7 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 The `PowerAuthConfiguration` has the following additional properties:
 
 - `algorithm` - Alters [algorithm](#algorithms-for-communication) used for the communication with the PowerAuth Server.
-- `offlineaAthenticationCodeComponentLength` - Alters the default component length for the [offline authentication code](#symmetric-offline-multi-factor-authentication-code). The values between 4 and 8 are allowed. The default value is 8.
+- `offlineAuthenticationCodeComponentLength` - Alters the default component length for the [offline authentication code](#symmetric-offline-multi-factor-authentication-code). The values between 4 and 8 are allowed. The default value is 8.
 - `externalEncryptionKey` - See [External Encryption Key](#external-encryption-key) chapter for more details.
 - `keychainKey_Biometry` - Specifies the 'key' used to store the `PowerAuthSDK` instance’s biometry-related key in the biometry keychain. If not set, the `instanceId` is applied. Do not alter this configuration unless you have a valid reason to do so.
 
@@ -532,10 +532,6 @@ if powerAuthSDK.hasValidActivation() {
 ### Activation states
 
 This chapter explains activation states in detail. To get more information about activation lifecycle, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
-
-#### `PowerAuthActivationState.created` 
-
-The activation record is created using an external channel, such as the Internet banking, but the key exchange between the client and server did not happen yet. This state is never reported to the mobile client.
 
 #### `PowerAuthActivationState.pendingCommit`
 

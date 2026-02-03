@@ -21,7 +21,11 @@ import androidx.annotation.NonNull;
 
 /**
  * Listener for JWT signature.
+ *
+ * @deprecated Interface is deprecated, please use API that receive {@link IJwsSignatureListener}
+ * as callback.
  */
+@Deprecated // 2.0.0
 public interface IJwtSignatureListener {
     /**
      * Called when data signature succeeds.

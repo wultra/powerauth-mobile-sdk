@@ -39,6 +39,9 @@ public:
         CKEY_AUTHENTICATION_KNOWLEDGE,  // UKE (48 = 16+32)
         CKEY_AUTHENTICATION_BIOMETRY,   // UKE (48 = 16+32)
         
+        CKDK_APP_VAULT_KNOWLEDGE,       // UKE (48 = 16+32)
+        CKDK_APP_VAULT_2FA,             // UKE (48 = 16+32)
+        
         CKDK_UTILITY,                   // AEAD (80 = 16+32+32)
         CKDK_ENCRYPTION,                // AEAD (80 = 16+32+32)
         CKEY_DEVICE_PRIVATE,            // AEAD variable size
@@ -60,8 +63,10 @@ public:
         KEY_AUTHENTICATION_BIOMETRY,
         
         KEK_DEVICE_PRIVATE,
-        KDK_APP_VAULT_KNOWLEDGE,
-        KDK_APP_VAULT_2FA,
+        KDK_APP_VAULT_KNOWLEDGE,    // random key, generated locally
+        KDK_APP_VAULT_2FA,          // random key, generated locally
+        KEK_APP_VAULT_KNOWLEDGE,    // derived or received from server
+        KEK_APP_VAULT_2FA,          // derived or received from server
         
         // Keys below this marker can be set at input, or derived if
         // appropriate source key is available
@@ -149,7 +154,12 @@ public:
     cc7::ByteRange kekDevicePrivate() override;
     cc7::ByteRange kdkAppVaultKnowledge() override;
     cc7::ByteRange kdkAppVault2FA() override;
-    
+        
+    cc7::ByteRange kekAppVaultKnowledge();
+    cc7::ByteRange kekAppVault2FA();
+    cc7::ByteRange cKdkAppVaultKnowledge();
+    cc7::ByteRange cKdkAppVault2FA();
+
     // Utility
     cc7::ByteRange kdkUtility();
     cc7::ByteRange ckdkUtility();

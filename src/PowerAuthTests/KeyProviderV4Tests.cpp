@@ -220,7 +220,7 @@ public:
         
         testPublicKeys();
         testBasicUnlockedKeys();
-        testVaultKeyUnlock(true);
+        testVaultKeyUnlock(true, false);
         testFactorsInRegistration();
         
         // activation commit
@@ -235,13 +235,13 @@ public:
         
         testUpdateBiometry();
         
-        testVaultKeyUnlock(false);
+        testVaultKeyUnlock(false, true);
         
         keyProvider().asService()->clearSensitiveData();
         keyProvider().asService()->restoreSensitiveData();
         testCredentials();
         testUpdateBiometry();
-        testVaultKeyUnlock(false);
+        testVaultKeyUnlock(false, true);
 
         // serialize and deserialize state
         auto serialized = context->sessionData().serialize();
@@ -250,7 +250,7 @@ public:
         
         testCredentials();
         testUpdateBiometry();
-        testVaultKeyUnlock(false);
+        testVaultKeyUnlock(false, true);
     }
     
     void testPublicKeys()
@@ -372,11 +372,15 @@ public:
             ccstAssertNotNull(secrets);
             auto typed_secrets = dynamic_cast<v4::SecretKeysV4*>(&(*secrets));
             ccstAssertNotNull(typed_secrets);
+
+            // capture valid KDKs (random values generated in initial unlock)
+            kdkAppVaultKnowledge = secrets->kdkAppVaultKnowledge();
+            kdkAppVault2FA = secrets->kdkAppVault2FA();
             
             // basic
             verifyBasicKeys(secrets);
             verifyUtilityKeys(secrets, true);
-            verifyVaultKeys(secrets, true);
+            verifyVaultKeys(secrets, true, std::nullopt, true);
             verifyFactorKeys(secrets, true, true, has_biometry);
             
             // capture important keys
@@ -385,8 +389,6 @@ public:
             keyAuthenticationCodeBiometry = has_biometry ? secrets->keyAuthenticationCodeBiometry() : ByteRange();
             
             kekDevicePrivate = secrets->kekDevicePrivate();
-            kdkAppVaultKnowledge = secrets->kdkAppVaultKnowledge();
-            kdkAppVault2FA = secrets->kdkAppVault2FA();
             kdkEncryption = typed_secrets->kdkEncryption();
             kdkUtility = typed_secrets->kdkUtility();
         }
@@ -534,7 +536,7 @@ public:
         keyProvider().lockSecretKeys(secrets);
     }
     
-    void testVaultKeyUnlock(bool initial)
+    void testVaultKeyUnlock(bool initial, bool app_keys_avail)
     {
         // vault only
         auto vault_key = V4_KDF(shared_secret, { "vault", "vault/kek-device-private" });
@@ -550,7 +552,11 @@ public:
         secrets = keyProvider().unlockVaultKey(VaultKeyType::KDK_APP_VAULT_KNOWLEDGE, vault_key);
         {
             verifyBasicKeys(secrets);
-            verifyVaultKeys(secrets, initial, VaultKeyType::KDK_APP_VAULT_KNOWLEDGE);
+            if (app_keys_avail) {
+                verifyVaultKeys(secrets, initial, VaultKeyType::KDK_APP_VAULT_KNOWLEDGE);
+            } else {
+                verifyVaultKeys(secrets, initial);
+            }
             verifyFactorKeys(secrets, true, false, false);
         }
         keyProvider().lockSecretKeys(secrets);
@@ -559,7 +565,11 @@ public:
         secrets = keyProvider().unlockVaultKey(VaultKeyType::KDK_APP_VAULT_2FA, vault_key);
         {
             verifyBasicKeys(secrets);
-            verifyVaultKeys(secrets, initial, VaultKeyType::KDK_APP_VAULT_2FA);
+            if (app_keys_avail) {
+                verifyVaultKeys(secrets, initial, VaultKeyType::KDK_APP_VAULT_2FA);
+            } else {
+                verifyVaultKeys(secrets, initial);
+            }
             verifyFactorKeys(secrets, true, false, false);
         }
         keyProvider().lockSecretKeys(secrets);
@@ -644,7 +654,7 @@ public:
         }
     }
     
-    void verifyVaultKeys(ISecretKeysPtr& secrets, bool initial, std::optional<VaultKeyType> type = std::nullopt)
+    void verifyVaultKeys(ISecretKeysPtr& secrets, bool initial, std::optional<VaultKeyType> type = std::nullopt, bool app_keys_avail = false)
     {
         if (initial || type == VaultKeyType::KEK_DEVICE_PRIVATE) {
             ccstAssertEqual(V4_KDF(shared_secret, { "vault", "vault/kek-device-private" }), secrets->kekDevicePrivate());
@@ -656,13 +666,13 @@ public:
             ccstMustThrow(Exception, secrets->kekDevicePrivate());
             ccstMustThrow(Exception, secrets->devicePrivateKey());
         }
-        if (initial || type == VaultKeyType::KDK_APP_VAULT_KNOWLEDGE) {
-            ccstAssertEqual(V4_KDF(shared_secret, { "vault", "vault/kdk-app-vault-knowledge" }), secrets->kdkAppVaultKnowledge());
+        if (app_keys_avail || type == VaultKeyType::KDK_APP_VAULT_KNOWLEDGE) {
+            ccstAssertEqual(kdkAppVaultKnowledge, secrets->kdkAppVaultKnowledge());
         } else {
             ccstMustThrow(Exception, secrets->kdkAppVaultKnowledge());
         }
-        if (initial || type == VaultKeyType::KDK_APP_VAULT_2FA) {
-            ccstAssertEqual(V4_KDF(shared_secret, { "vault", "vault/kdk-app-vault-2fa" }), secrets->kdkAppVault2FA());
+        if (app_keys_avail || type == VaultKeyType::KDK_APP_VAULT_2FA) {
+            ccstAssertEqual(kdkAppVault2FA, secrets->kdkAppVault2FA());
         } else {
             ccstMustThrow(Exception, secrets->kdkAppVault2FA());
         }

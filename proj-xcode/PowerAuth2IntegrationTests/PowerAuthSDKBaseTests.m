@@ -46,8 +46,14 @@
 {
     CHECK_TEST_CONFIG();
     
-    PowerAuthSdkActivation * activation = [_helper createActivation:NO removeAfter:YES];
+    PowerAuthSdkActivation * activation = [_helper createActivation:NO removeAfter:NO];
     XCTAssertTrue(activation.success);
+    
+    if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+        NSArray * keys = [self fetchSecureVaultKeys:nil knowledge:nil];
+        _sdk = [_helper reCreateSdkInstance];
+        [self fetchSecureVaultKeys:keys[1] knowledge:keys[0]];
+    }
 }
 
 - (void) testCreateActivationWithOtpAndSignature
@@ -2048,6 +2054,33 @@
     }
 }
 
+- (NSArray<PowerAuthSecureVaultKey*>*) fetchSecureVaultKeys:(PowerAuthSecureVaultKey*)knowledgeOrBiometry
+                                                  knowledge:(PowerAuthSecureVaultKey*)knowledge
+{
+    if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+        PowerAuthSecureVaultKey * key1 = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk fetchSecureVaultKey:_helper.authPossessionWithKnowledge keyIdentifier:PowerAuthSecureVaultKeyId_Knowledge callback:^(PowerAuthSecureVaultKey * _Nullable vaultKey, NSError * _Nullable error) {
+                [waiting reportCompletion:vaultKey];
+            }];
+        }];
+        XCTAssertNotNil(key1);
+        if (knowledge) {
+            XCTAssertTrue([knowledge isEqualToVaultEncryptionKey:key1]);
+        }
+        PowerAuthSecureVaultKey * key2 = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk fetchSecureVaultKey:_helper.authPossessionWithKnowledge keyIdentifier:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry callback:^(PowerAuthSecureVaultKey * _Nullable vaultKey, NSError * _Nullable error) {
+                [waiting reportCompletion:vaultKey];
+            }];
+        }];
+        XCTAssertNotNil(key2);
+        if (knowledgeOrBiometry) {
+            XCTAssertTrue([knowledgeOrBiometry isEqualToVaultEncryptionKey:key2]);
+        }
+        return @[key1, key2];
+    }
+    return nil;
+}
+
 // TODO: Temporary key expiration
 
 //- (void) testTemporaryKeyExpiration
@@ -2580,6 +2613,11 @@
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     
     [self createTokenAndValidateTokenHeader:@"TestToken" createToken:NO];
+    if (targetAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+        NSArray * keys = [self fetchSecureVaultKeys:nil knowledge:nil];
+        _sdk = [_helper reCreateSdkInstance];
+        [self fetchSecureVaultKeys:keys[1] knowledge:keys[0]];
+    }
         
     [_helper cleanup];
 }

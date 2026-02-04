@@ -208,6 +208,10 @@ void PersistentData::serializeV4(cc7::utils::DataWriter& writer, const V4& v4) c
     writer.writeData    (v4.cKdkUtility);
     writer.writeData    (v4.cKdkEncryption);
     
+    // vault keys
+    writer.writeData    (v4.cKdkAppVaultKnowledge);
+    writer.writeData    (v4.cKdkAppVault2FA);
+    
     // public and private keys
     writer.writeData    (v4.cServerPublicKey);
     writer.writeData    (v4.cDevicePublicKey);
@@ -239,6 +243,10 @@ bool PersistentData::deserializeV4(cc7::utils::DataReader &reader, V4 &v4)
     // auxiliary keys
     result = result && reader.readData      (v4.cKdkUtility);
     result = result && reader.readData      (v4.cKdkEncryption);
+    
+    // vault keys
+    result = result && reader.readData      (v4.cKdkAppVaultKnowledge);
+    result = result && reader.readData      (v4.cKdkAppVault2FA);
     
     // public and private keys
     result = result && reader.readData      (v4.cServerPublicKey);
@@ -282,6 +290,9 @@ bool PersistentData::validateV4(const V4 &v4)
         // auxiliary keys
         _IsSet(v4.cKdkUtility, v4::AEAD_PROTECTED_KEY_SIZE) &&
         _IsSet(v4.cKdkEncryption, v4::AEAD_PROTECTED_KEY_SIZE) &&
+        // vault keys
+        _IsSet(v4.cKdkAppVaultKnowledge, v4::UKE_PROTECTED_KEY_SIZE) &&
+        _IsSet(v4.cKdkAppVault2FA, v4::UKE_PROTECTED_KEY_SIZE) &&
         // public & private keys
         _IsSet(v4.cDevicePublicKey) &&
         _IsSet(v4.cServerPublicKey) &&

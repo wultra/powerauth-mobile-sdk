@@ -313,6 +313,48 @@ CC7_JNI_METHOD_PARAMS(jobject, verifyPassword, jobject password)
     NH_CATCH(nullptr)
 }
 
+CC7_JNI_METHOD_PARAMS(jobject, changePassword, jobject oldPassword, jobject newPassword)
+{
+    NH_TRY
+    {
+        jni.requireParameter(oldPassword, "oldPassword");
+        jni.requireParameter(newPassword, "newPassword");
+
+        auto cpp_old_password = jni.fromJava<Password>(NH_SPECS().password, oldPassword);
+        auto cpp_new_password = jni.fromJava<Password>(NH_SPECS().password, newPassword);
+
+        auto request = THIS_OBJ()->changePassword(cpp_old_password, cpp_new_password);
+        return request ? BuildCoreRequest(jni, request) : nullptr;
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, addBiometryFactor, jobject password, jobject biometryKek)
+{
+    NH_TRY
+    {
+        jni.requireParameter(password, "password");
+        jni.requireParameter(biometryKek, "biometryKek");
+
+        auto cpp_password = jni.fromJava<Password>(NH_SPECS().password, password);
+        auto cpp_biometry = CopyFromSecureData(jni, biometryKek);
+
+        auto request = THIS_OBJ()->addBiometricFactor(cpp_password, cpp_biometry);
+        return BuildCoreRequest(jni, request);
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD(jobject, removeBiometryFactor)
+{
+    NH_TRY
+    {
+        auto request = THIS_OBJ()->removeBiometricFactor();
+        return request ? BuildCoreRequest(jni, request) : nullptr;
+    }
+    NH_CATCH(nullptr)
+}
+
 // Authentication
 
 CC7_JNI_METHOD_PARAMS(jobject, calculateOnlineAuthenticationHeader, jobject credentials, jstring uriIdentifier, jstring httpMethod, jbyteArray requestBody)

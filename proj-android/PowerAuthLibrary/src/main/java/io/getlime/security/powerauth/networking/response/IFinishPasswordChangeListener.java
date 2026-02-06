@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,22 +20,22 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 
 /**
- * Listener for password change.
+ * Listener for the second step of password change.
  */
-@Deprecated(since = "2.0.0")
-public interface IChangePasswordListener {
+public interface IFinishPasswordChangeListener {
 
     /**
-     * Called when password change succeeds.
+     * Called when the second step of the password change process completes successfully.
      */
     @MainThread
-    void onPasswordChangeSucceed();
+    void onFinishPasswordChangeSucceed();
 
     /**
-     * Called when password change fails.
+     * Called when the second step of the password change process fails.
      *
-     * @param t error that occurred during the password change.
+     * @param throwable error that occurred during the second step of the password change process.
      */
     @MainThread
-    void onPasswordChangeFailed(@NonNull Throwable t);
+    void onFinishPasswordChangeFailed(@NonNull Throwable throwable);
+
 }

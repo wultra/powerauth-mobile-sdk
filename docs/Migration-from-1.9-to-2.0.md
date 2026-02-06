@@ -28,7 +28,9 @@ Notable changes on Android:
 
 - The following methods or properties are now deprecated or changed:
   - `PowerAuthSDK` class:
-    - `changePasswordUnsafe()` - use asynchronous `changePassword()` as a replacement.
+    - `changePasswordUnsafe()` - use new two-step API for password change `beginPasswordChange()` as a replacement.
+    - `changePassword()` - use new two-step API for password change `beginPasswordChange()` as a replacement.
+    - `validatePassword()` - method has no direct replacement. If your application requires password validation here, that indicates a deeper architectural issue that may introduce security vulnerabilities.
     - `persistActivationWithAuthentication()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
     - `persistActivationWithPassword()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
     - `persistActivation(..., IPersistActivationWithBiometricsListener)` - use asynchronous method with `IPersistActivationListener` as a callback parameter.

@@ -24,45 +24,25 @@ import io.getlime.security.powerauth.biometry.IRemoveBiometryFactorListener;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.*;
 import io.getlime.security.powerauth.sdk.*;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import androidx.annotation.NonNull;
 
 import static org.junit.Assert.*;
 
-@RunWith(Parameterized.class)
-public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserver {
+public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConfigurationObserver {
 
-    @Parameterized.Parameter(0) public String alg;
-    @Parameterized.Parameters(name = " {0} ")
-    public static Iterable<Object[]> testParameters() {
-        return TestParameters.getParameters();
-    }
-
-    @PowerAuthAlgorithm
-    public int getAlgorithmForTest() {
-        return PowerAuthTestHelper.getAlgorithmForName(alg);
-    }
-
-    private PowerAuthTestHelper testHelper;
-    private PowerAuthSDK powerAuthSDK;
-    private ActivationHelper activationHelper;
     private ActivityScenario<TestActivity> activityScenario;
 
-    @Before
+    @Override
     public void setUp() throws Exception {
+        super.setUp();
         activityScenario = ActivityScenario.launch(TestActivity.class);
     }
 
-    @After
+    @Override
     public void tearDown() {
-        if (activationHelper != null) {
-            activationHelper.cleanupAfterTest();
-        }
+        super.tearDown();
         activityScenario.close();
     }
 
@@ -164,6 +144,11 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testPersistWithDeprecatedFragment() throws Exception {
+        if (getAlgorithmForTest() != PowerAuthAlgorithm.LEGACY_P256) {
+            // persist will fail in this test if other than legacy algorithm is used.
+            return;
+        }
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT | ActivationHelper.TF_PERSIST_WITH_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -174,6 +159,11 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testPersistWithDeprecatedFragmentActivity() throws Exception {
+        if (getAlgorithmForTest() != PowerAuthAlgorithm.LEGACY_P256) {
+            // persist will fail in this test if other than legacy algorithm is used.
+            return;
+        }
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -184,6 +174,11 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testPersistWithDeprecatedFragmentCorePass() throws Exception {
+        if (getAlgorithmForTest() != PowerAuthAlgorithm.LEGACY_P256) {
+            // persist will fail in this test if other than legacy algorithm is used.
+            return;
+        }
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -194,6 +189,11 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testPersistWithDeprecatedFragmentActivityCorePass() throws Exception {
+        if (getAlgorithmForTest() != PowerAuthAlgorithm.LEGACY_P256) {
+            // persist will fail in this test if other than legacy algorithm is used.
+            return;
+        }
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));

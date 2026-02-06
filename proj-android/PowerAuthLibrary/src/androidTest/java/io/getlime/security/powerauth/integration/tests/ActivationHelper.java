@@ -39,6 +39,7 @@ import io.getlime.security.powerauth.integration.support.model.ServerConstants;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
 import io.getlime.security.powerauth.networking.response.*;
 import io.getlime.security.powerauth.sdk.*;
+import io.getlime.security.powerauth.sdk.impl.PowerAuthPasswordChangeData;
 
 import static org.junit.Assert.*;
 
@@ -567,32 +568,34 @@ public class ActivationHelper {
 
     /**
      * Validate user password on server.
+     * This implementation is for integration testing only. Do NOT use `beginPasswordChange`
+     * as a general password-validation mechanism.
      *
      * @param password Password to validate.
      * @return {@code true} if password is equal to password that was used during PowerAuthSDK activation creation.
      * @throws Exception In case of other failure.
      */
     public boolean validateUserPassword(@NonNull final Password password) throws Exception {
-        return AsyncHelper.await(resultCatcher -> {
-            powerAuthSDK.validatePassword(testHelper.getContext(), password, new IValidatePasswordListener() {
-                @Override
-                public void onPasswordValid() {
-                    resultCatcher.completeWithResult(true);
-                }
-
-                @Override
-                public void onPasswordValidationFailed(@NonNull Throwable t) {
-                    if (t instanceof ErrorResponseApiException) {
-                        final ErrorResponseApiException apiException = (ErrorResponseApiException)t;
-                        if (apiException.getResponseCode() == 401) {
-                            resultCatcher.completeWithResult(false);
-                            return;
-                        }
+        return AsyncHelper.await(resultCatcher ->
+                powerAuthSDK.beginPasswordChange(testHelper.getContext(), password, new IBeginPasswordChangeListener() {
+                    @Override
+                    public void onBeginPasswordChangeSucceed(@NonNull PowerAuthPasswordChangeData passwordChangeData) {
+                        resultCatcher.completeWithResult(true);
                     }
-                    resultCatcher.completeWithError(t);
-                }
-            });
-        });
+
+                    @Override
+                    public void onBeginPasswordChangeFailed(@NonNull Throwable t) {
+                        if (t instanceof ErrorResponseApiException) {
+                            final ErrorResponseApiException apiException = (ErrorResponseApiException) t;
+                            if (apiException.getResponseCode() == 401) {
+                                resultCatcher.completeWithResult(false);
+                                return;
+                            }
+                        }
+                        resultCatcher.completeWithError(t);
+                    }
+                })
+        );
     }
 
     /**
@@ -605,20 +608,22 @@ public class ActivationHelper {
 
     /**
      * Validate user password on server.
+     * This implementation is for integration testing only. Do NOT use `beginPasswordChange`
+     * as a general password-validation mechanism.
      *
      * @param password Password to validate.
      * @return {@code true} if password is equal to password that was used during PowerAuthSDK activation creation.
      * @throws Exception In case of other failure.
      */
     public boolean validateUserPassword(@NonNull final String password) throws Exception {
-        return AsyncHelper.await(resultCatcher -> powerAuthSDK.validatePassword(testHelper.getContext(), password, new IValidatePasswordListener() {
+        return AsyncHelper.await(resultCatcher -> powerAuthSDK.beginPasswordChange(testHelper.getContext(), password, new IBeginPasswordChangeListener() {
             @Override
-            public void onPasswordValid() {
+            public void onBeginPasswordChangeSucceed(@NonNull PowerAuthPasswordChangeData passwordChangeData) {
                 resultCatcher.completeWithResult(true);
             }
 
             @Override
-            public void onPasswordValidationFailed(@NonNull Throwable t) {
+            public void onBeginPasswordChangeFailed(@NonNull Throwable t) {
                 if (t instanceof ErrorResponseApiException) {
                     final ErrorResponseApiException apiException = (ErrorResponseApiException)t;
                     if (apiException.getResponseCode() == 401) {

@@ -295,9 +295,13 @@
     //
     // Online & offline signatures (calculated as http auth header)
     //
-    for (int i = 1; i <= 2; i++)
+    for (int i = 1; i <= 4; i++)
     {
-        BOOL online_mode = i == 1;
+        if (i == 3) {
+            // re-create SDK to simulate app restart
+            _sdk = [_helper reCreateSdkInstanceWithConfiguration:nil biometricConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
+        }
+        BOOL online_mode = (i & 1) == 1;
         // Offline signature contains a
         NSData * data = online_mode
                             ? [@"hello online world" dataUsingEncoding:NSUTF8StringEncoding]
@@ -616,7 +620,7 @@
         PowerAuthHttpHeader * header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:auth method:@"POST" uriId:@"/some/identifier" body:nil error:NULL];
         XCTAssertNotNil(header);
         if ((i % 4) == 0) {
-            // Every 4th signature calculation try to get the status
+            // Every 4th auth code calculation try to get the status
             status = [_helper fetchActivationStatus];
             XCTAssertNotNil(status);
             // Everything should be OK, because getting the status fires signature validation internally.

@@ -23,16 +23,12 @@ import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
-import java.io.Console;
-import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Logger;
 
 import io.getlime.security.powerauth.BuildConfig;
 import io.getlime.security.powerauth.biometry.*;
@@ -481,6 +477,22 @@ public class PowerAuthSDK {
      */
     public @NonNull PowerAuthKeychainConfiguration getKeychainConfiguration() {
         return mKeychainConfiguration;
+    }
+
+    /**
+     * Get low-level {@link CoreSession} object.
+     * <p>
+     * Be aware that this method should be used only for the testing or debugging purposes. If you
+     * call this method in RELEASE build, then {@link IllegalStateException} is raised.
+     *
+     * @return Instance of {@link CoreSession}.
+     */
+    @NonNull
+    public CoreSession getCoreSession() {
+        if (!BuildConfig.DEBUG) {
+            throw new IllegalStateException("Getting CoreSession is not allowed");
+        }
+        return mSession;
     }
 
     /**

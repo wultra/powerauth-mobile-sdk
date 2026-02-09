@@ -22,7 +22,10 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import io.getlime.security.powerauth.biometry.IPersistActivationWithBiometricsListener;
+import io.getlime.security.powerauth.core.CoreProtocolVersion;
+import io.getlime.security.powerauth.core.CoreSession;
 import io.getlime.security.powerauth.core.Password;
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
@@ -47,10 +50,11 @@ public class ActivationHelper {
     private final @NonNull PowerAuthTestHelper testHelper;
     private final @NonNull Application application;
     private final @NonNull String userId;
-    private final @NonNull PowerAuthSDK powerAuthSDK;
+    private @NonNull PowerAuthSDK powerAuthSDK;
     private Activation activation;
     private PowerAuthAuthentication validAuthentication;
     private PowerAuthAuthentication invalidAuthentication;
+    private SecureData fakeBiometricKek;
     private CreateActivationResult createActivationResult;
 
     /**
@@ -77,6 +81,11 @@ public class ActivationHelper {
      */
     public static final int TF_PERSIST_WITH_BIOMETRY_ACTIVITY   = 0x0010;
     /**
+     * Persist method with additional biometry factor represented by a generated biometry related key.
+     * No actual biometric authentication is needed. Combine with other flags.
+     */
+    public static final int TF_PERSIST_WITH_FAKE_BIOMETRY = 0x0020;
+    /**
      * Alternate method that persist activation with deprecated functions.
      */
     // @Deprecated // 2.0.0
@@ -90,10 +99,16 @@ public class ActivationHelper {
         PowerAuthAuthentication validAuthentication;
         PowerAuthAuthentication invalidAuthentication;
         CreateActivationResult createActivationResult;
-        HelperState(Activation activation, PowerAuthAuthentication validAuthentication, PowerAuthAuthentication invalidAuthentication, CreateActivationResult createActivationResult) {
+        SecureData fakeBiometricKek;
+        HelperState(Activation activation,
+                    PowerAuthAuthentication validAuthentication,
+                    PowerAuthAuthentication invalidAuthentication,
+                    SecureData fakeBiometricKek,
+                    CreateActivationResult createActivationResult) {
             this.activation = activation;
             this.validAuthentication = validAuthentication;
             this.invalidAuthentication = invalidAuthentication;
+            this.fakeBiometricKek = fakeBiometricKek.copy();
             this.createActivationResult = createActivationResult;
         }
     }
@@ -103,7 +118,7 @@ public class ActivationHelper {
      * @return Helper's state.
      */
     public @NonNull HelperState getHelperState() {
-        return new HelperState(activation, validAuthentication, invalidAuthentication, createActivationResult);
+        return new HelperState(activation, validAuthentication, invalidAuthentication, fakeBiometricKek, createActivationResult);
     }
 
     /**
@@ -120,6 +135,7 @@ public class ActivationHelper {
         this.activation = state.activation;
         this.validAuthentication = state.validAuthentication;
         this.invalidAuthentication = state.invalidAuthentication;
+        this.fakeBiometricKek = state.fakeBiometricKek;
         this.createActivationResult = state.createActivationResult;
     }
 
@@ -244,6 +260,7 @@ public class ActivationHelper {
         List<String> passwords = testHelper.getRandomGenerator().generateRandomStrings(2, 4, 16);
         validAuthentication = PowerAuthAuthentication.possessionWithPassword(passwords.get(0));
         invalidAuthentication = PowerAuthAuthentication.possessionWithPassword(passwords.get(1));
+        fakeBiometricKek = null;
         return passwords;
     }
 
@@ -277,6 +294,7 @@ public class ActivationHelper {
         final boolean persistWithDeprecated = (flags & TF_PERSIST_WITH_DEPRECATED) != 0;
         final boolean persistWithBiometryFrag = (flags & TF_PERSIST_WITH_BIOMETRY_FRAGMENT) != 0;
         final boolean persistWithBiometryAct = (flags & TF_PERSIST_WITH_BIOMETRY_ACTIVITY) != 0;
+        final boolean persistWithFakeBiometry = (flags & TF_PERSIST_WITH_FAKE_BIOMETRY) != 0;
 
         // Initial expectations
         assertFalse(powerAuthSDK.hasValidActivation());
@@ -351,7 +369,7 @@ public class ActivationHelper {
             if (!persistWithDeprecated) {
                 // New asynchronous persist (2.0.0)
                 // If biometry (in any form) is required, then we have to use auth object.
-                boolean useAuthObject = persistWithBiometryAct || persistWithBiometryFrag;
+                boolean useAuthObject = persistWithBiometryAct || persistWithBiometryFrag || persistWithFakeBiometry;
                 if (!useAuthObject) {
                     if (persistWithPassword) {
                         powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), password, persistActivationListener);
@@ -364,23 +382,23 @@ public class ActivationHelper {
                 }
                 if (useAuthObject) {
                     final PowerAuthBiometricPrompt biometricPrompt;
-                    if (persistWithBiometryFrag) {
-                        biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragment());
-                    } else if (persistWithBiometryAct) {
-                        biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragmentActivity());
-                    } else {
+                    final SecureData biometricKey;
+                    if (persistWithFakeBiometry) {
+                        int protocolVersion = powerAuthSDK.getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256 ? CoreProtocolVersion.V3 : CoreProtocolVersion.V4;
                         biometricPrompt = null;
-                    }
-                    final PowerAuthAuthentication authentication;
-                    if (persistWithCorePassword) {
-                        authentication = biometricPrompt != null
-                            ? PowerAuthAuthentication.persistWithPasswordAndBiometry(corePassword, biometricPrompt)
-                            : PowerAuthAuthentication.persistWithPassword(corePassword);
+                        biometricKey = CoreSession.generateFactorKekForProtocolVersion(protocolVersion);
+                        this.fakeBiometricKek = biometricKey.copy();
                     } else {
-                        authentication = biometricPrompt != null
-                                ? PowerAuthAuthentication.persistWithPasswordAndBiometry(password, biometricPrompt)
-                                : PowerAuthAuthentication.persistWithPassword(password);
+                        if (persistWithBiometryFrag) {
+                            biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragment());
+                        } else if (persistWithBiometryAct) {
+                            biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragmentActivity());
+                        } else {
+                            biometricPrompt = null;
+                        }
+                        biometricKey = null;
                     }
+                    final PowerAuthAuthentication authentication = buildPersistAuthObject(password, persistWithCorePassword, biometricPrompt, biometricKey);
                     powerAuthSDK.persistActivationWithAuthentication(testHelper.getContext(), authentication, persistActivationListener);
                 }
             } else {
@@ -471,6 +489,27 @@ public class ActivationHelper {
         return activationDetail;
     }
 
+    private static PowerAuthAuthentication buildPersistAuthObject(String password, boolean useCorePassword, PowerAuthBiometricPrompt prompt, SecureData biometricKey) {
+        if (useCorePassword) {
+            Password corePassword = new Password(password);
+            if (prompt != null) {
+                return PowerAuthAuthentication.persistWithPasswordAndBiometry(corePassword, prompt);
+            }
+            if (biometricKey != null) {
+                return PowerAuthAuthentication.persistWithPasswordAndBiometry(corePassword, biometricKey);
+            }
+            return PowerAuthAuthentication.persistWithPassword(corePassword);
+        } else {
+            if (prompt != null) {
+                return PowerAuthAuthentication.persistWithPasswordAndBiometry(password, prompt);
+            }
+            if (biometricKey != null) {
+                return PowerAuthAuthentication.persistWithPasswordAndBiometry(password, biometricKey);
+            }
+            return PowerAuthAuthentication.persistWithPassword(password);
+        }
+    }
+
     /**
      * Assign a custom created activation and its activation result to this helper object. This method
      * is useful in case that you need to test custom or recovery activations and wants to continue
@@ -513,6 +552,17 @@ public class ActivationHelper {
         ActivationDetail activationDetail = testHelper.getServerApi().getActivationDetail(activationId, null);
         activation = activationDetail.copyToActivation();
         return activationDetail;
+    }
+
+    /**
+     * Re-create instance of {@link PowerAuthSDK} with the same configuration to simulate application's restart.
+     * @return New instance of {@link PowerAuthSDK}.
+     * @throws Exception In case of failure.
+     */
+    @NonNull
+    PowerAuthSDK reCreateSdk() throws Exception {
+        powerAuthSDK = testHelper.reCreateSdk(null, null, null, null);
+        return powerAuthSDK;
     }
 
     /**
@@ -656,6 +706,26 @@ public class ActivationHelper {
             throw new Exception("ActivationHelper has no activation yet.");
         }
         return invalidAuthentication;
+    }
+
+    /**
+     * Get authentication object with biometric factor.
+     * @param prompt If provided, then returned object uses prompt for authentication. If null, then
+     *               activation has to be persisted with a fake biometric key.
+     * @return Authentication object configured for authentication with biometric factor.
+     * @throws Exception When called in wrong state or if prompt is required and is missing.
+     */
+    public @NonNull PowerAuthAuthentication getBiometricAuthentication(@Nullable PowerAuthBiometricPrompt prompt) throws Exception {
+        if (validAuthentication == null) {
+            throw new Exception("ActivationHelper has no activation yet.");
+        }
+        if (prompt != null) {
+            return PowerAuthAuthentication.possessionWithBiometry(prompt);
+        }
+        if (fakeBiometricKek == null) {
+            throw new Exception("Biometric prompt must be provided, because no fake biometry key is set");
+        }
+        return PowerAuthAuthentication.possessionWithBiometry(fakeBiometricKek.copy());
     }
 
     /**

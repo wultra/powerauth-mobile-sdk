@@ -44,26 +44,26 @@ public class AuthenticationHelper {
     }
 
     /**
-     * Normalize data for online signature verification.
-     * @param body Request body bytes.
-     * @param method Request method.
-     * @param uriId URI identifier.
-     * @param nonce Random nonce.
-     * @return Normalized string.
-     */
-    public @NonNull String normalizeOnlineData(@NonNull String body, @NonNull String method, @NonNull String uriId, @NonNull String nonce) {
-        return normalizeImpl(body.getBytes(Charset.defaultCharset()), method, uriId, nonce);
-    }
-
-    /**
      * Normalize data for offline signature verification.
      * @param body Request body bytes.
      * @param uriId URI identifier.
      * @param nonce Random nonce.
      * @return Normalized string.
      */
-    public @NonNull String normalizeOfflineData(@NonNull String body, @NonNull String uriId, @NonNull String nonce) {
-        return normalizeImpl(body.getBytes(Charset.defaultCharset()), "POST", uriId, nonce);
+    public @NonNull String normalizeOfflineData(@NonNull byte[] body, @NonNull String uriId, @NonNull String nonce) {
+        return normalizeImpl(body, "POST", uriId, nonce);
+    }
+
+    /**
+     * Normalize data for offline signature verification.
+     * @param bodyBase64 Request body in Base64 format
+     * @param uriId URI identifier.
+     * @param nonce Random nonce.
+     * @return Normalized string.
+     */
+    public @NonNull String normalizeOfflineData(@NonNull String bodyBase64, @NonNull String uriId, @NonNull String nonce) {
+        byte[] body = Base64.decode(bodyBase64, Base64.NO_WRAP);
+        return normalizeImpl(body, "POST", uriId, nonce);
     }
 
     /**

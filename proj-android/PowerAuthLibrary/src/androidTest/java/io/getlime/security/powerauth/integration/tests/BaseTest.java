@@ -50,6 +50,7 @@ class BaseTest {
     PowerAuthTestHelper testHelper;
     PowerAuthSDK powerAuthSDK;
     ActivationHelper activationHelper;
+    AuthenticationHelper authenticationHelper;
 
     @Before
     public void setUp() throws Exception {
@@ -60,6 +61,7 @@ class BaseTest {
                 .build();
         powerAuthSDK = testHelper.getSharedSdk();
         activationHelper = new ActivationHelper(testHelper);
+        authenticationHelper = new AuthenticationHelper();
         assertEquals(getAlgorithmForTest(), getCurrentAlgorithm());
         if (isRequestFailureSimulatorAvailable()) {
             clearAllSimulateFailures();

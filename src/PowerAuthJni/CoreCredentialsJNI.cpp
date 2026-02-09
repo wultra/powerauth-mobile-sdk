@@ -55,7 +55,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(jobject, biometry, jobject secureData)
     NH_TRY
     {
         auto cpp_data = jni::CopyFromSecureData(jni, secureData);
-        return jni.toJava(NH_SPECS().coreCredentials, Credentials::knowledge(cpp_data));
+        return jni.toJava(NH_SPECS().coreCredentials, Credentials::biometry(cpp_data));
     }
     NH_CATCH_RT_ONLY(nullptr)
 }

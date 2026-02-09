@@ -23,16 +23,12 @@ import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
-import java.io.Console;
-import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Logger;
 
 import io.getlime.security.powerauth.BuildConfig;
 import io.getlime.security.powerauth.biometry.*;
@@ -481,6 +477,22 @@ public class PowerAuthSDK {
      */
     public @NonNull PowerAuthKeychainConfiguration getKeychainConfiguration() {
         return mKeychainConfiguration;
+    }
+
+    /**
+     * Get low-level {@link CoreSession} object.
+     * <p>
+     * Be aware that this method should be used only for the testing or debugging purposes. If you
+     * call this method in RELEASE build, then {@link IllegalStateException} is raised.
+     *
+     * @return Instance of {@link CoreSession}.
+     */
+    @NonNull
+    public CoreSession getCoreSession() {
+        if (!BuildConfig.DEBUG) {
+            throw new IllegalStateException("Getting CoreSession is not allowed");
+        }
+        return mSession;
     }
 
     /**
@@ -1237,7 +1249,7 @@ public class PowerAuthSDK {
                 task = mGetActivationStatusTask.createChildTask(completion);
             }
             if (task == null) {
-                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, mLock, mCallbackDispatcher, new GetActivationStatusTask.ICompletionListener() {
+                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, mLock, mCallbackDispatcher, this::saveSerializedState, new GetActivationStatusTask.ICompletionListener() {
                     @Override
                     public void onSessionStateChange() {
                         saveSerializedState();
@@ -1387,6 +1399,7 @@ public class PowerAuthSDK {
         try {
             final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
             final CoreHttpHeader header = mSession.calculateOnlineAuthenticationHeader(credentials, uriId, method, body);
+            saveSerializedState();
             return PowerAuthHttpHeader.fromCoreObject(header);
         } catch (CoreException exception) {
             throw PowerAuthErrorException.wrapException(exception);
@@ -1417,6 +1430,7 @@ public class PowerAuthSDK {
             final byte[] normalizedParams = mSession.normalizeGetRequestParameters(params);
             final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
             final CoreHttpHeader header = mSession.calculateOnlineAuthenticationHeader(credentials, uriId, method, normalizedParams);
+            saveSerializedState();
             return PowerAuthHttpHeader.fromCoreObject(header);
         } catch (CoreException exception) {
             throw PowerAuthErrorException.wrapException(exception);
@@ -1528,7 +1542,9 @@ public class PowerAuthSDK {
         try {
             final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
             final int codeLength = mConfiguration.getOfflineAuthenticationCodeComponentLength();
-            return mSession.calculateOfflineAuthenticationCode(credentials, uriId, nonce, codeLength, body);
+            String code = mSession.calculateOfflineAuthenticationCode(credentials, uriId, nonce, codeLength, body);
+            saveSerializedState();
+            return code;
         } catch (CoreException e) {
             throw PowerAuthErrorException.wrapException(e);
         }

@@ -570,6 +570,7 @@ public class PowerAuthTestHelper {
     /**
      * Re-create a new instance of shared {@link PowerAuthSDK} with provided configurations.
      * @param configuration If null, then shared configuration will be used.
+     * @param biometricConfiguration  If null, then shared biometric configuration will be used.
      * @param clientConfiguration If null, then shared client configuration will be used.
      * @param keychainConfiguration If null, then shared keychain configuration will be used.
      * @return New instance of {@link PowerAuthSDK} that will be also used as new shared instance.
@@ -577,13 +578,16 @@ public class PowerAuthTestHelper {
      */
     public @NonNull PowerAuthSDK reCreateSdk(
             @Nullable PowerAuthConfiguration configuration,
+            @Nullable PowerAuthBiometricConfiguration biometricConfiguration,
             @Nullable PowerAuthClientConfiguration clientConfiguration,
             @Nullable PowerAuthKeychainConfiguration keychainConfiguration) throws Exception {
         final PowerAuthConfiguration newConfiguration = configuration != null ? configuration : getSharedPowerAuthConfiguration();
+        final PowerAuthBiometricConfiguration newBiometricConfiguration = biometricConfiguration != null ? biometricConfiguration : getSharedBiometricConfiguration();
         final PowerAuthClientConfiguration newClientConfiguration = clientConfiguration != null ? clientConfiguration : getSharedPowerAuthClientConfiguration();
         final PowerAuthKeychainConfiguration newKeychainConfiguration = keychainConfiguration != null ? keychainConfiguration : getSharedPowerAuthKeychainConfiguration();
         final PowerAuthSDK sdk = new PowerAuthSDK.Builder(newConfiguration)
                 .clientConfiguration(newClientConfiguration)
+                .biometricConfiguration(newBiometricConfiguration)
                 .keychainConfiguration(newKeychainConfiguration)
                 .build(getContext());
         sharedSdk = sdk;

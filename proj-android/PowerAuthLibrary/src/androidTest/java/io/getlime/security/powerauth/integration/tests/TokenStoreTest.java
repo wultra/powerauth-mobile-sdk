@@ -21,11 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import io.getlime.security.powerauth.networking.response.IGenerateTokenHeaderListener;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.util.Map;
 import java.util.Objects;
@@ -33,62 +29,31 @@ import java.util.Objects;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
-import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
 import io.getlime.security.powerauth.integration.support.model.TokenInfo;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.response.IGetTokenListener;
 import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
-import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthHttpHeader;
-import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.sdk.PowerAuthToken;
 import io.getlime.security.powerauth.sdk.PowerAuthTokenStore;
 
 import static org.junit.Assert.*;
 
-@RunWith(Parameterized.class)
-public class TokenStoreTest {
+public class TokenStoreTest extends BaseTest {
 
-    @Parameterized.Parameter(0) public String alg;
-    @Parameterized.Parameters(name = " {0} ")
-    public static Iterable<Object[]> testParameters() {
-        return TestParameters.getParameters();
-    }
-
-    @PowerAuthAlgorithm
-    public int getAlgorithmForTest() {
-        return PowerAuthTestHelper.getAlgorithmForName(alg);
-    }
-
-    private PowerAuthTestHelper testHelper;
-    private PowerAuthSDK powerAuthSDK;
     private PowerAuthTokenStore tokenStore;
-    private ActivationHelper activationHelper;
-    private AuthenticationHelper authenticationHelper;
 
     private static final String TOKEN_NAME_POSSESSION = "TestToken_POSSESSION";
     private static final String TOKEN_NAME_POSSESSION_KNOWLEDGE = "TestToken_POSSESSION_KNOWLEDGE";
     private static final String TOKEN_NAME_OTHER = "TestToken_OTHER";
 
-    @Before
+    @Override
     public void setUp() throws Exception {
-        testHelper = new PowerAuthTestHelper.Builder()
-                .powerAuthAlgorithm(getAlgorithmForTest())
-                .build();
-        powerAuthSDK = testHelper.getSharedSdk();
+        super.setUp();
         tokenStore = powerAuthSDK.getTokenStore();
-        activationHelper = new ActivationHelper(testHelper);
-        authenticationHelper = new AuthenticationHelper();
-    }
-
-    @After
-    public void tearDown() {
-        if (activationHelper != null) {
-            activationHelper.cleanupAfterTest();
-        }
     }
 
     @Test(expected = PowerAuthErrorException.class)
@@ -138,7 +103,7 @@ public class TokenStoreTest {
         assertTrue(calculateAndValidateTokenDigest(token2, AuthCodeType.POSSESSION_KNOWLEDGE));
 
         // Try to re-create SDK. This simulates application restart.
-        powerAuthSDK = testHelper.reCreateSdk(null, null, null);
+        powerAuthSDK = activationHelper.reCreateSdk();
         tokenStore = powerAuthSDK.getTokenStore();
 
         // Now ask for the same tokens

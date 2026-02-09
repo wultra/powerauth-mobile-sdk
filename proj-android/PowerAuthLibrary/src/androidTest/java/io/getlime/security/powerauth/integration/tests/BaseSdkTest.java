@@ -99,8 +99,12 @@ public class BaseSdkTest {
     public void testRestoreSdkState() throws Exception {
         activationHelper.createStandardActivation(false, null);
         assertTrue(powerAuthSDK.hasValidActivation());
-        powerAuthSDK = testHelper.reCreateSdk(null, null, null);
+        activationHelper.validateUserPassword(activationHelper.getValidPassword());
+        byte[] stateBefore = powerAuthSDK.getCoreSession().getSerializedState();
+        powerAuthSDK = activationHelper.reCreateSdk();
         assertTrue(powerAuthSDK.hasValidActivation());
+        byte[] stateAfter = powerAuthSDK.getCoreSession().getSerializedState();
+        assertArrayEquals(stateBefore, stateAfter);
     }
 
     @Test
@@ -340,6 +344,25 @@ public class BaseSdkTest {
         assertFalse(powerAuthSDK.hasValidActivation());
         assertFalse(powerAuthSDK.hasPendingActivation());
         assertTrue(powerAuthSDK.canStartActivation());
+    }
+
+    @Test
+    public void testRemoveActivationWithBiometry() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_FAKE_BIOMETRY, null);
+        boolean result = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.removeActivationWithAuthentication(testHelper.getContext(), activationHelper.getBiometricAuthentication(null), new IActivationRemoveListener() {
+                @Override
+                public void onActivationRemoveSucceed() {
+                    resultCatcher.completeWithResult(true);
+                }
+
+                @Override
+                public void onActivationRemoveFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithResult(false);
+                }
+            });
+        });
+        assertTrue(result);
     }
 
     // Activation status

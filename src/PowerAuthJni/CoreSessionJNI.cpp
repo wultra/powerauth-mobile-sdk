@@ -541,6 +541,43 @@ CC7_JNI_METHOD(jobject, getEncryptorFactory)
     NH_CATCH_RT_ONLY(nullptr)
 }
 
+// Vault operations
+
+CC7_JNI_METHOD_PARAMS(jobject, fetchVaultEncryptionKey, jobject credentials, jint keyId, jlong index)
+{
+    NH_TRY
+    {
+        jni.requireParameter(credentials, "credentials");
+        auto& spec = NH_SPECS();
+        auto request = THIS_OBJ()->fetchVaultEncryptionKey(jni.fromJava<Credentials>(spec.coreCredentials, credentials),
+                                                           jni.fromJava<SecureVaultKeyId>(spec.coreSecureVaultKeyId, keyId),
+                                                           static_cast<cc7::U64>(index));
+        return BuildCoreRequest(jni, request, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            auto result = std::dynamic_pointer_cast<DataResponse>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No DataResponse object created");
+            }
+            return CopyToSecureData(jni, result->data());
+        });
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_STATIC_METHOD_PARAMS(jobject, deriveVaultEncryptionKey, jobject vaultKey, jint keyId, jlong index, jint keySize)
+{
+    NH_TRY
+    {
+        jni.requireParameter(vaultKey, "vaultKey");
+        auto& specs = NH_SPECS();
+        auto derived = Session::deriveVaultEncryptionKey(CopyFromSecureData(jni, vaultKey),
+                                                         static_cast<cc7::U64>(index),
+                                                         static_cast<size_t>(keySize),
+                                                         jni.fromJava<SecureVaultKeyId>(specs.coreSecureVaultKeyId, keyId));
+        return CopyToSecureData(jni, derived);
+    }
+    NH_CATCH(nullptr)
+}
+
 // Utilities
 
 CC7_JNI_METHOD(jobject, generateFactorKek)

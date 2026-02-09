@@ -1237,7 +1237,7 @@ public class PowerAuthSDK {
                 task = mGetActivationStatusTask.createChildTask(completion);
             }
             if (task == null) {
-                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, mLock, mCallbackDispatcher, new GetActivationStatusTask.ICompletionListener() {
+                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, mLock, mCallbackDispatcher, this::saveSerializedState, new GetActivationStatusTask.ICompletionListener() {
                     @Override
                     public void onSessionStateChange() {
                         saveSerializedState();
@@ -1387,6 +1387,7 @@ public class PowerAuthSDK {
         try {
             final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
             final CoreHttpHeader header = mSession.calculateOnlineAuthenticationHeader(credentials, uriId, method, body);
+            saveSerializedState();
             return PowerAuthHttpHeader.fromCoreObject(header);
         } catch (CoreException exception) {
             throw PowerAuthErrorException.wrapException(exception);
@@ -1417,6 +1418,7 @@ public class PowerAuthSDK {
             final byte[] normalizedParams = mSession.normalizeGetRequestParameters(params);
             final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
             final CoreHttpHeader header = mSession.calculateOnlineAuthenticationHeader(credentials, uriId, method, normalizedParams);
+            saveSerializedState();
             return PowerAuthHttpHeader.fromCoreObject(header);
         } catch (CoreException exception) {
             throw PowerAuthErrorException.wrapException(exception);
@@ -1528,7 +1530,9 @@ public class PowerAuthSDK {
         try {
             final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
             final int codeLength = mConfiguration.getOfflineAuthenticationCodeComponentLength();
-            return mSession.calculateOfflineAuthenticationCode(credentials, uriId, nonce, codeLength, body);
+            String code = mSession.calculateOfflineAuthenticationCode(credentials, uriId, nonce, codeLength, body);
+            saveSerializedState();
+            return code;
         } catch (CoreException e) {
             throw PowerAuthErrorException.wrapException(e);
         }

@@ -41,6 +41,7 @@ Notable changes on Android:
     - `signDataWithDevicePrivateKey()` - use `calculateDigitalSignature()` method where you can specify the key used for signing.
     - `signJwtWithDevicePrivateKey()` - use `calculateJwsSignature()` method where you can specify the key used for signing.
     - `verifyServerSignedData()` - use `verifyDigitalSignature()` method where you can specify the key used for verification.
+    - `fetchEncryptionKey()` - method is effective only if PowerAuthSDK is running at protocol 3.3 and will be removed once we drop support for this legacy protocol. Meanwhile you can migrate to the new `fetchSecureVaultKey()` method providing a better flexibility for secure vault operations.
     - `saveSerializedState()` - method is now private
     - `restoreState()` - method is now private
     - `getSession()` - access to a low-level session object is no longer available. Let us know if you have a problem with this.

@@ -24,6 +24,7 @@ import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
 import io.getlime.security.powerauth.networking.response.IFetchSecureVaultKeyListener;
 import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
@@ -99,7 +100,7 @@ public class SecureVaultKeyTest extends BaseTest {
                                                     PowerAuthAuthentication authentication,
                                                     boolean shouldPass) throws Exception {
         PowerAuthSecureVaultKey result = AsyncHelper.await(resultCatcher -> {
-            powerAuthSDK.fetchSecureVaultKey(testHelper.getContext(), authentication, keyId, new IFetchSecureVaultKeyListener() {
+            ICancelable task = powerAuthSDK.fetchSecureVaultKey(testHelper.getContext(), authentication, keyId, new IFetchSecureVaultKeyListener() {
                 @Override
                 public void onFetchSecureVaultKeySucceed(@NonNull PowerAuthSecureVaultKey vaultKey) {
                     resultCatcher.completeWithResult(vaultKey);
@@ -110,6 +111,9 @@ public class SecureVaultKeyTest extends BaseTest {
                     resultCatcher.completeWithResult(null);
                 }
             });
+            if (shouldPass) {
+                assertNotNull(task);
+            }
         });
         if (shouldPass) {
             assertNotNull(result);
@@ -123,7 +127,7 @@ public class SecureVaultKeyTest extends BaseTest {
                                    long derivationIndex,
                                    boolean shouldPass) throws Exception {
         SecureData result = AsyncHelper.await(resultCatcher -> {
-            powerAuthSDK.fetchEncryptionKey(testHelper.getContext(), authentication, derivationIndex, new IFetchEncryptionKeyListener() {
+            ICancelable task = powerAuthSDK.fetchEncryptionKey(testHelper.getContext(), authentication, derivationIndex, new IFetchEncryptionKeyListener() {
                 @Override
                 public void onFetchEncryptionKeySucceed(@NonNull SecureData encryptionKey) {
                     resultCatcher.completeWithResult(encryptionKey);
@@ -134,6 +138,9 @@ public class SecureVaultKeyTest extends BaseTest {
                     resultCatcher.completeWithResult(null);
                 }
             });
+            if (shouldPass) {
+                assertNotNull(task);
+            }
         });
         if (shouldPass) {
             assertNotNull(result);

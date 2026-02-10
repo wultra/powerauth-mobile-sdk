@@ -1372,9 +1372,7 @@ The last check is fully under your control. By keeping the biometric settings fl
 
 ### Enable Biometric Authentication
 
-In case an activation does not yet have biometry-related factor data, and you would like to enable biometric authentication support, the device must first retrieve the original private key from the secure vault for key derivation. As a result, you have to use a successful 2FA with a password to enable biometric authentication support.
-
-Use the following code to enable biometric authentication using biometric authentication:
+In case an activation does not yet have biometry-related factor data, and you would like to enable biometric authentication support, use the following code:
 
 ```kotlin
 // Prepare biometric prompt.
@@ -1724,17 +1722,74 @@ As you can see, the E2EE is quite a non-trivial task. We recommend contacting us
 
 ## Secure Vault
 
-PowerAuth SDK for Android has basic support for an encrypted secure vault. At this moment, the only supported method allows your application to establish an encryption / decryption key with a given index. The index represents a "key number" - your identifier for a given key. Different business logic purposes should have encryption keys with different index values.
+Secure Vault lets an application obtain **a base KDK** (Key Derivation Key) after a successful strong user authentication.
+The base KDK is not an encryption or MAC key and cannot be used directly — instead, the application can derive purpose-specific keys from it.
+This functionality is available only when the activation is already on **protocol version 4.0**.
 
-On the server side, all secure vault-related work is concentrated in a `/pa/v3/vault/unlock` endpoint of PowerAuth Standard RESTful API. To receive data from this response, the call must be authenticated with at least 2FA (using a password or PIN).
+Use Secure Vault when you need a stable, high-entropy root for deriving multiple scoped keys (encryption, MAC, wrapping keys, etc.) tied to the user’s successful strong authentication, **without persisting** those child keys. The PowerAuth Mobile SDK guarantees that the base KDKs remain stable during the lifetime of an activation.
 
-<!-- begin box warning -->
-The secure vault mechanism does not support biometry by default. Use PIN code or password-based authentication for unlocking the secure vault, or ask your server developers to enable biometry for vault unlock call by configuring the PowerAuth Server instance.
-<!-- end -->
+### Key identifiers
 
-### Obtaining Encryption Key
+Two base KDKs are available, depending on the authentication factors used:
 
-To obtain an encryption key with a given index, use the following code:
+- `KNOWLEDGE` - available after successful authentication with possession + knowledge factors.
+- `KNOWLEDGE_OR_BIOMETRY` - available after any successful 2FA authentication. This key is at least as strong as `KNOWLEDGE` and can be used wherever a biometry-backed flow is acceptable.
+
+### Obtaining the "KNOWLEDGE" base KDK
+
+```kotlin
+// 2FA authentication. It uses device-related key and user PIN code.
+val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
+val keyIdentifier = PowerAuthSecureVaultKeyId.KNOWLEDGE
+
+// Fetch the encryption key with the given index
+powerAuthSDK.fetchSecureVaultKey(context, authentication, keyIdentifier, object: IFetchSecureVaultKeyListener {
+    override fun onFetchSecureVaultKeySucceed(vaultKey: PowerAuthSecureVaultKey) {
+        // Derive a 32-byte key
+        val derivedKey = vaultKey.deriveKey(1000, 32)
+        val keyData = derivedKey.sensitiveData
+    }
+
+    override fun onFetchSecureVaultKeyFailed(throwable: Throwable) {
+        // Report error
+    }
+})
+```
+
+### Obtaining the "KNOWLEDGE_OR_BIOMETRY" base KDK
+
+```kotlin
+// 2FA authentication. It uses device-related key and user PIN code.
+// Alternatively, you can obtain authentication object with biometric authentication 
+// using authenticateUsingBiometrics() function.  
+val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
+val keyIdentifier = PowerAuthSecureVaultKeyId.KNOWLEDGE_OR_BIOMETRY
+
+// Fetch the encryption key with the given index
+powerAuthSDK.fetchSecureVaultKey(context, authentication, keyIdentifier, object: IFetchSecureVaultKeyListener {
+    override fun onFetchSecureVaultKeySucceed(vaultKey: PowerAuthSecureVaultKey) {
+        // Derive a 32-byte key
+        val derivedKey = vaultKey.deriveKey(1000, 32)
+        val keyData = derivedKey.sensitiveData
+    }
+
+    override fun onFetchSecureVaultKeyFailed(throwable: Throwable) {
+        // Report error
+    }
+})
+```
+
+### Security Recommendations
+
+- Do **not** store derived keys on the device. Always acquire the base KDK when needed and derive the keys for each specific purpose.
+- **Destroy** the base KDK as soon as possible.
+- Never reuse a derived key for multiple purposes (e.g., don’t use one key for both encryption and authentication).
+- When encrypting different data sets, **derive a new** key with a different index.
+- If your application uses multiple keys, maintain a **registry of derivation indices** to avoid accidental key reuse.
+
+### Obtaining Legacy Encryption Key
+
+If your activation is still using **PowerAuth protocol 3.3**, you can obtain the legacy encryption key as follows:
 
 ```kotlin
 // 2FA authentication. It uses device-related key and user PIN code.
@@ -1755,6 +1810,9 @@ powerAuthSDK.fetchEncryptionKey(context, authentication, index, object: IFetchEn
     }
 })
 ```
+
+This function is useful if you still have local data encrypted with a key generated by an older SDK version. It is recommended to decrypt the data with the old key and re-encrypt it using the new key, acquired via the `fetchSecureVaultKey()` function.
+
 
 ## Token-Based Authentication
 

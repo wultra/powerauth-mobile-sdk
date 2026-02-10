@@ -21,14 +21,23 @@ import androidx.lifecycle.Lifecycle;
 import androidx.test.core.app.ActivityScenario;
 import io.getlime.security.powerauth.biometry.IAddBiometryFactorListener;
 import io.getlime.security.powerauth.biometry.IRemoveBiometryFactorListener;
+import io.getlime.security.powerauth.core.CryptoUtils;
+import io.getlime.security.powerauth.core.SecureData;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.*;
+import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 import io.getlime.security.powerauth.sdk.*;
 import org.junit.Test;
 
 import androidx.annotation.NonNull;
 
 import static org.junit.Assert.*;
+
+import android.util.Base64;
+
+import java.nio.charset.StandardCharsets;
 
 public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConfigurationObserver {
 
@@ -248,6 +257,66 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
             });
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
         });
+    }
+
+    @Test
+    public void testAddBiometryFactor_customBiometryKek() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
+        assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+
+        final SecureData biometryKek = CryptoUtils.randomSecureData(powerAuthSDK.getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256 ? 16 : 32);
+        AsyncHelper.await(resultCatcher ->
+                powerAuthSDK.addBiometryFactor(testHelper.getContext(), activationHelper.getValidPassword(), biometryKek, new IAddBiometryFactorListener() {
+                    @Override
+                    public void onAddBiometryFactorSucceed() {
+                        resultCatcher.completeWithSuccess();
+                    }
+
+                    @Override
+                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
+                        resultCatcher.completeWithError(error);
+                    }
+                })
+        );
+
+        // Validate added biometry
+        final byte[] data = Base64.encodeToString(CryptoUtils.randomBytes(63), Base64.NO_WRAP).getBytes(StandardCharsets.UTF_8);
+        final PowerAuthAuthentication auth = PowerAuthAuthentication.possessionWithBiometry(biometryKek);
+        AuthenticationResult result = activationHelper.validateAuthentication(auth, data, "POST", "/hello/biohacker", true);
+        assertTrue(result.isAuthenticationValid());
+        assertEquals(AuthCodeType.POSSESSION_BIOMETRY, result.getAuthenticationCodeType());
+
+        // Remove biometry and validate biometry factor unavailability
+        removeBiometryFactor();
+        final var exception = assertThrows(PowerAuthErrorException.class, () -> activationHelper.validateAuthentication(auth, data, "POST", "/hello/biohacker", true));
+        assertEquals(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, exception.getPowerAuthErrorCode());
+        assertEquals("powerAuth::PowerAuthException: Biometric factor is not configured", exception.getMessage());
+
+        // Add biometry again
+        final SecureData newBiometryKek = CryptoUtils.randomSecureData(powerAuthSDK.getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256 ? 16 : 32);
+        AsyncHelper.await(resultCatcher ->
+                powerAuthSDK.addBiometryFactor(testHelper.getContext(), activationHelper.getValidPassword(), newBiometryKek, new IAddBiometryFactorListener() {
+                    @Override
+                    public void onAddBiometryFactorSucceed() {
+                        resultCatcher.completeWithSuccess();
+                    }
+
+                    @Override
+                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
+                        resultCatcher.completeWithError(error);
+                    }
+                })
+        );
+        // Authentication using previous auth object should fail
+        result = activationHelper.validateAuthentication(auth, data, "POST", "/hello/biohacker", true);
+        assertFalse(result.isAuthenticationValid());
+        assertEquals(AuthCodeType.POSSESSION_BIOMETRY, result.getAuthenticationCodeType());
+
+        // Authenticate using the new auth object
+        final PowerAuthAuthentication newAuth = PowerAuthAuthentication.possessionWithBiometry(newBiometryKek);
+        result = activationHelper.validateAuthentication(newAuth, data, "POST", "/hello/biohacker", true);
+        assertTrue(result.isAuthenticationValid());
+        assertEquals(AuthCodeType.POSSESSION_BIOMETRY, result.getAuthenticationCodeType());
     }
 
     @Override

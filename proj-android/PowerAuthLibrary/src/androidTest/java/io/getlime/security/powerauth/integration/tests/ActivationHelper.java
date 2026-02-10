@@ -35,6 +35,9 @@ import io.getlime.security.powerauth.integration.support.model.Activation;
 import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.integration.support.model.ActivationOtpValidation;
 import io.getlime.security.powerauth.integration.support.model.Application;
+import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 import io.getlime.security.powerauth.integration.support.model.ServerConstants;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
 import io.getlime.security.powerauth.networking.response.*;
@@ -42,6 +45,8 @@ import io.getlime.security.powerauth.sdk.*;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPasswordChangeData;
 
 import static org.junit.Assert.*;
+
+import android.util.Pair;
 
 /**
  * The {@code ActivationHelper} class provides support for activation creation and cleanup.
@@ -634,6 +639,116 @@ public class ActivationHelper {
                 resultCatcher.completeWithError(t);
             }
         }));
+    }
+
+    /**
+     * Validates an authentication by computing the authentication code and verifying it against
+     * the server.
+     *
+     * @param auth Authentication object with factor keys.
+     * @param data Payload data.
+     * @param method HTTP method of the authenticated request.
+     * @param uriId Identifier of the requested resource.
+     * @param online {@code true} to perform online authentication, {@code false} to perform
+     *               offline authentication.
+     * @return Result of the authentication verification returned by the server.
+     * @throws Exception In case of other failure.
+     */
+    public AuthenticationResult validateAuthentication(final PowerAuthAuthentication auth,
+                                          final byte[] data,
+                                          final String method,
+                                          final String uriId,
+                                          final boolean online) throws Exception {
+
+        if (online) {
+            final var authCodeNoncePair = calculateOnlineAuthenticationCode(data, method, uriId, auth);
+            final String dataToVerify = AuthenticationHelper.normalizeOnlineData(data, method, uriId, authCodeNoncePair.second);
+            final AuthenticationCodeData authenticationCodeData = new AuthenticationCodeData();
+            authenticationCodeData.setActivationId(activation.getActivationId());
+            authenticationCodeData.setAuthenticationCode(authCodeNoncePair.first);
+            authenticationCodeData.setData(dataToVerify);
+            authenticationCodeData.setAuthenticationCodeType(AuthCodeType.valueOf(convertFactors(auth)));
+            authenticationCodeData.setAuthenticationVersion(testHelper.getProtocolVersionForHeader());
+            authenticationCodeData.setApplicationKey(testHelper.getSharedApplicationVersion().getApplicationKey());
+            return testHelper.getServerApi().verifyOnlineAuthenticationCode(authenticationCodeData);
+        } else {
+            final var authCodeNoncePair = calculateOfflineAuthenticationCode(data, uriId, auth);
+            final String dataToVerify = AuthenticationHelper.normalizeOfflineData(data, uriId, authCodeNoncePair.second);
+            final AuthenticationCodeData authenticationCodeData = new AuthenticationCodeData();
+            authenticationCodeData.setActivationId(activation.getActivationId());
+            authenticationCodeData.setAuthenticationCode(authCodeNoncePair.first);
+            authenticationCodeData.setData(dataToVerify);
+            authenticationCodeData.setAllowBiometry(false);
+            return testHelper.getServerApi().verifyOfflineAuthenticationCode(authenticationCodeData);
+        }
+    }
+
+    /**
+     * Converts authentication factors from {@link PowerAuthAuthentication}
+     * into a string representation of {@link AuthCodeType}.
+     *
+     * @param auth PowerAuth authentication object.
+     * @return String representation of authentication factors.
+     */
+    private static String convertFactors(final PowerAuthAuthentication auth) {
+        final StringBuilder stringBuilder = new StringBuilder("POSSESSION");
+
+        if (auth.getPassword() != null) {
+            stringBuilder.append("_KNOWLEDGE");
+        }
+
+        if (auth.useBiometricFactor()) {
+            stringBuilder.append("_BIOMETRY");
+        }
+
+        return stringBuilder.toString();
+    }
+
+    /**
+     * Computes offline PowerAuth authentication code.
+     *
+     * @param data Payload data.
+     * @param uriId Identifier of the requested resource.
+     * @param auth Authentication object.
+     * @return Pair consisting of the computed authentication code and nonce.
+     * @throws Exception If authentication code calculation fails.
+     */
+    private Pair<String, String> calculateOfflineAuthenticationCode(final byte[] data, final String uriId, final PowerAuthAuthentication auth) throws Exception {
+        final String nonce = "QVZlcnlDbGV2ZXJOb25jZQ==";
+        final String authCode = AsyncHelper.await(resultCatcher ->
+                powerAuthSDK.offlineAuthenticationCode(testHelper.getContext(), auth, uriId, data, nonce, new IOfflineAuthenticationCodeListener() {
+                    @Override
+                    public void onOfflineAuthenticationCodeSucceed(@NonNull String authenticationCode) {
+                        resultCatcher.completeWithResult(authenticationCode);
+                    }
+
+                    @Override
+                    public void onOfflineAuthenticationCodeFailed(@NonNull PowerAuthErrorException error) {
+                        resultCatcher.completeWithError(error);
+                    }
+                }));
+        return new Pair<>(authCode, nonce);
+    }
+
+    /**
+     * Computes online PowerAuth authentication code.
+     *
+     * @param data Payload data.
+     * @param method HTTP method.
+     * @param uriId Identifier of the requested resource.
+     * @param auth Authentication object.
+     * @return Pair consisting of the computed authentication code and nonce.
+     * @throws Exception If authentication code calculation fails.
+     */
+    private Pair<String, String> calculateOnlineAuthenticationCode(final byte[] data, final String method, final String uriId, final PowerAuthAuthentication auth) throws Exception {
+        final PowerAuthHttpHeader header = powerAuthSDK.authenticationHeaderForRequestWithBody(auth, method, uriId, data);
+        final var headerComponents = AuthenticationHelper.parseAuthenticationHeader(header);
+        final String nonce = headerComponents.get("pa_nonce");
+        final String authCode = powerAuthSDK.getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256
+                ? headerComponents.get("pa_signature")
+                : headerComponents.get("pa_auth_code");
+
+        return new Pair<>(authCode, nonce);
     }
 
     /**

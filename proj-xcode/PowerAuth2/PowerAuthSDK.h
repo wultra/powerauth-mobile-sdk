@@ -837,14 +837,8 @@
                                                      index:(UInt64)index
                                                   callback:(nonnull void(^)(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error))callback;
 
-/// Get a vault encryption key from the server.
-///
-/// Be careful how you use this method, because its functionality depends on the current protocol version. The function has the following limitations:
-///
-/// - If activation is still at protocol version 3.3:
-///   - Only `legacy` key is supported and the returned key has always derivation index set to `0`.
-/// - If activation is already at protocol version 4.0 and newer:
-///   - The `legacy` key is no longer supported.
+/// Get a vault encryption key from the server. This method is effective only if PowerAuthSDK is running
+/// at protocol version 4.0 and higher.
 ///
 /// @param authentication Authentication used for vault unlocking call.
 /// @param keyIdentifier Vault encryption key identifier.

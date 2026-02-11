@@ -312,7 +312,7 @@ public class DsaSignatureTest {
         }
         // Well, we have a data for offline signature, so let's try to verify it.
         String uriId = "/operation/authorize/offline";
-        byte[] body = payload.getParsedData().getBytes(StandardCharsets.UTF_8);
+        byte[] body = Base64.decode(payload.getParsedData(), Base64.NO_WRAP);
         String nonce = payload.getParsedNonce();
         String offlineAuthCode = AsyncHelper.await(resultCatcher -> {
             powerAuthSDK.offlineAuthenticationCode(testHelper.getContext(), authentication, uriId, body, nonce, new IOfflineAuthenticationCodeListener() {

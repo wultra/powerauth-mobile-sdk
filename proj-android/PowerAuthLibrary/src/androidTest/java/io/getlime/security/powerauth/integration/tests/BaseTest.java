@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.integration.tests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import androidx.annotation.NonNull;
 
@@ -27,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import io.getlime.security.powerauth.biometry.BiometricAuthentication;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
@@ -135,6 +137,12 @@ public abstract class BaseTest {
 
         assertTrue(relativePath.startsWith("/"));
         return ("LEGACY_P256".equals(alg) ? "/pa/v3" : "/pa/v4") + relativePath;
+    }
+
+    void assertBiometryEnrolled() {
+        if (!BiometricAuthentication.isBiometricAuthenticationAvailable(testHelper.getContext())) {
+            fail("Biometry is not enrolled. Please enroll biometric data before running this test.");
+        }
     }
 
 }

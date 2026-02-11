@@ -106,13 +106,15 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
     }
 
     /** @noinspection deprecation*/
-    private void removeBiometricFactorDeprecated() throws Exception {
+    private void removeBiometricFactorDeprecated() {
         assertTrue(powerAuthSDK.removeBiometryFactor(testHelper.getContext()));
         assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
     }
 
     @Test
     public void testPersistWithBiometryFragmentActivity() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -123,6 +125,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
 
     @Test
     public void testPersistWithBiometryFragmentActivityCorePass() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -133,6 +137,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
 
     @Test
     public void testPersistWithBiometryFragment() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -143,6 +149,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
 
     @Test
     public void testPersistWithBiometryFragmentCorePass() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -157,6 +165,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
             // persist will fail in this test if other than legacy algorithm is used.
             return;
         }
+
+        assertBiometryEnrolled();
 
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT | ActivationHelper.TF_PERSIST_WITH_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
@@ -173,6 +183,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
             return;
         }
 
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -187,6 +199,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
             // persist will fail in this test if other than legacy algorithm is used.
             return;
         }
+
+        assertBiometryEnrolled();
 
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
@@ -203,6 +217,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
             return;
         }
 
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -213,6 +229,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
 
     @Test
     public void testAddBiometryFactorFragmentActivityCorePass() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
             assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -237,6 +255,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
 
     @Test
     public void testAddBiometryFactorFragmentCorePass() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
             assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));

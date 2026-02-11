@@ -2036,8 +2036,7 @@ public class PowerAuthSDK {
                 return null;
             }
 
-            final Password oldPassword = changeData.getOldPassword().copyToImmutable();
-            final CoreRequest<Object> request = mSession.changePassword(oldPassword, newPassword);
+            final CoreRequest<Object> request = mSession.changePassword(changeData.getOldPassword(), newPassword);
             if (request == null) {
                 // V3 change password is executed immediately. It's OK to exit immediately,
                 // because there's no additional asynchronous operation required. So, we can
@@ -2360,7 +2359,6 @@ public class PowerAuthSDK {
         }
         return null;
     }
-
 
     /**
      * Remove the biometry related factor key.

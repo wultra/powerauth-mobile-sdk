@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -36,7 +37,7 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
  * Base class for parameterized PowerAuth integration and unit tests.
  */
 @RunWith(Parameterized.class)
-class BaseTest {
+public abstract class BaseTest {
 
     @Parameterized.Parameter(0) public String alg;
     @Parameterized.Parameters(name = " {0} ")
@@ -85,7 +86,7 @@ class BaseTest {
      * this new instance.
      * @param newHelper New instance of test helper.
      */
-    public void reAssingTestHelper(@NonNull PowerAuthTestHelper newHelper) {
+    public void reAssignTestHelper(@NonNull PowerAuthTestHelper newHelper) {
         testHelper = newHelper;
         powerAuthSDK = testHelper.getSharedSdk();
         activationHelper = new ActivationHelper(testHelper);

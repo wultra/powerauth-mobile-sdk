@@ -28,8 +28,6 @@ import org.junit.Test;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.Objects;
 
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
@@ -88,7 +86,7 @@ public class AuthenticationCodeTest extends BaseTest {
     public void testCustomOfflineAuthCodeCalculation() throws Exception {
         final int OFFLINE_AUTH_CODE_LENGTH = 4;
         // Re-configure test helper
-        reAssingTestHelper(new PowerAuthTestHelper.Builder()
+        reAssignTestHelper(new PowerAuthTestHelper.Builder()
                 .configurationObserver(new PowerAuthTestHelper.IConfigurationObserver() {
                     @Override
                     public void adjustPowerAuthConfiguration(@NonNull PowerAuthConfiguration.Builder builder) {

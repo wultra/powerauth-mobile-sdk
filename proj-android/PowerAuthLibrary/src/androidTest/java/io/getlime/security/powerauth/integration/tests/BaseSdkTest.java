@@ -40,12 +40,7 @@ import io.getlime.security.powerauth.system.PowerAuthSystem;
 
 import static org.junit.Assert.*;
 
-public class BaseSdkTest extends BaseTest{
-
-    @Test
-    public void configurationSelfTest() {
-        assertEquals(getAlgorithmForTest(), getCurrentAlgorithm());
-    }
+public class BaseSdkTest extends BaseTest {
 
     @PowerAuthAlgorithm
     public int getCurrentAlgorithm() {

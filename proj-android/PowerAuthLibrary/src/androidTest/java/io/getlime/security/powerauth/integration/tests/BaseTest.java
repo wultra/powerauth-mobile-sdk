@@ -19,6 +19,8 @@ package io.getlime.security.powerauth.integration.tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import androidx.annotation.NonNull;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -61,7 +63,7 @@ class BaseTest {
                 .build();
         powerAuthSDK = testHelper.getSharedSdk();
         activationHelper = new ActivationHelper(testHelper);
-        authenticationHelper = new AuthenticationHelper();
+        authenticationHelper = new AuthenticationHelper(testHelper);
         assertEquals(getAlgorithmForTest(), getCurrentAlgorithm());
         if (isRequestFailureSimulatorAvailable()) {
             clearAllSimulateFailures();
@@ -76,6 +78,18 @@ class BaseTest {
         if (isRequestFailureSimulatorAvailable()) {
             clearAllSimulateFailures();
         }
+    }
+
+    /**
+     * Keep new instance {@link PowerAuthTestHelper} and create all supporting objects, with using
+     * this new instance.
+     * @param newHelper New instance of test helper.
+     */
+    public void reAssingTestHelper(@NonNull PowerAuthTestHelper newHelper) {
+        testHelper = newHelper;
+        powerAuthSDK = testHelper.getSharedSdk();
+        activationHelper = new ActivationHelper(testHelper);
+        authenticationHelper = new AuthenticationHelper(testHelper);
     }
 
     @PowerAuthAlgorithm

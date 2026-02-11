@@ -16,7 +16,6 @@
 
 package io.getlime.security.powerauth.integration.tests;
 
-import androidx.annotation.BoolRes;
 import androidx.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -24,21 +23,15 @@ import android.util.Base64;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.model.Activation;
-import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 import io.getlime.security.powerauth.integration.support.model.SignatureFormat;
 import io.getlime.security.powerauth.integration.support.model.SignatureType;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +39,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
-import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
 import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
 import io.getlime.security.powerauth.networking.response.IDigitalSignatureListener;
@@ -57,7 +49,6 @@ import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthDevicePublicKeyData;
 import io.getlime.security.powerauth.sdk.PowerAuthDevicePublicKeyFormat;
-import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.sdk.PowerAuthSignatureKeyId;
 import io.getlime.security.powerauth.sdk.PowerAuthSignatureKeyType;
 import io.getlime.security.powerauth.sdk.impl.JsonSerialization;
@@ -66,41 +57,7 @@ import static org.junit.Assert.*;
 
 import com.google.gson.reflect.TypeToken;
 
-@RunWith(Parameterized.class)
-public class DsaSignatureTest {
-
-    @Parameterized.Parameter(0) public String alg;
-    @Parameterized.Parameters(name = " {0} ")
-    public static Iterable<Object[]> testParameters() {
-        return TestParameters.getParameters();
-    }
-
-    @PowerAuthAlgorithm
-    public int getAlgorithmForTest() {
-        return PowerAuthTestHelper.getAlgorithmForName(alg);
-    }
-
-    private PowerAuthTestHelper testHelper;
-    private PowerAuthSDK powerAuthSDK;
-    private ActivationHelper activationHelper;
-    private AuthenticationHelper authenticationHelper;
-
-    @Before
-    public void setUp() throws Exception {
-        testHelper = new PowerAuthTestHelper.Builder()
-                .powerAuthAlgorithm(getAlgorithmForTest())
-                .build();
-        powerAuthSDK = testHelper.getSharedSdk();
-        activationHelper = new ActivationHelper(testHelper);
-        authenticationHelper = new AuthenticationHelper();
-    }
-
-    @After
-    public void tearDown() {
-        if (activationHelper != null) {
-            activationHelper.cleanupAfterTest();
-        }
-    }
+public class DsaSignatureTest extends BaseTest {
 
     @Test
     public void testExportDevicePublicKey() throws Exception {
@@ -312,7 +269,7 @@ public class DsaSignatureTest {
         }
         // Well, we have a data for offline signature, so let's try to verify it.
         String uriId = "/operation/authorize/offline";
-        byte[] body = payload.getParsedData().getBytes(StandardCharsets.UTF_8);
+        byte[] body = payload.getParsedDataBytes();
         String nonce = payload.getParsedNonce();
         String offlineAuthCode = AsyncHelper.await(resultCatcher -> {
             powerAuthSDK.offlineAuthenticationCode(testHelper.getContext(), authentication, uriId, body, nonce, new IOfflineAuthenticationCodeListener() {
@@ -327,13 +284,15 @@ public class DsaSignatureTest {
                 }
             });
         });
-        String normalizedData = authenticationHelper.normalizeOfflineData(payload.getParsedData(), uriId, nonce);
-        AuthenticationCodeData authenticationCodeData = new AuthenticationCodeData();
-        authenticationCodeData.setActivationId(powerAuthSDK.getActivationIdentifier());
-        authenticationCodeData.setData(normalizedData);
-        authenticationCodeData.setAuthenticationCode(offlineAuthCode);
-        authenticationCodeData.setAllowBiometry(false);
-        AuthenticationResult authenticationResult = testHelper.getServerApi().verifyOfflineAuthenticationCode(authenticationCodeData);
+        AuthenticationResult authenticationResult = authenticationHelper.verifyAuthenticationCode(
+                offlineAuthCode,
+                nonce,
+                payload.getParsedDataBytes(),
+                uriId,
+                activationHelper.getActivation().getActivationId(),
+                false,
+                null
+        );
         assertTrue(authenticationResult.isAuthenticationValid());
     }
 

@@ -41,7 +41,7 @@ import static org.junit.Assert.*;
 public class AuthenticationCodeTest extends BaseTest {
 
     @Test
-    public void testOfflineSignatureCalculation() throws Exception {
+    public void testOfflineAuthCodeCalculation() throws Exception {
 
         final Context context = testHelper.getContext();
 
@@ -50,7 +50,7 @@ public class AuthenticationCodeTest extends BaseTest {
         // Possession + Knowledge factor
         PowerAuthAuthentication authentication = activationHelper.getValidAuthentication();
         for (int iteration = 0; iteration < 10; iteration++) {
-            final String testString = "OFFLINE signature test\n" + testHelper.getRandomGenerator().generateRandomString(10, 32);
+            final String testString = "OFFLINE AuthCode test\n" + testHelper.getRandomGenerator().generateRandomString(10, 32);
             final byte[] dataToSign = testString.getBytes(Charset.defaultCharset());
             final String nonce = testHelper.getRandomGenerator().generateBase64Bytes(16);
             final String offlineAuthCode = AsyncHelper.await((resultCatcher) -> {
@@ -68,11 +68,11 @@ public class AuthenticationCodeTest extends BaseTest {
             });
             assertNotNull(offlineAuthCode);
 
-            // Now verify signature on the server
-            final String dataToVerifySignature = authenticationHelper.normalizeOfflineData(dataToSign, "/offline/test", nonce);
+            // Now verify auth code on the server
+            final String normalizedData = authenticationHelper.normalizeOfflineData(dataToSign, "/offline/test", nonce);
             AuthenticationCodeData authenticationCodeData = new AuthenticationCodeData();
             authenticationCodeData.setActivationId(powerAuthSDK.getActivationIdentifier());
-            authenticationCodeData.setData(dataToVerifySignature);
+            authenticationCodeData.setData(normalizedData);
             authenticationCodeData.setAuthenticationCode(offlineAuthCode);
             authenticationCodeData.setAllowBiometry(false);
 
@@ -85,14 +85,14 @@ public class AuthenticationCodeTest extends BaseTest {
     }
 
     @Test
-    public void testCustomOfflineSignatureCalculation() throws Exception {
-        final int OFFLINE_SIGNATURE_LENGTH = 4;
+    public void testCustomOfflineAuthCodeCalculation() throws Exception {
+        final int OFFLINE_AUTH_CODE_LENGTH = 4;
         // Re-configure test helper
-        testHelper = new PowerAuthTestHelper.Builder()
+        reAssingTestHelper(new PowerAuthTestHelper.Builder()
                 .configurationObserver(new PowerAuthTestHelper.IConfigurationObserver() {
                     @Override
                     public void adjustPowerAuthConfiguration(@NonNull PowerAuthConfiguration.Builder builder) {
-                        builder.offlineAuthenticationCodeComponentLength(OFFLINE_SIGNATURE_LENGTH);
+                        builder.offlineAuthenticationCodeComponentLength(OFFLINE_AUTH_CODE_LENGTH);
                     }
 
                     @Override
@@ -107,11 +107,10 @@ public class AuthenticationCodeTest extends BaseTest {
                     public void adjustPowerAuthKeychainConfiguration(@NonNull PowerAuthKeychainConfiguration.Builder builder) {
                     }
                 })
-                .build();
-        powerAuthSDK = testHelper.getSharedSdk();
-        activationHelper = new ActivationHelper(testHelper);
+                .build()
+        );
 
-        // Create activation and test the signature calculation
+        // Create activation and test the auth code calculation
         activationHelper.createStandardActivation(true, null);
 
         final PowerAuthAuthentication authentication = PowerAuthAuthentication.possession();
@@ -131,40 +130,40 @@ public class AuthenticationCodeTest extends BaseTest {
             });
         });
         assertNotNull(authCode);
-        assertEquals(OFFLINE_SIGNATURE_LENGTH, authCode.length());
+        assertEquals(OFFLINE_AUTH_CODE_LENGTH, authCode.length());
     }
 
     @Test
-    public void testOnlineSignatureCalculation() throws Exception {
+    public void testOnlineAuthCodeCalculation() throws Exception {
         activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_FAKE_BIOMETRY, null);
 
         // Count is important, due to fact that we have 8-bit local counter since V3.1
         for (int iteration = 0; iteration < 264; iteration++) {
-            final String testString = "ONLINE signature test\n" + testHelper.getRandomGenerator().generateRandomString(10, 32);
+            final String testString = "ONLINE AuthCode test\n" + testHelper.getRandomGenerator().generateRandomString(10, 32);
 
             // Auth & expected result
             final PowerAuthAuthentication authentication;
-            final AuthCodeType expectedSignatureType;
+            final AuthCodeType expectedAuthCodeType;
             final boolean expectedValidationResult;
             switch (iteration % 4) {
                 case 0:
                     authentication = activationHelper.getValidAuthentication();
-                    expectedSignatureType = AuthCodeType.POSSESSION_KNOWLEDGE;
+                    expectedAuthCodeType = AuthCodeType.POSSESSION_KNOWLEDGE;
                     expectedValidationResult = true;
                     break;
                 case 1:
                     authentication = activationHelper.getPossessionAuthentication();
-                    expectedSignatureType = AuthCodeType.POSSESSION;
+                    expectedAuthCodeType = AuthCodeType.POSSESSION;
                     expectedValidationResult = true;
                     break;
                 case 2:
                     authentication = activationHelper.getBiometricAuthentication(null);
-                    expectedSignatureType = AuthCodeType.POSSESSION_BIOMETRY;
+                    expectedAuthCodeType = AuthCodeType.POSSESSION_BIOMETRY;
                     expectedValidationResult = true;
                     break;
                 default:
                     authentication = activationHelper.getInvalidAuthentication();
-                    expectedSignatureType = AuthCodeType.POSSESSION_KNOWLEDGE;
+                    expectedAuthCodeType = AuthCodeType.POSSESSION_KNOWLEDGE;
                     expectedValidationResult = false;
                     break;
             }
@@ -182,51 +181,19 @@ public class AuthenticationCodeTest extends BaseTest {
             // Method
             final String method = (iteration & 1) == 0 ? "POST" : "GET";
 
-            System.out.println("Iteration " + iteration + ": " + expectedSignatureType + ", " + method);
+            //System.out.println("Iteration " + iteration + ": " + expectedAuthCodeType + ", " + method);
 
             final byte[] dataToSign = testString.getBytes(Charset.defaultCharset());
-            final PowerAuthHttpHeader onlineSignature = powerAuthSDK.authenticationHeaderForRequestWithBody(authentication, method, uriId, dataToSign);
-            assertNotNull(onlineSignature);
-            assertEquals("X-PowerAuth-Authorization", onlineSignature.getKey());
-
-            // Parse header value
-            Map<String, String> sigComponents = authenticationHelper.parseAuthenticationHeader(onlineSignature);
-            final String acVersion = sigComponents.get("pa_version");
-            final String acActivationId = sigComponents.get("pa_activation_id");
-            final String acNonce = sigComponents.get("pa_nonce");
-            final String acAppKey = sigComponents.get("pa_application_key");
-            final String acType;
-            final String acValue;
-            if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
-                acType = Objects.requireNonNull(sigComponents.get("pa_signature_type")).toUpperCase();
-                acValue = sigComponents.get("pa_signature");
-            } else {
-                acType = Objects.requireNonNull(sigComponents.get("pa_auth_code_type")).toUpperCase();
-                acValue = sigComponents.get("pa_auth_code");
-            }
-            assertEquals(testHelper.getProtocolVersionForHeader(), acVersion);
-            assertNotNull(acActivationId);
-            assertNotNull(acNonce);
-            assertNotNull(acAppKey);
-            assertNotNull(acType);
-            assertNotNull(acValue);
-
-            // Now verify signature on the server
-            final String dataToVerifySignature = authenticationHelper.normalizeOnlineData(dataToSign, method, uriId, acNonce);
-            AuthenticationCodeData authenticationCodeData = new AuthenticationCodeData();
-            authenticationCodeData.setActivationId(acActivationId);
-            authenticationCodeData.setData(dataToVerifySignature);
-            authenticationCodeData.setAuthenticationCode(acValue);
-            authenticationCodeData.setAuthenticationCodeType(AuthCodeType.valueOf(acType));
-            authenticationCodeData.setAuthenticationVersion(acVersion);
-            authenticationCodeData.setApplicationKey(acAppKey);
+            final PowerAuthHttpHeader onlineHeader = powerAuthSDK.authenticationHeaderForRequestWithBody(authentication, method, uriId, dataToSign);
+            assertNotNull(onlineHeader);
+            assertEquals("X-PowerAuth-Authorization", onlineHeader.getKey());
 
             // Verify on server
-            final AuthenticationResult verifyResult = testHelper.getServerApi().verifyOnlineAuthenticationCode(authenticationCodeData);
+            final AuthenticationResult verifyResult = authenticationHelper.verifyAuthenticationHeader(onlineHeader, dataToSign, uriId, method);
 
             assertNotNull(verifyResult);
             assertEquals(expectedValidationResult, verifyResult.isAuthenticationValid());
-            assertEquals(expectedSignatureType, verifyResult.getAuthenticationCodeType());
+            assertEquals(expectedAuthCodeType, verifyResult.getAuthenticationCodeType());
 
             if ((iteration & 0x3f) == 1) {
                 PowerAuthActivationStatus status = activationHelper.fetchActivationStatus();
@@ -267,7 +234,7 @@ public class AuthenticationCodeTest extends BaseTest {
         status = activationHelper.fetchActivationStatus();
         assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
 
-        // Negative scenario, try to calculate too many signatures that server will never catch.
+        // Negative scenario, try to calculate too many auth code that server will never catch.
         for (int i = 0; i < CTR_LOOKAHEAD + 2; ++i) {
             // calculate header and do not use it
             powerAuthSDK.authenticationHeaderForRequestWithBody(auth, "POST", "/some/identifier", null);
@@ -289,9 +256,9 @@ public class AuthenticationCodeTest extends BaseTest {
         final String uriId = "/test/id";
         final String offlineNonce = "QVZlcnlDbGV2ZXJOb25jZQ==";
 
-        // Just calculate signature on the server.
-        // This is a little bit tricky, because we need to calculate a valid signature, to move server's counter forward. To do that,
-        // we have to calculate also a local signature, but that moves also local counter forward.
+        // Just calculate auth code on the server.
+        // This is a little bit tricky, because we need to calculate a valid auth code, to move server's counter forward. To do that,
+        // we have to calculate also a local auth code, but that moves also local counter forward.
         // To trick the system, we need to keep old persistent data and restore it later.
         byte[] previousState = powerAuthSDK.getCoreSession().getSerializedState();
         for (int i = 0; i < CTR_LOOKAHEAD/2; ++i) {
@@ -308,16 +275,15 @@ public class AuthenticationCodeTest extends BaseTest {
                     }
                 });
             });
-            String normalizedData = authenticationHelper.normalizeOfflineData(dataToAuth, uriId, offlineNonce);
-            // Now verify signature on the server
-            AuthenticationCodeData authenticationCodeData = new AuthenticationCodeData();
-            authenticationCodeData.setActivationId(powerAuthSDK.getActivationIdentifier());
-            authenticationCodeData.setData(normalizedData);
-            authenticationCodeData.setAuthenticationCode(localAuthCode);
-            authenticationCodeData.setAllowBiometry(false);
-
             // Verify on server
-            final AuthenticationResult verifyResult = testHelper.getServerApi().verifyOfflineAuthenticationCode(authenticationCodeData);
+            final AuthenticationResult verifyResult = authenticationHelper.verifyAuthenticationCode(
+                    localAuthCode,
+                    offlineNonce,
+                    dataToAuth,
+                    uriId,
+                    activationHelper.getActivation().getActivationId(),
+                    false,
+                    null);
             assertNotNull(verifyResult);
         }
         // Rollback counter to some previous state, to simulate state when the server's counter is ahead
@@ -342,16 +308,15 @@ public class AuthenticationCodeTest extends BaseTest {
                     }
                 });
             });
-            String normalizedData = authenticationHelper.normalizeOfflineData(dataToAuth, uriId, offlineNonce);
-            // Now verify signature on the server
-            AuthenticationCodeData authenticationCodeData = new AuthenticationCodeData();
-            authenticationCodeData.setActivationId(powerAuthSDK.getActivationIdentifier());
-            authenticationCodeData.setData(normalizedData);
-            authenticationCodeData.setAuthenticationCode(localAuthCode);
-            authenticationCodeData.setAllowBiometry(false);
-
             // Verify on server
-            final AuthenticationResult verifyResult = testHelper.getServerApi().verifyOfflineAuthenticationCode(authenticationCodeData);
+            final AuthenticationResult verifyResult = authenticationHelper.verifyAuthenticationCode(
+                    localAuthCode,
+                    offlineNonce,
+                    dataToAuth,
+                    uriId,
+                    activationHelper.getActivation().getActivationId(),
+                    false,
+                    null);
             assertNotNull(verifyResult);
         }
         // Rollback counter to some previous state, to simulate state when the server's counter is ahead

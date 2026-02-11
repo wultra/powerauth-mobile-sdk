@@ -16,11 +16,13 @@
 
 package io.getlime.security.powerauth.sdk;
 
+import android.annotation.SuppressLint;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import io.getlime.security.powerauth.core.CoreAlgorithm;
 import io.getlime.security.powerauth.core.CoreConfig;
 import io.getlime.security.powerauth.core.CoreException;
 import io.getlime.security.powerauth.core.SecureData;
@@ -72,10 +74,12 @@ public class PowerAuthConfiguration {
     }
 
     /**
-     * @return Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
+     * Property is deprecated. EEK is no longer supported in SDK.
+     * @return Always {@code null}.
+     * @deprecated EEK is no longer supported in SDK.
      */
+    @Deprecated // 2.0.0
     public @Nullable SecureData getExternalEncryptionKey() {
-        // TODO: EEK
         return null;
     }
 
@@ -156,7 +160,6 @@ public class PowerAuthConfiguration {
         private final @NonNull String configuration;
         // optional
         private String instanceId;
-        private SecureData externalEncryptionKey = null;    // TODO: EEK
         private int offlineAuthenticationCodeComponentLength = MAX_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH;
         private @PowerAuthAlgorithm int algorithm = PowerAuthAlgorithm.DEFAULT;
 
@@ -199,12 +202,13 @@ public class PowerAuthConfiguration {
         }
 
         /**
-         * Set external encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
-         * @param externalEncryptionKey Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
+         * Property is deprecated. EEK is no longer supported in SDK>
+         * @param externalEncryptionKey Encryption key provided by an external context.
          * @return {@link Builder}
+         * @deprecated EEK is no longer supported in SDK.
          */
+        @Deprecated // 2.0.0
         public @NonNull Builder externalEncryptionKey(@NonNull SecureData externalEncryptionKey) {
-            this.externalEncryptionKey = externalEncryptionKey.copy();
             return this;
         }
 
@@ -280,10 +284,22 @@ public class PowerAuthConfiguration {
     @NonNull
     CoreConfig getCoreConfiguration(@NonNull byte[] deviceSpecificData) throws PowerAuthErrorException {
         try {
-            return CoreConfig.build(configuration, deviceSpecificData, instanceId, algorithm);
+            return CoreConfig.build(configuration, deviceSpecificData, instanceId, toCoreAlgorithm(algorithm));
         } catch (CoreException e) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid SDK configuration", e);
         }
     }
 
+    /**
+     * Convert {@link PowerAuthAlgorithm} into {@link CoreAlgorithm} constant.
+     * @param algorithm {@link PowerAuthAlgorithm} constant.
+     * @return {@link CoreAlgorithm} constant.
+     */
+    @SuppressLint("WrongConstant")
+    @CoreAlgorithm
+    private static int toCoreAlgorithm(@PowerAuthAlgorithm int algorithm) {
+        // @PowerAuthAlgorithm is defined from @CoreAlgorithm constants, so direct return
+        // with suppressed warning is OK.
+        return algorithm;
+    }
 }

@@ -144,7 +144,6 @@ The `PowerAuthConfiguration` has the following additional properties:
 
 - `algorithm` - Alters [algorithm](#algorithms-for-communication) used for the communication with the PowerAuth Server.
 - `offlineAuthenticationCodeComponentLength` - Alters the default component length for the [offline authentication code](#symmetric-offline-multi-factor-authentication-code). The values between 4 and 8 are allowed. The default value is 8.
-- `externalEncryptionKey` - See [External Encryption Key](#external-encryption-key) chapter for more details.
 - `keychainKey_Biometry` - Specifies the 'key' used to store the `PowerAuthSDK` instance’s biometry-related key in the biometry keychain. If not set, the `instanceId` is applied. Do not alter this configuration unless you have a valid reason to do so.
 
 ### Biometric configuration
@@ -1105,7 +1104,7 @@ You can use our [Passphrase meter](https://github.com/wultra/passphrase-meter) l
 
 ## Working with sensitive data
 
-The PowerAuth mobile SDK is using `PowerAuthCoreData` object for manage the cryptographically sensitive data, such as encryption keys. You can encounter this object in several public API functions, such as functions for managing an [external encryption key](#external-encryption-key). This chapter explains how to use the `PowerAuthCoreData` object properly.
+The PowerAuth mobile SDK is using `PowerAuthCoreData` object for manage the cryptographically sensitive data, such as encryption keys. You can encounter this object in several public API functions, such as functions for [Secure Vault](#secure-vault). This chapter explains how to use the `PowerAuthCoreData` object properly.
 
 ### Create instance of `PowerAuthCoreData`
 
@@ -1974,25 +1973,20 @@ if let token = tokenStore.localToken(withName: "MyToken") {
 
 ## External Encryption Key
 
-The `PowerAuthSDK` allows you to specify an external encryption key (called EEK in our terminology) that can additionally protect the knowledge and the biometry factor keys. This feature is typically used to create a chain of activations where one instance of `PowerAuthSDK` is primary and unlocks access to all secondary activations.
+<!-- begin box warning -->
+Support for the External Encryption Key (EEK) was discontinued in PowerAuth Mobile SDK version 2.0.
+<!-- end -->
 
-The external encryption key has to be set before the activation is created, or can be added later. The internal state of `PowerAuthSDK` contains information that the factor keys are protected with EEK, so EEK must be known at the time of PowerAuth authentication code is calculated. You have three options on how to configure the key:
+In earlier SDK versions, `PowerAuthSDK` allowed you to specify an external encryption key (EEK) to provide an additional layer of protection for the knowledge and biometry factor keys. This mechanism was primarily used to create a chain of activations, where one primary `PowerAuthSDK` instance unlocked access to one or more secondary activations.
 
-1. Assign EEK into `externalEncryptionKey` property of `PowerAuthConfiguration` at the time of `PowerAuthSDK` object creation.
-   - This is the most convenient way of using EEK, but the key must be known at the time of the `PowerAuthSDK` instantiation.
-   - Once the `PowerAuthSDK` instance creates a new activation, then the factor keys will be automatically protected with EEK.
-   
-2. Use `PowerAuthSDK.setExternalEncryptionKey()` to set EEK after the `PowerAuthSDK` instance is created.
-   - This is useful in case EEK is not known during the `PowerAuthSDK` instance creation.
-   - You can set the key in any `PowerAuthSDK` state, but be aware that the method will fail in case the instance has a valid activation that doesn't use EEK.
-   - It's safe to set the same EEK multiple times.
+If the activation in your application is still using EEK, please use the following code at your application’s startup to remove it:
 
-3. Use `PowerAuthSDK.addExternalEncryptionKey()` to add EEK and protect the factor keys in case `PowerAuthSDK` has already a valid activation.
-   - This method is useful in case `PowerAuthSDK` already has a valid activation, but it doesn't use EEK yet.
-   - The method automatically adds EEK into the internal configuration structure, but be aware, that all future `PowerAuthSDK` usages (e.g. after app restart) require setting EEK by configuration, or by the `setExternalEncryptionKey()` method.
-
-You can remove EEK from an existing activation if the key is no longer required. To do this, use the `PowerAuthSDK.removeExternalEncryptionKey()` method. Be aware, that EEK must be set by configuration, or by the `setExternalEncryptionKey()` method before you call the remove method. You can also use the `PowerAuthSDK.hasExternalEncryptionKey` property to test whether the key is already set and in use.
-
+```swift
+if powerAuthSDK.hasExternalEncryptionKey {
+    let eek = PowerAuthCoreData(withData: eekBytes)
+    try powerAuthSDK.removeExternalEncryptionKey(eek)
+}
+```
 
 ## Share Activation Data
 
@@ -2177,7 +2171,7 @@ In other cases, you receive an error via an exception, like in this example:
 
 ```swift
 do {
-    try powerAuthSDK.removeExternalEncryptionKey()
+    let header = try powerAuthSDK.authenticationHeaderForRequestWithBody(with: auth, method: "POST", uriId: "/payment/create", body: requestBodyData)
 } catch let error as NSError {
     // Handle 'error' here
 }

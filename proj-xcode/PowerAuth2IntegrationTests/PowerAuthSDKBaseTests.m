@@ -881,145 +881,111 @@
 }
 
 // MARK: - EEK
-// TODO: eek
-/*
-- (void) testExternalEncryptionKey
+
+- (void) testExternalEncryptionKeyDiscontinue
 {
     CHECK_TEST_CONFIG();
     
-    //
-    // This validates EEK usage.
-    //
+    NSError * error = nil;
+    BOOL result = NO;
     
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    PowerAuthCoreData * goodEEK = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V3 error:nil];
+    PowerAuthCoreData * badEEK = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V4 error:nil];
+    
+    // Before activation, EEK flag is always false.
+    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
+    
+    // Attempts to remove or add, should fail for all protocol versions
+    result = [_sdk removeExternalEncryptionKey:goodEEK error:&error];
+    XCTAssertFalse(result);
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+    
+    result = [_sdk addExternalEncryptionKeyForTest:goodEEK error:&error];
+    XCTAssertFalse(result);
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+    
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithFakeBiometry activationOtp:nil];
     if (!activation) {
         return;
     }
     
+    // By default, EEK is not set
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
     XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-    
-    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
-    
-    NSError * error = nil;
-    BOOL result = [_sdk addExternalEncryptionKey:eek error:&error];
+    // Check biometry
+    result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"data" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
     XCTAssertTrue(result);
-    XCTAssertNil(error);
     
-    XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-    
-    result = [_sdk removeExternalEncryptionKey:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-}
-
-- (void) testEEKFromConfiguration
-{
-    CHECK_TEST_CONFIG();
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        // V3 activations
         
-    //
-    // This validates EEK usage from the beginning.
-    //
-    
-    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
-    PowerAuthConfiguration * newConfig = [_sdk.configuration copy];
-    newConfig.externalEncryptionKey = eek;
-    _sdk = [_helper reCreateSdkInstanceWithConfiguration:newConfig biometricConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
-    XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-    if (!activation) {
-        return;
+        // Try to remove EEK first
+        result = [_sdk removeExternalEncryptionKey:goodEEK error:&error];
+        XCTAssertFalse(result);
+        XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, error.powerAuthErrorCode);
+        // Try to add wrong sized EEK
+        result = [_sdk addExternalEncryptionKeyForTest:badEEK error:&error];
+        XCTAssertFalse(result);
+        XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
+        // Try with good EEK
+        error = nil;
+        result = [_sdk addExternalEncryptionKeyForTest:goodEEK error:&error];
+        XCTAssertTrue(result);
+        XCTAssertNil(error);
+        
+        XCTAssertTrue(_sdk.hasExternalEncryptionKey);
+        error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk testCorePassword:activation.credentials.password callback:^(NSError * error) {
+                [waiting reportCompletion:error];
+            }];
+        }];
+        XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, error.powerAuthErrorCode);
+        
+        // simulate app restart
+        _sdk = [_helper reCreateSdkInstance];
+        
+        XCTAssertTrue(_sdk.hasExternalEncryptionKey);
+        // auth codes should not work
+        XCTAssertFalse([_helper checkForCorePassword:activation.credentials.password]);
+        // biometry
+        result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"B10" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
+        XCTAssertFalse(result);
+        // knowledge - offline
+        result = [_helper validateAuthentication:_helper.authPossessionWithKnowledge data:[@"0ffl1n3" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:NO cripple:0];
+        XCTAssertFalse(result);
+        
+        // Try to remove wrong sized EEK
+        result = [_sdk removeExternalEncryptionKey:badEEK error:&error];
+        XCTAssertFalse(result);
+        XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
+        XCTAssertTrue(_sdk.hasExternalEncryptionKey);
+        
+        // Try with good EEK
+        error = nil;
+        result = [_sdk removeExternalEncryptionKey:goodEEK error:&error];
+        XCTAssertTrue(result);
+        XCTAssertNil(error);
+        
+        XCTAssertFalse(_sdk.hasExternalEncryptionKey);
+        XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
+        // biometry
+        result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"data" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
+        XCTAssertTrue(result);
+        // knowledge - offline
+        result = [_helper validateAuthentication:_helper.authPossessionWithKnowledge data:[@"0ffl1n3" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:NO cripple:0];
+        XCTAssertTrue(result);
+
+    } else {
+        // V4 activations
+        // All EEK related methods should fail
+        result = [_sdk addExternalEncryptionKeyForTest:goodEEK error:&error];
+        XCTAssertFalse(result);
+        XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, error.powerAuthErrorCode);
+        result = [_sdk removeExternalEncryptionKey:goodEEK error:&error];
+        XCTAssertFalse(result);
+        XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, error.powerAuthErrorCode);
     }
-    
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-    
-    NSError * error = nil;
-    BOOL result = [_sdk removeExternalEncryptionKey:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
 }
-
-- (void) testSetEEKBeforeActivation
-{
-    CHECK_TEST_CONFIG();
-    
-    //
-    // This validates when EEK is set before activation is created.
-    //
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
-    NSError * error = nil;
-    BOOL result = [_sdk setExternalEncryptionKey:eek error:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-    if (!activation) {
-        return;
-    }
-    
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-    
-    result = [_sdk removeExternalEncryptionKey:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-}
-
-- (void) testSetEEKAfterActivation
-{
-    CHECK_TEST_CONFIG();
-    
-    //
-    // This validates when EEK is set after activation is created.
-    //
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-    if (!activation) {
-        return;
-    }
-    
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-    
-    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
-    
-    NSError * error = nil;
-    BOOL result = [_sdk addExternalEncryptionKey:eek error:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    
-    XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-
-    // Now re-instantiate SDK and try to set EEK manually
-    PowerAuthConfiguration * newConfig = [_sdk.configuration copy];
-    newConfig.externalEncryptionKey = nil;
-    _sdk = [_helper reCreateSdkInstanceWithConfiguration:newConfig biometricConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    // Activation status should work
-    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
-    XCTAssertEqual(PowerAuthActivationState_Active, status.state);
-    // Now set EEK
-    result = [_sdk setExternalEncryptionKey:eek error:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    
-    XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-}
-*/
 
 // MARK: - Request synchronization
 

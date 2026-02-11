@@ -81,7 +81,7 @@ class BaseTest {
     }
 
     /**
-     * Keep new instance {@link PowerAuthTestHelper} and create all supporting objects, with using
+     * Keep new instance of {@link PowerAuthTestHelper} and create all supporting objects, with using
      * this new instance.
      * @param newHelper New instance of test helper.
      */

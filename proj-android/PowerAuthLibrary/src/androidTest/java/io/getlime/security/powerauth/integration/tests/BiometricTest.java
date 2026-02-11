@@ -302,13 +302,15 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
         // Validate added biometry
         final byte[] data = Base64.encodeToString(CryptoUtils.randomBytes(63), Base64.NO_WRAP).getBytes(StandardCharsets.UTF_8);
         final PowerAuthAuthentication auth = PowerAuthAuthentication.possessionWithBiometry(biometryKek);
-        AuthenticationResult result = activationHelper.validateAuthentication(auth, data, "POST", "/hello/biohacker", true);
+
+        PowerAuthHttpHeader header = powerAuthSDK.authenticationHeaderForRequestWithBody(auth, "POST", "/test/biometry", data);
+        AuthenticationResult result = authenticationHelper.verifyAuthenticationHeader(header, data,"/test/biometry", "POST");
         assertTrue(result.isAuthenticationValid());
         assertEquals(AuthCodeType.POSSESSION_BIOMETRY, result.getAuthenticationCodeType());
 
         // Remove biometry and validate biometry factor unavailability
         removeBiometryFactor();
-        final var exception = assertThrows(PowerAuthErrorException.class, () -> activationHelper.validateAuthentication(auth, data, "POST", "/hello/biohacker", true));
+        final var exception = assertThrows(PowerAuthErrorException.class, () -> powerAuthSDK.authenticationHeaderForRequestWithBody(auth, "POST", "/test/biometry", data));
         assertEquals(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, exception.getPowerAuthErrorCode());
         assertEquals("powerAuth::PowerAuthException: Biometric factor is not configured", exception.getMessage());
 
@@ -328,13 +330,15 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
                 })
         );
         // Authentication using previous auth object should fail
-        result = activationHelper.validateAuthentication(auth, data, "POST", "/hello/biohacker", true);
+        header = powerAuthSDK.authenticationHeaderForRequestWithBody(auth, "POST", "/test/biometry", data);
+        result = authenticationHelper.verifyAuthenticationHeader(header, data,"/test/biometry", "POST");
         assertFalse(result.isAuthenticationValid());
         assertEquals(AuthCodeType.POSSESSION_BIOMETRY, result.getAuthenticationCodeType());
 
         // Authenticate using the new auth object
         final PowerAuthAuthentication newAuth = PowerAuthAuthentication.possessionWithBiometry(newBiometryKek);
-        result = activationHelper.validateAuthentication(newAuth, data, "POST", "/hello/biohacker", true);
+        header = powerAuthSDK.authenticationHeaderForRequestWithBody(newAuth, "POST", "/test/biometry", data);
+        result = authenticationHelper.verifyAuthenticationHeader(header, data,"/test/biometry", "POST");
         assertTrue(result.isAuthenticationValid());
         assertEquals(AuthCodeType.POSSESSION_BIOMETRY, result.getAuthenticationCodeType());
     }

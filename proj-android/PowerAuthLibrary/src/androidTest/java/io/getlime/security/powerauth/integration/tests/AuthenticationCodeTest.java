@@ -67,7 +67,7 @@ public class AuthenticationCodeTest extends BaseTest {
             assertNotNull(offlineAuthCode);
 
             // Now verify auth code on the server
-            final String normalizedData = authenticationHelper.normalizeOfflineData(dataToSign, "/offline/test", nonce);
+            final String normalizedData = AuthenticationHelper.normalizeOfflineData(dataToSign, "/offline/test", nonce);
             AuthenticationCodeData authenticationCodeData = new AuthenticationCodeData();
             authenticationCodeData.setActivationId(powerAuthSDK.getActivationIdentifier());
             authenticationCodeData.setData(normalizedData);

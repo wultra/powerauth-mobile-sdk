@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.integration.support.model;
 
+import android.util.Base64;
+
 import androidx.annotation.NonNull;
 
 import com.google.gson.annotations.Expose;
@@ -71,6 +73,10 @@ public class OfflineSignaturePayload {
     }
     public String getParsedData() {
         return getParsedComponents()[0];
+    }
+
+    public byte[] getParsedDataBytes() {
+        return Base64.decode(getParsedData(), Base64.NO_WRAP);
     }
 
     public String getParsedNonce() {

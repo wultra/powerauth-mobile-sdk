@@ -24,11 +24,7 @@ import io.getlime.security.powerauth.sdk.PowerAuthActivationState;
 import io.getlime.security.powerauth.sdk.PowerAuthActivationStatus;
 import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
 import io.getlime.security.powerauth.networking.response.*;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,57 +32,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
-import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.Activation;
 import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.PowerAuthActivation;
-import io.getlime.security.powerauth.sdk.PowerAuthSDK;
-import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
 import static org.junit.Assert.*;
 
-@RunWith(Parameterized.class)
-public class BaseSdkTest {
-
-    @Parameterized.Parameter(0) public String alg;
-    @Parameterized.Parameters(name = " {0} ")
-    public static Iterable<Object[]> testParameters() {
-        return TestParameters.getParameters();
-    }
-
-    @PowerAuthAlgorithm
-    public int getAlgorithmForTest() {
-        return PowerAuthTestHelper.getAlgorithmForName(alg);
-    }
-
-    private PowerAuthTestHelper testHelper;
-    private PowerAuthSDK powerAuthSDK;
-    private ActivationHelper activationHelper;
-
-    @Before
-    public void setUp() throws Exception {
-        PowerAuthLog.setEnabled(true);
-        PowerAuthLog.setVerbose(true);
-        testHelper = new PowerAuthTestHelper.Builder()
-                .powerAuthAlgorithm(getAlgorithmForTest())
-                .build();
-        powerAuthSDK = testHelper.getSharedSdk();
-        activationHelper = new ActivationHelper(testHelper);
-    }
-
-    @After
-    public void tearDown() {
-        if (activationHelper != null) {
-            activationHelper.cleanupAfterTest();
-        }
-    }
-
-    @Test
-    public void configurationSelfTest() {
-        assertEquals(getAlgorithmForTest(), getCurrentAlgorithm());
-    }
+public class BaseSdkTest extends BaseTest {
 
     @PowerAuthAlgorithm
     public int getCurrentAlgorithm() {

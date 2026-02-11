@@ -369,43 +369,6 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Private, defines callback interface for {@link #fetchEncryptedVaultUnlockKey(Context, PowerAuthAuthentication, String, IFetchEncryptedVaultUnlockKeyListener)}
-     * method.
-     */
-    private interface IFetchEncryptedVaultUnlockKeyListener {
-        /**
-         * Called after the vault key has been successfully acquired.
-         *
-         * @param encryptedEncryptionKey encrypted vault key
-         */
-        @MainThread
-        void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey);
-
-        /**
-         * Called after the vault key was not acquired from the server.
-         *
-         * @param throwable Cause of the failure
-         */
-        @MainThread
-        void onFetchEncryptedVaultUnlockKeyFailed(Throwable throwable);
-    }
-
-    /**
-     * Private method receives an encrypted vault unlock key from the server.
-     *
-     * @param context android context object
-     * @param authentication authentication object, with at least 2 factors defined.
-     * @param reason reason for vault unlock operation (See {@link VaultUnlockReason})
-     * @param listener private listener called with the operation result.
-     * @return {@link ICancelable} object with asynchronous operation.
-     */
-    private @Nullable
-    ICancelable fetchEncryptedVaultUnlockKey(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull @VaultUnlockReason final String reason, @NonNull final IFetchEncryptedVaultUnlockKeyListener listener) {
-        dispatchCallback(() -> listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
-        return null;
-    }
-
-    /**
      * Returns reference to {@code PowerAuthTokenStore} instance. The internal instance is created on demand, when
      * the getter is called for first time.
      *
@@ -2383,46 +2346,6 @@ public class PowerAuthSDK {
 //        keystore.removeBiometricKeyEncryptor(biometricDataMapping.keystoreId);
     }
 
-
-    /**
-     * Generate a derived encryption key with given index.
-     * <p>
-     * This method calls PowerAuth Standard REST API endpoint to obtain the vault encryption key used for subsequent key derivation using given index.
-     *
-     * @param context        Context.
-     * @param authentication Authentication used for vault unlocking call.
-     * @param index          Index of the derived key using KDF.
-     * @param listener       The callback method with the derived encryption key.
-     * @return {@link ICancelable} object associated with the running HTTP request.
-     */
-    public @Nullable
-    ICancelable fetchEncryptionKey(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, final long index, @NonNull final IFetchEncryptionKeyListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onFetchEncryptionKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
-        return null;
-//        return fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.FETCH_ENCRYPTION_KEY, new IFetchEncryptedVaultUnlockKeyListener() {
-//
-//            @Override
-//            public void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey) {
-//
-//                // Let's unlock encryption key
-//                final SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), null, null);
-//                final SecureData key = mSession.deriveCryptographicKeyFromVaultKey(encryptedEncryptionKey, keys, index);
-//                if (key != null) {
-//                    listener.onFetchEncryptionKeySucceed(key);
-//                } else {
-//                    // Propagate error
-//                    listener.onFetchEncryptionKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA));
-//                }
-//
-//            }
-//
-//            @Override
-//            public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
-//                listener.onFetchEncryptionKeyFailed(t);
-//            }
-//        });
-    }
-
     /**
      * Validate a user password. This method calls PowerAuth REST API endpoint to validate the password on the server.
      *
@@ -2682,6 +2605,100 @@ public class PowerAuthSDK {
                     // Otherwise just report the failure.
                     callback.onBiometricDialogFailed(error);
                 }
+            }
+        });
+    }
+
+    // Vault keys
+
+    /**
+     * Fetch secure vault key from the server.
+     * @param context Context.
+     * @param authentication Authentication object.
+     * @param keyIdentifier {@link CoreSecureVaultKeyId} identifier.
+     * @param index Derivation index for {@link CoreSecureVaultKeyId#LEGACY} key.
+     * @param listener Completion listener.
+     * @return Cancelable operation with the pending HTTP request.
+     */
+    @Nullable
+    private ICancelable fetchVaultEncryptionKey(@NonNull Context context,
+                                                @NonNull PowerAuthAuthentication authentication,
+                                                @CoreSecureVaultKeyId int keyIdentifier,
+                                                long index,
+                                                INetworkResponseListener<SecureData> listener) {
+        try {
+            CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
+            CoreRequest<SecureData> request = mSession.fetchVaultEncryptionKey(credentials, keyIdentifier, index);
+            return mClient.post(request, listener);
+        } catch (PowerAuthErrorException exception) {
+            dispatchCallback(() -> listener.onNetworkError(exception));
+        } catch (CoreException exception) {
+            dispatchCallback(() -> listener.onNetworkError(PowerAuthErrorException.wrapException(exception)));
+        }
+        return null;
+    }
+
+    /**
+     * Generate an derived encryption key with given index. The method is effective only if
+     * PowerAuthSDK is running at protocol version 3.3
+     * <p>
+     * Be aware that the method is subject to remove once PowerAuth Mobile SDK drops support of old
+     * protocol version.
+     *
+     * @param context        Context.
+     * @param authentication Authentication used for vault unlocking call.
+     * @param index          Index of the derived key using KDF.
+     * @param listener       The callback method with the derived encryption key.
+     * @return {@link ICancelable} object associated with the running HTTP request.
+     */
+    @Nullable
+    public ICancelable fetchEncryptionKey(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, final long index, @NonNull final IFetchEncryptionKeyListener listener) {
+        return fetchVaultEncryptionKey(context, authentication, CoreSecureVaultKeyId.LEGACY, index, new INetworkResponseListener<>() {
+            @Override
+            public void onNetworkResponse(@Nullable SecureData secureData) {
+                SecureData legacyKey = Objects.requireNonNull(secureData);
+                listener.onFetchEncryptionKeySucceed(legacyKey);
+            }
+
+            @Override
+            public void onNetworkError(@NonNull Throwable throwable) {
+                listener.onFetchEncryptionKeyFailed(throwable);
+            }
+
+            @Override
+            public void onCancel() {
+            }
+        });
+    }
+
+    /**
+     * Get a vault encryption key from the server. This method is effective only if PowerAuthSDK is running
+     * at protocol version 4.0 and higher.
+     * @param context Context.
+     * @param authentication Authentication used for vault unlocking call.
+     * @param keyIdentifier Key to retrieve.
+     * @param listener Listener with the callback methods.
+     * @return {@link ICancelable} object associated with the running HTTP request.
+     */
+    public ICancelable fetchSecureVaultKey(@NonNull Context context,
+                                           @NonNull PowerAuthAuthentication authentication,
+                                           @PowerAuthSecureVaultKeyId int keyIdentifier,
+                                           @NonNull IFetchSecureVaultKeyListener listener) {
+        final int keyId = PowerAuthSecureVaultKey.toCoreKeyId(keyIdentifier);
+        return fetchVaultEncryptionKey(context, authentication, keyId, 0, new INetworkResponseListener<>() {
+            @Override
+            public void onNetworkResponse(@Nullable SecureData secureData) {
+                SecureData baseKey = Objects.requireNonNull(secureData);
+                listener.onFetchSecureVaultKeySucceed(new PowerAuthSecureVaultKey(keyIdentifier, baseKey));
+            }
+
+            @Override
+            public void onNetworkError(@NonNull Throwable throwable) {
+                listener.onFetchSecureVaultKeyFailed(throwable);
+            }
+
+            @Override
+            public void onCancel() {
             }
         });
     }

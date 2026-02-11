@@ -1210,9 +1210,7 @@ The last check is fully under your control. By keeping the biometry settings fla
 
 ### Enable Biometry
 
-In case an activation does not yet have biometry-related factor data, and you would like to enable Touch or Face ID support, the device must first retrieve the original private key from the secure vault for the purpose of key derivation. As a result, you have to use a successful 2FA with a password to enable biometry support.
-
-Use the following code to enable biometric authentication:
+In case an activation does not yet have biometry-related factor data, and you would like to enable Touch or Face ID support, use the following code:
 
 ```swift
 // Establish biometric data using the provided password

@@ -304,6 +304,7 @@ struct ClassSpecs
     JniCommon::ConstantSetSpec coreProtocolVersion;
     JniCommon::ConstantRangeSpec coreEncryptorScope;
     JniCommon::ConstantRangeSpec coreActivationState;
+    JniCommon::ConstantRangeSpec coreSecureVaultKeyId;
 
     // handle based objects
     JniCommon::NativeHandleClass password;

@@ -111,6 +111,11 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
             "REMOVED",
             "DEADLOCK"
         });
+        spec.coreSecureVaultKeyId = jni.buildConstantRangeSpec("io/getlime/security/powerauth/core/CoreSecureVaultKeyId", {
+           "ANY_2FA",
+           "KNOWLEDGE",
+           "LEGACY"
+        });
 
         // Exceptions
         spec.coreErrorCode = jni.buildConstantRangeSpec("io/getlime/security/powerauth/core/CoreErrorCode", {
@@ -166,6 +171,7 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         jni.releaseSpec(spec.coreDevicePublicKeyFormat);
         jni.releaseSpec(spec.coreEncryptorScope);
         jni.releaseSpec(spec.coreActivationState);
+        jni.releaseSpec(spec.coreSecureVaultKeyId);
         // exception
         jni.releaseSpec(spec.coreErrorCode);
         jni.releaseSpec(spec.coreException);

@@ -434,6 +434,39 @@ public class CoreSession extends NativeObject {
     @NonNull
     public native CoreEncryptorFactory getEncryptorFactory();
 
+    // Vault operations
+
+    /**
+     * Fetch vault key from the server. If the requested key is {@link CoreSecureVaultKeyId#LEGACY},
+     * then also apply key derivation with given index. In case of success, the response object
+     * contains instance of {@link SecureData} object.
+     * @param credentials Credentials used for access the key.
+     * @param keyId Vault encryption key to fetch.
+     * @param index Derivation index of the vault key. The value is ignored for non-"legacy" keys.
+     * @return {@link CoreRequest} object containing all required information for accessing the key.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreRequest<SecureData> fetchVaultEncryptionKey(@NonNull CoreCredentials credentials,
+                                                                  @CoreSecureVaultKeyId int keyId,
+                                                                  long index) throws CoreException;
+
+    /**
+     * Derive already existing key into new key. If the key type is {@link CoreSecureVaultKeyId#LEGACY},
+     * then throws exception.
+     * @param vaultKey Original key.
+     * @param keyId Identifier of current vault encryption key.
+     * @param index Derivation index of the new key.
+     * @param keySize Size of derived key in bytes. Minimum is 16 bytes.
+     * @return {@link SecureData} object with derived key.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native static SecureData deriveVaultEncryptionKey(@NonNull SecureData vaultKey,
+                                                             @CoreSecureVaultKeyId int keyId,
+                                                             long index,
+                                                             int keySize) throws CoreException;
+
     // Utilities
 
     /**

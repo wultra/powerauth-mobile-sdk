@@ -94,7 +94,7 @@ cc7::ByteArray Session::saveState()
 void Session::resetState()
 {
     LOCK_GUARD();
-    _context->activationService().resetState();
+    _context->resetState();
 }
 
 

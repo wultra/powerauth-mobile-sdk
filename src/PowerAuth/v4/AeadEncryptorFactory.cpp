@@ -326,8 +326,8 @@ AeadEncryptorFactory::GetTemporaryKeyResponse AeadEncryptorFactory::GetTemporary
 
 std::string AeadEncryptorFactory::activationId() const noexcept
 {
-    if (_session_data->hasPersistentData() && _session_data->getCurrentProtocolVersion() == Version_V4) {
-        return _session_data->persistentData().v4().activationId;
+    if (_session_data->hasActivationId()) {
+        return _session_data->getActivationId();
     }
     return std::string();
 }
@@ -357,7 +357,7 @@ AeadEncryptorFactory::TemporaryKeyData& AeadEncryptorFactory::validKeyInfo(Encry
         ki.clear();
         throw Exception(EC_NotAllowed, "Temporary key is not valid or is expired");
     }
-    if (ki.keyScope == EncryptorScope::ACTIVATION && !_session_data->hasPersistentData()) {
+    if (ki.keyScope == EncryptorScope::ACTIVATION && !_session_data->hasActivationId()) {
         ki.clear();
         throw Exception(EC_MissingActivation, "Temporary key cannot be accessed due to missing activation");
     }

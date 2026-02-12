@@ -35,9 +35,6 @@ import io.getlime.security.powerauth.integration.support.model.Activation;
 import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.integration.support.model.ActivationOtpValidation;
 import io.getlime.security.powerauth.integration.support.model.Application;
-import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
-import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
-import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 import io.getlime.security.powerauth.integration.support.model.ServerConstants;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
 import io.getlime.security.powerauth.networking.response.*;
@@ -45,8 +42,6 @@ import io.getlime.security.powerauth.sdk.*;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPasswordChangeData;
 
 import static org.junit.Assert.*;
-
-import android.util.Pair;
 
 /**
  * The {@code ActivationHelper} class provides support for activation creation and cleanup.

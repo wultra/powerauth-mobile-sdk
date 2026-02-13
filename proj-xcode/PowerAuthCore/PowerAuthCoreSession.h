@@ -526,12 +526,36 @@
 
 #pragma mark - External Encryption Key
 
-/**
- Returns true if EEK (external encryption key) is set.
- 
- This function access the session's state, so read access must be guaranteed.
- */
+/// Contains YES if EEK (external encryption key) is set.
+///
+/// This function access the session's state, so read access must be guaranteed.
 @property (nonatomic, assign, readonly) BOOL hasExternalEncryptionKey;
+
+
+/// Remove EEK if factor keys are still protected with EEK. The method throws an exception
+/// if activation is not present, or if factor keys are not protected with EEK.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - eek: EEK previously used for the factor keys protection.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: YES in case of success, NO otherwise.
+- (BOOL) removeExternalEncryptionKey:(nonnull PowerAuthCoreData*)eek
+                               error:(NSError *_Nullable*_Nullable)error;
+
+/// Add external encryption key for testing purposes. The method should not be used in the
+/// release build. The legacy activation must be present and the size of EEK must match the size
+/// of factor keys used in V3.3 protocol version (e.g. 16 bytes).
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - eek: EEK to apply
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: YES in case of success, NO otherwise.
+- (BOOL) addExternalEncryptionKeyForTest:(nonnull PowerAuthCoreData*)eek
+                                   error:(NSError *_Nullable*_Nullable)error;
 
 #pragma mark - Services
 

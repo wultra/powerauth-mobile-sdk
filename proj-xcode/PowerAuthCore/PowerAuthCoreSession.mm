@@ -804,7 +804,44 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 
 - (BOOL) hasExternalEncryptionKey
 {
-    return NO;
+    if (![self requireReadAccess:nil]) {
+        return NO;
+    }
+    return _session->hasExternalEncryptionKey();
+}
+
+- (BOOL) removeExternalEncryptionKey:(nonnull PowerAuthCoreData*)eek
+                               error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireWriteAccess:error]) {
+        return NO;
+    }
+    try {
+        _session->removeExternalEncryptionKey(eek.byteArrayRef);
+        return YES;
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return NO;
+    }
+}
+
+- (BOOL) addExternalEncryptionKeyForTest:(nonnull PowerAuthCoreData*)eek
+                                   error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireWriteAccess:error]) {
+        return NO;
+    }
+    try {
+        _session->addExternalEncryptionKeyForTest(eek.byteArrayRef);
+        return YES;
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return NO;
+    }
 }
 
 #pragma mark - Services

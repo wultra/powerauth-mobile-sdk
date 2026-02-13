@@ -18,6 +18,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
 #import <PowerAuth2/PowerAuthConfiguration.h>
+#import <PowerAuth2/PowerAuthLog.h>
 @import PowerAuthCore;
 
 @implementation PowerAuthConfiguration
@@ -77,7 +78,6 @@
         c->_configuration = _configuration;
         c->_algorithm = _algorithm;
         c->_keychainKey_Biometry = _keychainKey_Biometry;
-        c->_externalEncryptionKey = _externalEncryptionKey;
         c->_disableAutomaticProtocolUpgrade = _disableAutomaticProtocolUpgrade;
         c->_offlineAuthenticationCodeComponentLength = _offlineAuthenticationCodeComponentLength;
         c->_sharingConfiguration = [_sharingConfiguration copy];
@@ -94,6 +94,19 @@
 - (NSUInteger) offlineSignatureComponentLength
 {
     return _offlineAuthenticationCodeComponentLength;
+}
+
+// PA2_DEPRECATED(2.0.0)
+- (void) setExternalEncryptionKey:(PowerAuthCoreData *)externalEncryptionKey
+{
+    if (externalEncryptionKey) {
+        PowerAuthLog(@"WARNING: EEK is not supported in this version of SDK");
+    }
+}
+// PA2_DEPRECATED(2.0.0)
+- (PowerAuthCoreData*) externalEncryptionKey
+{
+    return nil;
 }
 
 @end

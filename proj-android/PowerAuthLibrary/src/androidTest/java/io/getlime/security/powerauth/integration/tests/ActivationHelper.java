@@ -573,24 +573,26 @@ public class ActivationHelper {
      * @throws Exception In case of other failure.
      */
     public boolean validateUserPassword(@NonNull final Password password) throws Exception {
-        return AsyncHelper.await(resultCatcher -> powerAuthSDK.validatePassword(testHelper.getContext(), password, new IValidatePasswordListener() {
-            @Override
-            public void onPasswordValid() {
-                resultCatcher.completeWithResult(true);
-            }
-
-            @Override
-            public void onPasswordValidationFailed(@NonNull Throwable t) {
-                if (t instanceof ErrorResponseApiException) {
-                    final ErrorResponseApiException apiException = (ErrorResponseApiException)t;
-                    if (apiException.getResponseCode() == 401) {
-                        resultCatcher.completeWithResult(false);
-                        return;
-                    }
+        return AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.validatePassword(testHelper.getContext(), password, new IValidatePasswordListener() {
+                @Override
+                public void onPasswordValid() {
+                    resultCatcher.completeWithResult(true);
                 }
-                resultCatcher.completeWithError(t);
-            }
-        }));
+
+                @Override
+                public void onPasswordValidationFailed(@NonNull Throwable t) {
+                    if (t instanceof ErrorResponseApiException) {
+                        final ErrorResponseApiException apiException = (ErrorResponseApiException)t;
+                        if (apiException.getResponseCode() == 401) {
+                            resultCatcher.completeWithResult(false);
+                            return;
+                        }
+                    }
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
     }
 
     /**

@@ -92,7 +92,8 @@ typedef NS_ENUM(NSInteger, PowerAuthAlgorithm) {
 @property (nonatomic, strong, nonnull) NSString *keychainKey_Biometry;
 
 /// Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
-@property (nonatomic, strong, nullable) PowerAuthCoreData * externalEncryptionKey;
+/// @deprecated EEK is no longer used in SDK.
+@property (nonatomic, strong, nullable) PowerAuthCoreData * externalEncryptionKey PA2_DEPRECATED(2.0);
 
 /// Algorithm selected for communication with the server.
 @property (nonatomic, assign) PowerAuthAlgorithm algorithm;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,154 +16,150 @@
 
 package io.getlime.security.powerauth.integration.tests;
 
+import io.getlime.security.powerauth.core.CoreProtocolVersion;
+import io.getlime.security.powerauth.core.CoreSession;
+import io.getlime.security.powerauth.core.CryptoUtils;
 import io.getlime.security.powerauth.core.SecureData;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+import io.getlime.security.powerauth.integration.support.AsyncHelper;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
+import io.getlime.security.powerauth.networking.response.IOfflineAuthenticationCodeListener;
 import io.getlime.security.powerauth.sdk.*;
-import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import androidx.annotation.NonNull;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
-import io.getlime.security.powerauth.integration.support.RandomGenerator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-@RunWith(AndroidJUnit4.class)
-public class EEKTests {
+import android.util.Base64;
 
-    private PowerAuthTestHelper testHelper;
-    private PowerAuthSDK powerAuthSDK;
-    private ActivationHelper activationHelper;
+import java.nio.charset.StandardCharsets;
 
-    @After
-    public void tearDown() {
-        if (activationHelper != null) {
-            activationHelper.cleanupAfterTest();
+public class EEKTests extends BaseTest{
+
+    @Test
+    public void testExternalEncryptionKeyDiscontinue() throws Exception {
+        // Generate EEKs
+        final SecureData goodEEK = CoreSession.generateFactorKekForProtocolVersion(CoreProtocolVersion.V3);
+        final SecureData badEEK = CoreSession.generateFactorKekForProtocolVersion(CoreProtocolVersion.V4);
+        // Before activation, EEK flag is always false.
+        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
+
+        // Attempts to remove or add, should fail for all protocol versions
+        try {
+            powerAuthSDK.removeExternalEncryptionKey(goodEEK);
+            fail();
+        } catch (PowerAuthErrorException exception) {
+            assertEquals(PowerAuthErrorCodes.MISSING_ACTIVATION, exception.getPowerAuthErrorCode());
+        }
+        try {
+            powerAuthSDK.addExternalEncryptionKeyForTest(goodEEK);
+            fail();
+        } catch (PowerAuthErrorException exception) {
+            assertEquals(PowerAuthErrorCodes.MISSING_ACTIVATION, exception.getPowerAuthErrorCode());
+        }
+
+        // Now create activation
+        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_FAKE_BIOMETRY, null);
+
+        // By default, EEK is not set
+        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
+        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+        assertTrue(validateOfflineSignature(activationHelper.getValidAuthentication()));
+        assertTrue(validateOfflineSignature(activationHelper.getBiometricAuthentication(null)));
+
+        if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
+            // V3 activations
+            // Try to remove EEK first
+            expectFail(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, () -> powerAuthSDK.removeExternalEncryptionKey(goodEEK));
+            expectFail(PowerAuthErrorCodes.WRONG_PARAMETER, () -> powerAuthSDK.addExternalEncryptionKeyForTest(badEEK));
+            // Try with good EEK
+            powerAuthSDK.addExternalEncryptionKeyForTest(goodEEK);
+            assertTrue(powerAuthSDK.hasExternalEncryptionKey());
+            // validate signatures
+            expectFail(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, () -> validateOnlineSignature(activationHelper.getValidAuthentication()));
+            assertFalse(validateOfflineSignature(activationHelper.getValidAuthentication()));
+            assertFalse(validateOfflineSignature(activationHelper.getBiometricAuthentication(null)));
+
+            // simulate app restart
+            powerAuthSDK = activationHelper.reCreateSdk();
+
+            // validate EEK presence
+            assertTrue(powerAuthSDK.hasExternalEncryptionKey());
+            // validate signatures (should not work)
+            expectFail(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, () -> validateOnlineSignature(activationHelper.getValidAuthentication()));
+            assertFalse(validateOfflineSignature(activationHelper.getValidAuthentication()));
+            assertFalse(validateOfflineSignature(activationHelper.getBiometricAuthentication(null)));
+
+            // Try to remove wrong sized EEK
+            expectFail(PowerAuthErrorCodes.WRONG_PARAMETER, () -> powerAuthSDK.removeExternalEncryptionKey(badEEK));
+            assertTrue(powerAuthSDK.hasExternalEncryptionKey());
+            // Try with good EEK
+            powerAuthSDK.removeExternalEncryptionKey(goodEEK);
+
+            // EEK is no longer present
+            assertFalse(powerAuthSDK.hasExternalEncryptionKey());
+            // And signatures should work
+            assertTrue(validateOnlineSignature(activationHelper.getValidAuthentication()));
+            assertTrue(validateOfflineSignature(activationHelper.getValidAuthentication()));
+            assertTrue(validateOfflineSignature(activationHelper.getBiometricAuthentication(null)));
+
+        } else {
+            // V4 activations
+            // All EEK related methods should fail
+            expectFail(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, () -> powerAuthSDK.addExternalEncryptionKeyForTest(goodEEK));
+            expectFail(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, () -> powerAuthSDK.removeExternalEncryptionKey(goodEEK));
         }
     }
 
-    @Test
-    public void testModifyEEK() throws Exception {
-        // Setup
-        testHelper = new PowerAuthTestHelper.Builder().build();
-        powerAuthSDK = testHelper.getSharedSdk();
-        activationHelper = new ActivationHelper(testHelper);
-
-        // Test
-        activationHelper.createStandardActivation(true, null);
-        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
-        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
-
-        final SecureData eek = SecureData.capture(new RandomGenerator().generateBytes(16));
-        powerAuthSDK.addExternalEncryptionKey(eek);
-
-        assertTrue(powerAuthSDK.hasExternalEncryptionKey());
-        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
-
-        powerAuthSDK.removeExternalEncryptionKey();
-        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
-        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+    interface TestClosure {
+        void test() throws Exception;
     }
 
-    @Test
-    public void testEEKFromConfiguration() throws Exception {
-        // Setup
-        final byte[] eek = new RandomGenerator().generateBytes(16);
-        testHelper = new PowerAuthTestHelper.Builder()
-                .configurationObserver(new PowerAuthTestHelper.IConfigurationObserver() {
-                    @Override
-                    public void adjustPowerAuthConfiguration(@NonNull PowerAuthConfiguration.Builder builder) {
-                        builder.externalEncryptionKey(SecureData.copy(eek));
-                    }
-
-                    @Override
-                    public void adjustPowerAuthBiometricConfiguration(@NonNull PowerAuthBiometricConfiguration.Builder builder) {
-                    }
-
-                    @Override
-                    public void adjustPowerAuthClientConfiguration(@NonNull PowerAuthClientConfiguration.Builder builder) {
-                    }
-
-                    @Override
-                    public void adjustPowerAuthKeychainConfiguration(@NonNull PowerAuthKeychainConfiguration.Builder builder) {
-                    }
-                })
-                .build();
-        powerAuthSDK = testHelper.getSharedSdk();
-        activationHelper = new ActivationHelper(testHelper);
-
-        // Test
-        assertTrue(powerAuthSDK.hasExternalEncryptionKey());
-        activationHelper.createStandardActivation(true, null);
-        assertTrue(powerAuthSDK.hasExternalEncryptionKey());
-        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
-
-        powerAuthSDK.removeExternalEncryptionKey();
-        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
-        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+    void expectFail(@PowerAuthErrorCodes int errorCode, TestClosure closure) {
+        PowerAuthErrorException exception = assertThrows(PowerAuthErrorException.class, closure::test);
+        assertEquals(errorCode, exception.getPowerAuthErrorCode());
     }
 
-    @Test
-    public void testSetEEKAfterActivation() throws Exception {
-        // Setup
-        testHelper = new PowerAuthTestHelper.Builder().build();
-        powerAuthSDK = testHelper.getSharedSdk();
-        activationHelper = new ActivationHelper(testHelper);
-
-        // Test
-        final SecureData eek = SecureData.capture(new RandomGenerator().generateBytes(16));
-
-        // At first, create activation without EEK and add manually
-        activationHelper.createStandardActivation(true, null);
-        final ActivationHelper.HelperState activationHelperState = activationHelper.getHelperState();
-
-        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
-        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
-
-        powerAuthSDK.addExternalEncryptionKey(eek);
-        assertTrue(powerAuthSDK.hasExternalEncryptionKey());
-        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
-
-        // Now re-instantiate PowerAuthSDK (e.g. with no-EEK in configuration)
-        testHelper = new PowerAuthTestHelper.Builder().build(true);
-        powerAuthSDK = testHelper.getSharedSdk();
-        activationHelper = new ActivationHelper(testHelper, activationHelperState);
-
-        assertTrue(powerAuthSDK.hasValidActivation());
-        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
-
-        // Try to fetch activation status. This should work also without an EEK.
-        PowerAuthActivationStatus status = activationHelper.fetchActivationStatus();
-        assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
-
-        // Now set an EEK
-        powerAuthSDK.setExternalEncryptionKey(eek);
-        assertTrue(powerAuthSDK.hasExternalEncryptionKey());
-        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+    boolean validateOnlineSignature(PowerAuthAuthentication authentication) throws Exception {
+        final String uriId = "/test/online";
+        final byte[] body = "HELLO".getBytes(StandardCharsets.UTF_8);
+        final String method = "POST";
+        PowerAuthHttpHeader header = powerAuthSDK.authenticationHeaderForRequestWithBody(authentication, method, uriId, body);
+        AuthenticationResult result = authenticationHelper.verifyAuthenticationHeader(header, body, uriId, method);
+        return result.isAuthenticationValid();
     }
 
-    @Test
-    public void testSetEEKBeforeActivation() throws Exception {
-        // Setup
-        testHelper = new PowerAuthTestHelper.Builder().build();
-        powerAuthSDK = testHelper.getSharedSdk();
-        activationHelper = new ActivationHelper(testHelper);
+    boolean validateOfflineSignature(PowerAuthAuthentication authentication) throws Exception {
+        final boolean enableBiometry = authentication.useBiometricFactor();
+        final String uriId = "/test/offline";
+        final byte[] body = "HELLO".getBytes(StandardCharsets.UTF_8);
+        final String nonce = Base64.encodeToString(CryptoUtils.randomBytes((16)), Base64.NO_WRAP);
+        String authCode = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.offlineAuthenticationCode(testHelper.getContext(), authentication, uriId, body, nonce, new IOfflineAuthenticationCodeListener() {
+                @Override
+                public void onOfflineAuthenticationCodeSucceed(@NonNull String authenticationCode) {
+                    resultCatcher.completeWithResult(authenticationCode);
+                }
 
-        // Test
-        final SecureData eek = SecureData.capture(new RandomGenerator().generateBytes(16));
-        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
-        powerAuthSDK.setExternalEncryptionKey(eek);
-        assertTrue(powerAuthSDK.hasExternalEncryptionKey());
-
-        // At first, create activation without EEK and add manually
-        activationHelper.createStandardActivation(true, null);
-        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
-
-        powerAuthSDK.removeExternalEncryptionKey();
-        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
-        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+                @Override
+                public void onOfflineAuthenticationCodeFailed(@NonNull PowerAuthErrorException error) {
+                    resultCatcher.completeWithResult(null);
+                }
+            });
+        });
+        if (authCode == null) {
+            return false;
+        }
+        AuthenticationResult result = authenticationHelper.verifyAuthenticationCode(
+                authCode,
+                nonce,
+                body,
+                uriId,
+                activationHelper.getActivation().getActivationId(),
+                enableBiometry,
+                null);
+        return result.isAuthenticationValid();
     }
 }

@@ -30,10 +30,7 @@ import org.junit.Test;
 
 import androidx.annotation.NonNull;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import android.util.Base64;
 
@@ -121,15 +118,8 @@ public class EEKTests extends BaseTest{
     }
 
     void expectFail(@PowerAuthErrorCodes int errorCode, TestClosure closure) {
-        try {
-            closure.test();
-        } catch (Exception exception) {
-            if (exception instanceof PowerAuthErrorException) {
-                assertEquals(errorCode, ((PowerAuthErrorException)exception).getPowerAuthErrorCode());
-            } else {
-                fail("Unexpected exception type: " + exception);
-            }
-        }
+        PowerAuthErrorException exception = assertThrows(PowerAuthErrorException.class, closure::test);
+        assertEquals(errorCode, exception.getPowerAuthErrorCode());
     }
 
     boolean validateOnlineSignature(PowerAuthAuthentication authentication) throws Exception {

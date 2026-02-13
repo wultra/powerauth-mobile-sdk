@@ -174,26 +174,19 @@ public class PowerAuthConfigurationBuilderTest {
                 .build();
         assertEquals(4, configuration.getOfflineAuthenticationCodeComponentLength());
         // Invalid values
-        try {
-            new PowerAuthConfiguration.Builder(
-                    null,
-                    "http://wultra.com",
-                    sdkConfiguration)
-                    .offlineAuthenticationCodeComponentLength(3)
-                    .build();
-            fail("Should not work");
-        } catch (PowerAuthErrorException exception) {
-            assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, exception.getPowerAuthErrorCode());
-        }
-        try {
-             new PowerAuthConfiguration.Builder(
-                    null,
-                    "http://wultra.com",
-                    sdkConfiguration)
-                    .offlineAuthenticationCodeComponentLength(9)
-                    .build();
-        } catch (PowerAuthErrorException exception) {
-            assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, exception.getPowerAuthErrorCode());
-        }
+        PowerAuthErrorException exception = assertThrows(PowerAuthErrorException.class, () -> new PowerAuthConfiguration.Builder(
+                null,
+                "http://wultra.com",
+                sdkConfiguration)
+                .offlineAuthenticationCodeComponentLength(3)
+                .build());
+        assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, exception.getPowerAuthErrorCode());
+        exception = assertThrows(PowerAuthErrorException.class, () -> new PowerAuthConfiguration.Builder(
+                null,
+                "http://wultra.com",
+                sdkConfiguration)
+                .offlineAuthenticationCodeComponentLength(9)
+                .build());
+        assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, exception.getPowerAuthErrorCode());
     }
 }

@@ -125,7 +125,7 @@ ResponseObjectPtr ActivationServiceV4::processResponseActivationData(Context& co
     return std::make_shared<ActivationResult>(calculateActivationFingerprint(), L1_data);
 }
 
-RequestPtr ActivationServiceV4::confirmActivation(InitialCredentialsPtr credentials)
+RequestPtr ActivationServiceV4::confirmActivation(const InitialCredentialsPtr& credentials)
 {
     LOCK_GUARD();
     auto context = lockContext();
@@ -366,7 +366,7 @@ ActivationStatus::CounterState ActivationServiceV4::trySynchronizeCounter(const 
     return ActivationStatus::CounterState_Invalid;
 }
 
-RequestPtr ActivationServiceV4::removeActivation(CredentialsPtr credentials)
+RequestPtr ActivationServiceV4::removeActivation(const CredentialsPtr& credentials)
 {
     LOCK_GUARD();
     auto context = lockContext();
@@ -382,7 +382,7 @@ RequestPtr ActivationServiceV4::removeActivation(CredentialsPtr credentials)
 
 // MARK: - Factors
 
-RequestPtr ActivationServiceV4::changePassword(PasswordPtr old_password, PasswordPtr new_password)
+RequestPtr ActivationServiceV4::changePassword(const PasswordPtr& old_password, const PasswordPtr& new_password)
 {
     LOCK_GUARD();
     auto context = lockContext();
@@ -419,7 +419,7 @@ ResponseObjectPtr ActivationServiceV4::processResponseChangePassword(Context &co
     return nullptr;
 }
 
-RequestPtr ActivationServiceV4::addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek)
+RequestPtr ActivationServiceV4::addBiometricFactor(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek)
 {
     LOCK_GUARD();
     auto context = lockContext();

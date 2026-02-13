@@ -222,7 +222,7 @@ CC7_JNI_METHOD(void, cancel)
     NH_CATCH_RT_ONLY()
 }
 
-CC7_JNI_METHOD(void, setFailed)
+CC7_JNI_METHOD_PARAMS(void, setFailed, jint errorCode, jstring message)
 {
     NH_TRY
     {
@@ -230,7 +230,13 @@ CC7_JNI_METHOD(void, setFailed)
         auto this_wrapped = jni.fromJava(thiz, specs.coreRequest.native.classRef);
         auto this_obj = jni.fromHandle<Request>(this_wrapped.getLong(specs.coreRequest.native.handle));
         // set failed
-        this_obj->setFailed(nullptr);
+        auto cpp_ec = jni.fromJava<ErrorCode>(specs.coreErrorCode, errorCode);
+        auto cpp_message = jni.fromJava(message);
+        try {
+            throw Exception(cpp_ec, cpp_message);
+        } catch (...) {
+            this_obj->setFailed(std::current_exception());
+        }
         // cleanup builder
         jni::ClearResponseBuilderClosure(jni, specs, this_wrapped);
     }

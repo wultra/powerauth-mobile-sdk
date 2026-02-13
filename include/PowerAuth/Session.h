@@ -125,11 +125,11 @@ public:
     
     /// Confirm PowerAuth activation with initial credentials.
     /// - Parameter credentials: Initial credentials.
-    /// - Returns: Request data for confirm activation endpoint. If returned pointer is `nullptr`
+    /// - Returns: Task object for confirm activation endpoint. If returned pointer is `nullptr`
     ///            then the protocol doesn't support activation confirmation.
     /// - Throws:
     ///   - `Exception` in case that activation cannot be confirmed.
-    RequestPtr confirmActivation(InitialCredentialsPtr credentials);
+    TaskPtr confirmActivation(const InitialCredentialsPtr& credentials);
 
     /// Get information whether the session has pending create activation task.
     /// To complete activation, call `confirmActivation()`.

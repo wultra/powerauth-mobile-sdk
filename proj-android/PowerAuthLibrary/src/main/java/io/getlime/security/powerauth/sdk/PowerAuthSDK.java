@@ -829,25 +829,25 @@ public class PowerAuthSDK {
             if (password == null) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Password must be set for persist activation operation");
             }
-            final CoreRequest<Object> request = mSession.confirmActivation(password, authentication.getBiometryFactorRelatedKey());
+            final CoreTask<Object> task = mSession.confirmActivation(password, authentication.getBiometryFactorRelatedKey());
             if (listener == null) {
                 // @Deprecated 2.0.0
                 // Listener is not provided, so application is still using deprecated synchronous API.
-                if (request != null) {
-                    // Persist is unfortunately asynchronous, so we cannot continue. Cancel the request and report error.
-                    request.cancel();
+                if (task != null) {
+                    // Persist is unfortunately asynchronous, so we cannot continue. Cancel the task and report error.
+                    task.cancel();
                     throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Synchronous persist is not supported at this protocol version");
                 }
                 return null;
             }
-            if (request == null) {
+            if (task == null) {
                 // This is legit for V3 activations. Persist doesn't require HTTP communication with the server.
                 saveSerializedState();
                 dispatchCallback(listener::onPersistActivationSucceeded);
                 return null;
             }
-            // So far, so good, execute the request.
-            return mClient.post(request, new INetworkResponseListener<>() {
+            // So far, so good, execute the task.
+            return mClient.post(task, new INetworkResponseListener<>() {
                 @Override
                 public void onNetworkResponse(@Nullable Object o) {
                     saveSerializedState();

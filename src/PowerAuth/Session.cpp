@@ -15,6 +15,7 @@
  */
 
 #include <PowerAuth/Session.h>
+#include "task/ConfirmActivationTask.h"
 #include "task/GetActivationStatusTask.h"
 #include "task/ProtocolUpgradeTask.h"
 
@@ -122,7 +123,7 @@ RequestPtr Session::createActivation(const cc7::json::JsonValue& L1_data, const 
     return _context->activationService().createActivation(L1_data, L2_data);
 }
 
-RequestPtr Session::confirmActivation(InitialCredentialsPtr credentials)
+TaskPtr Session::confirmActivation(const InitialCredentialsPtr& credentials)
 {
     LOCK_GUARD();
     // Validate credentials in advance. This is typically done also in key provider,
@@ -136,7 +137,13 @@ RequestPtr Session::confirmActivation(InitialCredentialsPtr credentials)
     if (rd.getActivationId().empty()) {
         throw Exception(EC_WrongActivationState, "Cannot confirm activation. Key-exchange is not completed yet");
     }
-    return _context->activationService().confirmActivation(credentials);
+    if (_context->protocolVersion() < Version_V4) {
+        // V3 doesn't require HTTP communication for activation confirm
+        _context->activationService().confirmActivation(credentials);
+        return nullptr;
+    }
+    // V4+ uses ConfirmActivationTask
+    return std::make_shared<ConfirmActivationTask>(_context, credentials);
 }
 
 bool Session::hasValidActivationData() const noexcept

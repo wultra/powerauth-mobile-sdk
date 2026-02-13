@@ -56,6 +56,8 @@
 		BF0825D72E01630D00B89A68 /* EciesEncryptorFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF0825D52E01630D00B89A68 /* EciesEncryptorFactory.cpp */; };
 		BF0825E82E0308AA00B89A68 /* SecretKeysPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF0825E72E0308AA00B89A68 /* SecretKeysPool.cpp */; };
 		BF0825E92E0308AA00B89A68 /* SecretKeysPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF0825E72E0308AA00B89A68 /* SecretKeysPool.cpp */; };
+		BF112EDC2F3DD51B00D578F0 /* ConfirmActivationTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF112EDB2F3DD51B00D578F0 /* ConfirmActivationTask.cpp */; };
+		BF112EDD2F3DD51B00D578F0 /* ConfirmActivationTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF112EDB2F3DD51B00D578F0 /* ConfirmActivationTask.cpp */; };
 		BF1150412E18434E008601DE /* PowerAuthCoreTimeService.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF1150402E18434E008601DE /* PowerAuthCoreTimeService.mm */; };
 		BF1150422E18434E008601DE /* PowerAuthCoreTimeService.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF1150402E18434E008601DE /* PowerAuthCoreTimeService.mm */; };
 		BF14D4572DD1C9A400BA7F51 /* SharedSecret.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF14D4562DD1C9A400BA7F51 /* SharedSecret.cpp */; };
@@ -522,6 +524,8 @@
 		BF0825D52E01630D00B89A68 /* EciesEncryptorFactory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EciesEncryptorFactory.cpp; sourceTree = "<group>"; };
 		BF0825E62E0308AA00B89A68 /* SecretKeysPool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SecretKeysPool.h; sourceTree = "<group>"; };
 		BF0825E72E0308AA00B89A68 /* SecretKeysPool.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SecretKeysPool.cpp; sourceTree = "<group>"; };
+		BF112EDA2F3DD51B00D578F0 /* ConfirmActivationTask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfirmActivationTask.h; sourceTree = "<group>"; };
+		BF112EDB2F3DD51B00D578F0 /* ConfirmActivationTask.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ConfirmActivationTask.cpp; sourceTree = "<group>"; };
 		BF1150402E18434E008601DE /* PowerAuthCoreTimeService.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreTimeService.mm; sourceTree = "<group>"; };
 		BF14D4552DD1C99000BA7F51 /* SharedSecret.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SharedSecret.h; sourceTree = "<group>"; };
 		BF14D4562DD1C9A400BA7F51 /* SharedSecret.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SharedSecret.cpp; sourceTree = "<group>"; };
@@ -808,6 +812,8 @@
 				8F0006652E82AF6700C57A29 /* ProtocolUpgradeTask.cpp */,
 				BF062BDC2E6B08FA001436AD /* GetActivationStatusTask.h */,
 				BF062BDD2E6B08FA001436AD /* GetActivationStatusTask.cpp */,
+				BF112EDA2F3DD51B00D578F0 /* ConfirmActivationTask.h */,
+				BF112EDB2F3DD51B00D578F0 /* ConfirmActivationTask.cpp */,
 			);
 			path = task;
 			sourceTree = "<group>";
@@ -1707,6 +1713,7 @@
 				BF062BD92E6AE2DD001436AD /* Task.cpp in Sources */,
 				BFAAC9992E3E6B0600062165 /* ActivationResult.cpp in Sources */,
 				BF75F9BF2E05463A00D1E4F0 /* HybridKeyPair.cpp in Sources */,
+				BF112EDD2F3DD51B00D578F0 /* ConfirmActivationTask.cpp in Sources */,
 				BF4D854E2DE476CD00D32F55 /* Context.cpp in Sources */,
 				BF4D86332DF0629300D32F55 /* RegistrationData.cpp in Sources */,
 			);
@@ -1837,6 +1844,7 @@
 				BF062BDA2E6AE2DD001436AD /* Task.cpp in Sources */,
 				BFAAC9982E3E6B0600062165 /* ActivationResult.cpp in Sources */,
 				BF75F9BB2E05463A00D1E4F0 /* HybridKeyPair.cpp in Sources */,
+				BF112EDC2F3DD51B00D578F0 /* ConfirmActivationTask.cpp in Sources */,
 				BF4D854D2DE476CD00D32F55 /* Context.cpp in Sources */,
 				BF4D86322DF0629300D32F55 /* RegistrationData.cpp in Sources */,
 			);

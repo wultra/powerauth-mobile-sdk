@@ -84,6 +84,97 @@
     XCTAssertTrue(activation.success);
 }
 
+/// Helper function that creates activation and expects failure at persist step.
+/// - Parameters:
+///   - shouldPass: If YES, then persist step should work.
+- (void) createActivationAndExpectPersistFailure:(BOOL)shouldPass
+{
+    PATSInitActivationResponse * response = [_helper prepareActivation:NO activationOtp:nil];
+    if (!response) {
+        XCTFail(@"Prepare failed");
+        return;
+    }
+    NSError * error = nil;
+    PowerAuthActivation * activation = [PowerAuthActivation activationWithActivationCode:response.activationCode error:&error];
+    if (!activation) {
+        XCTFail(@"activationWithActivationCode failed");
+        return;
+    }
+    PowerAuthActivationResult * activationResult = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk createActivation:activation callback:^(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error) {
+            [waiting reportCompletion:result];
+        }];
+    }];
+    if (!activationResult) {
+        XCTFail(@"createActivation failed");
+        return;
+    }
+    PowerAuthAuthentication * initialAuthentication = [_helper createPersistAuthenticationWithFlags:0];
+    error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk persistActivationWithAuthentication:initialAuthentication callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    if (error) {
+        NSLog(@"Confirm error: %@", [error description]);
+    }
+    if (shouldPass) {
+        XCTAssertNil(error);
+    } else {
+        XCTAssertNotNil(error);
+    }
+    if (!shouldPass && error) {
+        // retry the operation. It should work
+        [self clearAllSimulateFailures];
+        error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk persistActivationWithAuthentication:initialAuthentication callback:^(NSError * _Nullable error) {
+                [waiting reportCompletion:error];
+            }];
+        }];
+        XCTAssertNil(error);
+    }
+    [_helper assignCustomActivationData:response activationResult:activationResult credentials:initialAuthentication];
+    [_helper cleanup];
+    [self clearAllSimulateFailures];
+}
+
+- (void) testPersistActivationFailRecovery
+{
+    CHECK_TEST_CONFIG();
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        NSLog(@"Test not available for LEGACY_P256");
+        return;
+    }
+    NSString * confirmEndpoint = @"/activation/confirm";
+    NSString * statusEndpoint = @"/activation/status";
+    NSString * keystoreEndpoint = @"/keystore/create";
+    
+    // one failure at confirm send, no failure at status
+    [self simulateNetworkErrorOnSend:confirmEndpoint repeatCount:1];
+    [self createActivationAndExpectPersistFailure:YES];
+    
+    // one failure at confirm send, one failure at /keystore/create (prerequisite for status)
+    [self simulateNetworkErrorOnSend:confirmEndpoint repeatCount:1];
+    [self simulateNetworkErrorOnSend:keystoreEndpoint repeatCount:1];
+    [self createActivationAndExpectPersistFailure:NO];
+    
+    // 2 failures at confirm send, no failure at status. We should recovery from this.
+    [self simulateNetworkErrorOnSend:confirmEndpoint repeatCount:2];
+    [self createActivationAndExpectPersistFailure:YES];
+    
+    // 3 failures at confirm send, no failure at status. Out of recovery attempts
+    [self simulateNetworkErrorOnSend:confirmEndpoint repeatCount:3];
+    [self createActivationAndExpectPersistFailure:NO];
+    
+    // one failure at confirm, one failure at status. Cannot recovery here
+    [self simulateNetworkErrorOnSend:confirmEndpoint repeatCount:1];
+    [self simulateNetworkErrorOnSend:statusEndpoint repeatCount:1];
+    [self createActivationAndExpectPersistFailure:NO];
+
+    // failure at confirm receive, so the server processed the confirmation
+    [self simulateNetworkErrorOnReceive:confirmEndpoint];
+    [self createActivationAndExpectPersistFailure:YES];
+}
 
 - (void) testRemoveActivation
 {

@@ -36,16 +36,12 @@ import io.getlime.security.powerauth.integration.support.model.Activation;
 import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.PowerAuthActivation;
+import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
 import static org.junit.Assert.*;
 
 public class BaseSdkTest extends BaseTest {
-
-    @PowerAuthAlgorithm
-    public int getCurrentAlgorithm() {
-        return powerAuthSDK.getCurrentAlgorithm();
-    }
 
     // Using PowerAuthActivation
 
@@ -258,6 +254,97 @@ public class BaseSdkTest extends BaseTest {
                 throw new Exception("Activation is in invalid state after commit. State = " + activationStatus.getState());
             }
         }
+    }
+
+    // Recovery from failed confirm
+
+    /**
+     * Create activation and expect failure at persist step.
+     * @param shouldPass true if process should succeed.
+     * @throws Exception In case of failure.
+     */
+    public void createActivationAndExpectPersistFailure(boolean shouldPass) throws Exception {
+        Activation activationData = activationHelper.initActivation();
+        PowerAuthActivation activation = PowerAuthActivation.Builder.activation(activationData.getActivationCode()).build();
+        CreateActivationResult createResult = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
+                @Override
+                public void onActivationCreateSucceed(@NonNull CreateActivationResult result) {
+                    resultCatcher.completeWithResult(result);
+                }
+
+                @Override
+                public void onActivationCreateFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+        PowerAuthAuthentication initialAuthentication = PowerAuthAuthentication.persistWithPassword(activationHelper.prepareAuthentications().get(0));
+        final AsyncHelper.Execution<Boolean> persistActivation = resultCatcher -> {
+            powerAuthSDK.persistActivationWithAuthentication(testHelper.getContext(), initialAuthentication, new IPersistActivationListener() {
+                @Override
+                public void onPersistActivationSucceeded() {
+                    resultCatcher.completeWithResult(true);
+                }
+
+                @Override
+                public void onPersistActivationFailed(@NonNull Throwable throwable) {
+                    resultCatcher.completeWithResult(false);
+                }
+
+                @Override
+                public void onPersistActivationCancelled(boolean userCancel) {
+                    resultCatcher.completeWithResult(false);
+                }
+            });
+        };
+        boolean success = AsyncHelper.await(persistActivation);
+        assertEquals(shouldPass, success);
+        if (!shouldPass) {
+            // retry the operation
+            clearAllSimulateFailures();
+            success = AsyncHelper.await(persistActivation);
+            assertTrue(success);
+        }
+        activationHelper.cleanupAfterTest();
+        clearAllSimulateFailures();
+    }
+
+    @Test
+    public void testPersistActivationFailRecovery() throws Exception {
+        if (getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256) {
+            System.out.println("Test not available for  LEGACY_P256");
+            return;
+        }
+        final String confirmEndpoint = "/activation/confirm";
+        final String statusEndpoint = "/activation/status";
+        final String keystoreEndpoint = "/keystore/create";
+
+        // one failure at confirm send, no failure at status
+        simulateNetworkErrorOnSend(confirmEndpoint, 1);
+        createActivationAndExpectPersistFailure(true);
+
+        // one failure at confirm send, one failure at /keystore/create (prerequisite for status)
+        simulateNetworkErrorOnSend(confirmEndpoint, 1);
+        simulateNetworkErrorOnSend(keystoreEndpoint, 1);
+        createActivationAndExpectPersistFailure(false);
+
+        // 2 failures at confirm send, no failure at status. We should recovery from this.
+        simulateNetworkErrorOnSend(confirmEndpoint, 2);
+        createActivationAndExpectPersistFailure(true);
+
+        // 3 failures at confirm send, no failure at status. Out of recovery attempts
+        simulateNetworkErrorOnSend(confirmEndpoint, 3);
+        createActivationAndExpectPersistFailure(false);
+
+        // one failure at confirm, one failure at status. Cannot recovery here
+        simulateNetworkErrorOnSend(confirmEndpoint, 1);
+        simulateNetworkErrorOnSend(statusEndpoint, 1);
+        createActivationAndExpectPersistFailure(false);
+
+        // failure at confirm receive, so the server processed the confirmation
+        simulateNetworkErrorOnReceive(confirmEndpoint);
+        createActivationAndExpectPersistFailure(true);
     }
 
     // Remove activation

@@ -719,15 +719,15 @@ static PowerAuthSDK * s_inst;
                                                           callback:(void(^)(NSError * error))callback
 {
     NSError * localError = nil;
-    PowerAuthCoreRequest * request = [self persistActivationInSession:authentication error:&localError];
-    if (!request) {
+    PowerAuthCoreTask * task = [self persistActivationInSession:authentication error:&localError];
+    if (!task) {
         // If activation is V3, then it's OK to exit immediately, because there's no additional asynchronous
         // operation required. So, we can end here for both, successful and failure scenarios.
         callback(localError);
         return nil;
     }
     // Otherwise execute the core request
-    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest* request, id response, NSError* error) {
+    return [_client postCoreTask:task completion:^(PowerAuthCoreTask* request, id response, NSError* error) {
         // TODO: recovery from failure
         callback(error);
     }];
@@ -770,14 +770,14 @@ static PowerAuthSDK * s_inst;
                                        error:(NSError**)error
 {
     NSError * localError = nil;
-    PowerAuthCoreRequest * request = [self persistActivationInSession:authentication error:&localError];
+    PowerAuthCoreTask * task = [self persistActivationInSession:authentication error:&localError];
     if (localError) {
         if (error) *error = localError;
         return NO;
     }
-    if (request) {
+    if (task) {
         // Persist is asynchronous and this deprecated function is synchronous. Cancel the request and report error.
-        [request cancel];
+        [task cancel];
         PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"Synchronous persist is not supported at this protocol version");
         return NO;
     }
@@ -797,12 +797,12 @@ static PowerAuthSDK * s_inst;
 }
 
 
-- (PowerAuthCoreRequest*) persistActivationInSession:(PowerAuthAuthentication*)authentication error:(NSError**)error
+- (PowerAuthCoreTask*) persistActivationInSession:(PowerAuthAuthentication*)authentication error:(NSError**)error
 {
     // Validate authentication object usage
     [authentication validateUsage:YES];
     
-    return [_sessionInterface writeTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError** error) {
+    return [_sessionInterface writeTaskWithSession:^PowerAuthCoreTask* (PowerAuthCoreSession * session, NSError** error) {
         
         NSError * localError = nil;
         
@@ -815,7 +815,7 @@ static PowerAuthSDK * s_inst;
                 return nil;
             }
         }
-        PowerAuthCoreRequest * request = [session confirmActivationWithPassword:password withBiometryKek:biometryKek error:&localError];
+        PowerAuthCoreTask * task = [session confirmActivationWithPassword:password withBiometryKek:biometryKek error:&localError];
         if (localError) {
             if (error) *error = localError;
             return nil;
@@ -828,7 +828,7 @@ static PowerAuthSDK * s_inst;
         }
         // Clear TokenStore
         [_tokenStore removeAllLocalTokens];
-        return request;
+        return task;
         
     } error:error];
 }

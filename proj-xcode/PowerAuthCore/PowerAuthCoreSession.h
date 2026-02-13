@@ -248,10 +248,10 @@
 ///   - password: User's password.
 ///   - biometryKek: Optional biometric factor KEK. If `nil` then this session will not have biometry configured.
 ///   - error: Pointer where error is stored in case of failure.
-/// - Returns: Core request object containing all required information for activation confirmation.
-- (nullable PowerAuthCoreRequest*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
-                                                 withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
-                                                           error:(NSError*_Nullable*_Nullable)error;
+/// - Returns: Core task for activation confirmation.
+- (nullable PowerAuthCoreTask*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
+                                              withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
+                                                        error:(NSError*_Nullable*_Nullable)error;
 
 /// Remove activation from the server.
 ///

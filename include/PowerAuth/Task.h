@@ -111,7 +111,9 @@ protected:
     void setNextRequest(const RequestPtr& request, int tag, int flags);
     
     /// Set task as completed.
-    void setCompleted() noexcept;
+    /// - Parameters:
+    ///   - clear_failure: If `true`, then any previous request failure will be cleared.
+    void setCompleted(bool clear_failure = false) noexcept;
     
     // Overridable methods
     

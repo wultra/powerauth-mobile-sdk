@@ -268,12 +268,12 @@ CC7_JNI_METHOD_PARAMS(jobject, confirmActivation, jobject password, jobject biom
         auto cpp_password = jni.fromJava<Password>(specs.password, password);
         auto cpp_biometry = CopyFromSecureData(jni, biometryKek);
         auto credentials = InitialCredentials::credentials(cpp_password->passwordData(), cpp_biometry);
-        auto request = THIS_OBJ()->confirmActivation(credentials);
-        if (!request) {
+        auto task = THIS_OBJ()->confirmActivation(credentials);
+        if (!task) {
             // This is valid for V3 activations
             return nullptr;
         }
-        return BuildCoreRequest(jni, request);
+        return BuildCoreTask(jni, task);
     }
     NH_CATCH(nullptr)
 }

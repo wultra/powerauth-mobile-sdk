@@ -255,7 +255,7 @@ public class CoreRequest<TResponse> extends NativeObject {
             this.failure = failure;
         }
         @CoreErrorCode final int errorCode;
-        if (failure instanceof CoreErrorCode) {
+        if (failure instanceof CoreException) {
             errorCode = ((CoreException)failure).getErrorCode();
         } else {
             errorCode = CoreErrorCode.OTHER;

@@ -81,7 +81,7 @@ public class CoreHttpTask<TResponse> extends CompositeCancelableTask {
 
                     @Override
                     public void onNetworkError(@NonNull Throwable throwable) {
-                        setFinished(throwable);
+                        processNext();
                     }
 
                     @Override

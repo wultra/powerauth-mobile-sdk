@@ -350,7 +350,7 @@ public class GroupedTask<TResult> implements ICancelable {
             isCanceled = (flags & OP_SET_CANCELED) == OP_SET_CANCELED;
             if (!isCanceled) {
                 if ((flags & OP_AUTO_CANCEL) == 0) {
-                    if (result == null) {
+                    if (failure == null) {
                         PowerAuthLog.d(taskName + "Task is complete");
                     } else {
                         PowerAuthLog.d(taskName + "Task is complete with error: " + failure);

@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.sdk.impl;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import io.getlime.security.powerauth.core.CoreAlgorithm;
 import io.getlime.security.powerauth.core.CoreEncryptorFactory;
 import io.getlime.security.powerauth.core.CoreEncryptorScope;
 import io.getlime.security.powerauth.core.CoreSession;
@@ -128,30 +127,13 @@ public class DefaultKeystoreService implements IKeystoreService, GetTemporaryKey
             lock.unlock();
         }
     }
-    private CoreEncryptorFactory coreEncryptorFactory;
-    private @CoreAlgorithm int coreAlgorithm;
 
     /**
      * @return Instance of {@link CoreEncryptorFactory}.
      */
     @NonNull
     private CoreEncryptorFactory getEncryptorFactory() {
-        try {
-            lock.lock();
-            // TODO: session should manage the reference to factory.
-            int currentAlgorithm = session.getCurrentAlgorithm();
-            if (coreEncryptorFactory == null) {
-                coreEncryptorFactory = session.getEncryptorFactory();
-                coreAlgorithm = currentAlgorithm;
-            } else {
-                if (currentAlgorithm != coreAlgorithm) {
-                    coreEncryptorFactory = session.getEncryptorFactory();
-                    coreAlgorithm = currentAlgorithm;
-                }
-            }
-            return coreEncryptorFactory;
-        } finally {
-            lock.unlock();
-        }
+        return session.getEncryptorFactory();
     }
+    
 }

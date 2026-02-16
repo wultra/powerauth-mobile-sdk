@@ -191,7 +191,8 @@ public final class HttpConnectionFailureSimulator {
                 throw new IOException("Simulated error on data send: " + url);
             }
 
-            return errorResponseCode != null ? errorResponseCode : delegate.getResponseCode();
+            final int actualResponseCode = delegate.getResponseCode();
+            return errorResponseCode != null ? errorResponseCode : actualResponseCode;
         }
 
         @Override
@@ -275,7 +276,7 @@ public final class HttpConnectionFailureSimulator {
         }
 
         if (count > 1) {
-            onSendFailure.replace(pathToMatch, count - 1);
+            onSendFailure.put(pathToMatch, count - 1);
         } else {
             onSendFailure.remove(pathToMatch);
         }

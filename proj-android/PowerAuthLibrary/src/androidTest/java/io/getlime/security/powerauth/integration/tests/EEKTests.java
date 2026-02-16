@@ -36,7 +36,7 @@ import android.util.Base64;
 
 import java.nio.charset.StandardCharsets;
 
-public class EEKTests extends BaseTest{
+public class EEKTests extends BaseTest {
 
     @Test
     public void testExternalEncryptionKeyDiscontinue() throws Exception {

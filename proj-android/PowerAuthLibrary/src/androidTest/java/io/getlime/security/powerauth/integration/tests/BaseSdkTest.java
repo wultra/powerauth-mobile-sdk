@@ -42,11 +42,6 @@ import static org.junit.Assert.*;
 
 public class BaseSdkTest extends BaseTest {
 
-    @PowerAuthAlgorithm
-    public int getCurrentAlgorithm() {
-        return powerAuthSDK.getCurrentAlgorithm();
-    }
-
     // Using PowerAuthActivation
 
     @Test

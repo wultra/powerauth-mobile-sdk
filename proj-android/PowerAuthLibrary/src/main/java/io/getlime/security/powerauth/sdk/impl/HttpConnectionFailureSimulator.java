@@ -276,7 +276,7 @@ public final class HttpConnectionFailureSimulator {
         }
 
         if (count > 1) {
-            onSendFailure.replace(pathToMatch, count - 1);
+            onSendFailure.put(pathToMatch, count - 1);
         } else {
             onSendFailure.remove(pathToMatch);
         }

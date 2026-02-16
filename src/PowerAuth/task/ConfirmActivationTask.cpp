@@ -67,6 +67,7 @@ void ConfirmActivationTask::onRequestFailure(const Request &request)
     // lock already acquired
     switch (request.getParentTaskTag()) {
         case CONFIRM_ACTIVATION:
+            _session_data->registrationData().v4().lastConfirmFailed = true;
             fetchActivationStatus();
             break;
         case FETCH_STATUS:

@@ -2042,7 +2042,7 @@ public class PowerAuthSDK {
                 // because there's no additional asynchronous operation required. So, we can
                 // end here for both, successful and failure scenarios.
                 saveSerializedState();
-                listener.onFinishPasswordChangeSucceed();
+                dispatchCallback(listener::onFinishPasswordChangeSucceed);
                 return null;
             }
 
@@ -2408,7 +2408,7 @@ public class PowerAuthSDK {
             if (request == null) {
                 // V3 activation, remove doesn't use request
                 removeBiometryKeyData(context);
-                listener.onRemoveBiometryFactorSucceed();
+                dispatchCallback(listener::onRemoveBiometryFactorSucceed);
                 return null;
             }
 

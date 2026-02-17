@@ -41,6 +41,7 @@ public:
         SharedSecretContextPtr sharedSecretContext;
         cc7::ByteArray calculatedSharedSecret;
         cc7::byte authCodeCounterByte = 0;
+        bool lastConfirmFailed = false;
     };
     
     struct V3

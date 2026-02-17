@@ -119,7 +119,7 @@ void Task::setFailed(std::exception_ptr exception) noexcept
     captureExceptionAndComplete(exception);
 }
 
-void Task::setCompleted() noexcept
+void Task::setCompleted(bool clear_failure) noexcept
 {
     LOCK_GUARD();
     try {
@@ -133,6 +133,9 @@ void Task::setCompleted() noexcept
         }
         if (!_completion_processed) {
             _completion_processed = true;
+            if (clear_failure) {
+                _failure = nullptr;
+            }
             onTaskEnd();
         }
     } catch (...) {
@@ -176,6 +179,9 @@ RequestPtr Task::getNextRequest()
 void Task::setNextRequest(const RequestPtr &request, int tag, int flags)
 {
     LOCK_GUARD();
+    if (!request) {
+        throw Exception(EC_InternalError, "Next request is null");
+    }
     if (_next_request) {
         throw Exception(EC_InternalError, "Next request is already set");
     }

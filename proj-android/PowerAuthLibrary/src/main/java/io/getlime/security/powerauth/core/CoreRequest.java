@@ -29,7 +29,7 @@ public class CoreRequest<TResponse> extends NativeObject {
     /**
      * Contains last failure produced in the request object.
      */
-    private CoreException failure;
+    private Throwable failure;
 
     /**
      * Contains response object if this kind of request provide some response object.
@@ -48,8 +48,8 @@ public class CoreRequest<TResponse> extends NativeObject {
     private final long responseBuilderHandle;
 
     /**
-     * Construct object with handle to native object. This is a designated constructor used from JNI,
-     * when C++ object is being wrapped into Java object.
+     * Construct object with handle to native request object. This is a designated constructor
+     * used from JNI, when C++ object is being wrapped into Java object.
      *
      * @param nativeObjectHandle Handle to native object.
      */
@@ -58,6 +58,13 @@ public class CoreRequest<TResponse> extends NativeObject {
         this.responseBuilderHandle = NATIVE_NULL;
     }
 
+    /**
+     * Construct object with handle to native request object and with handle to a response object
+     * builder. This is a designated constructor used from JNI, when C++ object is being wrapped
+     * into Java object.
+     * @param nativeObjectHandle Handle to native request object.
+     * @param responseBuilderHandle Handle to native response builder.
+     */
     protected CoreRequest(long nativeObjectHandle, long responseBuilderHandle) {
         super(nativeObjectHandle);
         this.responseBuilderHandle = responseBuilderHandle;
@@ -158,7 +165,7 @@ public class CoreRequest<TResponse> extends NativeObject {
      * @return Exception with reason of request or response processing failure.
      */
     @Nullable
-    public CoreException getFailure() {
+    public Throwable getFailure() {
         return failure;
     }
 
@@ -233,9 +240,29 @@ public class CoreRequest<TResponse> extends NativeObject {
     /**
      * Set request as failed. You have to call this method when the HTTP request ends with
      * external failure, such as non-200 status code is received.
+     * @param errorCode Error code to pass to C++ exception.
+     * @param message Message to pass to the C++ exception.
      */
-    public native void setFailed();
+    private native void setFailed(@CoreErrorCode int errorCode, @Nullable String message);
 
+    /**
+     * Set request as failed. You have to call this method when the HTTP request ends with
+     * external failure, such as non-200 status code is received.
+     * @param failure External exception to keep in the response object.
+     */
+    public void setFailed(@Nullable Throwable failure) {
+        if (failure != null && this.failure == null) {
+            this.failure = failure;
+        }
+        @CoreErrorCode final int errorCode;
+        if (failure instanceof CoreException) {
+            errorCode = ((CoreException)failure).getErrorCode();
+        } else {
+            errorCode = CoreErrorCode.OTHER;
+        }
+        final String message = failure != null ? failure.getMessage() : null;
+        setFailed(errorCode, message);
+    }
 
     /**
      * Native request preparation function.

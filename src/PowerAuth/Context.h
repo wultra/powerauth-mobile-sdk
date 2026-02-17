@@ -61,6 +61,9 @@ public:
     /// Returns the new context for the target algorithm.
     std::shared_ptr<Context> createTargetAlgorithmContext();
     
+    /// Reset context state. This is identical to remove activation locally.
+    void resetState() noexcept;
+    
     void destroyTargetAlgorithmContext();
     
     /// Returns the target algorithm context if exists.

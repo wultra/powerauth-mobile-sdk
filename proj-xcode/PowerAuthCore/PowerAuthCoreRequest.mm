@@ -132,9 +132,29 @@
     _request->cancel();
 }
 
-- (void) setFailed
+- (void) setFailedWithError:(NSError *)error
 {
-    _request->setFailed(nullptr);
+    if (error) {
+        // Keep failure if it's not set yet
+        if (!_failure) {
+            _failure = error;
+        }
+        // Convert NSError to Exception. This will keep at least original message
+        PowerAuthCoreError errorCode = error.powerAuthCoreErrorCode;
+        NSString * message = error.localizedDescription;
+        if (errorCode == PowerAuthCoreError_NA) {
+            errorCode = PowerAuthCoreError_Other;
+        }
+        try {
+            auto ec = static_cast<powerAuth::ErrorCode>(errorCode);
+            throw powerAuth::Exception(ec, message.UTF8String);
+        } catch (...) {
+            _request->setFailed(std::current_exception());
+        }
+    } else {
+        // No reason provided
+        _request->setFailed(nullptr);
+    }
 }
 
 - (BOOL) prepareRequest:(NSError *__autoreleasing *)error

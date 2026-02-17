@@ -330,7 +330,7 @@ public class CoreHttpRequest<TResult> implements ICancelable {
      */
     private void setFailed(@NonNull Throwable t) {
         // Mark core request as failed
-        coreRequest.setFailed();
+        coreRequest.setFailed(t);
         // Report completion
         reportCompletion(null, t);
     }

@@ -35,6 +35,13 @@ public class CoreTask<TResponse> extends NativeObject {
         this.responseBuilderHandle = NATIVE_NULL;
     }
 
+    /**
+     * Construct object with handle to native task object and handle to native response object
+     * builder. This is a designated constructor used from JNI, when C++ object is being wrapped
+     * into Java object.
+     * @param nativeObjectHandle Handle to native task object.
+     * @param responseBuilderHandle Handle to native response object builder.
+     */
     protected CoreTask(long nativeObjectHandle, long responseBuilderHandle) {
         super(nativeObjectHandle);
         this.responseBuilderHandle = responseBuilderHandle;
@@ -55,7 +62,7 @@ public class CoreTask<TResponse> extends NativeObject {
     /**
      * Contains last failure produced in the request object.
      */
-    private CoreException failure;
+    private Throwable failure;
 
     /**
      * Contains response object if this kind of task provide some response object.
@@ -145,7 +152,7 @@ public class CoreTask<TResponse> extends NativeObject {
      * @throws CoreException In case of failure.
      */
     @Nullable
-    public CoreRequest<Object> getNextRequest() throws CoreException {
+    public CoreRequest<TResponse> getNextRequest() throws CoreException {
         try {
             return getNextRequestImpl();
         } catch (CoreException e) {
@@ -161,5 +168,5 @@ public class CoreTask<TResponse> extends NativeObject {
      * @throws CoreException In case of failure.
      */
     @Nullable
-    private native CoreRequest<Object> getNextRequestImpl() throws CoreException;
+    private native CoreRequest<TResponse> getNextRequestImpl() throws CoreException;
 }

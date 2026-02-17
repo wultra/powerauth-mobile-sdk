@@ -97,6 +97,13 @@ public:
     /// Contains state of biometric factor on the server.
     BiometricFactor biometricFactor() const noexcept;
 
+    /// Contains information whether the server expects activation confirmation.
+    bool isPendingActivationConfirm() const noexcept;
+    
+    /// Contains information whether the server no longer supports the current algorithm
+    /// used in activation.
+    bool isUnsupportedAlgorithm() const noexcept;
+    
     /// Contains information whether the protocol upgrade is available for activation.
     bool isProtocolUpgradeAvailable() const noexcept;
     
@@ -194,6 +201,7 @@ private:
     cc7::byte _max_fail_count;
     cc7::byte _upgrade_version;
     bool _is_pending_activation_confirm;
+    bool _is_unsupported_algorithm;
     bool _is_pending_upgrade_confirm;
     bool _is_protocol_upgrade_available;
     

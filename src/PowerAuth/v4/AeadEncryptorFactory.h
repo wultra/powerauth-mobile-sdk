@@ -117,7 +117,7 @@ private:
     cc7::json::JsonValue createTemporaryKeyRequest(EncryptorScope scope);
     void completeTemporaryKeyRequest(EncryptorScope scope, const cc7::json::JsonValue & response);
     void cancelPendingTemporaryKeyRequest(EncryptorScope scope);
-    std::string activationId() const noexcept;
+    std::string activationId(EncryptorScope scope) const noexcept;
     
     const ContextWeakPtr _context;
     const ConfigurationPtr _configuration;

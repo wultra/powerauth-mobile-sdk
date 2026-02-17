@@ -292,17 +292,9 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
 }
 
-- (nullable PowerAuthCoreRequest*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
-                                                           error:(NSError*_Nullable*_Nullable)error
-{
-    return [self confirmActivationWithPassword:password
-                               withBiometryKek:nil
-                                         error:error];
-}
-
-- (nullable PowerAuthCoreRequest*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
-                                                 withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
-                                                           error:(NSError*_Nullable*_Nullable)error
+- (nullable PowerAuthCoreTask*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
+                                              withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
+                                                        error:(NSError*_Nullable*_Nullable)error
 {
     if (![self requireWriteAccess:error]) {
         return nil;
@@ -310,9 +302,9 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     try {
         auto biometry = biometryKek ? biometryKek.byteArrayRef : ByteRange();
         auto credentials = InitialCredentials::credentials(password.passObjRef->passwordData(), biometry);
-        auto request = _session->confirmActivation(credentials);
-        if (request) {
-            return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+        auto task = _session->confirmActivation(credentials);
+        if (task) {
+            return [[PowerAuthCoreTask alloc] initWithTask:task];
         }
     } catch (...) {
         if (error) {

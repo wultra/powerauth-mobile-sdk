@@ -224,12 +224,12 @@ public class CoreSession extends NativeObject {
      *
      * @param password User's password.
      * @param biometryKek Optional biometric factor KEK. If null then this session will not have biometry configured.
-     * @return {@link CoreRequest} object containing all required information for activation confirmation.
+     * @return {@link CoreTask} object for activation confirmation.
      * @throws CoreException In case of failure.
      */
     @Nullable
-    public native CoreRequest<Object> confirmActivation(@NonNull Password password,
-                                                        @Nullable SecureData biometryKek) throws CoreException;
+    public native CoreTask<Object> confirmActivation(@NonNull Password password,
+                                                     @Nullable SecureData biometryKek) throws CoreException;
 
     /**
      * Remove activation from the server.

@@ -160,6 +160,7 @@ public class CoreHttpClient {
             // multiple tasks including an actual request execution.
             final CompositeCancelableTask compositeTask = new CompositeCancelableTask(true);
             compositeTask.setCancelCallback(() -> {
+                setCoreRequestFinished(request, null);
                 callbackDispatcher.dispatchCallback(listener::onCancel);
             });
             // Now determine what type of task should be executed before an actual task.
@@ -175,7 +176,7 @@ public class CoreHttpClient {
 
                     @Override
                     public void onCreateKeyFailed(@NonNull Throwable throwable) {
-                        setCoreRequestFinished(request, true);
+                        setCoreRequestFinished(request, throwable);
                         if (compositeTask.setCompleted()) {
                             listener.onNetworkError(throwable);
                         }
@@ -195,7 +196,7 @@ public class CoreHttpClient {
 
                     @Override
                     public void onTimeSynchronizationFailed(@NonNull Throwable t) {
-                        setCoreRequestFinished(request, true);
+                        setCoreRequestFinished(request, t);
                         if (compositeTask.setCompleted()) {
                             listener.onNetworkError(t);
                         }
@@ -215,13 +216,13 @@ public class CoreHttpClient {
     /**
      * Set instance of {@link CoreRequest} as unexpectedly finished.
      * @param request Request to set.
-     * @param isFailed If true, request is set as failed, otherwise canceled.
+     * @param failure Reason of failure. If null, then reason for completion is cancel.
      * @param <TResponse> Type of response.
      */
-    private <TResponse> void setCoreRequestFinished(CoreRequest<TResponse> request, boolean isFailed) {
-        if (request != null && !request.isDone()) {
-            if (isFailed) {
-                request.setFailed();
+    private <TResponse> void setCoreRequestFinished(@NonNull CoreRequest<TResponse> request, Throwable failure) {
+        if (!request.isDone()) {
+            if (failure != null) {
+                request.setFailed(failure);
             } else {
                 request.cancel();
             }

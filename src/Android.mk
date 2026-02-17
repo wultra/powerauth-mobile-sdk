@@ -82,6 +82,7 @@ LOCAL_SRC_FILES += \
 # Multiplatform sources - PowerAuth/task
 LOCAL_SRC_FILES += \
 	PowerAuth/task/ProtocolUpgradeTask.cpp \
+	PowerAuth/task/ConfirmActivationTask.cpp \
 	PowerAuth/task/GetActivationStatusTask.cpp
 
 # Multiplatform sources - PowerAuth/model

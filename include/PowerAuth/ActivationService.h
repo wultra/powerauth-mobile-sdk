@@ -53,7 +53,7 @@ public:
     ///            then the protocol has no such endpoint defined and activation is confirmed immediately.
     /// - Throws:
     ///   - `Exception` in case that activation cannot be confirmed.
-    virtual RequestPtr confirmActivation(InitialCredentialsPtr credentials) = 0;
+    virtual RequestPtr confirmActivation(const InitialCredentialsPtr& credentials) = 0;
     
     /// Calculate human readable fingerprint from device's and server's public keys.
     ///
@@ -78,7 +78,7 @@ public:
     /// - Returns: Request data for remove activation endpoint.
     /// - Throws:
     ///   - `Exception` in case of failure.
-    virtual RequestPtr removeActivation(CredentialsPtr credentials) = 0;
+    virtual RequestPtr removeActivation(const CredentialsPtr& credentials) = 0;
     
     /// Change user's password from old to new one.
     ///
@@ -89,7 +89,7 @@ public:
     ///            then the protocol has no such endpoint defined and password is changed immediately.
     /// - Throws:
     ///   - `Exception` in case of failure.
-    virtual RequestPtr changePassword(PasswordPtr old_password, PasswordPtr new_password) = 0;
+    virtual RequestPtr changePassword(const PasswordPtr& old_password, const PasswordPtr& new_password) = 0;
     
     /// Remove biometric factor.
     ///
@@ -100,7 +100,7 @@ public:
     /// - Throws:
     ///   - `Exception` in case of failure.
 
-    virtual RequestPtr addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek) = 0;
+    virtual RequestPtr addBiometricFactor(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek) = 0;
 
     /// Remove biometric factor.
     ///

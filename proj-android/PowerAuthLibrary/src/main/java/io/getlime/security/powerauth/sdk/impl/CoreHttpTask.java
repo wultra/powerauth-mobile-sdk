@@ -36,6 +36,7 @@ public class CoreHttpTask<TResponse> extends CompositeCancelableTask {
     private final CoreTask<TResponse> task;
     private final CoreHttpClient httpClient;
     private final INetworkResponseListener<TResponse> listener;
+    private final INetworkResponseListener<TResponse> requestListener;
 
     /**
      * Construct task with required parameters.
@@ -50,6 +51,24 @@ public class CoreHttpTask<TResponse> extends CompositeCancelableTask {
         this.task = task;
         this.httpClient = httpClient;
         this.listener = listener;
+        this.requestListener = new INetworkResponseListener<>() {
+            @Override
+            public void onNetworkResponse(@Nullable Object o) {
+                processNext();
+            }
+
+            @Override
+            public void onNetworkError(@NonNull Throwable throwable) {
+                processNext();
+            }
+
+            @Override
+            public void onCancel() {
+                if (setCompleted()) {
+                    listener.onCancel();
+                }
+            }
+        };
     }
 
     /**
@@ -65,7 +84,7 @@ public class CoreHttpTask<TResponse> extends CompositeCancelableTask {
      */
     private void processNext() {
         try {
-            final CoreRequest<Object> request = task.getNextRequest();
+            final CoreRequest<TResponse> request = task.getNextRequest();
             if (request == null) {
                 if (task.isDone()) {
                     setFinished();
@@ -73,24 +92,7 @@ public class CoreHttpTask<TResponse> extends CompositeCancelableTask {
                     setFinished(new PowerAuthErrorException(PowerAuthErrorCodes.OPERATION_CANCELED, "Task did not create next request"));
                 }
             } else {
-                addCancelable(httpClient.post(request, new INetworkResponseListener<>() {
-                    @Override
-                    public void onNetworkResponse(@Nullable Object o) {
-                        processNext();
-                    }
-
-                    @Override
-                    public void onNetworkError(@NonNull Throwable throwable) {
-                        processNext();
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        if (setCompleted()) {
-                            listener.onCancel();
-                        }
-                    }
-                }));
+                addCancelable(httpClient.post(request, requestListener));
             }
         } catch (CoreException exception) {
             setFinished(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, exception));

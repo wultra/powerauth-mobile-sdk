@@ -41,8 +41,9 @@ ActivationStatus::ActivationStatus(ProtocolVersion version,
     _fail_count(data.failCount),
     _max_fail_count(data.maxFailCount),
     _upgrade_version(data.upgradeVersion),
-    _is_protocol_upgrade_available(data.currentVersion < data.upgradeVersion),
     _is_pending_activation_confirm(data.statusFlags & STATUS_FLAG_ACTIVATION_CONFIRM),
+    _is_unsupported_algorithm(data.statusFlags & STATUS_FLAG_UNSUPPORTED_ALGORITHM),
+    _is_protocol_upgrade_available(data.currentVersion < data.upgradeVersion),
     _is_pending_upgrade_confirm(data.statusFlags & STATUS_FLAG_UPGRADE_CONFIRM),
     _custom_object(custom_object)
 {
@@ -69,6 +70,16 @@ ActivationState ActivationStatus::activationState() const noexcept
 ActivationStatus::ServerState ActivationStatus::serverState() const noexcept
 {
     return _server_state;
+}
+
+bool ActivationStatus::isPendingActivationConfirm() const noexcept
+{
+    return _is_pending_activation_confirm;
+}
+
+bool ActivationStatus::isUnsupportedAlgorithm() const noexcept
+{
+    return _is_unsupported_algorithm;
 }
 
 bool ActivationStatus::isProtocolUpgradeAvailable() const noexcept

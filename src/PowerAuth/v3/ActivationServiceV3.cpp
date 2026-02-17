@@ -149,7 +149,7 @@ std::string ActivationServiceV3::calculateActivationFingerprint(Context& context
     return common::CalculateHumanReadableCodeFromHash(hash, v3::ACTIVATION_FINGERPRINT_SIZE);
 }
 
-RequestPtr ActivationServiceV3::confirmActivation(InitialCredentialsPtr credentials)
+RequestPtr ActivationServiceV3::confirmActivation(const InitialCredentialsPtr& credentials)
 {
     LOCK_GUARD();
     auto context = lockContext();
@@ -336,7 +336,7 @@ int ActivationServiceV3::calculateHashCounterDistance(cc7::ByteArray& local_ctr_
 
 // MARK: - Remove
 
-RequestPtr ActivationServiceV3::removeActivation(CredentialsPtr credentials)
+RequestPtr ActivationServiceV3::removeActivation(const CredentialsPtr& credentials)
 {
     LOCK_GUARD();
     auto context = lockContext();
@@ -353,7 +353,7 @@ RequestPtr ActivationServiceV3::removeActivation(CredentialsPtr credentials)
 
 // MARK: - Factors
 
-RequestPtr ActivationServiceV3::changePassword(PasswordPtr old_password, PasswordPtr new_password)
+RequestPtr ActivationServiceV3::changePassword(const PasswordPtr& old_password, const PasswordPtr& new_password)
 {
     LOCK_GUARD();
     auto context = lockContext();
@@ -369,7 +369,7 @@ RequestPtr ActivationServiceV3::changePassword(PasswordPtr old_password, Passwor
     return nullptr;
 }
 
-RequestPtr ActivationServiceV3::addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek)
+RequestPtr ActivationServiceV3::addBiometricFactor(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek)
 {
     LOCK_GUARD();
     cc7::ByteArray new_kek = new_biometry_kek;

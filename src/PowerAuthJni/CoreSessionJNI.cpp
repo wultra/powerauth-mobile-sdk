@@ -320,8 +320,9 @@ CC7_JNI_METHOD_PARAMS(jobject, changePassword, jobject oldPassword, jobject newP
         jni.requireParameter(oldPassword, "oldPassword");
         jni.requireParameter(newPassword, "newPassword");
 
-        auto cpp_old_password = jni.fromJava<Password>(NH_SPECS().password, oldPassword);
-        auto cpp_new_password = jni.fromJava<Password>(NH_SPECS().password, newPassword);
+        auto& specs = NH_SPECS();
+        auto cpp_old_password = jni.fromJava<Password>(specs.password, oldPassword);
+        auto cpp_new_password = jni.fromJava<Password>(specs.password, newPassword);
 
         auto request = THIS_OBJ()->changePassword(cpp_old_password, cpp_new_password);
         return request ? BuildCoreRequest(jni, request) : nullptr;

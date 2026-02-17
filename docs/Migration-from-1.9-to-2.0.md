@@ -11,6 +11,7 @@ PowerAuth Mobile SDK in version `2.0.0` provides the following improvements:
 - PowerAuth Mobile SDK now ensures sensitive keys are not retained in memory.
 - Activation using a recovery code is no longer supported.
 - External encryption key feature is discontinued and will be removed in the next SDK release.
+- Custom possession factor key provided in `PowerAuthAuthentication` is no longer supported.
 
 ### Compatibility with PowerAuth Server
 
@@ -54,6 +55,11 @@ Notable changes on Android:
     - `offlineSignatureComponentLength()` - use `offlineAuthenticationCodeComponentLength()` instead.
     - `disableAutomaticProtocolUpgrade()` - has no effect.
     - `build()` - method now throws `PowerAuthErrorException` if wrong configuration is provided.
+
+  - `PowerAuthAuthentication` class:
+    - `PowerAuthSDK` now validates the purpose of the authentication object. If you use an object created for authentication to persist activation (and vice versa), an exception is reported. 
+    - `getOverriddenPossessionKey()` method is now deprecated with no replacement.
+    - All construction methods that take a custom possession key are now deprecated. If you use such a method and provide a custom possession key, the created object will not pass validation when used in `PowerAuthSDK`. Please contact our support team for more details if this is important to you.
 
   - `IPersistActivationListener` callback interface:
     - `onPersistActivationFailed()` method now receives `Throwable` instead of `PowerAuthErrorException`. You can also expect `FailedApiException` and similar exceptions if communication with the server failed.
@@ -108,7 +114,7 @@ Notable changes on Android:
   - `PowerAuthSDK.persistActivationWithPassword()`
   - `PowerAuthSDK.addBiometryFactor()`
   - `PowerAuthAuthentication.getBiometryFactorRelatedKey()`
-  - `PowerAuthAuthentication.getOverriddenPossessionKey()`
+  - `PowerAuthAuthentication.getOverriddenPossessionKey()` and the method is deprecated with no replacement.
   - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
   - `IFetchEncryptionKeyListener.onFetchEncryptionKeySucceed()`
   - `CryptoUtils.ecdhComputeSharedSecret()`
@@ -179,6 +185,10 @@ Notable changes on iOS:
     - `disableAutomaticProtocolUpgrade` property is deprecated and has no effect in SDK.
   - `PowerAuthTokenStore` protocol:
     - `generateAuthorizationHeader(withName:completion:)` is replaced with `generateAuthenticationHeader(withName:completion:)`
+  - `PowerAuthAuthentication` class:
+    - `PowerAuthSDK` now validates the purpose of the authentication object. If you use an object created for authentication to persist activation (and vice versa), an error is reported. 
+    - `overridenPossessionKey` property is now deprecated with no replacement.
+    - All construction methods that take a custom possession key are now deprecated. If you use such a method and provide a custom possession key, the created object will not pass validation when used in `PowerAuthSDK`. Please contact our support team for more details if this is important to you.
   - `PowerAuthAuthorizationHttpHeader` is deprecated and replaced with `PowerAuthHttpHeader`
 
 - All static methods for accessing a various shared instances are now deprecated:
@@ -203,8 +213,8 @@ Notable changes on iOS:
 
 - The following functions or properties now takes or returns `PowerAuthCoreData` instead of `Data`:
   - `PowerAuthSDK.fetchEncryptionKey()`
-  - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
-  - `PowerAuthAuthentication.overridenPossessionKey` property is now `customPossessionKey`
+  - All static functions in `PowerAuthAuthentication` that takes custom biometry key in parameter.
+  - `PowerAuthAuthentication.overridenPossessionKey` and the method is deprecated with no replacement.
   - `PowerAuthAuthentication.overridenBiometryKey` property is now `customBiometryKey`
   - `PowerAuthCoreCryptoUtils.ecdhComputeSharedSecret()`
 

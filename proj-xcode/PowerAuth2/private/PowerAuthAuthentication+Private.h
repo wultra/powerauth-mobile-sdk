@@ -30,9 +30,9 @@
  */
 @property (nonatomic, readonly) PowerAuthKeychainAuthentication * keychainAuthentication;
 
-/// Function validates whether PowerAuthAuthentication was created for the right object usage.
-/// @param forPersist Specifies whether persist or sign operation is required.
-/// @return YES if object is correct for the specified usage.
-- (BOOL) validateUsage:(BOOL)forPersist;
+/// Function validates whether PowerAuthAuthentication.
+/// @param forPersist Specifies whether persist or authenticate operation is required.
+/// @return Error object if authentication object cannot be used.
+- (NSError*) validateUsage:(BOOL)forPersist;
 
 @end

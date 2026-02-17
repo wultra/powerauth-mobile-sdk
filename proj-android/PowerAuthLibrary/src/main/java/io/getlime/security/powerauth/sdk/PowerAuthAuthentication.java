@@ -20,6 +20,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.core.Password;
 import io.getlime.security.powerauth.core.SecureData;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 import java.util.Arrays;
@@ -50,7 +52,7 @@ public class PowerAuthAuthentication {
      * if object is for authentication code calculation or {@code null} if this is a legacy object with no usage
      * specified.
      */
-    private final Boolean persistActivation;
+    private final boolean persistActivation;
 
     /**
      * Construct object with desired combination of factors. Such authentication object can be used
@@ -70,7 +72,7 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession factor related key.
      */
     PowerAuthAuthentication(
-            Boolean persistActivation,
+            boolean persistActivation,
             @Nullable Password password,
             @Nullable PowerAuthBiometricPrompt biometricPrompt,
             @Nullable SecureData biometryFactorRelatedKey,
@@ -134,7 +136,9 @@ public class PowerAuthAuthentication {
      * @param password Password to set for new activation.
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed to persist activation with password, with using custom key for the possession factor.
+     * @deprecated The custom possession key is no longer supported.
      */
+    @Deprecated(since = "2.0.0")
     public static PowerAuthAuthentication persistWithPassword(@NonNull String password, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(true, new Password(password), null, null, overriddenPossessionKey);
     }
@@ -165,7 +169,9 @@ public class PowerAuthAuthentication {
      * @param biometryFactorRelatedKey Biometry factor related key to set for new activation.
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed to persist activation with password, with using custom key for the possession factor.
+     * @deprecated The custom possession key is no longer supported.
      */
+    @Deprecated(since = "2.0.0")
     public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull String password, @NonNull SecureData biometryFactorRelatedKey, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(true, new Password(password), null, biometryFactorRelatedKey, overriddenPossessionKey);
     }
@@ -186,7 +192,9 @@ public class PowerAuthAuthentication {
      * @param password Password to set for new activation.
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed to persist activation and password, with using custom key for the possession factor.
+     * @deprecated The custom possession key is no longer supported.
      */
+    @Deprecated(since = "2.0.0")
     public static PowerAuthAuthentication persistWithPassword(@NonNull Password password, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(true, password, null, null, overriddenPossessionKey);
     }
@@ -217,7 +225,9 @@ public class PowerAuthAuthentication {
      * @param biometryFactorRelatedKey Biometry factor related key to set for new activation.
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed to persist activation with password, with using custom key for the possession factor.
+     * @deprecated The custom possession key is no longer supported.
      */
+    @Deprecated(since = "2.0.0")
     public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull Password password, @NonNull SecureData biometryFactorRelatedKey, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(true, password, null, biometryFactorRelatedKey, overriddenPossessionKey);
     }
@@ -236,7 +246,9 @@ public class PowerAuthAuthentication {
      * Construct authentication object for authentication code calculation purposes. The authentication code is calculated with possession factor only, with using custom possession key.
      * @param overriddenPossessionKey Custom possession key to use for the authentication code calculation.
      * @return Authentication object constructed to calculate authentication code with possession factor with custom possession key.
+     * @deprecated The custom possession key is no longer supported.
      */
+    @Deprecated(since = "2.0.0")
     public static PowerAuthAuthentication possession(@NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, null, null, null, overriddenPossessionKey);
     }
@@ -255,7 +267,9 @@ public class PowerAuthAuthentication {
      * @param password Password to use for the authentication code calculation.
      * @param overriddenPossessionKey Custom possession key to use for the authentication code calculation.
      * @return Authentication object constructed to calculate authentication code with possession and knowledge factors, with using custom possession key.
+     * @deprecated The custom possession key is no longer supported.
      */
+    @Deprecated(since = "2.0.0")
     public static PowerAuthAuthentication possessionWithPassword(@NonNull String password, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, new Password(password), null, null, overriddenPossessionKey);
     }
@@ -283,7 +297,9 @@ public class PowerAuthAuthentication {
      * @param biometryFactorRelatedKey Biometry key data to use for the authentication code calculation.
      * @param overriddenPossessionKey Custom possession key to use for the authentication code calculation.
      * @return Authentication object constructed to calculate authentication code with possession and biometry factors, with using custom possession key.
+     * @deprecated The custom possession key is no longer supported.
      */
+    @Deprecated(since = "2.0.0")
     public static PowerAuthAuthentication possessionWithBiometry(@NonNull SecureData biometryFactorRelatedKey, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, null, null, biometryFactorRelatedKey, overriddenPossessionKey);
     }
@@ -304,7 +320,9 @@ public class PowerAuthAuthentication {
      * @param password Password to use for the authentication code calculation.
      * @param overriddenPossessionKey Custom possession key to use for the authentication code calculation.
      * @return Authentication object constructed to calculate authentication code with possession and knowledge factors, with using custom possession key.
+     * @deprecated The custom possession key is no longer supported.
      */
+    @Deprecated(since = "2.0.0")
     public static PowerAuthAuthentication possessionWithPassword(@NonNull Password password, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, password, null, null, overriddenPossessionKey);
     }
@@ -347,6 +365,7 @@ public class PowerAuthAuthentication {
     /**
      * @return If non-null, then custom key is specified for the possession factor.
      */
+    @Deprecated(since = "2.0.0")
     @Nullable
     public SecureData getOverriddenPossessionKey() {
         return overriddenPossessionKey;
@@ -378,55 +397,18 @@ public class PowerAuthAuthentication {
     }
 
     /**
-     * Validate usage of PowerAuthAuthentication object. If something doesn't match, then function
-     * print warning to the debug console.
+     * Validate usage of PowerAuthAuthentication object.
      * @param forPersist If true, then activation persist is expected.
-     * @return false if object is created for the different purpose or is legacy constructed.
+     * @throws PowerAuthErrorException if authentication object is not valid.
      */
-    boolean validateAuthenticationUsage(boolean forPersist) {
-        boolean result = validateAuthenticationUsageImpl(forPersist);
-        if (!result && strictAuthenticationUsageValidation) {
-            throw new IllegalArgumentException("Invalid PowerAuthAuthentication object provided");
+    void validateAuthenticationUsage(boolean forPersist) throws PowerAuthErrorException {
+        if (persistActivation != forPersist) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER,
+                    forPersist ? "Using PowerAuthAuthentication object for a different purpose. The object to persist activation is expected."
+                            : "Using PowerAuthAuthentication object for a different purpose. The object for authentication code calculation is expected.");
+        } else if (overriddenPossessionKey != null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER,
+                    "Using PowerAuthAuthentication with a custom possession key is no longer supported.");
         }
-        return result;
-    }
-
-    /**
-     * If set to true, then validateAuthenticationUsage() throws IllegalArgumentException().
-     */
-    private static boolean strictAuthenticationUsageValidation = false;
-
-    /**
-     * Enable or disable strict mode for {@link #validateAuthenticationUsage(boolean)} method.
-     * If strict mode is enabled, then validation throws an error in case that validation fails.
-     * This is useful only for PowerAuth SDK unit and integration testing.
-     *
-     * @param strict Enable or disable strict mode.
-     */
-    static void setStrictValidateAuthenticationUsage(boolean strict) {
-        strictAuthenticationUsageValidation = strict;
-    }
-
-    /**
-     * Validate usage of PowerAuthAuthentication object. If something doesn't match, then function
-     * print warning to the debug console.
-     * @param forPersist If true, then activation persist is expected.
-     * @return false if object is created for the different purpose or is legacy constructed.
-     */
-    private boolean validateAuthenticationUsageImpl(boolean forPersist) {
-        if (persistActivation == null) {
-            PowerAuthLog.w("Using PowerAuthAuthentication object created with legacy constructor.");
-            return false;
-        } else {
-            if (persistActivation != forPersist) {
-                if (forPersist) {
-                    PowerAuthLog.w("Using PowerAuthAuthentication object for a different purpose. The object to persist activation is expected.");
-                } else {
-                    PowerAuthLog.w("Using PowerAuthAuthentication object for a different purpose. The object for authentication code calculation is expected.");
-                }
-                return false;
-            }
-        }
-        return true;
     }
 }

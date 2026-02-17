@@ -72,6 +72,7 @@ public class PowerAuthAuthorizationHttpHeader {
      * @deprecated The new methods for calculating authentication headers throws an exception in case of failure, and
      *             therefore the returned header is always valid.
      */
+    @Deprecated
     public boolean isValid() {
         return powerAuthErrorCode == PowerAuthErrorCodes.SUCCEED &&
                 key != null &&

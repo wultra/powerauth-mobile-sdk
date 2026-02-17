@@ -645,7 +645,7 @@ static NSString * PA_Ver_Current = @"4.0";
         PowerAuthCoreData* biometryKek = [_sdk.sessionProvider readTaskWithSession:^PowerAuthCoreData* _Nullable(PowerAuthCoreSession * _Nonnull session, NSError * _Nonnull __autoreleasing * _Nullable error) {
             return [session generateFactorKek:error];
         } error:nil];
-        return [PowerAuthAuthentication persistWithPasswordAndBiometry:newPassword customBiometryKey:biometryKek customPossessionKey:nil];
+        return [PowerAuthAuthentication persistWithPasswordAndBiometry:newPassword customBiometryKey:biometryKek];
     }
     return [PowerAuthAuthentication persistWithPassword:newPassword];
 }
@@ -934,7 +934,7 @@ static NSString * PA_Ver_Current = @"4.0";
 - (PowerAuthAuthentication*) copyBiometryForSigning
 {
     if (self.customBiometryKey) {
-        return [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:self.customBiometryKey customPossessionKey:nil];
+        return [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:self.customBiometryKey];
     }
     if (self.useBiometry) {
         return [PowerAuthAuthentication possessionWithBiometryPrompt:@"Please authenticate with biometry"];

@@ -2031,11 +2031,6 @@ public class PowerAuthSDK {
     public @Nullable
     ICancelable finishPasswordChange(@NonNull Context context, @NonNull Password newPassword, @NonNull final PowerAuthPasswordChangeData changeData, @NonNull final IFinishPasswordChangeListener listener) {
         try {
-            if (changeData.getOldPassword() == null) {
-                listener.onFinishPasswordChangeFailed(new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "PowerAuthPasswordChangeData is invalidated"));
-                return null;
-            }
-
             final CoreRequest<Object> request = mSession.changePassword(changeData.getOldPassword(), newPassword);
             if (request == null) {
                 // V3 change password is executed immediately. It's OK to exit immediately,

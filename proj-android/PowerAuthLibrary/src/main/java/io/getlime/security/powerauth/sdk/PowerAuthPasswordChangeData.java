@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.sdk;
 
+import androidx.annotation.NonNull;
+
 import io.getlime.security.powerauth.core.Password;
 
 /**
@@ -23,9 +25,10 @@ import io.getlime.security.powerauth.core.Password;
  */
 public class PowerAuthPasswordChangeData {
 
-    private Password oldPassword;
+    @NonNull
+    private final Password oldPassword;
 
-    PowerAuthPasswordChangeData(final Password oldPassword) {
+    PowerAuthPasswordChangeData(@NonNull final Password oldPassword) {
         this.oldPassword = oldPassword;
     }
 
@@ -33,6 +36,7 @@ public class PowerAuthPasswordChangeData {
      * Get the old password.
      * @return The {@link Password} object holding the old password.
      */
+    @NonNull
     public Password getOldPassword() {
         return oldPassword;
     }
@@ -42,7 +46,6 @@ public class PowerAuthPasswordChangeData {
      */
     public void secureClear() {
         oldPassword.clear();
-        oldPassword = null;
     }
 
 }

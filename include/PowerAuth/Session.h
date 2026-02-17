@@ -404,6 +404,30 @@ public:
                            const std::string& data_type,
                            SignatureKeyId key_to_use,
                            bool use_compact_form) const;
+    
+public:
+    // --------------------------------------------------------------------------------------------
+    // External Encryption Key (EEK)
+    //
+    // This feature has been discontinued in SDK 2.0, so the following functions provides just a
+    // minimum functionality required for the feature removal.
+    // --------------------------------------------------------------------------------------------
+    
+    /// Get information whether EEK is still present in V3 persistent data.
+    /// - Returns: `true` if V3 persistent data still contains factor keys protected with EEK.
+    bool hasExternalEncryptionKey() const noexcept;
+    
+    /// Remove EEK if factor keys are still protected with EEK. The method throws an exception
+    /// if activation is not present, or if factor keys are not protected with EEK.
+    ///
+    /// - Parameter eek: EEK previously used for the factor keys protection.
+    void removeExternalEncryptionKey(const cc7::ByteRange& eek);
+    
+    /// Add external encryption key for testing purposes. The method should not be used in the
+    /// release build. The legacy activation must be present and the size of EEK must match the size
+    /// of factor keys used in V3.3 protocol version (e.g. 16 bytes).
+    /// - Parameter eek: EEK to apply.
+    void addExternalEncryptionKeyForTest(const cc7::ByteRange& eek);
 
 public:
     // --------------------------------------------------------------------------------------------

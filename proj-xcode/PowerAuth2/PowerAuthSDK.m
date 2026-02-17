@@ -1890,92 +1890,31 @@ static PowerAuthSDK * s_inst;
 
 - (BOOL) hasExternalEncryptionKey
 {
-//    return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session) {
-//        return [session hasExternalEncryptionKey];
-//    }];
-    // TODO: eek
-    return NO;
+    return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+        return [session hasExternalEncryptionKey];
+    } error:nil];
 }
 
-- (BOOL) setExternalEncryptionKey:(PowerAuthCoreData *)externalEncryptionKey error:(NSError **)error
+- (BOOL) removeExternalEncryptionKey:(PowerAuthCoreData *)externalEncryptionKey
+                               error:(NSError * _Nullable __autoreleasing *)error
 {
-//    NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
-//        PowerAuthCoreErrorCode ec = [session setExternalEncryptionKey:externalEncryptionKey];
-//        switch (ec) {
-//            case PowerAuthCoreErrorCode_Ok:
-//                _configuration.externalEncryptionKey = externalEncryptionKey;
-//                return nil;
-//            case PowerAuthCoreErrorCode_WrongParam:
-//                return PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Invalid key size");
-//            case PowerAuthCoreErrorCode_WrongState:
-//                return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"Activation is not using EEK");
-//            default:
-//                return PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to set EEK");
-//        }
-//    }];
-//    if (failure && error) {
-//        *error = failure;
-//    }
-//    return !failure;
-    // TODO: eek
-    return NO;
+    return [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+        return [session removeExternalEncryptionKey:externalEncryptionKey error:error];
+    } error:error];
 }
 
-- (BOOL) addExternalEncryptionKey:(PowerAuthCoreData *)externalEncryptionKey error:(NSError **)error
+- (BOOL) addExternalEncryptionKeyForTest:(PowerAuthCoreData *)externalEncryptionKey
+                                   error:(NSError * _Nullable __autoreleasing *)error
 {
-//    NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
-//        PowerAuthCoreErrorCode ec = [session addExternalEncryptionKey:externalEncryptionKey];
-//        switch (ec) {
-//            case PowerAuthCoreErrorCode_Ok:
-//                _configuration.externalEncryptionKey = externalEncryptionKey;
-//                return nil;
-//            case PowerAuthCoreErrorCode_WrongParam:
-//                return PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Invalid key size");
-//            case PowerAuthCoreErrorCode_WrongState:
-//                if (session.hasExternalEncryptionKey) {
-//                    return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"EEK is already set");
-//                } else {
-//                    return PA2MakeError(session.hasValidActivation ? PowerAuthErrorCode_InvalidActivationState : PowerAuthErrorCode_MissingActivation, nil);
-//                }
-//            default:
-//                return PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to add EEK");
-//        }
-//    }];
-//    if (failure && error) {
-//        *error = failure;
-//    }
-//    return !failure;
-    // TODO: eek
+#if DEBUG
+    return [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+        return [session addExternalEncryptionKeyForTest:externalEncryptionKey error:error];
+    } error:error];
+#else
+    PA2SetError(error, PowerAuthErrorCode_Other, @"Function is not available in release SDK build");
     return NO;
+#endif
 }
-
-- (BOOL) removeExternalEncryptionKey:(NSError **)error
-{
-//    NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
-//        PowerAuthCoreErrorCode ec = [session removeExternalEncryptionKey];
-//        switch (ec) {
-//            case PowerAuthCoreErrorCode_Ok:
-//                _configuration.externalEncryptionKey = nil;
-//                return nil;
-//            case PowerAuthCoreErrorCode_WrongState:
-//                if (!session.hasExternalEncryptionKey) {
-//                    return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"EEK is not set");
-//                } else {
-//                    return PA2MakeError(session.hasValidActivation ? PowerAuthErrorCode_InvalidActivationState : PowerAuthErrorCode_MissingActivation, nil);
-//                }
-//            default:
-//                // [session removeExternalEncryptionKey] never return WrongParam, so the default case is OK here.
-//                return PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to remove EEK");
-//        }
-//    }];
-//    if (failure && error) {
-//        *error = failure;
-//    }
-//    return !failure;
-    // TODO: eek
-    return NO;
-}
-
 @end
 
 #pragma mark - User Info

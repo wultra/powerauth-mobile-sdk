@@ -107,10 +107,6 @@ Notable changes on Android:
 - The following functions now takes or returns `SecureData` instead of `byte[]`:
   - `PowerAuthSDK.persistActivationWithPassword()`
   - `PowerAuthSDK.addBiometryFactor()`
-  - `PowerAuthSDK.setExternalEncryptionKey()`
-  - `PowerAuthSDK.addExternalEncryptionKey()`
-  - `PowerAuthConfiguration.getExternalEncryptionKey()`
-  - `PowerAuthConfiguration.Builder.externalEncryptionKey()`
   - `PowerAuthAuthentication.getBiometryFactorRelatedKey()`
   - `PowerAuthAuthentication.getOverriddenPossessionKey()`
   - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
@@ -118,6 +114,13 @@ Notable changes on Android:
   - `CryptoUtils.ecdhComputeSharedSecret()`
   - `BiometricKeyData.getDerivedData()`
   - `BiometricKeyData.getDataToSave()`
+
+- Due to discontinued support for "External Encryption Key" feature, the following methods has been changed:
+  - `PowerAuthSDK.setExternalEncryptionKey()` method has been removed.
+  - `PowerAuthSDK.addExternalEncryptionKey()` method has been removed.
+  - `PowerAuthSDK.removeExternalEncryptionKey()` method now takes EEK as parameter and allows you to remove the key from the activation.
+  - `PowerAuthConfiguration.Builder.externalEncryptionKey()` property is deprecated and no longer used in SDK.
+  - Check [External Encryption Key](PowerAuth-SDK-for-Android.md#external-encryption-key) documentation for the migration.
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:
@@ -199,10 +202,7 @@ Notable changes on iOS:
   - `PowerAuthCoreEciesMetaData` is removed. You can get the encryption header in more straightforward way. Check the updated E2EE documentation for more details.
 
 - The following functions or properties now takes or returns `PowerAuthCoreData` instead of `Data`:
-  - `PowerAuthSDK.setExternalEncryptionKey()`
-  - `PowerAuthSDK.addExternalEncryptionKey()`
   - `PowerAuthSDK.fetchEncryptionKey()`
-  - `PowerAuthConfiguration.externalEncryptionKey`
   - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
   - `PowerAuthAuthentication.overridenPossessionKey` property is now `customPossessionKey`
   - `PowerAuthAuthentication.overridenBiometryKey` property is now `customBiometryKey`
@@ -211,6 +211,13 @@ Notable changes on iOS:
 - The following methods in `PowerAuthSDK` class now returns cancelable object allowing you to cancel the pending biometric authentication:
   - `authenticateUsingBiometry(withPrompt:callback:)`
   - `authenticateUsingBiometry(withContext:callback:)`
+
+- Due to discontinued support for "External Encryption Key" feature, the following methods has been changed:
+  - `PowerAuthSDK.setExternalEncryptionKey()` method has been removed.
+  - `PowerAuthSDK.addExternalEncryptionKey()` method has been removed.
+  - `PowerAuthSDK.removeExternalEncryptionKey()` method now takes EEK as parameter and allows you to remove the key from the activation.
+  - `PowerAuthConfiguration.externalEncryptionKey` property is deprecated and no longer used in SDK.
+  - Check [External Encryption Key](PowerAuth-SDK-for-iOS.md#external-encryption-key) documentation for the migration.
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:

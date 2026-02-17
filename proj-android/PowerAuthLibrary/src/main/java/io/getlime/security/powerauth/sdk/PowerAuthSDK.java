@@ -2810,41 +2810,42 @@ public class PowerAuthSDK {
      * @return true if EEK (external encryption key) is set.
      */
     public boolean hasExternalEncryptionKey() {
-        // TODO: EEK
-        return false;
+        return mSession.hasExternalEncryptionKey();
     }
 
     /**
-     * Sets a known external encryption key to the internal configuration. This method
-     * is useful, when the activation is using EEK, but the key was not known during the PowerAuthSDK
-     * creation. You can restore the activation without the EEK and use it for a very limited set of
-     * operations, like the getting activation status. The data signing will also work correctly,
-     * but only for a possession factor, which is by design not protected with EEK.
-     *
-     * @param externalEncryptionKey EEK to be set to the internal configuration.
+     * Remove EEK if factor keys are still protected with EEK. The method throws an exception
+     * if activation is not present, or if factor keys are not protected with EEK.
+     * @param eek EEK previously used for the factor keys protection.
      * @throws PowerAuthErrorException In case of failure.
      */
-    public void setExternalEncryptionKey(@NonNull SecureData externalEncryptionKey) throws PowerAuthErrorException {
-        // TODO: EEK
+    public void removeExternalEncryptionKey(@NonNull SecureData eek) throws PowerAuthErrorException {
+        try {
+            mSession.removeExternalEncryptionKey(eek);
+            saveSerializedState();
+        } catch (CoreException exception) {
+            throw PowerAuthErrorException.wrapException(exception);
+        }
     }
 
     /**
-     * Add a new external encryption key permanently to the activated PowerAuthSDK and to the internal configuration.
-     * The method is useful for scenarios, when you need to add the EEK additionally, after the activation.
-     * @param externalEncryptionKey External Encryption key to add.
-     * @throws PowerAuthErrorException In case of failure.
+     * Add external encryption key for testing purposes. The method should not be used in the
+     * release build. The legacy activation must be present and the size of EEK must match the size
+     * of factor keys used in V3.3 protocol version (e.g. 16 bytes).
+     * @param eek EEK to apply.
+     * @throws PowerAuthErrorException In case of failure,
      */
-    public void addExternalEncryptionKey(@NonNull SecureData externalEncryptionKey) throws PowerAuthErrorException {
-        // TODO: EEK
-    }
-
-    /**
-     * Remove existing external encryption key from the activated PowerAuthSDK and from the configuration object. The valid
-     * activation must be present and EEK must be set at the time of call (e.g. {@link #hasExternalEncryptionKey()} returns true).
-     * @throws PowerAuthErrorException In case of failure.
-     */
-    public void removeExternalEncryptionKey() throws PowerAuthErrorException {
-        // TODO: EEK
+    public void addExternalEncryptionKeyForTest(@NonNull SecureData eek) throws PowerAuthErrorException {
+        if (BuildConfig.DEBUG) {
+            try {
+                mSession.addExternalEncryptionKeyForTest(eek);
+                saveSerializedState();
+            } catch (CoreException exception) {
+                throw PowerAuthErrorException.wrapException(exception);
+            }
+        } else {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, "Function is not available in release SDK build");
+        }
     }
 
     // Server status

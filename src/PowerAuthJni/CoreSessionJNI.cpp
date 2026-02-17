@@ -530,6 +530,37 @@ CC7_JNI_METHOD_PARAMS(jobject, jwsSignData, jbyteArray data, jstring dataType, j
     NH_CATCH(nullptr)
 }
 
+// EEK
+
+CC7_JNI_METHOD(jboolean, hasExternalEncryptionKey)
+{
+    NH_TRY
+    {
+        return THIS_OBJ()->hasExternalEncryptionKey();
+    }
+    NH_CATCH_RT_ONLY(false)
+}
+
+CC7_JNI_METHOD_PARAMS(void, removeExternalEncryptionKey, jobject eek)
+{
+    NH_TRY
+    {
+        jni.requireParameter(eek, "eek");
+        THIS_OBJ()->removeExternalEncryptionKey(CopyFromSecureData(jni, eek));
+    }
+    NH_CATCH()
+}
+
+CC7_JNI_METHOD_PARAMS(void, addExternalEncryptionKeyForTest, jobject eek)
+{
+    NH_TRY
+    {
+        jni.requireParameter(eek, "eek");
+        THIS_OBJ()->addExternalEncryptionKeyForTest(CopyFromSecureData(jni, eek));
+    }
+    NH_CATCH()
+}
+
 // Services
 
 CC7_JNI_METHOD(jobject, getEncryptorFactory)

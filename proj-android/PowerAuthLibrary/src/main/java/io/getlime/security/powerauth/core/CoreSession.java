@@ -414,6 +414,31 @@ public class CoreSession extends NativeObject {
                                                   @NonNull CoreCredentials credentials,
                                                   @CoreSignatureKeyId int keyId) throws CoreException;
 
+    // EEK
+
+    /**
+     * Get information whether EEK is still present in V3 persistent data.
+     * @return {@code true} if V3 persistent data still contains factor keys protected with EEK.
+     */
+    public native boolean hasExternalEncryptionKey();
+
+    /**
+     * Remove EEK if factor keys are still protected with EEK. The method throws an exception
+     * if activation is not present, or if factor keys are not protected with EEK.
+     * @param eek EEK previously used for the factor keys protection.
+     * @throws CoreException In case of failure.
+     */
+    public native void removeExternalEncryptionKey(@NonNull SecureData eek) throws CoreException;
+
+    /**
+     * Add external encryption key for testing purposes. The method should not be used in the
+     * release build. The legacy activation must be present and the size of EEK must match the size
+     * of factor keys used in V3.3 protocol version (e.g. 16 bytes).
+     * @param eek EEK to apply.
+     * @throws CoreException In case of failure.
+     */
+    public native void addExternalEncryptionKeyForTest(@NonNull SecureData eek) throws CoreException;
+
     // Services
 
     /**

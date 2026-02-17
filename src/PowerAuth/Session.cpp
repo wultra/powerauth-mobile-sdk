@@ -18,6 +18,8 @@
 #include "task/ConfirmActivationTask.h"
 #include "task/GetActivationStatusTask.h"
 #include "task/ProtocolUpgradeTask.h"
+// EEK
+#include "v3/LegacyUKE.h"
 
 namespace powerAuth {
 
@@ -419,6 +421,80 @@ RequestPtr Session::jwsSignData(const CredentialsPtr& credentials,
 {
     LOCK_GUARD();
     return _context->signatureService().jwsSignData(credentials, data_to_sign, data_type, key_to_use, use_compact_form);
+}
+
+// MARK: - EEK
+
+bool Session::hasExternalEncryptionKey() const noexcept
+{
+    LOCK_GUARD();
+    auto& sd = _context->sessionData();
+    if (sd.hasPersistentData(Version_V3)) {
+        return sd.persistentData().v3().flags.usesExternalKey == 1;
+    }
+    return false;
+}
+
+/// Enables or disables EEK in V3 persistent data.
+/// - Parameters:
+///   - pd: Persistent data structure.
+///   - eek: External encryption key.
+///   - enable: Set 1 to enable, or 0 to disable EEK.
+static void EEK_SetEnabled(PersistentData::V3& pd, const cc7::ByteRange& eek, cc7::byte enable)
+{
+    auto& uke = algorithms().v3.uke();
+    auto has_biometry = !pd.cBiometryKey.empty();
+    cc7::ByteArray knowledge;
+    cc7::ByteArray biometry;
+    if (enable) {
+        knowledge = uke.wrap(eek, pd.cKnowledgeKey);
+        if (has_biometry) {
+            biometry = uke.wrap(eek, pd.cBiometryKey);
+        }
+    } else {
+        knowledge = uke.unwrap(eek, pd.cKnowledgeKey);
+        if (has_biometry) {
+            biometry = uke.unwrap(eek, pd.cBiometryKey);
+        }
+    }
+    // Update PD
+    pd.cKnowledgeKey = knowledge;
+    pd.cBiometryKey = biometry;
+    pd.flags.usesExternalKey = enable;
+}
+
+void Session::removeExternalEncryptionKey(const cc7::ByteRange &eek)
+{
+    LOCK_GUARD();
+    auto& sd = _context->sessionData();
+    if (!sd.hasPersistentData()) {
+        throw Exception(EC_MissingActivation);
+    }
+    if (!sd.hasPersistentData(Version_V3)) {
+        throw Exception(EC_WrongActivationState, "Removing EEK requires legacy activation");
+    }
+    auto& pd = sd.persistentData().v3();
+    if (!pd.flags.usesExternalKey) {
+        throw Exception(EC_WrongActivationState, "EEK is not present in activation data");
+    }
+    EEK_SetEnabled(pd, eek, 0);
+}
+
+void Session::addExternalEncryptionKeyForTest(const cc7::ByteRange &eek)
+{
+    LOCK_GUARD();
+    auto& sd = _context->sessionData();
+    if (!sd.hasPersistentData()) {
+        throw Exception(EC_MissingActivation);
+    }
+    if (!sd.hasPersistentData(Version_V3)) {
+        throw Exception(EC_WrongActivationState, "Adding EEK requires legacy activation");
+    }
+    auto& pd = sd.persistentData().v3();
+    if (pd.flags.usesExternalKey) {
+        throw Exception(EC_WrongActivationState, "EEK is already present in activation data");
+    }
+    EEK_SetEnabled(pd, eek, 1);
 }
 
 // MARK: - Utilities

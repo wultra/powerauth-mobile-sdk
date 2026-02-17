@@ -129,8 +129,6 @@ The `PowerAuthConfiguration.Builder` class provides the following additional met
 
 - `algorithm()` - Alters [algorithm](#algorithms-for-communication) used for the communication with the PowerAuth Server.
 - `offlineAuthenticationCodeComponentLength()` - Alters the default component length for the [offline authentication code](#symmetric-offline-multi-factor-authentication-code). The values between 4 and 8 are allowed. The default value is 8.
-- `externalEncryptionKey()` - See [External Encryption Key](#external-encryption-key) chapter for more details.
-- `disableAutomaticProtocolUpgrade()` - Disables the automatic protocol upgrade. This option should be used only for debugging purposes.
 
 ### Biometric configuration
 
@@ -1262,7 +1260,7 @@ You can use our [Passphrase meter](https://github.com/wultra/passphrase-meter) l
 
 ## Working with sensitive data
 
-The PowerAuth mobile SDK is using `SecureData` class for manage the cryptographically sensitive data, such as encryption keys. You can encounter this class in several public API functions, such as functions for managing an [external encryption key](#external-encryption-key). This chapter explains how to use the `SecureData` object properly.
+The PowerAuth mobile SDK is using `SecureData` class for manage the cryptographically sensitive data, such as encryption keys. You can encounter this class in several public API functions, such as functions for [Secure Vault](#secure-vault). This chapter explains how to use the `SecureData` object properly.
 
 ### Create instance of `SecureData`
 
@@ -1914,25 +1912,20 @@ Note that by removing tokens locally, you will lose control of the tokens stored
 
 ## External Encryption Key
 
-The `PowerAuthSDK` allows you to specify an external encryption key (called EEK in our terminology) that can additionally protect the knowledge and the biometry factor keys. This feature is typically used to create a chain of activations where one instance of `PowerAuthSDK` is primary and unlocks access to all secondary activations.
+<!-- begin box warning -->
+Support for the External Encryption Key (EEK) was discontinued in PowerAuth Mobile SDK version 2.0.
+<!-- end -->
 
-The external encryption key has to be set before the activation is created, or can be added later. The internal state of `PowerAuthSDK` contains information that the factor keys are protected with EEK, so EEK must be known at the time of PowerAuth authentication code is calculated. You have three options on how to configure the key:
+In earlier SDK versions, `PowerAuthSDK` allowed you to specify an external encryption key (EEK) to provide an additional layer of protection for the knowledge and biometry factor keys. This mechanism was primarily used to create a chain of activations, where one primary `PowerAuthSDK` instance unlocked access to one or more secondary activations.
 
-1. Assign EEK into `PowerAuthConfiguration.Builder` at the time of `PowerAuthSDK` object creation.
-   - This is the most convenient way of using EEK, but the key must be known at the time of the `PowerAuthSDK` instantiation.
-   - Once the `PowerAuthSDK` instance creates a new activation, then the factor keys will be automatically protected with EEK.
-   
-2. Use `PowerAuthSDK.setExternalEncryptionKey()` to set EEK after the `PowerAuthSDK` instance is created.
-   - This is useful in case EEK is not known during the `PowerAuthSDK` instance creation.
-   - You can set the key in any `PowerAuthSDK` state, but be aware that the method will fail in case the instance has a valid activation that doesn't use EEK.
-   - It's safe to set the same EEK multiple times.
+If the activation in your application is still using EEK, please use the following code at your application’s startup to remove it:
 
-3. Use `PowerAuthSDK.addExternalEncryptionKey()` to add EEK and protect the factor keys in case `PowerAuthSDK` has already a valid activation.
-   - This method is useful in case `PowerAuthSDK` already has a valid activation, but it doesn't use EEK yet.
-   - The method automatically adds EEK into the internal configuration structure, but be aware, that all future `PowerAuthSDK` usages (e.g. after app restart) require setting EEK by configuration, or by the `setExternalEncryptionKey()` method.
-
-You can remove EEK from an existing activation if the key is no longer required. To do this, use the `PowerAuthSDK.removeExternalEncryptionKey()` method. Be aware, that EEK must be set by configuration, or by the `setExternalEncryptionKey()` method before you call the remove method. You can also use the `PowerAuthSDK.hasExternalEncryptionKey()` function to test whether the key is already set and in use.
-
+```kotlin
+if (powerAuthSDK.hasExternalEncryptionKey()) {
+    val eek = SecureData(eekBytes)
+    powerAuthSDK.removeExternalEncryptionKey(eek)
+}
+```
 
 ## Synchronized Time
 

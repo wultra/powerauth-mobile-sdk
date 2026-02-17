@@ -16,7 +16,6 @@
 
 package io.getlime.security.powerauth.integration.tests;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -25,15 +24,13 @@ import androidx.annotation.NonNull;
 import org.junit.Test;
 
 import io.getlime.security.powerauth.core.Password;
-import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
-import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.networking.response.IBeginPasswordChangeListener;
 import io.getlime.security.powerauth.networking.response.IChangePasswordListener;
 import io.getlime.security.powerauth.networking.response.IFinishPasswordChangeListener;
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
 import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
-import io.getlime.security.powerauth.sdk.impl.PowerAuthPasswordChangeData;
+import io.getlime.security.powerauth.sdk.PowerAuthPasswordChangeData;
 
 /**
  * Test of password change functionality.
@@ -161,40 +158,6 @@ public class PasswordChangeTest extends BaseTest {
                 })
         );
         assertFalse(succeeded);
-    }
-
-    /**
-     * Test of finish password change in case the password change data are invalidated.
-     */
-    @Test
-    public void testFinishPasswordChange_missingOldPassword() throws Exception {
-        final Password oldPassword = activationHelper.getValidPassword();
-        final String newPassword = "nbusr321";
-        final PowerAuthPasswordChangeData passwordChangeData = new PowerAuthPasswordChangeData(null);
-
-        assertTrue(activationHelper.validateUserPassword(oldPassword));
-        assertFalse(activationHelper.validateUserPassword(newPassword));
-
-        boolean passwordChanged = AsyncHelper.await(resultCatcher ->
-                powerAuthSDK.finishPasswordChange(testHelper.getContext(), newPassword, passwordChangeData, new IFinishPasswordChangeListener() {
-                    @Override
-                    public void onFinishPasswordChangeSucceed() {
-                        resultCatcher.completeWithResult(true);
-                    }
-
-                    @Override
-                    public void onFinishPasswordChangeFailed(@NonNull Throwable throwable) {
-                        assertTrue(throwable instanceof PowerAuthErrorException);
-                        assertEquals("PowerAuthPasswordChangeData is invalidated", throwable.getMessage());
-                        assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, ((PowerAuthErrorException) throwable).getPowerAuthErrorCode());
-                        resultCatcher.completeWithResult(false);
-                    }
-                })
-        );
-        assertFalse(passwordChanged);
-
-        assertTrue(activationHelper.validateUserPassword(oldPassword));
-        assertFalse(activationHelper.validateUserPassword(newPassword));
     }
 
     /**

@@ -39,7 +39,6 @@ import io.getlime.security.powerauth.integration.support.model.ServerConstants;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
 import io.getlime.security.powerauth.networking.response.*;
 import io.getlime.security.powerauth.sdk.*;
-import io.getlime.security.powerauth.sdk.impl.PowerAuthPasswordChangeData;
 
 import static org.junit.Assert.*;
 

@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.networking.response;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 
-import io.getlime.security.powerauth.sdk.impl.PowerAuthPasswordChangeData;
+import io.getlime.security.powerauth.sdk.PowerAuthPasswordChangeData;
 
 /**
  * Listener for the first step of password change.

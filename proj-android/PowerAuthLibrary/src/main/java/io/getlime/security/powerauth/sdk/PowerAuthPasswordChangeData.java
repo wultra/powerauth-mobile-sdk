@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.sdk.impl;
+package io.getlime.security.powerauth.sdk;
 
 import io.getlime.security.powerauth.core.Password;
 
@@ -25,7 +25,7 @@ public class PowerAuthPasswordChangeData {
 
     private Password oldPassword;
 
-    public PowerAuthPasswordChangeData(final Password oldPassword) {
+    PowerAuthPasswordChangeData(final Password oldPassword) {
         this.oldPassword = oldPassword;
     }
 

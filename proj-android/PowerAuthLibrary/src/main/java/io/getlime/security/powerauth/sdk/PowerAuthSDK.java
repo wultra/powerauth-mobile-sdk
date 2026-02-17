@@ -2330,6 +2330,16 @@ public class PowerAuthSDK {
         return addBiometryFactorImpl(context, password, encryptedBiometryKey, listener);
     }
 
+    /**
+     * Private method that adds a biometric factor key when the biometric key
+     * is managed by the caller or obtained in advance.
+     *
+     * @param context  Context.
+     * @param password Password used for authentication during vault unlocking call.
+     * @param encryptedBiometryKey Encrypted biometry key used for storing biometry related factor key.
+     * @param listener The callback method with the operation result.
+     * @return {@link ICancelable} object associated with the running HTTP request.
+     */
     private @Nullable
     ICancelable addBiometryFactorImpl(
             final @NonNull Context context,

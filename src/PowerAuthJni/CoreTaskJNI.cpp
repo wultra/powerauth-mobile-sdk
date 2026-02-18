@@ -197,4 +197,13 @@ CC7_JNI_METHOD(jobject, getNextRequestImpl)
     NH_CATCH(nullptr)
 }
 
+CC7_JNI_METHOD(jboolean, isSessionStateSerializationNeeded)
+{
+    NH_TRY
+    {
+        return THIS_OBJ()->isSessionStateSerializationRecommended();
+    }
+    NH_CATCH(true)
+}
+
 CC7_JNI_MODULE_CLASS_END()

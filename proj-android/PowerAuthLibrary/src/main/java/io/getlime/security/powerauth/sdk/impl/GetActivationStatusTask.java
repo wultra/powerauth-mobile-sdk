@@ -93,6 +93,8 @@ public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStat
                     final CoreActivationStatus coreStatus = Objects.requireNonNull(status);
                     if (coreStatus.isSessionSerializationNeeded()) {
                         saveStateCallback.run();
+                    } else if (coreTask.isSessionStateSerializationNeeded()) {
+                        completionListener.onSessionStateChange();
                     }
                     complete(new PowerAuthActivationStatus(coreStatus));
                 }

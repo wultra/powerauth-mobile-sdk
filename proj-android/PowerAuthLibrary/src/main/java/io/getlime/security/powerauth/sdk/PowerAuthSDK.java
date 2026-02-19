@@ -1212,18 +1212,10 @@ public class PowerAuthSDK {
                 task = mGetActivationStatusTask.createChildTask(completion);
             }
             if (task == null) {
-                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, mLock, mCallbackDispatcher, this::saveSerializedState, new GetActivationStatusTask.ICompletionListener() {
-                    @Override
-                    public void onSessionStateChange() {
-                        saveSerializedState();
-                    }
-
-                    @Override
-                    public void onTaskCompletion(@NonNull GetActivationStatusTask task, @Nullable PowerAuthActivationStatus status) {
-                        // The mLock is already locked, because GetActivationStatusTask uses shared lock.
-                        if (task == mGetActivationStatusTask) {
-                            mGetActivationStatusTask = null;
-                        }
+                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, mLock, mCallbackDispatcher, this::saveSerializedState, getActivationStatusTask -> {
+                    // The mLock is already locked, because GetActivationStatusTask uses shared lock.
+                    if (getActivationStatusTask == mGetActivationStatusTask) {
+                        mGetActivationStatusTask = null;
                     }
                 });
                 task = mGetActivationStatusTask.createChildTask(completion);

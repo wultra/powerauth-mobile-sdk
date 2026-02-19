@@ -23,7 +23,6 @@ import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.getlime.security.powerauth.core.CoreException;
-import io.getlime.security.powerauth.core.CoreRequest;
 import io.getlime.security.powerauth.core.CoreSession;
 import io.getlime.security.powerauth.core.CoreTask;
 import io.getlime.security.powerauth.core.response.CoreActivationStatus;
@@ -40,11 +39,6 @@ import io.getlime.security.powerauth.sdk.PowerAuthActivationStatus;
  */
 public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStatus> {
 
-    public interface ICompletionListener {
-        void onSessionStateChange();
-        void onTaskCompletion(@NonNull GetActivationStatusTask task, @Nullable PowerAuthActivationStatus status);
-    }
-
     @NonNull
     private final CoreHttpClient httpClient;
     @NonNull
@@ -52,7 +46,7 @@ public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStat
     @NonNull
     private final Runnable saveStateCallback;
     @NonNull
-    private final ICompletionListener completionListener;
+    private final IConsumer<GetActivationStatusTask> onCompleteConsumer;
 
     /**
      * Create task for getting activation status.
@@ -62,7 +56,7 @@ public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStat
      * @param sharedLock Shared lock.
      * @param saveStateCallback Callback called when save of session state is required.
      * @param callbackDispatcher callback dispatcher from parent SDK object
-     * @param completionListener final completion listener.
+     * @param onCompleteConsumer consumer to be applied once the task is completed
      */
     public GetActivationStatusTask(
             @NonNull CoreHttpClient httpClient,
@@ -70,12 +64,12 @@ public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStat
             @NonNull ReentrantLock sharedLock,
             @NonNull ICallbackDispatcher callbackDispatcher,
             @NonNull Runnable saveStateCallback,
-            @NonNull ICompletionListener completionListener) {
+            @NonNull IConsumer<GetActivationStatusTask> onCompleteConsumer) {
         super("GetActivationStatus", sharedLock, callbackDispatcher);
         this.httpClient = httpClient;
         this.session = session;
         this.saveStateCallback = saveStateCallback;
-        this.completionListener = completionListener;
+        this.onCompleteConsumer = onCompleteConsumer;
     }
 
     //
@@ -91,7 +85,7 @@ public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStat
                 @Override
                 public void onNetworkResponse(@Nullable CoreActivationStatus status) {
                     final CoreActivationStatus coreStatus = Objects.requireNonNull(status);
-                    if (coreStatus.isSessionSerializationNeeded()) {
+                    if (coreStatus.isSessionSerializationNeeded() || coreTask.isSessionStateSerializationNeeded()) {
                         saveStateCallback.run();
                     }
                     complete(new PowerAuthActivationStatus(coreStatus));
@@ -115,6 +109,6 @@ public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStat
     @Override
     public void onGroupedTaskComplete(@Nullable PowerAuthActivationStatus activationStatus, @Nullable Throwable failure) {
         super.onGroupedTaskComplete(activationStatus, failure);
-        completionListener.onTaskCompletion(this, activationStatus);
+        onCompleteConsumer.accept(this);
     }
 }

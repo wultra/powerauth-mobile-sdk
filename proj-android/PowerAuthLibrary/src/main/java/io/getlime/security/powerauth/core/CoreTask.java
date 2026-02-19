@@ -169,4 +169,9 @@ public class CoreTask<TResponse> extends NativeObject {
      */
     @Nullable
     private native CoreRequest<TResponse> getNextRequestImpl() throws CoreException;
+
+    /**
+     * @return {@code true} if session's state should be serialized after the task finishes.
+     */
+    public native boolean isSessionStateSerializationNeeded();
 }

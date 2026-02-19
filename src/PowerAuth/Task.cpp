@@ -27,7 +27,8 @@ Task::Task(const std::string& name, const ContextPtr& context) :
     _context(context),
     _state(State::CREATED),
     _processed_requests(0),
-    _completion_processed(false)
+    _completion_processed(false),
+    _session_state_serialization_recommended(false)
 {
     //log("Task allocated");
 }
@@ -310,6 +311,16 @@ void Task::onRequestFailure(const Request& request)
 void Task::onRequestCancel(const Request& request)
 {
     // empty
+}
+
+bool Task::isSessionStateSerializationRecommended() const noexcept
+{
+    return _session_state_serialization_recommended;
+}
+
+void Task::setSessionStateSerializationRecommended(bool is_recommended)
+{
+    _session_state_serialization_recommended = is_recommended;
 }
 
 

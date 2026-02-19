@@ -42,6 +42,7 @@ void GetActivationStatusTask::onRequestSuccess(const Request &request)
             break;
         case PROTOCOL_UPGRADE_CONFIRM:
             lockContext()->sessionData().persistentData().v4().flags.pendingProtocolUpgrade = 0;
+            setSessionStateSerializationRecommended();
             break;
         case SYNC_COUNTER:
             setCompleted();
@@ -73,6 +74,7 @@ void GetActivationStatusTask::processActivationStatus(const ActivationStatus &st
         if (context->hasProtocolUpgradePending()) {
             // Protocol upgrade confirmed, but locally the flag is still set.
             context->sessionData().persistentData().v4().flags.pendingProtocolUpgrade = 0;
+            setSessionStateSerializationRecommended();
         }
     }
     

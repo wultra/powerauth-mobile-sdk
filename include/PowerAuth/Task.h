@@ -89,6 +89,9 @@ public:
     /// - Throws: `Exception` with `EC_NotAllowed` if task is not finished yet.
     const cc7::json::JsonValue& getResponseJson() const;
     
+    // Returns true if session state serialization is recommended after this task completes.
+    bool isSessionStateSerializationRecommended() const noexcept;
+    
 protected:
     enum RequestFlags
     {
@@ -150,6 +153,9 @@ protected:
     /// Contains shared mutex.
     const SharedMutexPtr& _mutex;
     
+    /// Sets the information about session state serialization recommendation.
+    void setSessionStateSerializationRecommended(bool is_recommended = true);
+    
 private:
     friend class Request;
     
@@ -203,6 +209,9 @@ private:
     cc7::json::JsonValue _response_json;
     /// Captured reason of failure.
     std::exception_ptr _failure;
+    
+    /// Indicates that session state serialization is recommended.
+    bool _session_state_serialization_recommended;
 };
 
 CC7_SHARED_PTR(Task)

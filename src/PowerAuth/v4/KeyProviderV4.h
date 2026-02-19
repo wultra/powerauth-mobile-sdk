@@ -53,6 +53,7 @@ public:
     // IService
     void clearSensitiveData() override;
     void restoreSensitiveData() override;
+    void clearActivationData() override;
     
     // Custom methods
 
@@ -63,6 +64,7 @@ public:
     
 protected:
     void doServiceDestroy() override;
+    void doClearSensitiveData();
     
 private:
 

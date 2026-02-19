@@ -31,6 +31,9 @@ public:
     
     EciesEncryptorFactory(const ContextPtr & context);
 
+    // IService
+    void clearActivationData() override;
+    
     // IEncryptorFactory
     IServicePtr asService() override;
 

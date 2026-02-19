@@ -39,6 +39,9 @@ public:
     RequestPtr createAccessToken(const CredentialsPtr &credentials) override;
     RequestPtr removeAccessToken(const std::string_view &token_identifier) override;
     
+    // IService
+    void clearActivationData() override;
+    
 private:
     ResponseObjectPtr processCreateAccessTokenResponse(AuthFactors factors, const cc7::json::JsonValue& response);
     

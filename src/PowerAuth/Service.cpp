@@ -80,6 +80,12 @@ void Service::restoreSensitiveData()
     CC7_LOG("%s: sensitive data restore", _service_name.c_str());
 }
 
+void Service::clearActivationData()
+{
+    checkNotDestroyed();
+    CC7_LOG("%s: activation data clear", _service_name.c_str());
+}
+
 // MARK: - Service with context
 
 ServiceWithContext::ServiceWithContext(const std::string& service_name,

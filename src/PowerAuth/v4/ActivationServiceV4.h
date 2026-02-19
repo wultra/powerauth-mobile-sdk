@@ -46,6 +46,9 @@ public:
     
     RequestPtr fetchUserInfo() override;
     
+    // IService
+    void clearActivationData() override;
+    
 private:
     
     // Activation create

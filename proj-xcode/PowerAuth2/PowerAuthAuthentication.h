@@ -259,7 +259,7 @@
 ///
 /// @param password PowerAuthCorePassword used for the knowledge factor.
 /// @param customBiometryKey Custom key used for biometry factor.
-/// @return Instance of authentication object configured to persist activation with password and biometry, allowing to usecustom keys for possession and biometry factors.
+/// @return Instance of authentication object configured to persist activation with password and biometry, allowing to use custom keys for possession and biometry factors.
 + (nonnull PowerAuthAuthentication*) persistWithCorePasswordAndBiometry:(nonnull PowerAuthCorePassword*)password
                                                       customBiometryKey:(nullable PowerAuthCoreData*)customBiometryKey
                             NS_SWIFT_NAME(persistWithPasswordAndBiometry(password:customBiometryKey:));
@@ -272,7 +272,7 @@
 /// @param password PowerAuthCorePassword used for the knowledge factor.
 /// @param customBiometryKey Custom key used for biometry factor.
 /// @param customPossessionKey Custom key used for possession factor.
-/// @return Instance of authentication object configured to persist activation with password and biometry, allowing to usecustom keys for possession and biometry factors.
+/// @return Instance of authentication object configured to persist activation with password and biometry, allowing to use custom keys for possession and biometry factors.
 /// @deprecated The custom possession key is no longer supported.
 + (nonnull PowerAuthAuthentication*) persistWithCorePasswordAndBiometry:(nonnull PowerAuthCorePassword*)password
                                                       customBiometryKey:(nullable PowerAuthCoreData*)customBiometryKey

@@ -1978,7 +1978,7 @@
           shouldPass:(BOOL)shouldPass
 {
     NSString * csr = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk createCertificateSigningRequestWithAuthentication:_helper.authPossessionWithKnowledge
+        [_sdk createCertificateSigningRequestWithAuthentication:authentication
                                              distinguishedNames:dnItems
                                                 subjectAltNames:sanItems
                                                   keyIdentifier:keyId

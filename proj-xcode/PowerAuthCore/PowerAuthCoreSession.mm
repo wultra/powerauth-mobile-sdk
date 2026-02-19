@@ -111,7 +111,7 @@ static BOOL _ConvertDictToMap(NSDictionary<NSString*, NSString*>* dict, std::map
     return !failure;
 }
 
-/// Convert ObjC NSArray wit NSString values into `std::vector<std::string>` type.
+/// Convert ObjC NSArray with NSString values into `std::vector<std::string>` type.
 /// - Parameters:
 ///   - array: Input array.
 ///   - out_vector: Reference to output vector.
@@ -850,7 +850,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
             return nil;
         }
         if (!_ConvertArrayToVector(sanItems, san_items)) {
-            _ReportError(PowerAuthCoreError_WrongParameter, @"Wrong object type provided in sanItems dictionary", error);
+            _ReportError(PowerAuthCoreError_WrongParameter, @"Wrong object type provided in sanItems array", error);
             return nil;
         }
         auto request = _session->createCertificateSigningRequest(credentials.credentialsRef,

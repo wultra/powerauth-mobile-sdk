@@ -20,7 +20,7 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 
 /**
- * Listener for cCreating CSR (Certificate Signing Request) signed with the device private key.
+ * Listener for creating CSR (Certificate Signing Request) signed with the device private key.
  */
 public interface ICreateCertificateSigningRequestListener {
     /**

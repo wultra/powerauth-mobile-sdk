@@ -416,8 +416,8 @@ public:
     ///                 signature calculation.
     /// - Returns: HTTP request object with the vault unlock operation.
     RequestPtr createCertificateSigningRequest(const CredentialsPtr& credentials,
-                                               const std::map<std::string, std::string> dn_items,
-                                               const std::vector<std::string> san_items,
+                                               const std::map<std::string, std::string>& dn_items,
+                                               const std::vector<std::string>& san_items,
                                                SignatureKeyId key_to_use) const;
     
 public:

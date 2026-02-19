@@ -22,7 +22,6 @@ import io.getlime.security.powerauth.core.Password;
 import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
-import io.getlime.security.powerauth.system.PowerAuthLog;
 
 import java.util.Arrays;
 
@@ -48,9 +47,8 @@ public class PowerAuthAuthentication {
     private final @Nullable SecureData overriddenPossessionKey;
 
     /**
-     * Contains {@code true} if authentication object should be used to persist activation, {@code false}
-     * if object is for authentication code calculation or {@code null} if this is a legacy object with no usage
-     * specified.
+     * Contains {@code true} if authentication object should be used to persist activation,
+     * {@code false} if object is for authentication code calculation.
      */
     private final boolean persistActivation;
 

@@ -30,9 +30,9 @@
  */
 @property (nonatomic, readonly) PowerAuthKeychainAuthentication * keychainAuthentication;
 
-/// Function validates whether PowerAuthAuthentication.
+/// Validates whether this `PowerAuthAuthentication` instance can be used for the requested operation.
 /// @param forPersist Specifies whether persist or authenticate operation is required.
-/// @return Error object if authentication object cannot be used.
+/// @return `nil` if the authentication object can be used; an `NSError` describing the problem otherwise.
 - (NSError*) validateUsage:(BOOL)forPersist;
 
 @end

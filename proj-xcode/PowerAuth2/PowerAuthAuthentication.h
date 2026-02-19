@@ -100,7 +100,7 @@
 ///
 /// @param password Password used for the knowledge factor.
 /// @param customBiometryKey Custom key used for biometry factor.
-/// @return Instance of authentication object configured to persist activation with password and biometry, allowing to use custom keys for possession and biometry factors.
+/// @return Instance of authentication object configured to persist activation with password and biometry, allowing to use custom key for the biometry factor.
 + (nonnull PowerAuthAuthentication*) persistWithPasswordAndBiometry:(nonnull NSString*)password
                                                   customBiometryKey:(nullable PowerAuthCoreData*)customBiometryKey;
 

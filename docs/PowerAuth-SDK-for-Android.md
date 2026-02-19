@@ -845,7 +845,7 @@ val signingKey = PowerAuthSignatureKeyId.DEVICE_ML_DSA
 // Data to sign
 val data = "hello".getBytes()
 // Calculate signature
-powerAuthSDK.calculateDigitalSignature(authentication, data, signingKey, object: IDigitalSignatureListener {
+powerAuthSDK.calculateDigitalSignature(context, authentication, data, signingKey, object: IDigitalSignatureListener {
     override fun onDigitalSignatureSucceed(signature: ByteArray) {
         // Use data signature...
     }
@@ -876,7 +876,7 @@ val data = "hello".getBytes()
 // - The dataType parameter is added to the JWS Protected Header under the "typ" key.
 //   A null parameter means that no "typ" value is included in the header.
 // - The compact parameter determines whether the output is a JWS (compact = false) or JWT (compact = true).
-powerAuthSDK.calculateJwsSignature(authentication, data, null, false, signingKey, object: IJwsSignatureListener {
+powerAuthSDK.calculateJwsSignature(context, authentication, data, null, false, signingKey, object: IJwsSignatureListener {
     override fun onJwsSignatureSucceed(signedData: String, compactForm: Boolean) {
         // Use signed data
     }
@@ -904,7 +904,7 @@ val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
 // and therefore an ML-DSA signature will be produced.
 val signingKey = PowerAuthSignatureKeyId.DEVICE_ML_DSA
 // Unlock the secure vault, fetch the private key, and perform data signing
-powerAuthSDK.calculateJwsSignature(authentication, claimsData, "JWT", true, signingKey, object: IJwsSignatureListener {
+powerAuthSDK.calculateJwsSignature(context, authentication, claimsData, "JWT", true, signingKey, object: IJwsSignatureListener {
     override fun onJwsSignatureSucceed(signedData: String, compactForm: Boolean) {
         // Use signed data
     }

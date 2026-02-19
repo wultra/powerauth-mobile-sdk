@@ -1644,6 +1644,7 @@ public class PowerAuthSDK {
      * If the key identifier represents multiple key types, an error is also reported.
      * Hybrid signatures are not supported in this version of the library.
      *
+     * @param context Android context.
      * @param authentication The authentication object used for vault unlocking.
      * @param dataToSign The data to sign.
      * @param keyIdentifier The identifier of the key used for signature calculation.
@@ -1652,7 +1653,8 @@ public class PowerAuthSDK {
      *         the error is detected immediately.
      */
     @Nullable
-    public ICancelable calculateDigitalSignature(@NonNull PowerAuthAuthentication authentication,
+    public ICancelable calculateDigitalSignature(@NonNull Context context,
+                                                 @NonNull PowerAuthAuthentication authentication,
                                                  @Nullable byte[] dataToSign,
                                                  @PowerAuthSignatureKeyId int keyIdentifier,
                                                  @NonNull IDigitalSignatureListener listener) {
@@ -1714,12 +1716,12 @@ public class PowerAuthSDK {
      * @param data Data to be signed.
      * @param listener Listener with callbacks to signature status.
      * @return Async task associated with vault unlock request.
-     * @deprecated Method is deprecated, please use {@link #calculateDigitalSignature(PowerAuthAuthentication, byte[], int, IDigitalSignatureListener)} instead.
+     * @deprecated Method is deprecated, please use {@link #calculateDigitalSignature(Context, PowerAuthAuthentication, byte[], int, IDigitalSignatureListener)} instead.
      */
     @Deprecated // 2.0.0
     @Nullable
     public ICancelable signDataWithDevicePrivateKey(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final byte[] data, @NonNull final IDataSignatureListener listener) {
-        return calculateDigitalSignature(authentication, data, PowerAuthSignatureKeyId.DEVICE_EC, new IDigitalSignatureListener() {
+        return calculateDigitalSignature(context, authentication, data, PowerAuthSignatureKeyId.DEVICE_EC, new IDigitalSignatureListener() {
             @Override
             public void onDigitalSignatureSucceed(@NonNull byte[] signature) {
                 listener.onDataSignedSucceed(signature);
@@ -1766,6 +1768,7 @@ public class PowerAuthSDK {
      * The selected key must support signature calculation; otherwise, an error is reported.
      * If the key identifier represents multiple key types, compact format cannot be used for output.
      *
+     * @param context Android context.
      * @param authentication The authentication object used for vault unlocking.
      * @param dataToSign The data to sign.
      * @param dataType Data type set to JOSE header. Use {@code "JWT"} or {@code null} if no type is set.
@@ -1776,7 +1779,8 @@ public class PowerAuthSDK {
      *         the error is detected immediately.
      */
     @Nullable
-    public ICancelable calculateJwsSignature(@NonNull PowerAuthAuthentication authentication,
+    public ICancelable calculateJwsSignature(@NonNull Context context,
+                                             @NonNull PowerAuthAuthentication authentication,
                                              @Nullable byte[] dataToSign,
                                              @Nullable String dataType,
                                              boolean compactForm,
@@ -1823,13 +1827,13 @@ public class PowerAuthSDK {
      * @param claims Claims to be signed with the private key.
      * @param listener Listener with the callback methods
      * @return {@link ICancelable} object associated with the underlying HTTP request.
-     * @deprecated Method is deprecated, please use {@link #calculateJwsSignature(PowerAuthAuthentication, byte[], String, boolean, int, IJwsSignatureListener)} instead.
+     * @deprecated Method is deprecated, please use {@link #calculateJwsSignature(Context, PowerAuthAuthentication, byte[], String, boolean, int, IJwsSignatureListener)} instead.
      */
     @Deprecated // 2.0.0
     @Nullable
     public ICancelable signJwtWithDevicePrivateKey(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, @NonNull Map<String, Object> claims, @NonNull IJwtSignatureListener listener) {
         byte[] dataForSign = new JsonSerialization().serializeObject(claims);
-        return calculateJwsSignature(authentication, dataForSign, "JWT", true, PowerAuthSignatureKeyId.DEVICE_EC, new IJwsSignatureListener() {
+        return calculateJwsSignature(context, authentication, dataForSign, "JWT", true, PowerAuthSignatureKeyId.DEVICE_EC, new IJwsSignatureListener() {
             @Override
             public void onJwsSignatureSucceed(@NonNull String signedData, boolean compactForm) {
                 listener.onJwtSignatureSucceed(signedData);

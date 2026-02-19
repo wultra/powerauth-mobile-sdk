@@ -1971,6 +1971,72 @@
     XCTAssertTrue(result);
 }
 
+- (void) validateCSR:(PowerAuthAuthentication*)authentication
+               keyId:(PowerAuthSignatureKeyId)keyId
+             dnItems:(NSDictionary<NSString*, NSString*>*)dnItems
+            sanItems:(NSArray<NSString*>*)sanItems
+          shouldPass:(BOOL)shouldPass
+{
+    NSString * csr = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk createCertificateSigningRequestWithAuthentication:_helper.authPossessionWithKnowledge
+                                             distinguishedNames:dnItems
+                                                subjectAltNames:sanItems
+                                                  keyIdentifier:keyId
+                                                       callback:^(NSString * _Nullable csr, NSError * _Nullable error) {
+            [waiting reportCompletion:csr];
+        }];
+    }];
+    if (shouldPass) {
+        XCTAssertNotNil(csr);
+        XCTAssertTrue([csr hasPrefix:@"-----BEGIN CERTIFICATE REQUEST-----"]);
+        XCTAssertTrue([csr hasSuffix:@"-----END CERTIFICATE REQUEST-----\n"]);
+    } else {
+        XCTAssertNil(csr);
+    }
+}
+
+
+- (void) testCreateCSR
+{
+    CHECK_TEST_CONFIG();
+    PowerAuthSdkActivation * activation = [_helper createActivation:NO];
+    if (!activation) {
+        return;
+    }
+    NSDictionary<NSString*,NSString*>* dnItems = @{
+        @"C" : @"CZ",
+        @"O" : @"Example",
+        @"CN" : @"example.com"
+    };
+    NSArray<NSString*>* sanItems = @[
+        @"DNS:example.com",
+        @"DNS:www.example.com"
+    ];
+    switch (self.powerAuthAlgorithm) {
+        case PowerAuthAlgorithm_EC_P384_ML_L3:
+        case PowerAuthAlgorithm_EC_P384_ML_L5:
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_EC dnItems:dnItems sanItems:sanItems shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_EC dnItems:dnItems sanItems:nil shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_ML_DSA dnItems:dnItems sanItems:sanItems shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_ML_DSA dnItems:dnItems sanItems:nil shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device dnItems:dnItems sanItems:sanItems shouldPass:NO];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device dnItems:dnItems sanItems:nil shouldPass:NO];
+            break;
+        case PowerAuthAlgorithm_EC_P384:
+        case PowerAuthAlgorithm_LEGACY_P256:
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_EC dnItems:dnItems sanItems:sanItems shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_EC dnItems:dnItems sanItems:nil shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_ML_DSA dnItems:dnItems sanItems:sanItems shouldPass:NO];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_ML_DSA dnItems:dnItems sanItems:nil shouldPass:NO];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device dnItems:dnItems sanItems:sanItems shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device dnItems:dnItems sanItems:nil shouldPass:YES];
+            break;
+        default:
+            XCTFail(@"Unsupported algorithm");
+            break;
+    }
+}
+
 #pragma mark - End-2-End Encryption
 
 - (void) testEncryptorCreation

@@ -1776,6 +1776,34 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
+- (nullable id<PowerAuthOperationTask>) createCertificateSigningRequestWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                                       distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                                          subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                                                            keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                                                                                 callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback
+{
+    NSError* localError = nil;
+    PowerAuthCoreCredentials * credentials = [self resolveCredentialsWithAuthentication:authentication error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError** error) {
+        return [session createCertificateSigningRequest:credentials
+                                                dnItems:distinguishedNames
+                                               sanItems:subjectAltNames
+                                                  keyId:(PowerAuthCoreSignatureKeyId)keyIdentifier
+                                                  error:error];
+    } error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, NSString* response, NSError * error) {
+        callback(response, error);
+    }];
+}
+
 #pragma clang diagnostic push   // PA2_DEPRECATED(2.0.0)
 #pragma clang diagnostic ignored "-Wdeprecated-implementations"
 
@@ -1809,6 +1837,18 @@ static PowerAuthSDK * s_inst;
                              signedData:data
                           keyIdentifier:masterKey ? PowerAuthSignatureKeyId_Master_EC : PowerAuthSignatureKeyId_Server_EC
                                   error:nil];
+}
+
+- (nullable id<PowerAuthOperationTask>) createSignedCSRWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                       distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                          subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                                                 callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback
+{
+    return [self createCertificateSigningRequestWithAuthentication:authentication
+                                                distinguishedNames:distinguishedNames
+                                                   subjectAltNames:subjectAltNames
+                                                     keyIdentifier:PowerAuthSignatureKeyId_Device_EC
+                                                          callback:callback];
 }
 #pragma clang diagnostic pop // PA2_DEPRECATED(2.0.0)
 @end

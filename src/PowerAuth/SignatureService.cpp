@@ -17,6 +17,7 @@
 #include <PowerAuth/SignatureService.h>
 #include "v4/HybridKeyPair.h"
 #include "Context.h"
+#include <cc7/crypto/X509.h>
 
 #define LOCK_GUARD() std::lock_guard<std::recursive_mutex> _lock_guard(*_lock)
 
@@ -212,7 +213,34 @@ RequestPtr SignatureService::createCSR(const CredentialsPtr& credentials,
                                        const std::vector<std::string>& san_items,
                                        SignatureKeyId key_to_use) const
 {
-    throw Exception(EC_InternalError, "Not implemented");
+    LOCK_GUARD();
+    if (dn_items.empty()) {
+        throw Exception(EC_WrongParameter, "Distinguished Names map is empty");
+    }
+    auto context = lockContext();
+    auto spec = SignatureKeySpec::specForKeyId(key_to_use);
+    checkSignatureKeySpec(*context, spec, false, true);
+    auto self = shared_from_this();
+    return _vault_service->unlockVaultKey(credentials,
+                                          VaultKeyType::KEK_DEVICE_PRIVATE,
+                                          UnlockVaultKeyReason::SIGN_WITH_DEVICE_PRIVATE_KEY,
+                                          [self, context, spec, dn_items, san_items](IKeyProvider& key_provider, ISecretKeys& secret_keys) -> ResponseObjectPtr {
+        return self->doCreateCSR(*context, dn_items, san_items, spec, secret_keys);
+    });
+}
+
+ResponseObjectPtr SignatureService::doCreateCSR(Context& context,
+                                                const std::map<std::string, std::string>& dn_items,
+                                                const std::vector<std::string>& san_items,
+                                                SignatureKeySpecPtr spec,
+                                                ISecretKeys& secrets) const
+{
+    LOCK_GUARD();
+    auto private_key = populatePrivateKeys(context, spec, secrets, false)
+                            .front()    // only first key matters
+                            .first;     // from returned tuple, only the key is important
+    auto csr = cc7::crypto::X509::createCSR(*private_key, dn_items, san_items);
+    return std::make_shared<StringResponse>(csr);
 }
 
 // MARK: Private

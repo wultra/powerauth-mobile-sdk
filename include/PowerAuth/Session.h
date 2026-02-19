@@ -405,6 +405,21 @@ public:
                            SignatureKeyId key_to_use,
                            bool use_compact_form) const;
     
+    /// Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and
+    /// optional Subject Alternative Names, embedded device public key and signed with the device
+    /// private key.
+    /// - Parameters:
+    ///   - credentials: Credentials to use to unlock the device private key.
+    ///   - dn_items: Map with distinguished names.
+    ///   - san_items: Optional subject alternative names.
+    ///   - key_to_use: Key used for signature verification. The key must support
+    ///                 signature calculation.
+    /// - Returns: HTTP request object with the vault unlock operation.
+    RequestPtr createCertificateSigningRequest(const CredentialsPtr& credentials,
+                                               const std::map<std::string, std::string> dn_items,
+                                               const std::vector<std::string> san_items,
+                                               SignatureKeyId key_to_use) const;
+    
 public:
     // --------------------------------------------------------------------------------------------
     // External Encryption Key (EEK)

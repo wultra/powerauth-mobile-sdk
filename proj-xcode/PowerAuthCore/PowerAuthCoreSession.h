@@ -451,6 +451,9 @@
 #pragma mark - Digital signatures
 
 /// Export device public key into the specified format.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
 /// - Parameters:
 ///   - format: Required format of the output public key data.
 ///   - error: Pointer where error is set in case of failure.
@@ -459,6 +462,9 @@
                                                                                   error:(NSError *_Nullable*_Nullable)error;
 
 /// Verify a digital signature over the given data.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
 /// - Parameters:
 ///   - signature: Signature calculated from signed data.
 ///   - data: Signed data.
@@ -472,6 +478,8 @@
                    error:(NSError *_Nullable*_Nullable)error;
 
 /// Verify server-signed data in JWS or JWT form.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
 ///
 /// - Parameters:
 ///   - signedData: JWS or JWT signed data.
@@ -492,6 +500,8 @@
 /// Create a digital signature over the given data. If the request succeeds, the
 /// response contains a `NSData` with the calculated signature.
 ///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
 /// - Parameters:
 ///   - data: Data to sign.
 ///   - credentials: Credentials used for unlocking the device private key.
@@ -506,7 +516,9 @@
 
 /// Create a JWS (or compact JWT) over the given data. If the request succeeds, the
 /// response contains a `NSString` with the calculated JWS or JWT.
-
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
 /// - Parameters:
 ///   - data: Data to sign and embed into JWS.
 ///   - dataType: Data type set to JOSE header. Use `"JWT"` or `nil` if no type is set.
@@ -523,6 +535,28 @@
                                    credentials:(nonnull PowerAuthCoreCredentials*)credentials
                                          keyId:(PowerAuthCoreSignatureKeyId)keyId
                                          error:(NSError *_Nullable*_Nullable)error;
+
+
+/// Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and
+/// optional Subject Alternative Names, embedded device public key and signed with the device
+/// private key. If the request succeeds, the response contains a `NSString` with
+/// the CSR in PEM format.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+/// 
+/// - Parameters:
+///   - credentials: Credentials to use to unlock the device private key.
+///   - dnItems: Map with distinguished names.
+///   - sanItems: Optional subject alternative names.
+///   - keyId: Key used for signature calculation. The key must support sign operation.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for unlocking device private key
+///            or `nil` in case of failure.
+- (nullable PowerAuthCoreRequest*) createCertificateSigningRequest:(nonnull PowerAuthCoreCredentials*)credentials
+                                                           dnItems:(nonnull NSDictionary<NSString*, NSString*>*)dnItems
+                                                          sanItems:(nullable NSArray<NSString*>*)sanItems
+                                                             keyId:(PowerAuthCoreSignatureKeyId)keyId
+                                                             error:(NSError *_Nullable*_Nullable)error;
 
 #pragma mark - External Encryption Key
 

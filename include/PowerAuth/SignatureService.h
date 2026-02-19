@@ -158,6 +158,20 @@ private:
                                  SignatureKeySpecPtr spec,
                                  ISecretKeys& secrets) const;
     
+    /// Create CSR with the device private key.
+    /// - Parameters:
+    ///   - context: Context object.
+    ///   - dn_items: DN items.
+    ///   - san_items: SAN items.
+    ///   - spec: Signing key specification.
+    ///   - secrets: `ISecretKeys` implementation containing unlocked device private key.
+    /// - Returns: `StringResponse` object containing CSR in PEM format.
+    ResponseObjectPtr doCreateCSR(Context& context,
+                                  const std::map<std::string, std::string>& dn_items,
+                                  const std::vector<std::string>& san_items,
+                                  SignatureKeySpecPtr spec,
+                                  ISecretKeys& secrets) const;
+    
     /// Calculate a JWS signature with the device private key.
     /// - Parameters:
     ///   - context: Context object.

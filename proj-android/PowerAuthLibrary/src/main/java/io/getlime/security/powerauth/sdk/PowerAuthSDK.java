@@ -23,6 +23,7 @@ import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1811,6 +1812,54 @@ public class PowerAuthSDK {
     }
 
     /**
+     * Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and optional Subject Alternative Names,
+     * embedded device public key and signed with the device private key.
+     *
+     * @param context Android context.
+     * @param authentication The authentication object used for vault unlocking.
+     * @param distinguishedNames Distinguished Names (DN) to be embedded in the CSR. The dictionary keys are DN types (like "CN", "O", etc.) and values are corresponding DN values.
+     * @param subjectAltNames Optional array of Subject Alternative Names (SAN)
+     * @param keyIdentifier The identifier of the key used for the signature calculation.
+     * @param listener The callback interface invoked with the resulting CSR or an error.
+     * @return Cancelable object associated with the asynchronous operation, or {@code null} if
+     *         the error is detected immediately.
+     */
+    @Nullable
+    public ICancelable createCertificateSigningRequest(@NonNull Context context,
+                                                       @NonNull PowerAuthAuthentication authentication,
+                                                       @NonNull Map<String, String> distinguishedNames,
+                                                       @Nullable List<String> subjectAltNames,
+                                                       @PowerAuthSignatureKeyId int keyIdentifier,
+                                                       @NonNull ICreateCertificateSigningRequestListener listener) {
+        try {
+            final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
+            final int keyId = convertPowerAuthSignatureKeyId(keyIdentifier);
+            final CoreRequest<String> request = mSession.createCertificateSigningRequest(credentials, distinguishedNames, subjectAltNames, keyId);
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable String s) {
+                    String response = Objects.requireNonNull(s);
+                    listener.onCreateCertificateSigningRequestSucceed(response);
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onCreateCertificateSigningRequestFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+        } catch (CoreException exception) {
+            dispatchCallback(() -> listener.onCreateCertificateSigningRequestFailed(PowerAuthErrorException.wrapException(exception)));
+        } catch (PowerAuthErrorException exception) {
+            dispatchCallback(() -> listener.onCreateCertificateSigningRequestFailed(exception));
+        }
+        return null;
+    }
+
+    /**
      * Sign provided claims with the original device private key (asymmetric signature).
      * <p>
      * This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key
@@ -1842,6 +1891,38 @@ public class PowerAuthSDK {
         });
     }
 
+    /**
+     * Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and optional Subject Alternative Names, embedded device public key and signed with the device private key.
+     *
+     * @param context Android context.
+     * @param authentication Authentication object that must contain the possession and password factor.
+     * @param distinguishedNames Distinguished Names (DN) to be embedded in the CSR. The dictionary keys are DN types (like "CN", "O", etc.) and values are corresponding DN values.
+     * @param subjectAltNames Optional array of Subject Alternative Names (SAN)
+     * @param listener Listener with the callback methods. CSR in PEM format with lines separated by `\n` (including `-----BEGIN CERTIFICATE REQUEST`----- and `-----END CERTIFICATE REQUEST-----` lines) is returned in case of success.
+     * @return {@link ICancelable} object associated with the underlying HTTP request.
+     * @deprecated Use {@link #createCertificateSigningRequest(Context, PowerAuthAuthentication, Map, List, int, ICreateCertificateSigningRequestListener)} as replacement.
+     */
+    @Deprecated(since = "2.0.0")
+    @Nullable
+    public ICancelable createSignedCSR(
+            @NonNull Context context,
+            @NonNull PowerAuthAuthentication authentication,
+            @NonNull Map<String, String> distinguishedNames,
+            @Nullable String[] subjectAltNames,
+            @NonNull ICreateCSRListener listener) {
+        List<String> san = subjectAltNames == null ? null : Arrays.asList(subjectAltNames);
+        return createCertificateSigningRequest(context, authentication, distinguishedNames, san, PowerAuthSignatureKeyId.DEVICE_EC, new ICreateCertificateSigningRequestListener() {
+            @Override
+            public void onCreateCertificateSigningRequestSucceed(@NonNull String certificateSigningRequest) {
+                listener.onCSRCreateSucceed(certificateSigningRequest);
+            }
+
+            @Override
+            public void onCreateCertificateSigningRequestFailed(@NonNull Throwable throwable) {
+                listener.onCSRCreateFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, throwable));
+            }
+        });
+    }
 
     /**
      * Change the password using local re-encryption, do not validate old password by calling any endpoint.

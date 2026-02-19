@@ -168,6 +168,51 @@ CC7_JNI_METHOD(jboolean, isModifiedState)
     NH_CATCH_RT_ONLY(false)
 }
 
+// Internal helper functions
+
+/// Convert `Map<String, String>` into `std::map<std::string, std::string>`.
+/// @param jni JNI reference.
+/// @param map Input java Map object.
+/// @return Converted C++ map
+static std::map<std::string, std::string> ConvertStringMapFromJava(JNI& jni, jobject map)
+{
+    std::map<std::string, std::string> out;
+    if (map != nullptr) {
+        auto& specs = jni.commonSpecs();
+        auto wrapped = jni.fromJava(map);
+        auto entry_set = jni.fromJava(wrapped.callObject(specs.specMap.methods.entrySet));
+        auto iterator = jni.fromJava(entry_set.callObject(specs.specSet.methods.iterator));
+        while (iterator.callBoolean(specs.specIterator.methods.hasNext)) {
+            auto entry = jni.fromJava(iterator.callObject(specs.specIterator.methods.next));
+            auto key = entry.callString(specs.specMapEntry.methods.getKey);
+            auto value = entry.callString(specs.specMapEntry.methods.getValue);
+            out[key] = value;
+            // cleanup
+            jni.releaseLocal(entry);
+        }
+    }
+    return out;
+}
+
+/// Convert `List<String>` into `std::vector<std::string>`.
+/// @param jni JNI reference.
+/// @param list Input java List object.
+/// @return Converted C++ vector.
+static std::vector<std::string> ConvertStringListFromJava(JNI& jni, jobject list)
+{
+    std::vector<std::string> out;
+    if (list != nullptr) {
+        auto& specs = jni.commonSpecs();
+        auto wrapped = jni.fromJava(list);
+        auto iterator = jni.fromJava(wrapped.callObject(specs.specList.methods.iterator));
+        while (iterator.callBoolean(specs.specIterator.methods.hasNext)) {
+            auto entry = iterator.callString(specs.specIterator.methods.next);
+            out.push_back(entry);
+        }
+    }
+    return out;
+}
+
 // Activation
 
 CC7_JNI_METHOD(jstring, getActivationIdentifier)
@@ -361,21 +406,7 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, normalizeGetRequestParameters, jobject paramet
         if (parameters == nullptr) {
             return nullptr;
         }
-        // Convert Map<String, String> into std::map<std::string, std::string>
-        std::map<std::string, std::string> map;
-        auto& specs = jni.commonSpecs();
-        auto wrapped = jni.fromJava(parameters);
-        auto entry_set = jni.fromJava(wrapped.callObject(specs.specMap.methods.entrySet));
-        auto iterator = jni.fromJava(entry_set.callObject(specs.specSet.methods.iterator));
-        while (iterator.callBoolean(specs.specIterator.methods.hasNext)) {
-            auto entry = jni.fromJava(iterator.callObject(specs.specIterator.methods.next));
-            auto key = entry.callString(specs.specMapEntry.methods.getKey);
-            auto value = entry.callString(specs.specMapEntry.methods.getValue);
-            map[key] = value;
-            // cleanup
-            jni.releaseLocal(entry);
-        }
-
+        std::map<std::string, std::string> map = ConvertStringMapFromJava(jni, parameters);
         auto result = THIS_OBJ()->getAuthenticationService()->normalizeGetRequestParameters(map);
         return jni.toJava(result);
     }
@@ -519,6 +550,30 @@ CC7_JNI_METHOD_PARAMS(jobject, jwsSignData, jbyteArray data, jstring dataType, j
                                                jni.fromJava(dataType),
                                                jni.fromJava<SignatureKeyId>(specs.coreSignatureKeyId, keyId),
                                                compactForm);
+        return BuildCoreRequest(jni, request, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            auto result = std::dynamic_pointer_cast<StringResponse>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No StringResponse object created");
+            }
+            return jni.toJava(result->string());
+        });
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, createCertificateSigningRequest, jobject credentials, jobject dnItems, jobject sanItems, jint keyId)
+{
+    NH_TRY
+    {
+        jni.requireParameter(credentials, "credentials");
+        jni.requireParameter(dnItems, "dnItems");
+        auto dn_items = ConvertStringMapFromJava(jni, dnItems);
+        auto san_items = ConvertStringListFromJava(jni, sanItems);
+        auto& specs = NH_SPECS();
+        auto request = THIS_OBJ()->createCertificateSigningRequest(jni.fromJava<Credentials>(specs.coreCredentials, credentials),
+                                                                   dn_items,
+                                                                   san_items,
+                                                                   jni.fromJava<SignatureKeyId>(specs.coreSignatureKeyId, keyId));
         return BuildCoreRequest(jni, request, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
             auto result = std::dynamic_pointer_cast<StringResponse>(response);
             if (!result) {

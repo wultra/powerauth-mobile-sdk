@@ -338,7 +338,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 
 - (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePassword*)password
                                                  withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
-                                               error: (NSError*_Nullable*_Nullable)error;
+                                                           error:(NSError*_Nullable*_Nullable)error;
 {
     if (![self requireWriteAccess:error]) {
         return nil;

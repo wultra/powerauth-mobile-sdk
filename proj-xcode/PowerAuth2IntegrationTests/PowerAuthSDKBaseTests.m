@@ -3124,7 +3124,7 @@
     XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     
-    /// Activation status fetch is now success. After application restart
+    /// Activation status fetch now succeeds. After application restart
     /// the protocol upgrade should be already confirmed.
     [_helper fetchActivationStatus];
     _sdk = [_helper reCreateSdkInstance];

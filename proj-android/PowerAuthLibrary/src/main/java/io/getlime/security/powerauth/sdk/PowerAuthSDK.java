@@ -35,6 +35,7 @@ import io.getlime.security.powerauth.biometry.*;
 import io.getlime.security.powerauth.core.*;
 import io.getlime.security.powerauth.core.response.CoreActivationResult;
 import io.getlime.security.powerauth.core.response.CoreActivationStatus;
+import io.getlime.security.powerauth.core.response.CoreProtocolUpgradeResult;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.keychain.Keychain;
@@ -1327,6 +1328,121 @@ public class PowerAuthSDK {
     @Deprecated // 1.7.10 - remove in 2.0.0
     public void removeActivationLocal(@NonNull Context context, boolean removeSharedBiometryKey) {
         removeActivationLocal(context);
+    }
+
+    // Protocol Upgrade
+
+    /**
+     * Start the protocol upgrade process.
+     *
+     * @param context Android context.
+     * @param password Required {@link Password} instance used to authenticate the protocol upgrade start.
+     * @param encryptedBiometryKey TODO
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running task.
+     */
+    public @Nullable
+    ICancelable startProtocolUpgrade(@NonNull final Context context,
+                                     @NonNull final Password password,
+                                     @Nullable final SecureData encryptedBiometryKey,
+                                     @NonNull final IProtocolUpgradeListener listener) {
+
+        try {
+            final CoreTask<CoreProtocolUpgradeResult> task = mSession.startProtocolUpgrade(password, encryptedBiometryKey);
+            return mClient.post(task, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable CoreProtocolUpgradeResult coreProtocolUpgradeResult) {
+                    final CoreProtocolUpgradeResult coreResult = Objects.requireNonNull(coreProtocolUpgradeResult);
+                    saveSerializedState();
+                    listener.onProtocolUpgradeSucceed(
+                            new ProtocolUpgradeResult(
+                                    coreResult.isActivationStatusFetchRequired(),
+                                    coreResult.getActivationFingerprint()
+                            )
+                    );
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onProtocolUpgradeFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+        } catch (CoreException e) {
+            dispatchCallback(() -> listener.onProtocolUpgradeFailed(PowerAuthErrorException.wrapException(e)));
+            return null;
+        }
+    }
+
+    /**
+     * Start the protocol upgrade process.
+     *
+     * @param context Android context.
+     * @param password Required password used to authenticate the protocol upgrade start.
+     * @param encryptedBiometryKey TODO
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running task.
+     */
+    public @Nullable
+    ICancelable startProtocolUpgrade(@NonNull final Context context,
+                                     @NonNull final String password,
+                                     @Nullable final SecureData encryptedBiometryKey,
+                                     @NonNull final IProtocolUpgradeListener listener) {
+        return startProtocolUpgrade(context, new Password(password), encryptedBiometryKey, listener);
+    }
+
+    /**
+     * Start the protocol upgrade process.
+     *
+     * @param context Android context.
+     * @param password Required {@link Password} instance used to authenticate the protocol upgrade start.
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running task.
+     */
+    public @Nullable
+    ICancelable startProtocolUpgrade(@NonNull final Context context,
+                                     @NonNull final Password password,
+                                     @NonNull final IProtocolUpgradeListener listener) {
+        return startProtocolUpgrade(context, password, null, listener);
+    }
+
+    /**
+     * Start the protocol upgrade process.
+     *
+     * @param context Android context.
+     * @param password Required password used to authenticate the protocol upgrade start.
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running task.
+     */
+    public @Nullable
+    ICancelable startProtocolUpgrade(@NonNull final Context context,
+                                     @NonNull final String password,
+                                     @NonNull final IProtocolUpgradeListener listener) {
+        return startProtocolUpgrade(context, new Password(password), null, listener);
+    }
+
+    /**
+     * Returns {@code true}, if there is a valid activation that has available protocol upgrade.
+     * Once the upgrade process has started, it contains {@code false}.
+     *
+     * @return {@code true} if protocol upgrade is available. {@code false} otherwise.
+     */
+    public boolean hasProtocolUpgradeAvailable() {
+        return mSession.hasProtocolUpgradeAvailable();
+    }
+
+    /**
+     * Returns {@code true} if the session has pending protocol upgrade, meaning the protocol
+     * upgrade process has started, but has not yet finished. Some SDK functionality may be
+     * temporarily blocked during the upgrade process.
+     *
+     * @return {@code true} if the protocol upgrade process is pending, {@code false} otherwise.
+     */
+    public boolean hasPendingProtocolUpgrade() {
+        return mSession.hasPendingProtocolUpgrade();
     }
 
     // Authentication codes

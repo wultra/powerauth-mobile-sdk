@@ -31,6 +31,7 @@
 #include <PowerAuth/Encryptor.h>
 #include <PowerAuth/ActivationResult.h>
 #include <PowerAuth/ActivationStatus.h>
+#include <PowerAuth/ProtocolUpgradeResult.h>
 
 #include <PowerAuth/PowerAuthSpec.h>
 #include <PowerAuth/Algorithms.h>

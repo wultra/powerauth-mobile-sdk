@@ -64,6 +64,7 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         spec.respServerStatus = jni.buildClassSpec<RespServerStatus>("io/getlime/security/powerauth/core/response/CoreServerStatus");
         spec.respActivationResult = jni.buildClassSpec<RespActivationResult>("io/getlime/security/powerauth/core/response/CoreActivationResult");
         spec.respActivationStatus = jni.buildClassSpec<RespActivationStatus>("io/getlime/security/powerauth/core/response/CoreActivationStatus");
+        spec.respProtocolUpgradeResult = jni.buildClassSpec<RespProtocolUpgradeResult>("io/getlime/security/powerauth/core/response/CoreProtocolUpgradeResult");
         spec.respTokenData = jni.buildClassSpec<RespTokenData>("io/getlime/security/powerauth/core/response/CoreTokenData");
 
         // Enums

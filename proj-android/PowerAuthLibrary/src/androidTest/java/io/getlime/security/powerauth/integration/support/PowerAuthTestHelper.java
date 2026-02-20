@@ -56,10 +56,10 @@ public class PowerAuthTestHelper {
     private final @Nullable Fragment testFragment;
 
     private @NonNull PowerAuthSDK sharedSdk;
-    private final @NonNull PowerAuthConfiguration sharedConfiguration;
-    private final @NonNull PowerAuthBiometricConfiguration sharedBiometricConfiguration;
-    private final @NonNull PowerAuthKeychainConfiguration sharedKeychainConfiguration;
-    private final @NonNull PowerAuthClientConfiguration sharedClientConfiguration;
+    private @NonNull PowerAuthConfiguration sharedConfiguration;
+    private @NonNull PowerAuthBiometricConfiguration sharedBiometricConfiguration;
+    private @NonNull PowerAuthKeychainConfiguration sharedKeychainConfiguration;
+    private @NonNull PowerAuthClientConfiguration sharedClientConfiguration;
 
     private final @NonNull ApplicationDetail sharedApplication;
     private final @NonNull ApplicationVersion sharedApplicationVersion;
@@ -591,6 +591,10 @@ public class PowerAuthTestHelper {
                 .keychainConfiguration(newKeychainConfiguration)
                 .build(getContext());
         sharedSdk = sdk;
+        sharedConfiguration = newConfiguration;
+        sharedBiometricConfiguration = newBiometricConfiguration;
+        sharedClientConfiguration = newClientConfiguration;
+        sharedKeychainConfiguration = newKeychainConfiguration;
         return sdk;
     }
 

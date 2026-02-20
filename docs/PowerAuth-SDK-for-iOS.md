@@ -1763,7 +1763,7 @@ powerAuthSDK.startProtocolUpgrade(password: "1234") { (result, error) in
             // Protocol upgrade is completed
         }
     } else {
-        // Error occured
+        // Error occurred
     }
 }
 ```
@@ -1771,7 +1771,7 @@ powerAuthSDK.startProtocolUpgrade(password: "1234") { (result, error) in
 If the call succeeds, the application must inspect the
 `activationStatusFetchRequired` field of the result object. If set to `true`,
 activation status fetch must be performed to complete the protocol upgrade. Only
-after successfull activation status fetch is the protocol upgrade considered
+after successful activation status fetch is the protocol upgrade considered
 completed. If the `activationStatusFetchRequired` field of the result object is
 set to `false`, the protocol upgrade is considered completed without any further
 action and the result object also contains new `activationFingerprint`. If an

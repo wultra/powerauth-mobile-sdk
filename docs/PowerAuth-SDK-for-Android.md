@@ -1948,7 +1948,7 @@ powerAuthSDK.startProtocolUpgrade(context, "password", object: IProtocolUpgradeL
     }
 
     override fun onProtocolUpgradeFailed(t: Throwable) {
-        // Error occured
+        // Error occurred
     }
 })
 ```
@@ -1956,7 +1956,7 @@ powerAuthSDK.startProtocolUpgrade(context, "password", object: IProtocolUpgradeL
 If the call succeeds, the application must inspect the
 `activationStatusFetchRequired` field of the result object. If set to `true`,
 activation status fetch must be performed to complete the protocol upgrade. Only
-after successfull activation status fetch is the protocol upgrade considered
+after successful activation status fetch is the protocol upgrade considered
 completed. If the `activationStatusFetchRequired` field of the result object is
 set to `false`, the protocol upgrade is considered completed without any further
 action and the result object also contains new `activationFingerprint`. If an

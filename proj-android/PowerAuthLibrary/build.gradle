@@ -156,6 +156,11 @@ tasks.register('verifyDebugSymbolsForRelease', Exec) {
     commandLine 'bash', '../../scripts/android-validate-build.sh', '--aar', "${buildDir}/outputs/aar/PowerAuthLibrary-release.aar"
 }
 
+// Uncomment to show usage of deprecated APIs
+//tasks.withType(JavaCompile).configureEach {
+//    options.compilerArgs += ["-Xlint:deprecation"]
+//}
+
 afterEvaluate {
     externalNativeBuildCleanDebug.dependsOn prepareOpenSSL
     externalNativeBuildCleanRelease.dependsOn prepareOpenSSL

@@ -70,10 +70,16 @@ PA2_EXTERN_C NSString * PA2MakeDefaultErrorDescription(PowerAuthErrorCode errorC
 /// Safe set nullable value to mutable dictionary.
 PA2_EXTERN_C void PA2DictionarySafeSet(NSMutableDictionary * dict, NSString * key, id value);
 
-/// Create NSError with using PA2MakeError function and set it to optional errorPtr.
+/// Create NSError with using PA2MakeError function and set it to optional errorPtr, which is type of `NSError**`.
 #define PA2SetError(errorPtr, errorCode, message)       \
     if (errorPtr) {                                     \
         *errorPtr = PA2MakeError(errorCode, message);   \
+    }
+
+/// Set existing NSError into optional errorPtr, which is type of `NSError**`.
+#define PA2SetExistingError(errorPtr, localError)       \
+    if (errorPtr) {                                     \
+        *errorPtr = localError;                         \
     }
 
 #if DEBUG

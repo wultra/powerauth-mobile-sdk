@@ -48,7 +48,8 @@
 @property (nonatomic, strong, nullable, readonly) LAContext *biometryContext API_UNAVAILABLE(watchos, tvos);
 
 /// If 'usePossession' is set to YES, this value may specify possession key data. If no custom data is specified, default possession key is used.
-@property (nonatomic, strong, nullable, readonly) PowerAuthCoreData *customPossessionKey;
+/// @deprecated The custom possession key is no longer supported.
+@property (nonatomic, strong, nullable, readonly) PowerAuthCoreData *overridenPossessionKey PA2_DEPRECATED(2.0.0);
 
 /// If 'useBiometry' is set to YES, this value may specify biometry key data. If no custom data is specified, default biometry key is used for the PowerAuthSDK instance, based on the keychain configuration and SDK instance configuration.
 @property (nonatomic, strong, nullable, readonly) PowerAuthCoreData *customBiometryKey;
@@ -75,9 +76,11 @@
 /// @param password Password used for the knowledge factor.
 /// @param customPossessionKey Custom key used for possession factor.
 /// @return Instance of authentication object configured for to persist activation with password and custom possession key.
+/// @deprecated The custom possession key is no longer supported.
 + (nonnull PowerAuthAuthentication*) persistWithPassword:(nonnull NSString*)password
                                      customPossessionKey:(nonnull PowerAuthCoreData*)customPossessionKey
-                        NS_SWIFT_NAME(persistWithPassword(password:customPossessionKey:));
+                        NS_SWIFT_NAME(persistWithPassword(password:customPossessionKey:))
+                        PA2_DEPRECATED(2.0.0);
 
 // Persist, Possession + Knowledge + Biometry
 
@@ -91,6 +94,17 @@
                         NS_SWIFT_NAME(persistWithPasswordAndBiometry(password:));
 
 /// Create a new instance of authentication object configured to persist activation with password and with biometry.
+/// This variant of function allows you to use custom keys for biometry.
+///
+/// Function is not available for App extensions and on watchOS.
+///
+/// @param password Password used for the knowledge factor.
+/// @param customBiometryKey Custom key used for biometry factor.
+/// @return Instance of authentication object configured to persist activation with password and biometry, allowing to use custom key for the biometry factor.
++ (nonnull PowerAuthAuthentication*) persistWithPasswordAndBiometry:(nonnull NSString*)password
+                                                  customBiometryKey:(nullable PowerAuthCoreData*)customBiometryKey;
+
+/// Create a new instance of authentication object configured to persist activation with password and with biometry.
 /// This variant of function allows you to use custom keys for biometry and possession factors.
 ///
 /// Function is not available for App extensions and on watchOS.
@@ -99,10 +113,12 @@
 /// @param customBiometryKey Custom key used for biometry factor.
 /// @param customPossessionKey Custom key used for possession factor.
 /// @return Instance of authentication object configured to persist activation with password and biometry, allowing to use custom keys for possession and biometry factors.
+/// @deprecated The custom possession key is no longer supported.
 + (nonnull PowerAuthAuthentication*) persistWithPasswordAndBiometry:(nonnull NSString*)password
                                                   customBiometryKey:(nullable PowerAuthCoreData*)customBiometryKey
                                                 customPossessionKey:(nullable PowerAuthCoreData*)customPossessionKey
-                        NS_SWIFT_NAME(persistWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:));
+                        NS_SWIFT_NAME(persistWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:))
+                        PA2_DEPRECATED(2.0.0);
 
 // Signing, Possession only
 
@@ -113,10 +129,12 @@
 /// Create a new instance of authentication object preconfigured for signing with a possession factor, with using custom possession key.
 /// @param customPossessionKey Custom key used for possession factor.
 /// @return Instance of PowerAuthAuthentication configured for signing with a possession factor with using custom possession key.
+/// @deprecated The custom possession key is no longer supported.
 + (nonnull PowerAuthAuthentication *) possessionWithCustomPossessionKey:(nonnull PowerAuthCoreData*)customPossessionKey
-                        NS_SWIFT_NAME(possession(customPossessionKey:));
+                        NS_SWIFT_NAME(possession(customPossessionKey:))
+                        PA2_DEPRECATED(2.0.0);
 
-// Signing, Possession + Biometry
+// Authentication, Possession + Biometry
 
 /// Create a new instance of authentication object preconfigured for signing with a possession and biometry factors.
 /// @return Instance of PowerAuthAuthentication configured for signing with a possession and biometry factors.
@@ -125,11 +143,19 @@
 
 /// Returns a new instance of authentication object preconfigured for a combination of possession and biometry factors.
 /// @param customBiometryKey Custom key used for biometry factor.
-/// @param customPossessionKey Custom key used for possession factor.
 /// @return New instance of authentication object configured for signing with a possession and biometry factors, with custom biometry and possession keys.
 + (nonnull PowerAuthAuthentication *) possessionWithBiometryWithCustomBiometryKey:(nullable PowerAuthCoreData*)customBiometryKey
+                        NS_SWIFT_NAME(possessionWithBiometry(customBiometryKey:));
+
+/// Returns a new instance of authentication object preconfigured for a combination of possession and biometry factors.
+/// @param customBiometryKey Custom key used for biometry factor.
+/// @param customPossessionKey Custom key used for possession factor.
+/// @return New instance of authentication object configured for signing with a possession and biometry factors, with custom biometry and possession keys.
+/// @deprecated The custom possession key is no longer supported.
++ (nonnull PowerAuthAuthentication *) possessionWithBiometryWithCustomBiometryKey:(nullable PowerAuthCoreData*)customBiometryKey
                                                               customPossessionKey:(nullable PowerAuthCoreData*)customPossessionKey
-                        NS_SWIFT_NAME(possessionWithBiometry(customBiometryKey:customPossessionKey:));
+                        NS_SWIFT_NAME(possessionWithBiometry(customBiometryKey:customPossessionKey:))
+                        PA2_DEPRECATED(2.0.0);
 
 /// Create a new instance of authentication object preconfigured for signign with combination of possession and biometry factors and with prompt,
 /// displayed in the system biometric authentication dialog.
@@ -142,9 +168,11 @@
 /// displayed in the system biometric authentication dialog. This variant of function allows you also use the custom possession key for the possession factor.
 /// @param biometryPrompt Prompt displayed in the system biometric authentication dialog.
 /// @return New instance of authentication object configured for signing with a custom possession key and biometry factors, with custom prompt displayed in the system biometric authentication dialog.
+/// @deprecated The custom possession key is no longer supported.
 + (nonnull PowerAuthAuthentication *) possessionWithBiometryPrompt:(nonnull NSString*)biometryPrompt
                                                customPossessionKey:(nonnull PowerAuthCoreData*)customPossessionKey
-                        NS_SWIFT_NAME(possessionWithBiometry(prompt:customPossessionKey:));
+                        NS_SWIFT_NAME(possessionWithBiometry(prompt:customPossessionKey:))
+                        PA2_DEPRECATED(2.0.0);
 
 /// Create a new instance of authentication object preconfigured for signing with combination of possession and biometry factors and with local
 /// authentication context. The context allows you to better customize the system biometric authentication dialog.
@@ -159,10 +187,12 @@
 /// you also use the custom possession key for the possession factor.
 /// @param context LAContext for the system biometric authentication dialog.
 /// @return New instance of authentication object configured for signing with a custom possession key and biometry factor, with local authentication context.
+/// @deprecated The custom possession key is no longer supported.
 + (nonnull PowerAuthAuthentication *) possessionWithBiometryContext:(nonnull LAContext*)context
                                                 customPossessionKey:(nonnull PowerAuthCoreData*)customPossessionKey
                         NS_SWIFT_NAME(possessionWithBiometry(context:customPossessionKey:))
-                        API_UNAVAILABLE(watchos, tvos);
+                        API_UNAVAILABLE(watchos, tvos)
+                        PA2_DEPRECATED(2.0.0);
 
 
 // Signing, Possession + Knowledge
@@ -176,10 +206,12 @@
 /// Create a new instance of authentication object preconfigured for combination of possesion and knowledge factors, with using custom possession key.
 /// @param password Password used for the knowledge factor.
 /// @param customPossessionKey Custom key used for possession factor.
-/// @return New instnace of authentication object configured for signing with custom possession key and knowledge factor.
+/// @return New instance of authentication object configured for signing with custom possession key and knowledge factor.
+/// @deprecated The custom possession key is no longer supported.
 + (nonnull PowerAuthAuthentication *) possessionWithPassword:(nonnull NSString*)password
                                          customPossessionKey:(nonnull PowerAuthCoreData*)customPossessionKey
-                        NS_SWIFT_NAME(possessionWithPassword(password:customPossessionKey:));
+                        NS_SWIFT_NAME(possessionWithPassword(password:customPossessionKey:))
+                        PA2_DEPRECATED(2.0.0);
 
 @end
 
@@ -203,9 +235,11 @@
 /// @param password PowerAuthCorePassword used for the knowledge factor.
 /// @param customPossessionKey Custom key used for possession factor.
 /// @return Instance of authentication object configured to persist activation with password and custom possession key.
+/// @deprecated The custom possession key is no longer supported.
 + (nonnull PowerAuthAuthentication*) persistWithCorePassword:(nonnull PowerAuthCorePassword*)password
                                          customPossessionKey:(nonnull PowerAuthCoreData*)customPossessionKey
-                            NS_SWIFT_NAME(persistWithPassword(password:customPossessionKey:));
+                            NS_SWIFT_NAME(persistWithPassword(password:customPossessionKey:))
+                            PA2_DEPRECATED(2.0.0);
 
 // Persist, Possession + Knowledge + Biometry
 
@@ -225,12 +259,26 @@
 ///
 /// @param password PowerAuthCorePassword used for the knowledge factor.
 /// @param customBiometryKey Custom key used for biometry factor.
+/// @return Instance of authentication object configured to persist activation with password and biometry, allowing to use custom keys for possession and biometry factors.
++ (nonnull PowerAuthAuthentication*) persistWithCorePasswordAndBiometry:(nonnull PowerAuthCorePassword*)password
+                                                      customBiometryKey:(nullable PowerAuthCoreData*)customBiometryKey
+                            NS_SWIFT_NAME(persistWithPasswordAndBiometry(password:customBiometryKey:));
+
+/// Create a new instance of authentication object configured to persist activation with password and with biometry.
+/// This variant of function allows you to use custom keys for biometry and possession factors.
+///
+/// Function is not available for App extensions and on watchOS.
+///
+/// @param password PowerAuthCorePassword used for the knowledge factor.
+/// @param customBiometryKey Custom key used for biometry factor.
 /// @param customPossessionKey Custom key used for possession factor.
-/// @return Instance of authentication object configured to persist activation with password and biometry, allowing to usecustom keys for possession and biometry factors.
+/// @return Instance of authentication object configured to persist activation with password and biometry, allowing to use custom keys for possession and biometry factors.
+/// @deprecated The custom possession key is no longer supported.
 + (nonnull PowerAuthAuthentication*) persistWithCorePasswordAndBiometry:(nonnull PowerAuthCorePassword*)password
                                                       customBiometryKey:(nullable PowerAuthCoreData*)customBiometryKey
                                                     customPossessionKey:(nullable PowerAuthCoreData*)customPossessionKey
-                            NS_SWIFT_NAME(persistWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:));
+                            NS_SWIFT_NAME(persistWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:))
+                            PA2_DEPRECATED(2.0.0);
 
 // Signing, Possession + Knowledge
 
@@ -243,9 +291,11 @@
 /// Create a new instance of authentication object preconfigured for combination of possesion and knowledge factors, with using custom possession key.
 /// @param password PowerAuthCorePassword used for the knowledge factor.
 /// @param customPossessionKey Custom key used for possession factor.
-/// @return New instnace of authentication object configured for signing with custom possession key and knowledge factor.
+/// @return New instance of authentication object configured for signing with custom possession key and knowledge factor.
+/// @deprecated The custom possession key is no longer supported.
 + (nonnull PowerAuthAuthentication *) possessionWithCorePassword:(nonnull PowerAuthCorePassword*)password
                                          customPossessionKey:(nonnull PowerAuthCoreData*)customPossessionKey
-                            NS_SWIFT_NAME(possessionWithPassword(password:customPossessionKey:));
+                            NS_SWIFT_NAME(possessionWithPassword(password:customPossessionKey:))
+                            PA2_DEPRECATED(2.0.0);
 
 @end

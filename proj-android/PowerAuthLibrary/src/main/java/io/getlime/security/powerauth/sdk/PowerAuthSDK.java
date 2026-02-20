@@ -214,9 +214,6 @@ public class PowerAuthSDK {
             // Prepare state listener
             final ISavePowerAuthStateListener stateListener = mStateListener != null ? mStateListener : new DefaultSavePowerAuthStateListener(statusKeychain);
 
-            // Prepare possession factor encryption key provider
-            final IDeviceSpecificDataProvider possessionEncryptionKeyProvider = new DefaultDeviceSpecificDataProvider();
-
             // Prepare time synchronization service and connect it with HTTP client.
             final TimeSynchronizationService timeSynchronizationService = new TimeSynchronizationService(sharedLock, session.getTimeService(), httpClient, mCallbackDispatcher);
             httpClient.setTimeSynchronizationService(timeSynchronizationService);

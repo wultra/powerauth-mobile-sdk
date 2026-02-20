@@ -418,7 +418,7 @@ static NSData * _BuildDeviceSpecificData(void)
         }
         // If localError variable is set, then we need to report an error.
         if (localError) {
-            if (error) { *error = localError; }
+            PA2SetExistingError(error, localError);
             return nil;
         }
         // No error generated, so create a fake biometry key to fail on the server.
@@ -453,7 +453,11 @@ static NSData * _BuildDeviceSpecificData(void)
                                                              error:(NSError **)error
 {
     // Validate authentication object usage
-    [authentication validateUsage:NO];
+    NSError * localError = [authentication validateUsage:NO];
+    if (localError) {
+        PA2SetExistingError(error, localError);
+        return nil;
+    }
     
     if (authentication.password) {
         // possession + knowledge
@@ -772,7 +776,7 @@ static PowerAuthSDK * s_inst;
     NSError * localError = nil;
     PowerAuthCoreTask * task = [self persistActivationInSession:authentication error:&localError];
     if (localError) {
-        if (error) *error = localError;
+        PA2SetExistingError(error, localError);
         return NO;
     }
     if (task) {
@@ -800,7 +804,11 @@ static PowerAuthSDK * s_inst;
 - (PowerAuthCoreTask*) persistActivationInSession:(PowerAuthAuthentication*)authentication error:(NSError**)error
 {
     // Validate authentication object usage
-    [authentication validateUsage:YES];
+    NSError * localError = [authentication validateUsage:YES];
+    if (localError) {
+        PA2SetExistingError(error, localError);
+        return nil;
+    }
     
     return [_sessionInterface writeTaskWithSession:^PowerAuthCoreTask* (PowerAuthCoreSession * session, NSError** error) {
         
@@ -811,13 +819,13 @@ static PowerAuthSDK * s_inst;
         PowerAuthCoreData *biometryKek = authentication.customBiometryKey;
         if (authentication.useBiometry && !biometryKek) {
             if (!(biometryKek = [session generateFactorKek:&localError])) {
-                if (error) *error = localError;
+                PA2SetExistingError(error, localError);
                 return nil;
             }
         }
         PowerAuthCoreTask * task = [session confirmActivationWithPassword:password withBiometryKek:biometryKek error:&localError];
         if (localError) {
-            if (error) *error = localError;
+            PA2SetExistingError(error, localError);
             return nil;
         }
         
@@ -1521,8 +1529,7 @@ static PowerAuthSDK * s_inst;
             if (biometryKey) {
                 // The biometry key is available, so create a new PowerAuthAuthentication object preconfigured
                 // with possession+biometry factors.
-                authentication = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:biometryKey
-                                                                                  customPossessionKey:nil];
+                authentication = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:biometryKey];
                 error = nil;
             } else {
                 // Otherwise report an error depending on whether the operation was canceled by the user.
@@ -1538,8 +1545,7 @@ static PowerAuthSDK * s_inst;
                     case LAErrorAuthenticationFailed:   // User failed to provide valid credentials.
                     case LAErrorBiometryLockout:        // Too many failed attempts, biometry is now locked out.
                         // Authentication failed, now it's time to generate the fake key
-                        authentication = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:[self generateInvalidBiometricKey]
-                                                                                          customPossessionKey:nil];
+                        authentication = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:[self generateInvalidBiometricKey]];
                         error = nil;
                         break;
                         

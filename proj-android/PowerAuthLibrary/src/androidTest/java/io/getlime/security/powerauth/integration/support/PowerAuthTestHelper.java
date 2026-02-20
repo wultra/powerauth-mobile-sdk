@@ -114,8 +114,6 @@ public class PowerAuthTestHelper {
         private ApplicationDetail sharedApplication;
         private ApplicationVersion sharedApplicationVersion;
 
-        private boolean authenticationUsageStrictMode = true;
-
         private @PowerAuthAlgorithm int powerAuthAlgorithm = PowerAuthAlgorithm.DEFAULT;
 
         /**
@@ -207,17 +205,6 @@ public class PowerAuthTestHelper {
             return this;
         }
 
-        /**
-         * Enable or disable strict mode for PowerAuthAuthentication usage. The default value is that
-         * strict mode is enabled. See {@link io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper#setStrictModeForUsageValidation(boolean)}.
-         * @param strictMode Enable or disable strict mode.
-         * @return Instance of this builder.
-         */
-        public @NonNull Builder powerAuthAuthenticationUsageValidationMode(boolean strictMode) {
-            this.authenticationUsageStrictMode = strictMode;
-            return this;
-        }
-
         public @NonNull Builder testFragmentActivity(@NonNull FragmentActivity activity) {
             this.testFragmentActivity = activity;
             return this;
@@ -249,8 +236,6 @@ public class PowerAuthTestHelper {
             // Prepare logger
             PowerAuthLog.setEnabled(true);
             PowerAuthLog.setVerbose(true);
-            // Prepare authentication validation mode
-            PowerAuthAuthenticationHelper.setStrictModeForUsageValidation(authenticationUsageStrictMode);
             // Prepare PowerAuthSDK configurations.
             final PowerAuthConfiguration configuration = prepareConfiguration();
             final PowerAuthBiometricConfiguration biometricConfiguration = prepareBiometricConfiguration();

@@ -307,7 +307,7 @@ public class DsaSignatureTest extends BaseTest {
     private void verifyDataSignedWithSignatureKeyId(@PowerAuthSignatureKeyId int signatureKeyId, SignatureType signatureType, PowerAuthAuthentication authentication, boolean shouldPass) throws Exception {
         final byte[] dataForSigning = "This is a very sensitive information and must be signed.".getBytes(StandardCharsets.UTF_8);
         byte[] resultSignature = AsyncHelper.await(resultCatcher -> {
-            ICancelable task = powerAuthSDK.calculateDigitalSignature(authentication, dataForSigning, signatureKeyId, new IDigitalSignatureListener() {
+            ICancelable task = powerAuthSDK.calculateDigitalSignature(testHelper.getContext(), authentication, dataForSigning, signatureKeyId, new IDigitalSignatureListener() {
                 @Override
                 public void onDigitalSignatureSucceed(@NonNull byte[] signature) {
                     resultCatcher.completeWithResult(signature);
@@ -506,7 +506,7 @@ public class DsaSignatureTest extends BaseTest {
     private void verifyJwsSignedWithSignatureKeyId(@PowerAuthSignatureKeyId int signatureKeyId, boolean compact, boolean strict, PowerAuthAuthentication authentication, boolean shouldPass) throws Exception {
         final byte[] dataForSigning = "This is a very sensitive information and must be signed.".getBytes(StandardCharsets.UTF_8);
         String resultSignature = AsyncHelper.await(resultCatcher -> {
-            ICancelable task = powerAuthSDK.calculateJwsSignature(authentication, dataForSigning, null, compact, signatureKeyId, new IJwsSignatureListener() {
+            ICancelable task = powerAuthSDK.calculateJwsSignature(testHelper.getContext(), authentication, dataForSigning, null, compact, signatureKeyId, new IJwsSignatureListener() {
                 @Override
                 public void onJwsSignatureSucceed(@NonNull String signedData, boolean compactForm) {
                     assertEquals(compact, compactForm);

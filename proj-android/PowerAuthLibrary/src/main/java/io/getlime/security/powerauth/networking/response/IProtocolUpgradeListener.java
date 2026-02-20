@@ -25,10 +25,10 @@ import androidx.annotation.NonNull;
 public interface IProtocolUpgradeListener {
 
     /**
-     * Called when the activation status retrieval finishes.
+     * Called when the protocol upgrade process finishes.
      * The returned {@link ProtocolUpgradeResult#isActivationStatusFetchRequired()} flag
      * may be {@code true}, indicating that an additional activation status fetch
-     * is required to complete the protocol upgrade process.
+     * is required to fully complete the protocol upgrade process.
      *
      * @param result Result of the protocol upgrade process.
      */

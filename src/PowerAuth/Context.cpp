@@ -270,9 +270,9 @@ std::shared_ptr<Context> Context::createTargetAlgorithmContext()
 
 void Context::resetState() noexcept
 {
-    _activation_service->resetState();
-    _key_provider->clearActivationKeys();
-    _encryptor_factory->resetActivationData();
+    for (const auto& service : _services) {
+        service->clearActivationData();
+    }
 }
 
 void Context::destroyTargetAlgorithmContext()

@@ -42,6 +42,14 @@ IServicePtr ActivationServiceV4::asService()
     return shared_from_this();
 }
 
+// MARK: - IService
+
+void ActivationServiceV4::clearActivationData()
+{
+    Service::clearActivationData();
+    resetState();
+}
+
 // MARK: - Activation creation
 
 RequestPtr ActivationServiceV4::createActivation(cc7::json::JsonValue L1_data, cc7::json::JsonValue L2_data)

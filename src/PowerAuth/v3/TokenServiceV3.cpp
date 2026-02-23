@@ -36,6 +36,13 @@ IServicePtr TokenServiceV3::asService()
     return shared_from_this();
 }
 
+void TokenServiceV3::clearActivationData()
+{
+    Service::clearActivationData();
+    LOCK_GUARD();
+    _nonce_generator->resetSavedState();
+}
+
 HttpHeader TokenServiceV3::calculateTokenHeader(const TokenAuthenticationData &token_data)
 {
     LOCK_GUARD();

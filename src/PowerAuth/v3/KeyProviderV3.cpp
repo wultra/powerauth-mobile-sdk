@@ -37,21 +37,27 @@ IServicePtr KeyProviderV3::asService()
 
 void KeyProviderV3::doServiceDestroy()
 {
-    clearSensitiveData();
+    Service::doServiceDestroy();
+    doClearSensitiveData();
 }
 
 void KeyProviderV3::clearSensitiveData()
 {
     Service::clearSensitiveData();
-    
+    doClearSensitiveData();
+}
+
+void KeyProviderV3::clearActivationData()
+{
+    Service::clearActivationData();
+    doClearSensitiveData();
+}
+
+void KeyProviderV3::doClearSensitiveData()
+{
     _device_public_key = nullptr;
     _server_public_key = nullptr;
 }
-
-//void KeyProviderV3::restoreSensitiveData()
-//{
-//    Service::restoreSensitiveData();
-//}
 
 ProtocolVersion KeyProviderV3::protocolVersion() const noexcept
 {

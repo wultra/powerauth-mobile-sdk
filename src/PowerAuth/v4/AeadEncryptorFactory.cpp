@@ -62,6 +62,12 @@ void AeadEncryptorFactory::doServiceDestroy()
     resetAllData();
 }
 
+void AeadEncryptorFactory::clearActivationData()
+{
+    Service::clearActivationData();
+    resetActivationData();
+}
+
 
 // MARK: - Public functions
 

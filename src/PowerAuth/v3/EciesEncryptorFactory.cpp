@@ -56,6 +56,12 @@ void EciesEncryptorFactory::doServiceDestroy()
     resetAllData();
 }
 
+void EciesEncryptorFactory::clearActivationData()
+{
+    Service::clearActivationData();
+    resetActivationData();
+}
+
 // MARK: - Public functions
 
 IServicePtr EciesEncryptorFactory::asService()

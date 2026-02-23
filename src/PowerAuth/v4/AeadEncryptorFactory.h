@@ -31,6 +31,9 @@ public:
     
     AeadEncryptorFactory(const ContextPtr& context);
     
+    // IService
+    void clearActivationData() override;
+    
     // IEncryptorFactory
     IServicePtr asService() override;
     

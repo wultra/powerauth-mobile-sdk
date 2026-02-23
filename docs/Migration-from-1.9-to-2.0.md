@@ -66,7 +66,7 @@ Notable changes on Android:
   - `IGenerateTokenHeaderListener` callback interface:
     - `onGenerateTokenHeaderSucceeded()` method now receives `PowerAuthHttpHeader` object.
 
-  - `ICreateCSRListener` callback interface is deprecated and replaced by `ICreateCertificateSigningRequestListener`. Be aware that the new interface takes `Throwable` instead of `PowerAuthErrorException` in case of failure. You can expect `FailedApiException` and similar exceptions if communication with the server failed.
+  - `ICreateCSRListener` callback interface is deprecated and replaced by `ICreateCertificateSigningRequestListener`. Be aware that the new interface reports `Throwable` instead of `PowerAuthErrorException` in case of failure. You can expect `FailedApiException` and similar exceptions if communication with the server failed.
 
   - `PowerAuthKeychainConfiguration` class:
     - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.

@@ -87,6 +87,55 @@ using namespace powerAuth;
     _hasDelegate = delegate != nil;
 }
 
+#pragma mark - Helpers
+
+/// Convert ObjC NSDictionary with NSString key and value into `std::map<std::string, std::string>` type.
+/// - Parameters:
+///   - dict: Input dictionary.
+///   - out_map: Reference to output map.
+/// - Returns: YES if success.
+static BOOL _ConvertDictToMap(NSDictionary<NSString*, NSString*>* dict, std::map<std::string, std::string>& out_map)
+{
+    __block std::map<std::string, std::string> map;
+    __block BOOL failure = NO;
+    [dict enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * value, BOOL * stop) {
+        if (![key isKindOfClass:[NSString class]] || ![value isKindOfClass:[NSString class]]) {
+            *stop = failure = YES;
+            return;
+        }
+        map[objc::CopyFromNSString(key)] = objc::CopyFromNSString(value);
+    }];
+    if (!failure) {
+        out_map = std::move(map);
+    }
+    return !failure;
+}
+
+/// Convert ObjC NSArray with NSString values into `std::vector<std::string>` type.
+/// - Parameters:
+///   - array: Input array.
+///   - out_vector: Reference to output vector.
+/// - Returns: YES if success.
+static BOOL _ConvertArrayToVector(NSArray<NSString*>* array, std::vector<std::string>& out_vector)
+{
+    __block std::vector<std::string> vector;
+    __block BOOL failure = NO;
+    vector.reserve(array.count);
+    [array enumerateObjectsUsingBlock:^(NSString * obj, NSUInteger idx, BOOL * stop) {
+        if (![obj isKindOfClass:[NSString class]]) {
+            *stop = failure = YES;
+            return;
+        }
+        vector.push_back(objc::CopyFromNSString(obj));
+    }];
+    
+    if (!failure) {
+        out_vector = std::move(vector);
+    }
+    return !failure;
+}
+
+
 #pragma mark - Read / Write access
 
 static void _ReportError(PowerAuthCoreError code, NSString * message, NSError ** outError)
@@ -536,16 +585,8 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 - (nullable NSData*) normalizeGetRequestParameters:(nonnull NSDictionary<NSString*, NSString*>*)parameters
                                              error:(NSError *_Nullable*_Nullable)error
 {
-    __block std::map<std::string, std::string> map;
-    __block BOOL failure = NO;
-    [parameters enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * value, BOOL * stop) {
-        if (![key isKindOfClass:[NSString class]] || ![value isKindOfClass:[NSString class]]) {
-            *stop = failure = YES;
-            return;
-        }
-        map[objc::CopyFromNSString(key)] = objc::CopyFromNSString(value);
-    }];
-    if (failure) {
+    std::map<std::string, std::string> map;
+    if (!_ConvertDictToMap(parameters, map)) {
         _ReportError(PowerAuthCoreError_WrongParameter, @"Wrong object type provided in parameters dictionary", error);
         return nil;
     }
@@ -777,6 +818,45 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
                                              cc7::objc::CopyFromNSString(dataType),
                                              static_cast<SignatureKeyId>(keyId),
                                              compactForm);
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto stringResponse = std::dynamic_pointer_cast<powerAuth::StringResponse>(response);
+            if (!stringResponse) {
+                throw Exception(EC_InternalError, "No StringResponse object created");
+            }
+            return cc7::objc::CopyToNSString(stringResponse->string());
+        }];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
+
+- (nullable PowerAuthCoreRequest*) createCertificateSigningRequest:(nonnull PowerAuthCoreCredentials*)credentials
+                                                           dnItems:(nonnull NSDictionary<NSString*, NSString*>*)dnItems
+                                                          sanItems:(nullable NSArray<NSString*>*)sanItems
+                                                             keyId:(PowerAuthCoreSignatureKeyId)keyId
+                                                             error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
+    try {
+        std::map<std::string, std::string> dn_items;
+        std::vector<std::string> san_items;
+        if (!_ConvertDictToMap(dnItems, dn_items)) {
+            _ReportError(PowerAuthCoreError_WrongParameter, @"Wrong object type provided in dnItems dictionary", error);
+            return nil;
+        }
+        if (!_ConvertArrayToVector(sanItems, san_items)) {
+            _ReportError(PowerAuthCoreError_WrongParameter, @"Wrong object type provided in sanItems array", error);
+            return nil;
+        }
+        auto request = _session->createCertificateSigningRequest(credentials.credentialsRef,
+                                                                 dn_items,
+                                                                 san_items,
+                                                                 static_cast<SignatureKeyId>(keyId));
         return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
             auto stringResponse = std::dynamic_pointer_cast<powerAuth::StringResponse>(response);
             if (!stringResponse) {

@@ -17,6 +17,8 @@
 package io.getlime.security.powerauth.integration.tests;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import android.text.TextUtils;
 import android.util.Base64;
 
@@ -40,6 +42,7 @@ import java.util.Objects;
 
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
+import io.getlime.security.powerauth.networking.response.ICreateCertificateSigningRequestListener;
 import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
 import io.getlime.security.powerauth.networking.response.IDigitalSignatureListener;
 import io.getlime.security.powerauth.networking.response.IJwsSignatureListener;
@@ -567,6 +570,66 @@ public class DsaSignatureTest extends BaseTest {
             default:
                 fail("Unsupported algorithm");
                 break;
+        }
+    }
+
+
+    void testCSR(@PowerAuthSignatureKeyId int keyId, @NonNull PowerAuthAuthentication authentication,
+                 @NonNull Map<String, String> dn, @Nullable List<String> san, boolean shouldPass) throws Exception {
+        String csr = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.createCertificateSigningRequest(testHelper.getContext(), authentication, dn, san, keyId, new ICreateCertificateSigningRequestListener() {
+                @Override
+                public void onCreateCertificateSigningRequestSucceed(@NonNull String certificateSigningRequest) {
+                    resultCatcher.completeWithResult(certificateSigningRequest);
+                }
+
+                @Override
+                public void onCreateCertificateSigningRequestFailed(@NonNull Throwable throwable) {
+                    resultCatcher.completeWithResult(null);
+                }
+            });
+        });
+        if (shouldPass) {
+            assertNotNull(csr);
+            assertTrue(csr.startsWith("-----BEGIN CERTIFICATE REQUEST-----"));
+            assertTrue(csr.endsWith("-----END CERTIFICATE REQUEST-----\n"));
+        } else {
+            assertNull(csr);
+        }
+    }
+
+    @Test
+    public void testCreateCertificateSigningRequest() throws Exception {
+        Map<String, String> dnItems = Map.of(
+                "C", "CZ",
+                "O", "Example",
+                "CN", "example.com"
+        );
+        List<String> sanItems = List.of("DNS:example.com", "DNS:www.example.com");
+        activationHelper.createStandardActivation(false, null);
+        PowerAuthAuthentication authentication = activationHelper.getValidAuthentication();
+        switch (getAlgorithmForTest()) {
+            case PowerAuthAlgorithm.EC_P384_ML_L3:
+            case PowerAuthAlgorithm.EC_P384_ML_L5:
+                testCSR(PowerAuthSignatureKeyId.DEVICE_EC, authentication,  dnItems, sanItems, true);
+                testCSR(PowerAuthSignatureKeyId.DEVICE_EC, authentication,  dnItems, null, true);
+                testCSR(PowerAuthSignatureKeyId.DEVICE_ML_DSA, authentication, dnItems, sanItems, true);
+                testCSR(PowerAuthSignatureKeyId.DEVICE_ML_DSA, authentication, dnItems, null, true);
+                testCSR(PowerAuthSignatureKeyId.DEVICE, authentication, dnItems, sanItems, false);
+                testCSR(PowerAuthSignatureKeyId.DEVICE, authentication, dnItems, null, false);
+                break;
+
+            case PowerAuthAlgorithm.EC_P384:
+            case PowerAuthAlgorithm.LEGACY_P256:
+                testCSR(PowerAuthSignatureKeyId.DEVICE_EC, authentication, dnItems, sanItems, true);
+                testCSR(PowerAuthSignatureKeyId.DEVICE_EC, authentication, dnItems, null, true);
+                testCSR(PowerAuthSignatureKeyId.DEVICE_ML_DSA, authentication, dnItems, sanItems,  false);
+                testCSR(PowerAuthSignatureKeyId.DEVICE_ML_DSA, authentication, dnItems, null,  false);
+                testCSR(PowerAuthSignatureKeyId.DEVICE, authentication, dnItems, sanItems, true);
+                testCSR(PowerAuthSignatureKeyId.DEVICE, authentication, dnItems, null, true);
+                break;
+            default:
+                throw new Exception("Unsupported algorithm");
         }
     }
 

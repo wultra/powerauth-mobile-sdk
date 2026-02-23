@@ -939,6 +939,24 @@
                                                      callback:(nonnull void(^)(NSString * _Nullable jws, NSError * _Nullable error))callback
             NS_SWIFT_NAME(calculateJwsSignature(authentication:forData:dataType:compact:withKey:callback:));
 
+/// Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and optional Subject Alternative Names,
+/// embedded device public key and signed with the device private key.
+///
+/// - Parameters:
+///   - authentication: The authentication object used for vault unlocking.
+///   - distinguishedNames: Distinguished Names (DN) to be embedded in the CSR. The dictionary keys are DN types (like "CN", "O", etc.) and values are corresponding DN values.
+///   - subjectAltNames: Optional array of Subject Alternative Names (SAN)
+///   - keyIdentifier: The identifier of the key used for the signature calculation.
+///   - callback: The callback method with the CSR in PEM format.
+/// - Returns: A `PowerAuthOperationTask` associated with the running request,
+///            or `nil` if input validation fails.
+- (nullable id<PowerAuthOperationTask>) createCertificateSigningRequestWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                                       distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                                          subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                                                            keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                                                                                 callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback
+            NS_SWIFT_NAME(createCertificateSigningRequest(authentication:distinguishedNames:subjectAltNames:keyIdentifier:callback:));
+
 // Deprecated methods
 
 /**
@@ -983,6 +1001,21 @@
                       signature:(nonnull NSString*)signature
                       masterKey:(BOOL)masterKey
                         PA2_DEPRECATED(2.0.0);
+
+/** Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and optional Subject Alternative Names, embedded device public key and signed with the device private key.
+ 
+ @param authentication Authentication used for vault unlocking call.
+ @param distinguishedNames Distinguished Names (DN) to be embedded in the CSR. The dictionary keys are DN types (like "CN", "O", etc.) and values are corresponding DN values.
+ @param subjectAltNames Optional array of Subject Alternative Names (SAN)
+ @param callback The callback method with the CSR in PEM format with lines separated by `\n` (including `-----BEGIN CERTIFICATE REQUEST`----- and `-----END CERTIFICATE REQUEST-----` lines).
+ @return PowerAuthOperationTask associated with the running request.
+ @deprecated Use `createCertificateSigningRequest(with:distinguishedNames:subjectAltNames:keyIdentifier:callback:)` as replacement.
+ */
+- (nullable id<PowerAuthOperationTask>) createSignedCSRWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                       distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                          subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                                                 callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback
+                                                                    PA2_DEPRECATED(2.0.0);
 
 @end
 

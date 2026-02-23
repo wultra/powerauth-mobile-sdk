@@ -423,6 +423,15 @@ RequestPtr Session::jwsSignData(const CredentialsPtr& credentials,
     return _context->signatureService().jwsSignData(credentials, data_to_sign, data_type, key_to_use, use_compact_form);
 }
 
+RequestPtr Session::createCertificateSigningRequest(const CredentialsPtr& credentials,
+                                                    const std::map<std::string, std::string>& dn_items,
+                                                    const std::vector<std::string>& san_items,
+                                                    SignatureKeyId key_to_use) const
+{
+    LOCK_GUARD();
+    return _context->signatureService().createCSR(credentials, dn_items, san_items, key_to_use);
+}
+
 // MARK: - EEK
 
 bool Session::hasExternalEncryptionKey() const noexcept

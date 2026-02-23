@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.core;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 import io.getlime.security.powerauth.core.response.CoreActivationResult;
@@ -413,6 +414,26 @@ public class CoreSession extends NativeObject {
                                                   boolean compactForm,
                                                   @NonNull CoreCredentials credentials,
                                                   @CoreSignatureKeyId int keyId) throws CoreException;
+
+    /**
+     * Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and
+     * optional Subject Alternative Names, embedded device public key and signed with the device
+     * private key. If the request succeeds, the response contains a {@code String} with
+     * the CSR in PEM format.
+     *
+     * @param credentials Credentials to use to unlock the device private key.
+     * @param dnItems Map with distinguished names.
+     * @param sanItems Optional subject alternative names.
+     * @param keyId Key used for signature calculation. The key must support sign operation.
+     * @return {@link CoreRequest} object containing all required information for unlocking device
+     *         private key.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreRequest<String> createCertificateSigningRequest(@NonNull CoreCredentials credentials,
+                                                                      @NonNull Map<String, String> dnItems,
+                                                                      @Nullable List<String> sanItems,
+                                                                      @CoreSignatureKeyId int keyId) throws CoreException;
 
     // EEK
 

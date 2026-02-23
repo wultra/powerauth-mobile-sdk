@@ -42,6 +42,7 @@ Notable changes on Android:
     - `signDataWithDevicePrivateKey()` - use `calculateDigitalSignature()` method where you can specify the key used for signing.
     - `signJwtWithDevicePrivateKey()` - use `calculateJwsSignature()` method where you can specify the key used for signing.
     - `verifyServerSignedData()` - use `verifyDigitalSignature()` method where you can specify the key used for verification.
+    - `createSignedCSR()` - use `createCertificateSigningRequest()` method where you can specify the key to use for CSR creation.
     - `fetchEncryptionKey()` - method is effective only if PowerAuthSDK is running at protocol 3.3 and will be removed once we drop support for this legacy protocol. Meanwhile you can migrate to the new `fetchSecureVaultKey()` method providing a better flexibility for secure vault operations.
     - `saveSerializedState()` - method is now private
     - `restoreState()` - method is now private
@@ -70,6 +71,8 @@ Notable changes on Android:
 
   - `IGenerateTokenHeaderListener` callback interface:
     - `onGenerateTokenHeaderSucceeded()` method now receives `PowerAuthHttpHeader` object.
+
+  - `ICreateCSRListener` callback interface is deprecated and replaced by `ICreateCertificateSigningRequestListener`. Be aware that the new interface reports `Throwable` instead of `PowerAuthErrorException` in case of failure. You can expect `FailedApiException` and similar exceptions if communication with the server failed.
 
   - `PowerAuthKeychainConfiguration` class:
     - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
@@ -178,6 +181,7 @@ Notable changes on iOS:
     - `verifyServerSignedData(_:signature:masterKey:)` - use `verifyDigitalSignature(signature:forData:withKey:)` method where you can specify the key for verification.
     - `signData(withDevicePrivateKey:data:callback:)` - use `calculateDigitalSignature(authentication:forData:withKey:callback:)` method where you can specify the key for signing.
     - `signJwt(withDevicePrivateKey:claims:callback:)` - use `calculateJwsSignature(authentication:forData:dataType:compact:withKey:callback:)` method where you can specify the key for signing and format of token.
+    - `createSignedCSR(with:distinguishedNames:subjectAltNames:callback)` - use `createCertificateSigningRequest(authentication:distinguishedNames:subjectAltNames:keyIdentifier:callback:)` method where you can specify the key to use for CSR creation.
     - `fetchEncryptionKey(_:index:callback:)` - method is effective only if PowerAuthSDK is running at protocol 3.3 and will be removed once we drop support for this legacy protocol. Meanwhile you can migrate to the new `fetchSecureVaultKey(authentication:keyIdentifier:callback:)` method providing a better flexibility for secure vault operations.
 
   - `PowerAuthConfiguration` class:

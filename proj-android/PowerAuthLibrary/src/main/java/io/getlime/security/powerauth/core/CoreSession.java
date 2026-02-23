@@ -257,6 +257,39 @@ public class CoreSession extends NativeObject {
      */
     public native CoreRequest<Object> verifyPassword(@NonNull Password password) throws CoreException;
 
+    /**
+     * Change user's password.
+     *
+     * @param oldPassword Old password.
+     * @param newPassword New password.
+     * @return {@link CoreRequest} in case that operation require communication with the server,
+     *         or {@code null} in case the password has been changed synchronously.
+     * @throws CoreException In case of failure.
+     */
+    @Nullable
+    public native CoreRequest<Object> changePassword(@NonNull Password oldPassword, @NonNull Password newPassword) throws CoreException;
+
+    /**
+     * Add biometry factor.
+     *
+     * @param password User's password.
+     * @param biometryKek New biometry KEK.
+     * @return {@link CoreRequest} object containing all required information for biometry add.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreRequest<Object> addBiometryFactor(@NonNull Password password, @NonNull SecureData biometryKek) throws CoreException;
+
+    /**
+     * Remove biometry factor.
+     *
+     * @return {@link CoreRequest} in case that operation require communication with the server,
+     *         or {@code null} in case the biometry has been removed synchronously.
+     * @throws CoreException In case of failure.
+     */
+    @Nullable
+    public native CoreRequest<Object> removeBiometryFactor() throws CoreException;
+
     // Authentication
 
     /**

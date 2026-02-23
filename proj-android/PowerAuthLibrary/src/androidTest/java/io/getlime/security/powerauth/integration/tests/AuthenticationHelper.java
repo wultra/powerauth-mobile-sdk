@@ -60,7 +60,20 @@ public class AuthenticationHelper {
      * @param nonce Random nonce.
      * @return Normalized string.
      */
-    public @NonNull String normalizeOnlineData(@Nullable byte[] body, @NonNull String method, @NonNull String uriId, @NonNull String nonce) {
+    public static @NonNull String normalizeOnlineData(@Nullable byte[] body, @NonNull String method, @NonNull String uriId, @NonNull String nonce) {
+        return normalizeImpl(body, method, uriId, nonce);
+    }
+
+    /**
+     * Normalize data for online signature verification.
+     * @param bodyBase64 Request body in Base64 format
+     * @param method Request method.
+     * @param uriId URI identifier.
+     * @param nonce Random nonce.
+     * @return Normalized string.
+     */
+    public static @NonNull String normalizeOnlineData(@NonNull String bodyBase64, @NonNull String method, @NonNull String uriId, @NonNull String nonce) {
+        byte[] body = Base64.decode(bodyBase64, Base64.NO_WRAP);
         return normalizeImpl(body, method, uriId, nonce);
     }
 
@@ -71,7 +84,19 @@ public class AuthenticationHelper {
      * @param nonce Random nonce.
      * @return Normalized string.
      */
-    public @NonNull String normalizeOfflineData(@Nullable byte[] body, @NonNull String uriId, @NonNull String nonce) {
+    public static @NonNull String normalizeOfflineData(@Nullable byte[] body, @NonNull String uriId, @NonNull String nonce) {
+        return normalizeImpl(body, "POST", uriId, nonce);
+    }
+
+    /**
+     * Normalize data for offline signature verification.
+     * @param bodyBase64 Request body in Base64 format
+     * @param uriId URI identifier.
+     * @param nonce Random nonce.
+     * @return Normalized string.
+     */
+    public static @NonNull String normalizeOfflineData(@NonNull String bodyBase64, @NonNull String uriId, @NonNull String nonce) {
+        byte[] body = Base64.decode(bodyBase64, Base64.NO_WRAP);
         return normalizeImpl(body, "POST", uriId, nonce);
     }
 
@@ -83,7 +108,7 @@ public class AuthenticationHelper {
      * @param nonce Random nonce.
      * @return Normalized string.
      */
-    private @NonNull String normalizeImpl(@Nullable byte[] body, @NonNull String method, @NonNull String uriId, @NonNull String nonce) {
+    private static @NonNull String normalizeImpl(@Nullable byte[] body, @NonNull String method, @NonNull String uriId, @NonNull String nonce) {
         if (body == null) {
             body = new byte[0];
         }
@@ -97,7 +122,7 @@ public class AuthenticationHelper {
      * @param header Token header.
      * @return Key-Value components.
      */
-    public @NonNull Map<String, String> parseAuthenticationHeader(@NonNull PowerAuthHttpHeader header) {
+    public static @NonNull Map<String, String> parseAuthenticationHeader(@NonNull PowerAuthHttpHeader header) {
         String value = header.getValue();
         assertNotNull(value);
         assertTrue(value.startsWith("PowerAuth "));

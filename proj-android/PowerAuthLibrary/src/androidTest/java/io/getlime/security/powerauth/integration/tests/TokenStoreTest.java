@@ -386,7 +386,7 @@ public class TokenStoreTest extends BaseTest {
         });
 
         assertEquals("X-PowerAuth-Token", header.getKey());
-        Map<String, String> headerComponents = authenticationHelper.parseAuthenticationHeader(header);
+        Map<String, String> headerComponents = AuthenticationHelper.parseAuthenticationHeader(header);
         // Validate values
         assertEquals(testHelper.getProtocolVersionForHeader(), headerComponents.get("version"));
         assertEquals(token.getTokenIdentifier(), headerComponents.get("token_id"));

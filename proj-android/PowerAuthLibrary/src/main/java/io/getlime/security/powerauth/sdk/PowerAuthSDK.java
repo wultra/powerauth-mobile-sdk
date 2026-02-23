@@ -1927,9 +1927,9 @@ public class PowerAuthSDK {
      * @param oldPassword Old password, currently set to store the data.
      * @param newPassword New password to be set to store the data.
      * @return Returns 'true' in case password was changed without error, 'false' otherwise.
-     * @deprecated Method is deprecated, use {@link #changePassword(Context, String, String, IChangePasswordListener)} as a replacement.
+     * @deprecated Methods {@link #beginPasswordChange(Context, String, IBeginPasswordChangeListener)} and {@link #finishPasswordChange(Context, String, PowerAuthPasswordChangeData, IFinishPasswordChangeListener)} should be used instead.
      */
-    @Deprecated // 2.0.0
+    @Deprecated(since = "2.0.0")
     public boolean changePasswordUnsafe(@NonNull final String oldPassword, @NonNull final String newPassword) {
         return changePasswordUnsafeImpl(new Password(oldPassword), new Password(newPassword));
     }
@@ -1944,9 +1944,9 @@ public class PowerAuthSDK {
      * @param oldPassword Old password, currently set to store the data.
      * @param newPassword New password to be set to store the data.
      * @return Returns 'true' in case password was changed without error, 'false' otherwise.
-     * @deprecated Method is deprecated, use {@link #changePassword(Context, Password, Password, IChangePasswordListener)} as a replacement.
+     * @deprecated Methods {@link #beginPasswordChange(Context, String, IBeginPasswordChangeListener)} and {@link #finishPasswordChange(Context, String, PowerAuthPasswordChangeData, IFinishPasswordChangeListener)} should be used instead.
      */
-    @Deprecated // 2.0.0
+    @Deprecated(since = "2.0.0")
     public boolean changePasswordUnsafe(@NonNull final Password oldPassword, @NonNull final Password newPassword) {
         return changePasswordUnsafeImpl(oldPassword, newPassword);
     }
@@ -1960,63 +1960,181 @@ public class PowerAuthSDK {
      */
     //@Deprecated // 2.0.0
     private boolean changePasswordUnsafeImpl(@NonNull final Password oldPassword, @NonNull final Password newPassword) {
-        // TODO: missing impl
-        return false;
-//        final int result = mSession.changeUserPassword(oldPassword, newPassword);
-//        if (result == ErrorCode.OK) {
-//            saveSerializedState();
-//            return true;
-//        }
-//        return false;
+        try {
+            final CoreRequest<Object> request = mSession.changePassword(oldPassword, newPassword);
+            if (request != null) {
+                request.cancel();
+                PowerAuthLog.d("Synchronous password change is not supported at this protocol version");
+                return false;
+            }
+
+            saveSerializedState();
+            return true;
+        } catch (CoreException e) {
+            return false;
+        }
     }
 
     /**
-     * Validate old password by calling a PowerAuth REST API and if it's correct, then change the password to new one.
+     * Change the password.
      *
      * @param context     Context.
-     * @param oldPassword Old password, currently set to store the data.
-     * @param newPassword New password, to be set in case authentication with old password passes.
+     * @param oldPassword The password currently set to store the data.
+     * @param newPassword New password to be set.
      * @param listener    The callback method with the password change result.
      * @return {@link ICancelable} object associated with the running HTTP request.
+     * @deprecated Methods {@link #beginPasswordChange(Context, String, IBeginPasswordChangeListener)} and {@link #finishPasswordChange(Context, String, PowerAuthPasswordChangeData, IFinishPasswordChangeListener)} should be used instead.
      */
+    @Deprecated(since = "2.0.0")
     public @Nullable
     ICancelable changePassword(@NonNull Context context, @NonNull final String oldPassword, @NonNull final String newPassword, @NonNull final IChangePasswordListener listener) {
         return changePassword(context, new Password(oldPassword), new Password(newPassword), listener);
     }
 
     /**
-     * Validate old password by calling a PowerAuth REST API and if it's correct, then change the password to new one.
+     * Change the password.
      *
      * @param context     Context.
-     * @param oldPassword Old password, currently set to store the data.
-     * @param newPassword New password, to be set in case authentication with old password passes.
+     * @param oldPassword The password currently set to store the data.
+     * @param newPassword New password to be set.
      * @param listener    The callback method with the password change result.
+     * @return {@link ICancelable} object associated with the running HTTP request.
+     * @deprecated Methods {@link #beginPasswordChange(Context, Password, IBeginPasswordChangeListener)} and {@link #finishPasswordChange(Context, Password, PowerAuthPasswordChangeData, IFinishPasswordChangeListener)} should be used instead.
+     */
+    @Deprecated(since = "2.0.0")
+    public @Nullable
+    ICancelable changePassword(@NonNull Context context, @NonNull final Password oldPassword, @NonNull final Password newPassword, @NonNull final IChangePasswordListener listener) {
+        return finishPasswordChange(context, newPassword, new PowerAuthPasswordChangeData(oldPassword), new IFinishPasswordChangeListener() {
+            @Override
+            public void onFinishPasswordChangeSucceed() {
+                listener.onPasswordChangeSucceed();
+            }
+
+            @Override
+            public void onFinishPasswordChangeFailed(@NonNull Throwable throwable) {
+                listener.onPasswordChangeFailed(throwable);
+            }
+        });
+    }
+
+    /**
+     * Initiates the first step of a two-step password change operation by validating the user's
+     * current password. The provided password is used to compute the appropriate authentication
+     * header required for password verification. If the verification succeeds,
+     * the `PowerAuthPasswordChangeData` object is received, which is required to complete
+     * the second step.
+     *
+     * @param context     Context.
+     * @param oldPassword The password currently set to store the data.
+     * @param listener    The callback method providing either the password-change data needed
+     *                    for the next step, or an error if verification fails.
      * @return {@link ICancelable} object associated with the running HTTP request.
      */
     public @Nullable
-    ICancelable changePassword(@NonNull Context context, @NonNull final Password oldPassword, @NonNull final Password newPassword, @NonNull final IChangePasswordListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onPasswordChangeFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
+    ICancelable beginPasswordChange(@NonNull Context context, @NonNull final String oldPassword, @NonNull final IBeginPasswordChangeListener listener) {
+        return beginPasswordChange(context, new Password(oldPassword), listener);
+    }
+
+    /**
+     * Initiates the first step of a two-step password change operation by validating the user's
+     * current password. The provided password is used to compute the appropriate authentication
+     * header required for password verification. If the verification succeeds,
+     * the {@link PowerAuthPasswordChangeData} object is received, which is required to complete
+     * the second step.
+     *
+     * @param context     Context.
+     * @param oldPassword The password currently set to store the data.
+     * @param listener    The callback method providing either the password-change data needed
+     *                    for the next step, or an error if verification fails.
+     * @return {@link ICancelable} object associated with the running HTTP request.
+     */
+    public @Nullable
+    ICancelable beginPasswordChange(@NonNull Context context, @NonNull final Password oldPassword, @NonNull final IBeginPasswordChangeListener listener) {
+        try {
+            final CoreRequest<Object> request = mSession.verifyPassword(oldPassword);
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable Object o) {
+                    listener.onBeginPasswordChangeSucceed(new PowerAuthPasswordChangeData(oldPassword));
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onBeginPasswordChangeFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+        } catch (CoreException e) {
+            dispatchCallback(() -> listener.onBeginPasswordChangeFailed(PowerAuthErrorException.wrapException(e)));
+        }
         return null;
-//        // At first, validate the old password
-//        return validatePassword(context, oldPassword, new IValidatePasswordListener() {
-//            @Override
-//            public void onPasswordValid() {
-//                // Old password is valid, so let's change it to new one
-//                final int result = mSession.changeUserPassword(oldPassword, newPassword);
-//                if (result == ErrorCode.OK) {
-//                    // Update state
-//                    saveSerializedState();
-//                    listener.onPasswordChangeSucceed();
-//                } else {
-//                    listener.onPasswordChangeFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
-//                }
-//            }
-//
-//            @Override
-//            public void onPasswordValidationFailed(@NonNull Throwable t) {
-//                listener.onPasswordChangeFailed(t);
-//            }
-//        });
+    }
+
+    /**
+     * Completes the second step of a two-step password change operation by submitting new password.
+     * The SDK uses the {@link PowerAuthPasswordChangeData} object obtained in the first step
+     * to calculate the necessary authentication header for finalizing the password change.
+     *
+     * @param context     Context.
+     * @param newPassword The new password to be set for the user.
+     * @param changeData  The password-change data obtained from the first step {@link #beginPasswordChange(Context, String, IBeginPasswordChangeListener)}.
+     * @param listener    The callback method with the password change result.
+     * @return            {@link ICancelable} object associated with the running HTTP request,
+     *                    or {@code null}, if there's no additional asynchronous operation required.
+     */
+    public @Nullable
+    ICancelable finishPasswordChange(@NonNull Context context, @NonNull String newPassword, @NonNull final PowerAuthPasswordChangeData changeData, @NonNull final IFinishPasswordChangeListener listener) {
+        return finishPasswordChange(context, new Password(newPassword), changeData, listener);
+    }
+
+    /**
+     * Completes the second step of a two-step password change operation by submitting new password.
+     * The SDK uses the {@link PowerAuthPasswordChangeData} object obtained in the first step
+     * to calculate the necessary authentication header for finalizing the password change.
+     *
+     * @param context     Context.
+     * @param newPassword The new password to be set for the user.
+     * @param changeData  The password-change data obtained from the first step {@link #beginPasswordChange(Context, Password, IBeginPasswordChangeListener)}.
+     * @param listener    The callback method with the password change result.
+     * @return            {@link ICancelable} object associated with the running HTTP request,
+     *                    or {@code null}, if there's no additional asynchronous operation required.
+     */
+    public @Nullable
+    ICancelable finishPasswordChange(@NonNull Context context, @NonNull Password newPassword, @NonNull final PowerAuthPasswordChangeData changeData, @NonNull final IFinishPasswordChangeListener listener) {
+        try {
+            final CoreRequest<Object> request = mSession.changePassword(changeData.getOldPassword(), newPassword);
+            if (request == null) {
+                // V3 change password is executed immediately. It's OK to exit immediately,
+                // because there's no additional asynchronous operation required. So, we can
+                // end here for both, successful and failure scenarios.
+                saveSerializedState();
+                dispatchCallback(listener::onFinishPasswordChangeSucceed);
+                return null;
+            }
+
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable Object o) {
+                    saveSerializedState();
+                    listener.onFinishPasswordChangeSucceed();
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onFinishPasswordChangeFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+        } catch (CoreException e) {
+            dispatchCallback(() -> listener.onFinishPasswordChangeFailed(PowerAuthErrorException.wrapException(e)));
+        }
+        return null;
     }
 
     /**
@@ -2095,7 +2213,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @Nullable
-    @Deprecated // 2.0.0
+    @Deprecated(since = "2.0.0")
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull Fragment fragment,
@@ -2122,7 +2240,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @Nullable
-    @Deprecated // 2.0.0
+    @Deprecated(since = "2.0.0")
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull Fragment fragment,
@@ -2149,7 +2267,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @Nullable
-    @Deprecated // 2.0.0
+    @Deprecated(since = "2.0.0")
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull FragmentActivity fragmentActivity,
@@ -2176,7 +2294,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @Nullable
-    @Deprecated // 2.0.0
+    @Deprecated(since = "2.0.0")
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull FragmentActivity fragmentActivity,
@@ -2206,75 +2324,35 @@ public class PowerAuthSDK {
             @NonNull Password password,
             @NonNull final IAddBiometryFactorListener listener) {
 
-        mCallbackDispatcher.dispatchCallback(() -> listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
-        return null;
+        final CompositeCancelableTask composite = new CompositeCancelableTask(true);
+        final ICancelable biometricDialogTask = authenticateUsingBiometrics(context, prompt, true, new IBiometricAuthenticationCallback() {
+            @Override
+            public void onBiometricDialogCancelled(boolean userCancel) {
+                if (userCancel) {
+                    if (composite.setCompleted()) {
+                        listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_CANCEL));
+                    }
+                }
+            }
 
-//        // Initial authentication object, used for vault unlock call on server
-//        final PowerAuthAuthentication authAuthentication = PowerAuthAuthentication.possessionWithPassword(password);
-//
-//        // Fetch vault unlock key
-//        final CompositeCancelableTask compositeCancelableTask = new CompositeCancelableTask(true);
-//        final ICancelable httpRequest = fetchEncryptedVaultUnlockKey(context, authAuthentication, VaultUnlockReason.ADD_BIOMETRY, new IFetchEncryptedVaultUnlockKeyListener() {
-//
-//            @Override
-//            public void onFetchEncryptedVaultUnlockKeySucceed(final String encryptedEncryptionKey) {
-//                if (encryptedEncryptionKey != null) {
-//                    // Authenticate using biometry to generate a key
-//                    final ICancelable biometricAuthentication = authenticateUsingBiometrics(context, prompt, true, new IBiometricAuthenticationCallback() {
-//                        @Override
-//                        public void onBiometricDialogCancelled(boolean userCancel) {
-//                            if (userCancel) {
-//                                if (compositeCancelableTask.setCompleted()) {
-//                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_CANCEL));
-//                                }
-//                            }
-//                        }
-//
-//                        @Override
-//                        public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
-//                            // Let's add the biometry key
-//                            SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), biometricKeyData.getDerivedData(), null);
-//                            final int result = mSession.addBiometryFactor(encryptedEncryptionKey, keys);
-//                            if (result == ErrorCode.OK) {
-//                                // Update state after each successful calculations
-//                                saveSerializedState();
-//                                if (compositeCancelableTask.setCompleted()) {
-//                                    listener.onAddBiometryFactorSucceed();
-//                                }
-//                            } else {
-//                                if (compositeCancelableTask.setCompleted()) {
-//                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
-//                                }
-//                            }
-//                        }
-//
-//                        @Override
-//                        public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
-//                            if (compositeCancelableTask.setCompleted()) {
-//                                listener.onAddBiometryFactorFailed(error);
-//                            }
-//                        }
-//                    });
-//                    compositeCancelableTask.addCancelable(biometricAuthentication);
-//                } else {
-//                    if (compositeCancelableTask.setCompleted()) {
-//                        listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA));
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
-//                if (compositeCancelableTask.setCompleted()) {
-//                    listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, t));
-//                }
-//            }
-//        });
-//        if (httpRequest != null) {
-//            compositeCancelableTask.addCancelable(httpRequest);
-//            return compositeCancelableTask;
-//        }
-//        return null;
+            @Override
+            public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
+                final ICancelable addBiometryTask = addBiometryFactorImpl(context, password, biometricKeyData.getDerivedData(), listener);
+                if (addBiometryTask != null) {
+                    composite.addCancelable(addBiometryTask);
+                } else {
+                    composite.setCompleted();
+                }
+            }
+
+            @Override
+            public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
+                listener.onAddBiometryFactorFailed(error);
+            }
+        });
+
+        composite.addCancelable(biometricDialogTask);
+        return composite;
     }
 
     /**
@@ -2320,35 +2398,47 @@ public class PowerAuthSDK {
             @NonNull Password password,
             final @NonNull SecureData encryptedBiometryKey,
             final @NonNull IAddBiometryFactorListener listener) {
-        mCallbackDispatcher.dispatchCallback(() -> listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented")));
+        return addBiometryFactorImpl(context, password, encryptedBiometryKey, listener);
+    }
+
+    /**
+     * Private method that adds a biometric factor key when the biometric key
+     * is managed by the caller or obtained in advance.
+     *
+     * @param context  Context.
+     * @param password Password used for authentication during vault unlocking call.
+     * @param encryptedBiometryKey Encrypted biometry key used for storing biometry related factor key.
+     * @param listener The callback method with the operation result.
+     * @return {@link ICancelable} object associated with the running HTTP request.
+     */
+    private @Nullable
+    ICancelable addBiometryFactorImpl(
+            final @NonNull Context context,
+            @NonNull Password password,
+            final @NonNull SecureData encryptedBiometryKey,
+            final @NonNull IAddBiometryFactorListener listener) {
+        try {
+            final CoreRequest<Object> request = mSession.addBiometryFactor(password, encryptedBiometryKey);
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable Object o) {
+                    saveSerializedState();
+                    listener.onAddBiometryFactorSucceed();
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(throwable));
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+        } catch (CoreException e) {
+            dispatchCallback(() -> listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(e)));
+        }
         return null;
-//        final PowerAuthAuthentication authAuthentication = PowerAuthAuthentication.possessionWithPassword(password);
-//
-//        return fetchEncryptedVaultUnlockKey(context, authAuthentication, VaultUnlockReason.ADD_BIOMETRY, new IFetchEncryptedVaultUnlockKeyListener() {
-//
-//            @Override
-//            public void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey) {
-//                if (encryptedEncryptionKey != null) {
-//                    // Let's add the biometry key
-//                    SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), encryptedBiometryKey, null);
-//                    final int result = mSession.addBiometryFactor(encryptedEncryptionKey, keys);
-//                    if (result == ErrorCode.OK) {
-//                        // Update state after each successful calculations
-//                        saveSerializedState();
-//                        listener.onAddBiometryFactorSucceed();
-//                    } else {
-//                        listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
-//                    }
-//                } else {
-//                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
-//                }
-//            }
-//
-//            @Override
-//            public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
-//                listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, t));
-//            }
-//        });
     }
 
     /**
@@ -2358,66 +2448,73 @@ public class PowerAuthSDK {
      * @return TRUE if the key was successfully removed, FALSE otherwise.
      * @deprecated Please use asynchronous variant {@link #removeBiometryFactor(Context, IRemoveBiometryFactorListener)}.
      */
-    @Deprecated // 2.0.0
+    @Deprecated(since = "2.0.0")
     public boolean removeBiometryFactor(@NonNull Context context) {
         try {
-            removeBiometryFactorImpl(context);
-            return true;
-        } catch (PowerAuthErrorException e) {
+            final CoreRequest<Object> request = mSession.removeBiometryFactor();
+            if (request != null) {
+                request.cancel();
+                PowerAuthLog.d("Synchronous biometry factor remove is not supported at this protocol version");
+                return false;
+            } else {
+                removeBiometryKeyData(context);
+                return true;
+            }
+        } catch (CoreException e) {
             return false;
         }
     }
 
     /**
      * Remove the biometry related factor key.
+     *
      * @param context Context.
      * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running asynchronous operation.
      */
     @Nullable
     public ICancelable removeBiometryFactor(@NonNull Context context, @NonNull IRemoveBiometryFactorListener listener) {
-        final CancelableTask task = new CancelableTask();
-        mExecutorProvider.getConcurrentExecutor().execute(() -> {
-            PowerAuthErrorException failure;
-            try {
-                removeBiometryFactorImpl(context);
-                failure = null;
-            } catch (PowerAuthErrorException e) {
-                failure = e;
+        try {
+            final CoreRequest<Object> request = mSession.removeBiometryFactor();
+            if (request == null) {
+                // V3 activation, remove doesn't use request
+                removeBiometryKeyData(context);
+                dispatchCallback(listener::onRemoveBiometryFactorSucceed);
+                return null;
             }
-            final PowerAuthErrorException exception = failure;
-            mCallbackDispatcher.dispatchCallback(() -> {
-                if (task.setCompleted()) {
-                    if (exception == null) {
-                        listener.onRemoveBiometryFactorSucceed();
-                    } else {
-                        listener.onRemoveBiometryFactorFailed(exception);
-                    }
+
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable Object o) {
+                    removeBiometryKeyData(context);
+                    listener.onRemoveBiometryFactorSucceed();
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onRemoveBiometryFactorFailed(PowerAuthErrorException.wrapException(throwable));
+                }
+
+                @Override
+                public void onCancel() {
                 }
             });
-        });
-
-        return task;
+        } catch (CoreException e) {
+            dispatchCallback(() -> listener.onRemoveBiometryFactorFailed(PowerAuthErrorException.wrapException(e)));
+            return null;
+        }
     }
 
     /**
      * Private method to remove the biometry related factor key.
      * @param context Android context object.
-     * @throws PowerAuthErrorException In case operation fails.
      */
-    private void removeBiometryFactorImpl(@NonNull Context context) throws PowerAuthErrorException {
-        throw new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Not implemented");
-//        final int result = mSession.removeBiometryFactor();
-//        if (result != ErrorCode.OK) {
-//            // The current core implementation can fail only if there's missing activation.
-//            throw new PowerAuthErrorException(PowerAuthErrorCodes.MISSING_ACTIVATION);
-//        }
-//        // Update state after each successful calculations
-//        final IBiometricKeystore keystore = BiometricAuthentication.getBiometricKeystore();
-//        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keystore, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
-//        saveSerializedState();
-//        mBiometryKeychain.remove(biometricDataMapping.keychainKey);
-//        keystore.removeBiometricKeyEncryptor(biometricDataMapping.keystoreId);
+    private void removeBiometryKeyData(@NonNull Context context) {
+        final IBiometricKeystore keystore = BiometricAuthentication.getBiometricKeystore();
+        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keystore, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
+        saveSerializedState();
+        mBiometryKeychain.remove(biometricDataMapping.keychainKey);
+        keystore.removeBiometricKeyEncryptor(biometricDataMapping.keystoreId);
     }
 
     /**
@@ -2427,7 +2524,10 @@ public class PowerAuthSDK {
      * @param password Password to be verified.
      * @param listener The callback method with error associated with the password validation.
      * @return {@link ICancelable} object associated with the running HTTP request.
+     * @deprecated Method has no direct replacement. If your application requires password validation here,
+     *             it indicates a deeper architectural issue that may introduce security vulnerabilities.
      */
+    @Deprecated(since = "2.0.0")
     public @Nullable
     ICancelable validatePassword(@NonNull Context context, @NonNull String password, @NonNull final IValidatePasswordListener listener) {
         return validatePassword(context, new Password(password), listener);
@@ -2440,30 +2540,23 @@ public class PowerAuthSDK {
      * @param password Password to be verified.
      * @param listener The callback method with error associated with the password validation.
      * @return {@link ICancelable} object associated with the running HTTP request.
+     * @deprecated Method has no direct replacement. If your application requires password validation here,
+     *             it indicates a deeper architectural issue that may introduce security vulnerabilities.
      */
+    @Deprecated(since = "2.0.0")
     public @Nullable
     ICancelable validatePassword(@NonNull Context context, @NonNull Password password, @NonNull final IValidatePasswordListener listener) {
-        try {
-            final CoreRequest<Object> request = mSession.verifyPassword(password);
-            return mClient.post(request, new INetworkResponseListener<Object>() {
-                @Override
-                public void onNetworkResponse(@Nullable Object o) {
-                    listener.onPasswordValid();
-                }
+        return beginPasswordChange(context, password, new IBeginPasswordChangeListener() {
+            @Override
+            public void onBeginPasswordChangeSucceed(@NonNull PowerAuthPasswordChangeData passwordChangeData) {
+                listener.onPasswordValid();
+            }
 
-                @Override
-                public void onNetworkError(@NonNull Throwable throwable) {
-                    listener.onPasswordValidationFailed(throwable);
-                }
-
-                @Override
-                public void onCancel() {
-                }
-            });
-        } catch (CoreException e) {
-            dispatchCallback(() -> listener.onPasswordValidationFailed(PowerAuthErrorException.wrapException(e)));
-        }
-        return null;
+            @Override
+            public void onBeginPasswordChangeFailed(@NonNull Throwable throwable) {
+                listener.onPasswordValidationFailed(throwable);
+            }
+        });
     }
 
     /**

@@ -21,48 +21,37 @@ import androidx.lifecycle.Lifecycle;
 import androidx.test.core.app.ActivityScenario;
 import io.getlime.security.powerauth.biometry.IAddBiometryFactorListener;
 import io.getlime.security.powerauth.biometry.IRemoveBiometryFactorListener;
+import io.getlime.security.powerauth.core.CryptoUtils;
+import io.getlime.security.powerauth.core.SecureData;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.*;
+import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 import io.getlime.security.powerauth.sdk.*;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import androidx.annotation.NonNull;
 
 import static org.junit.Assert.*;
 
-@RunWith(Parameterized.class)
-public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserver {
+import android.util.Base64;
 
-    @Parameterized.Parameter(0) public String alg;
-    @Parameterized.Parameters(name = " {0} ")
-    public static Iterable<Object[]> testParameters() {
-        return TestParameters.getParameters();
-    }
+import java.nio.charset.StandardCharsets;
 
-    @PowerAuthAlgorithm
-    public int getAlgorithmForTest() {
-        return PowerAuthTestHelper.getAlgorithmForName(alg);
-    }
+public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConfigurationObserver {
 
-    private PowerAuthTestHelper testHelper;
-    private PowerAuthSDK powerAuthSDK;
-    private ActivationHelper activationHelper;
     private ActivityScenario<TestActivity> activityScenario;
 
-    @Before
+    @Override
     public void setUp() throws Exception {
+        super.setUp();
         activityScenario = ActivityScenario.launch(TestActivity.class);
     }
 
-    @After
+    @Override
     public void tearDown() {
-        if (activationHelper != null) {
-            activationHelper.cleanupAfterTest();
-        }
+        super.tearDown();
         activityScenario.close();
     }
 
@@ -117,13 +106,15 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
     }
 
     /** @noinspection deprecation*/
-    private void removeBiometricFactorDeprecated() throws Exception {
+    private void removeBiometricFactorDeprecated() {
         assertTrue(powerAuthSDK.removeBiometryFactor(testHelper.getContext()));
         assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
     }
 
     @Test
     public void testPersistWithBiometryFragmentActivity() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -134,6 +125,8 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testPersistWithBiometryFragmentActivityCorePass() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -144,6 +137,8 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testPersistWithBiometryFragment() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -154,6 +149,8 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testPersistWithBiometryFragmentCorePass() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -164,6 +161,13 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testPersistWithDeprecatedFragment() throws Exception {
+        if (getAlgorithmForTest() != PowerAuthAlgorithm.LEGACY_P256) {
+            // persist will fail in this test if other than legacy algorithm is used.
+            return;
+        }
+
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT | ActivationHelper.TF_PERSIST_WITH_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -174,6 +178,13 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testPersistWithDeprecatedFragmentActivity() throws Exception {
+        if (getAlgorithmForTest() != PowerAuthAlgorithm.LEGACY_P256) {
+            // persist will fail in this test if other than legacy algorithm is used.
+            return;
+        }
+
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -184,6 +195,13 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testPersistWithDeprecatedFragmentCorePass() throws Exception {
+        if (getAlgorithmForTest() != PowerAuthAlgorithm.LEGACY_P256) {
+            // persist will fail in this test if other than legacy algorithm is used.
+            return;
+        }
+
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -194,6 +212,13 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testPersistWithDeprecatedFragmentActivityCorePass() throws Exception {
+        if (getAlgorithmForTest() != PowerAuthAlgorithm.LEGACY_P256) {
+            // persist will fail in this test if other than legacy algorithm is used.
+            return;
+        }
+
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -204,6 +229,8 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testAddBiometryFactorFragmentActivityCorePass() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
             assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -228,6 +255,8 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
 
     @Test
     public void testAddBiometryFactorFragmentCorePass() throws Exception {
+        assertBiometryEnrolled();
+
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
             assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
@@ -248,6 +277,70 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
             });
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
         });
+    }
+
+    @Test
+    public void testAddBiometryFactor_customBiometryKek() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
+        assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+
+        final SecureData biometryKek = CryptoUtils.randomSecureData(powerAuthSDK.getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256 ? 16 : 32);
+        AsyncHelper.await(resultCatcher ->
+                powerAuthSDK.addBiometryFactor(testHelper.getContext(), activationHelper.getValidPassword(), biometryKek, new IAddBiometryFactorListener() {
+                    @Override
+                    public void onAddBiometryFactorSucceed() {
+                        resultCatcher.completeWithSuccess();
+                    }
+
+                    @Override
+                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
+                        resultCatcher.completeWithError(error);
+                    }
+                })
+        );
+
+        // Validate added biometry
+        final byte[] data = Base64.encodeToString(CryptoUtils.randomBytes(63), Base64.NO_WRAP).getBytes(StandardCharsets.UTF_8);
+        final PowerAuthAuthentication auth = PowerAuthAuthentication.possessionWithBiometry(biometryKek);
+
+        PowerAuthHttpHeader header = powerAuthSDK.authenticationHeaderForRequestWithBody(auth, "POST", "/test/biometry", data);
+        AuthenticationResult result = authenticationHelper.verifyAuthenticationHeader(header, data,"/test/biometry", "POST");
+        assertTrue(result.isAuthenticationValid());
+        assertEquals(AuthCodeType.POSSESSION_BIOMETRY, result.getAuthenticationCodeType());
+
+        // Remove biometry and validate biometry factor unavailability
+        removeBiometryFactor();
+        final var exception = assertThrows(PowerAuthErrorException.class, () -> powerAuthSDK.authenticationHeaderForRequestWithBody(auth, "POST", "/test/biometry", data));
+        assertEquals(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, exception.getPowerAuthErrorCode());
+        assertEquals("powerAuth::PowerAuthException: Biometric factor is not configured", exception.getMessage());
+
+        // Add biometry again
+        final SecureData newBiometryKek = CryptoUtils.randomSecureData(powerAuthSDK.getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256 ? 16 : 32);
+        AsyncHelper.await(resultCatcher ->
+                powerAuthSDK.addBiometryFactor(testHelper.getContext(), activationHelper.getValidPassword(), newBiometryKek, new IAddBiometryFactorListener() {
+                    @Override
+                    public void onAddBiometryFactorSucceed() {
+                        resultCatcher.completeWithSuccess();
+                    }
+
+                    @Override
+                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
+                        resultCatcher.completeWithError(error);
+                    }
+                })
+        );
+        // Authentication using previous auth object should fail
+        header = powerAuthSDK.authenticationHeaderForRequestWithBody(auth, "POST", "/test/biometry", data);
+        result = authenticationHelper.verifyAuthenticationHeader(header, data,"/test/biometry", "POST");
+        assertFalse(result.isAuthenticationValid());
+        assertEquals(AuthCodeType.POSSESSION_BIOMETRY, result.getAuthenticationCodeType());
+
+        // Authenticate using the new auth object
+        final PowerAuthAuthentication newAuth = PowerAuthAuthentication.possessionWithBiometry(newBiometryKek);
+        header = powerAuthSDK.authenticationHeaderForRequestWithBody(newAuth, "POST", "/test/biometry", data);
+        result = authenticationHelper.verifyAuthenticationHeader(header, data,"/test/biometry", "POST");
+        assertTrue(result.isAuthenticationValid());
+        assertEquals(AuthCodeType.POSSESSION_BIOMETRY, result.getAuthenticationCodeType());
     }
 
     @Override

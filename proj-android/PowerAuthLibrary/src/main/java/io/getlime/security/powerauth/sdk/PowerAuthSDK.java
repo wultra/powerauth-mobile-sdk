@@ -2254,8 +2254,10 @@ public class PowerAuthSDK {
         final ICancelable biometricDialogTask = authenticateUsingBiometrics(context, prompt, true, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
-                if (composite.setCompleted()) {
-                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_CANCEL));
+                if (userCancel) {
+                    if (composite.setCompleted()) {
+                        listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_CANCEL));
+                    }
                 }
             }
 

@@ -370,7 +370,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
         return nil;
     }
     try {
-        auto task = _session->fetchActivationStatus({ fetchData.biometricKekAvailable });
+        auto task = _session->fetchActivationStatus({ static_cast<bool>(fetchData.biometricKekAvailable) });
         return [[PowerAuthCoreTask alloc] initWithTask:task withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
             auto status = std::dynamic_pointer_cast<powerAuth::ActivationStatus>(response);
             if (!status) {

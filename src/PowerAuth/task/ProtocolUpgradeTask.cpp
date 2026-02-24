@@ -83,7 +83,6 @@ void ProtocolUpgradeTask::onTaskEnd()
 
 void ProtocolUpgradeTask::startProtocolUpgrade()
 {
-    LOCK_GUARD();
     auto current_context = lockContext();
     
     if (!_password) {
@@ -181,7 +180,6 @@ ProtocolUpgradeResultPtr ProtocolUpgradeTask::processResponseStartProtocolUpgrad
 
 void ProtocolUpgradeTask::confirmProtocolUpgrade()
 {
-    LOCK_GUARD();
     auto context = lockContext();
     
     auto request = RequestBuilder(*context, v4::Endpoint_ProtocolUpgradeConfirm)

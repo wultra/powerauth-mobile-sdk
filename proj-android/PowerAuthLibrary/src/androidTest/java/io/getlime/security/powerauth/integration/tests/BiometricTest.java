@@ -358,7 +358,7 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
             assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
 
             // Try to remove biometric factor, but the response is never received from the server.
-            // The situation is that server has biometric factor removed, but client still thas biometry turned ON
+            // The situation is that server has biometric factor removed, but client still has biometry turned ON
 
             Throwable error = AsyncHelper.await(resultCatcher -> {
                 simulateNetworkErrorOnReceive("/pa/v4/biometry/remove");

@@ -59,7 +59,7 @@ void GetActivationStatusTask::onRequestSuccess(const Request &request)
 void GetActivationStatusTask::onRequestFailure(const Request &request)
 {
     if (request.getParentTaskTag() == SYNC_COUNTER) {
-        // Failure in this requests are ignored. We can set the request as completed.
+        // Failure in this request is ignored. We can set the request as completed.
         // The previously captured status is preserved and reported as the final result of the task.
         setCompleted();
     }
@@ -91,7 +91,7 @@ void GetActivationStatusTask::processActivationStatus(ActivationStatus &status)
             if (serverBioON != localBioON) {
                 // Local and server's biometric state is different
                 if (serverBioON) {
-                    // remove biometric factor on the server. This operation also synchronize the counters.
+                    // remove biometric factor on the server. This operation also synchronizes the counters.
                     removeBiometricFactor();
                     return;
                 } else {

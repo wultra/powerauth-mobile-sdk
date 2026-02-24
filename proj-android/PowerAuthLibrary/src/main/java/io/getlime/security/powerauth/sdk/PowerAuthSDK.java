@@ -2505,7 +2505,7 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Private check if biometry factor KEK is present in PowerAuth keychain and in Android Keystore.
+     * Private check if biometry factor KEK is present in PowerAuth Keychain and in Android Keystore.
      * @param context Android context object.
      * @return {@code true} in case biometry factor is present, false otherwise.
      */
@@ -2513,7 +2513,7 @@ public class PowerAuthSDK {
         // Initialize keystore
         final IBiometricKeystore keystore = BiometricAuthentication.getBiometricKeystore();
         final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keystore, context, BiometricDataMapper.BIO_MAPPING_NOOP);
-        // Check if there is biometry factor in session, key in PA2Keychain and key in keystore.
+        // Check presence of data in keystore and keychain.
         return keystore.containsBiometricKeyEncryptor(biometricDataMapping.keystoreId) &&
                 mBiometryKeychain.contains(biometricDataMapping.keychainKey);
     }

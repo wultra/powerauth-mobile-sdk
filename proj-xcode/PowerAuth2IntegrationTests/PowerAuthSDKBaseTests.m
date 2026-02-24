@@ -1284,7 +1284,7 @@
     XCTAssertTrue([_sdk hasBiometryFactor]);
     
     // Try to remove biometric factor, but the response is never received from the server.
-    // The situation is that server has biometric factor removed, but client still thas biometry turned ON
+    // The situation is that server has biometric factor removed, but client still has biometry turned ON
     
     NSError * error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         [self simulateNetworkErrorOnReceive:@"/pa/v4/biometry/remove"];

@@ -218,8 +218,8 @@ private:
 
 CC7_SHARED_PTR(ActivationStatus)
 
-/// The `FetchActivationStatusInfo` contains additional information
-/// for proper getting activation status execution.
+/// The `FetchActivationStatusData` structure contains additional
+/// information for proper getting activation status execution.
 struct FetchActivationStatusData
 {
     /// Indicates that KEK for biometric factor key is available at

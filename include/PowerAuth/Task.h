@@ -121,22 +121,32 @@ protected:
     // Overridable methods
     
     /// Overridable method, called when task is started.
+    ///
+    /// The shared lock is acquired before the call.
     virtual void onTaskStart();
     
     /// Overridable method, called when task is ended.
+    ///
+    /// The shared lock is acquired before the call.
     virtual void onTaskEnd();
 
     /// Overridable method, called when partial request ends with success.
+    ///
+    /// The shared lock is acquired before the call.
     /// - Parameters:
     ///   - request: Request that just finished.
     virtual void onRequestSuccess(const Request& request);
     
     /// Overridable method, called when partial request ends with failure.
+    ///
+    /// The shared lock is acquired before the call.
     /// - Parameters:
     ///   - request: Request that just failed.
     virtual void onRequestFailure(const Request& request);
     
     /// Overridable method, called when partial request is canceled.
+    /// 
+    /// The shared lock is acquired before the call.
     /// - Parameters:
     ///   - request: Request that just finished.
     virtual void onRequestCancel(const Request& request);

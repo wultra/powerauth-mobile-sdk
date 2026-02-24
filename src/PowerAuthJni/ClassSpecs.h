@@ -112,11 +112,12 @@ struct ClassSpecs
             //              boolean isProtocolUpgradeAvailable,
             //              boolean isCounterSynchronizationRecommended,
             //              boolean isSessionSerializationNeeded,
+            //              boolean isRemoveBiometricKekRecommended,
             //              Map<String, Object> customObject)
             cc7::jni::JniInitMethod init;
         };
         static constexpr JniMethodSpec methodSpecs[] = {
-                JniMethodSpec::constructor("(IIIIZZZLjava/util/Map;)V", offsetof(Methods, init))
+                JniMethodSpec::constructor("(IIIIZZZZLjava/util/Map;)V", offsetof(Methods, init))
         };
 
         jclass classRef;
@@ -208,6 +209,20 @@ struct ClassSpecs
         Fields fields;
     };
 
+    // io.getlime.security.powerauth.core.CoreFetchActivationStatusData
+    struct CoreFetchActivationStatusData
+    {
+        struct Fields
+        {
+            jfieldID biometricKekAvailable;
+        };
+        static constexpr  JniFieldSpec fieldSpecs[] {
+                JniFieldSpec::field("biometricKekAvailable", "Z", offsetof(Fields, biometricKekAvailable))
+        };
+        jclass classRef;
+        Fields fields;
+    };
+
     // CryptoUtils
 
     // io.getlime.security.powerauth.core.EcKeyPair
@@ -290,6 +305,7 @@ struct ClassSpecs
     CoreDevicePublicKeyData coreDevicePublicKeyData;
     CoreEncryptedRequest coreEncryptedRequest;
     CoreEncryptedResponse coreEncryptedResponse;
+    CoreFetchActivationStatusData coreFetchActivationStatusData;
     // response
     RespServerStatus respServerStatus;
     RespActivationResult respActivationResult;

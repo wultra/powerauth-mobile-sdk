@@ -56,10 +56,20 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
 /// Returns true if session's state should be serialized after the successful
 /// activation status decryption.
 @property (nonatomic, assign, readonly) BOOL needsSerializeSessionState;
-
+/// Returns true if biometric KEK should be removed from iOS keychain.
+@property (nonatomic, assign, readonly) BOOL isRemoveBiometricKekRecommended;
 
 /// Contains custom object returned from the server. The value is optional and PowerAuth Application Server
 /// must support this custom object.
 @property (nonatomic, strong, nullable, readonly) NSDictionary<NSString*, NSObject*>* customObject;
+
+@end
+
+/// The `PowerAuthCoreFetchActivationStatusData` contains additional information
+/// for proper getting activation status execution.
+@interface PowerAuthCoreFetchActivationStatusData : NSObject
+
+/// Indicates that KEK for biometric factor key is available in iOS keychain.
+@property (nonatomic, assign) BOOL biometricKekAvailable;
 
 @end

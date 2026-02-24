@@ -266,6 +266,7 @@ static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const Ac
     //              boolean isProtocolUpgradeAvailable,
     //              boolean isCounterSynchronizationRecommended,
     //              boolean isSessionSerializationNeeded,
+    //              boolean isRemoveBiometricKekRecommended,
     //              Map<String, Object> customObject)
     return jni.createObject(specs.respActivationStatus.methods.init,
                             jni.toJava(specs.coreActivationState, status->activationState()),
@@ -275,14 +276,20 @@ static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const Ac
                             status->isProtocolUpgradeAvailable(),
                             status->isCounterSynchronizationRecommended(),
                             status->isSessionStateSerializationRecommended(),
+                            status->isRemoveBiometricKekRecommended(),
                             JsonValueToJava(jni, status->customObject()));
 }
 
-CC7_JNI_METHOD(jobject, fetchActivationStatus)
+CC7_JNI_METHOD_PARAMS(jobject, fetchActivationStatus, jobject fetchData)
 {
     NH_TRY
     {
-        auto task = THIS_OBJ()->fetchActivationStatus();
+        jni.requireParameter(fetchData, "fetchData");
+        auto& specs = NH_SPECS();
+        auto fetchDataObj = jni.fromJava(fetchData, specs.coreFetchActivationStatusData.classRef);
+        auto task = THIS_OBJ()->fetchActivationStatus( {
+            static_cast<bool>(fetchDataObj.getBoolean(specs.coreFetchActivationStatusData.fields.biometricKekAvailable))
+        });
         return BuildCoreTask(jni, task, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
             auto result = std::dynamic_pointer_cast<ActivationStatus>(response);
             if (!result) {

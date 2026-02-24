@@ -223,9 +223,12 @@
 ///
 /// This function doesn't change the session's state, so read access must be guaranteed.
 ///
-/// - Parameter error: Pointer where error is stored in case of failure.
+/// - Parameters:
+///   - fetchData: Additional fetch data.
+///   - error: Pointer where error is stored in case of failure.
 /// - Returns: Core task for getting activation status.
-- (nullable PowerAuthCoreTask*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error;
+- (nullable PowerAuthCoreTask*) fetchActivationStatus:(nonnull PowerAuthCoreFetchActivationStatusData*)fetchData
+                                                error:(NSError*_Nullable*_Nullable)error;
 
 /// Start protocol upgrade procedure.
 ///

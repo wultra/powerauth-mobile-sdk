@@ -28,6 +28,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.*;
 import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
+import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
 import io.getlime.security.powerauth.sdk.*;
 import org.junit.Test;
 
@@ -341,6 +342,106 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
         result = authenticationHelper.verifyAuthenticationHeader(header, data,"/test/biometry", "POST");
         assertTrue(result.isAuthenticationValid());
         assertEquals(AuthCodeType.POSSESSION_BIOMETRY, result.getAuthenticationCodeType());
+    }
+
+    @Test
+    public void testSynchronizeBiometricFactorWithServer() throws Exception {
+        assertBiometryEnrolled();
+        if (getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256) {
+            System.out.println("This test is ineffective for V3 protocol");
+            return;
+        }
+        runWithFragmentActivity(() -> {
+            activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY, null);
+            assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+            PowerAuthActivationStatus status = activationHelper.fetchActivationStatus();
+            assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
+
+            // Try to remove biometric factor, but the response is never received from the server.
+            // The situation is that server has biometric factor removed, but client still thas biometry turned ON
+
+            Throwable error = AsyncHelper.await(resultCatcher -> {
+                simulateNetworkErrorOnReceive("/pa/v4/biometry/remove");
+                powerAuthSDK.removeBiometryFactor(testHelper.getContext(), new IRemoveBiometryFactorListener() {
+                    @Override
+                    public void onRemoveBiometryFactorSucceed() {
+                        resultCatcher.completeWithResult(null);
+                    }
+
+                    @Override
+                    public void onRemoveBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
+                        resultCatcher.completeWithResult(error);
+                    }
+                });
+            });
+            assertNotNull(error);
+            // outcome is that biometric factor is still ON
+            assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+
+            // Now try to fetch activation status. The operation silently remove the factor from local
+            // data and the keystore
+            status = activationHelper.fetchActivationStatus();
+            assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
+            assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+
+            // Now try to add biometric factor. If response from the server is never received, then
+            // the server thinks the factor is ON, but local data has no factor set.
+
+            error = AsyncHelper.await(resultCatcher -> {
+                simulateNetworkErrorOnReceive("/pa/v4/biometry/add");
+                PowerAuthBiometricPrompt prompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragmentActivity());
+                powerAuthSDK.addBiometryFactor(testHelper.getContext(), activationHelper.getValidPassword(), prompt, new IAddBiometryFactorListener() {
+                    @Override
+                    public void onAddBiometryFactorSucceed() {
+                        resultCatcher.completeWithResult(null);
+                    }
+
+                    @Override
+                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
+                        resultCatcher.completeWithResult(error);
+                    }
+                });
+            });
+            assertNotNull(error);
+
+            // Now server thinks the biometry is ON, but the local data has no factor key set. We have
+            // no option to test this flag via server API, so the only viable way how to test the feature,
+            // is to try fetch the status and automatic biometry synchronization will trigger
+            // "/pa/v4/biometry/remove" request. So, simulate the request to test whether the biometry
+            // is really turned ON on the server.
+
+            assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+            error = AsyncHelper.await(resultCatcher -> {
+                simulateNetworkErrorOnSend("/pa/v4/biometry/remove");
+                powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
+                    @Override
+                    public void onActivationStatusSucceed(@NonNull PowerAuthActivationStatus status) {
+                        resultCatcher.completeWithResult(null);
+                    }
+
+                    @Override
+                    public void onActivationStatusFailed(@NonNull Throwable t) {
+                        resultCatcher.completeWithResult(t);
+                    }
+                });
+            });
+            // error is received. If not, then "/pa/v4/biometry/remove" was not used.
+            assertNotNull(error);
+
+            // In the next attempt, everything should work and the biometric factor should be removed
+            // from the server.
+
+            status = activationHelper.fetchActivationStatus();
+
+            assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
+            assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+
+            // Simulate biometry remove. If fetch fail, then something's wrong.
+            simulateNetworkErrorOnSend("/pa/v4/biometry/remove");
+            status = activationHelper.fetchActivationStatus();
+            assertNotNull(status);
+            clearAllSimulateFailures();
+        });
     }
 
     @Override

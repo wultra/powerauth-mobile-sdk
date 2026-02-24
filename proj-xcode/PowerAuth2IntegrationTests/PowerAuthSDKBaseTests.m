@@ -1268,6 +1268,76 @@
     XCTAssertTrue(result);
 }
 
+- (void) testSynchronizeBiometricFactorWithServer
+{
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        NSLog(@"This test is ineffective for V3 protocol");
+        return;
+    }
+    
+    // Tests whether biometric factor is synchronized with the server
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithBiometry activationOtp:nil];
+    if (!activation) {
+        return;
+    }
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+    XCTAssertTrue([_sdk hasBiometryFactor]);
+    
+    // Try to remove biometric factor, but the response is never received from the server.
+    // The situation is that server has biometric factor removed, but client still thas biometry turned ON
+    
+    NSError * error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [self simulateNetworkErrorOnReceive:@"/pa/v4/biometry/remove"];
+        [_sdk removeBiometryFactorWithCallback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    // error is received
+    XCTAssertNotNil(error);
+    // outcome is that biometric factor is still ON
+    XCTAssertTrue([_sdk hasBiometryFactor]);
+    
+    // Now try to fetch activation status. The operation silently remove the factor from local data and the keychain
+    status = [_helper fetchActivationStatus];
+    XCTAssertFalse([_sdk hasBiometryFactor]);
+    
+    // Now try to add biometric factor. If response from the server is never received, then the server thinks the factor is ON, but local data
+    // has no factor set.
+    error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [self simulateNetworkErrorOnReceive:@"/pa/v4/biometry/add"];
+        [_sdk addBiometryFactorWithCorePassword:_helper.authPossessionWithKnowledge.password callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    // error is received
+    XCTAssertNotNil(error);
+
+    // Now server thinks the biometry is ON, but the local data has no factor key set. We have
+    // no option to test this flag via server API, so the only viable way how to test the feature,
+    // is to try fetch the status and automatic biometry synchronization will trigger
+    // "/pa/v4/biometry/remove" request. So, simulate the request to test whether the biometry
+    // is really turned ON on the server.
+    XCTAssertFalse([_sdk hasBiometryFactor]);
+    error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [self simulateNetworkErrorOnSend:@"/pa/v4/biometry/remove"];
+        [_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * _Nullable status, NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    // error is received. If not, then "/pa/v4/biometry/remove" was not used.
+    XCTAssertNotNil(error);
+    // In the next attempt, everything should work and the biometric factor should be removed from the server.
+    status = [_helper fetchActivationStatus];
+    XCTAssertNotNil(status);
+    XCTAssertFalse([_sdk hasBiometryFactor]);
+    
+    // In next attempt, remove is not called.
+    [self simulateNetworkErrorOnSend:@"/pa/v4/biometry/remove"];
+    status = [_helper fetchActivationStatus];
+    [self clearAllSimulateFailures];
+    XCTAssertNotNil(status);
+}
+
 - (void) testWithWrongLAContext
 {
     CHECK_TEST_CONFIG();

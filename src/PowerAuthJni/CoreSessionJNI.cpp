@@ -335,6 +335,27 @@ CC7_JNI_METHOD_PARAMS(jobject, removeActivation, jobject credentials)
     NH_CATCH(nullptr)
 }
 
+CC7_JNI_METHOD_PARAMS(jobject, startProtocolUpgrade, jobject password, jobject biometryKek)
+{
+    NH_TRY
+    {
+        auto cpp_password = jni.fromJava<Password>(NH_SPECS().password, password);
+        auto cpp_biometry = CopyFromSecureData(jni, biometryKek);
+
+        auto task = THIS_OBJ()->startProtocolUpgrade(cpp_password, cpp_biometry);
+        return BuildCoreTask(jni, task, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            auto result = std::dynamic_pointer_cast<ProtocolUpgradeResult>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No ProtocolUpgradeResult object created");
+            }
+            return jni.createObject(specs.respProtocolUpgradeResult.methods.init,
+                                    result->isPendingUpgradeConfirm(),
+                                    jni.toJavaNullable(result->activationFingerprint()));
+        });
+    }
+    NH_CATCH(nullptr)
+}
+
 // Factor keys management
 
 CC7_JNI_METHOD(jboolean, hasBiometryFactor)

@@ -155,6 +155,9 @@ Notable changes on Android:
 
 - Removed all interfaces deprecated in release `1.9.x`
 
+- To support authenticated protocol upgrade, following method was added to the `PowerAuthSDK`:
+  - `startProtocolUpgrade()`
+
 ### Other changes
 
 - TBA

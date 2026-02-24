@@ -100,6 +100,22 @@ struct ClassSpecs
         Methods methods;
     };
 
+    // io.getlime.security.powerauth.core.response.CoreProtocolUpgradeResult
+    struct RespProtocolUpgradeResult
+    {
+        struct Methods
+        {
+            // constructor (boolean isPendingUpgradeConfirm, String activationFingerprint)
+            cc7::jni::JniInitMethod init;
+        };
+        static constexpr JniMethodSpec methodSpecs[] = {
+                JniMethodSpec::constructor("(ZLjava/lang/String;)V", offsetof(Methods, init))
+        };
+
+        jclass classRef;
+        Methods methods;
+    };
+
     // io.getlime.security.powerauth.core.response.CoreActivationStatus
     struct RespActivationStatus
     {
@@ -294,6 +310,7 @@ struct ClassSpecs
     RespServerStatus respServerStatus;
     RespActivationResult respActivationResult;
     RespActivationStatus respActivationStatus;
+    RespProtocolUpgradeResult respProtocolUpgradeResult;
     RespTokenData respTokenData;
 
     // enums

@@ -488,7 +488,7 @@ static NSString * PA_Ver_Current = @"4.0";
 - (PowerAuthSDK*) prepareActivationForUpgradeTest:(PowerAuthAlgorithm)targetAlgorithm
                                         withFlags:(TestActivationFlags)flags
 {
-    /// Protocol upgrade not availbale before calling a fetch activation status.
+    /// Protocol upgrade not available before calling a fetch activation status.
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     
     /// Create activation

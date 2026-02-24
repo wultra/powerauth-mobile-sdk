@@ -144,7 +144,7 @@ public class DefaultKeystoreService implements IKeystoreService, GetTemporaryKey
                 coreEncryptorFactory = session.getEncryptorFactory();
                 coreAlgorithm = currentAlgorithm;
             } else {
-                if (currentAlgorithm != coreAlgorithm) {
+                if (currentAlgorithm != coreAlgorithm || session.hasPendingProtocolUpgrade()) {
                     coreEncryptorFactory = session.getEncryptorFactory();
                     coreAlgorithm = currentAlgorithm;
                 }

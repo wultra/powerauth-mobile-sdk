@@ -18,8 +18,6 @@
 
 namespace powerAuth {
 
-#define LOCK_GUARD() std::lock_guard<std::recursive_mutex> _lock_guard(*_mutex)
-
 ConfirmActivationTask::ConfirmActivationTask(const ContextPtr& context, const InitialCredentialsPtr& credentials) :
     Task("ConfirmActivation", context),
     _credentials(credentials),
@@ -31,7 +29,7 @@ ConfirmActivationTask::ConfirmActivationTask(const ContextPtr& context, const In
 
 void ConfirmActivationTask::onTaskStart()
 {
-    LOCK_GUARD();
+    Task::onTaskStart();
     if (_session_data->getCurrentProtocolVersion() < Version_V4) {
         throw Exception(EC_InternalError, "Confirm task is not supported in V3");
     }

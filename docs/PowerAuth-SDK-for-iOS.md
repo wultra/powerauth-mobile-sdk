@@ -1255,6 +1255,9 @@ In case an activation does not yet have biometry-related factor data, and you wo
 powerAuthSDK.addBiometryFactor(password: "1234") { error in
     if let error  {
         // Error occurred, report it to the user
+
+        // It's also recommended to fetch activation's status to synchronize biometric factor
+        // configuration with the server.
     } else {
         // Everything went OK, biometry is ready to be used
     }
@@ -1270,6 +1273,9 @@ To remove biometry-related factor data used by Touch or Face ID use the followin
 powerAuthSDK.removeBiometryFactor { error in
     if let error {
         // handle error
+
+        // It's recommended to fetch activation's status to synchronize biometric factor
+        // configuration with the server.
     }
 }
 ```

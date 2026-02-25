@@ -206,11 +206,12 @@ public class CoreSession extends NativeObject {
 
     /**
      * Fetch activation status from the server.
+     * @param fetchData Additional data required for proper fetch execution.
      * @return {@link CoreTask} for getting activation status.
      * @throws CoreException In case of failure.
      */
     @NonNull
-    public native CoreTask<CoreActivationStatus> fetchActivationStatus() throws CoreException;
+    public native CoreTask<CoreActivationStatus> fetchActivationStatus(@NonNull CoreFetchActivationStatusData fetchData) throws CoreException;
 
     /**
      * Get last activation status received from the server. This property provides the most recent

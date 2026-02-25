@@ -1411,7 +1411,10 @@ powerAuthSDK.addBiometryFactor(context, "1234", biometricPrompt, object: IAddBio
     }
 
     override fun onAddBiometryFactorFailed(error: PowerAuthErrorException) {
-        // Error occurred, report it to the user
+        // Error occurred, report it to the user.
+
+        // It's recommended to fetch activation's status to synchronize biometric factor
+        // configuration with the server.
     }
 })
 ```
@@ -1454,7 +1457,10 @@ powerAuthSDK.removeBiometryFactor(context, object: IRemoveBiometryFactorListener
     }
 
     override fun onRemoveBiometryFactorFailed(error: PowerAuthErrorException) {
-        // Error occurred, report it to the user
+        // Error occurred, report it to the user.
+
+        // It's recommended to fetch activation's status to synchronize biometric factor
+        // configuration with the server.
     }
 })
 ```

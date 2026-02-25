@@ -110,6 +110,14 @@ public:
     ///   - `Exception` in case of failure.
     virtual RequestPtr removeBiometricFactor() = 0;
     
+    /// Remove biometric factor from the persistent data if server indicates that activation has biometric factor turned off.
+    ///
+    /// Warning: This method is not supported for protocol V3.
+    ///
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    virtual void cleanupBiometricFactorData() = 0;
+    
     /// Fetch user info.
     ///
     /// - Returns: Request data for fetch user info endpoint.

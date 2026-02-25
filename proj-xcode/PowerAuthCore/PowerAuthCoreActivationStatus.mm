@@ -64,9 +64,18 @@
     return _status->isCounterSynchronizationRecommended();
 }
 
+- (BOOL) isRemoveBiometricKekRecommended
+{
+    return _status->isRemoveBiometricKekRecommended();
+}
+
 - (BOOL) needsSerializeSessionState
 {
     return _status->isSessionStateSerializationRecommended();
 }
 
+@end
+
+
+@implementation PowerAuthCoreFetchActivationStatusData
 @end

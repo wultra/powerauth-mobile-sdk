@@ -71,4 +71,12 @@ public class PowerAuthActivationStatus {
     public boolean isProtocolUpgradeAvailable() {
         return coreStatus.isProtocolUpgradeAvailable();
     }
+
+    /**
+     * @return Instance of {@link CoreActivationStatus} for internal purposes.
+     */
+    @NonNull
+    CoreActivationStatus getCoreStatus() {
+        return coreStatus;
+    }
 }

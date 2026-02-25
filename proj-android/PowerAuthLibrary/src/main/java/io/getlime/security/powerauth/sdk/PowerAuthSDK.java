@@ -1211,10 +1211,15 @@ public class PowerAuthSDK {
                 task = mGetActivationStatusTask.createChildTask(completion);
             }
             if (task == null) {
-                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, mLock, mCallbackDispatcher, this::saveSerializedState, getActivationStatusTask -> {
+                CoreFetchActivationStatusData fetchData = new CoreFetchActivationStatusData(hasBiometryKekData(context));
+                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, fetchData, mLock, mCallbackDispatcher, this::saveSerializedState, getActivationStatusTask -> {
                     // The mLock is already locked, because GetActivationStatusTask uses shared lock.
                     if (getActivationStatusTask == mGetActivationStatusTask) {
                         mGetActivationStatusTask = null;
+                    }
+                    PowerAuthActivationStatus receivedStatus = getActivationStatusTask.getSuccessResult();
+                    if (receivedStatus != null && receivedStatus.getCoreStatus().isRemoveBiometricKekRecommended()) {
+                        removeBiometryKekData(context);
                     }
                 });
                 task = mGetActivationStatusTask.createChildTask(completion);
@@ -2260,13 +2265,7 @@ public class PowerAuthSDK {
      * @return True in case biometry factor is present, false otherwise.
      */
     public boolean hasBiometryFactor(@NonNull Context context) {
-        // Initialize keystore
-        final IBiometricKeystore keyStore = BiometricAuthentication.getBiometricKeystore();
-        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keyStore, context, BiometricDataMapper.BIO_MAPPING_NOOP);
-
-        // Check if there is biometry factor in session, key in PA2Keychain and key in keystore.
-        return mSession.hasBiometryFactor() && keyStore.containsBiometricKeyEncryptor(biometricDataMapping.keystoreId) &&
-                mBiometryKeychain.contains(biometricDataMapping.keychainKey);
+        return mSession.hasBiometryFactor() && hasBiometryKekData(context);
     }
 
     /**
@@ -2573,7 +2572,7 @@ public class PowerAuthSDK {
                 PowerAuthLog.d("Synchronous biometry factor remove is not supported at this protocol version");
                 return false;
             } else {
-                removeBiometryKeyData(context);
+                removeBiometryKekData(context);
                 return true;
             }
         } catch (CoreException e) {
@@ -2594,7 +2593,7 @@ public class PowerAuthSDK {
             final CoreRequest<Object> request = mSession.removeBiometryFactor();
             if (request == null) {
                 // V3 activation, remove doesn't use request
-                removeBiometryKeyData(context);
+                removeBiometryKekData(context);
                 dispatchCallback(listener::onRemoveBiometryFactorSucceed);
                 return null;
             }
@@ -2602,7 +2601,7 @@ public class PowerAuthSDK {
             return mClient.post(request, new INetworkResponseListener<>() {
                 @Override
                 public void onNetworkResponse(@Nullable Object o) {
-                    removeBiometryKeyData(context);
+                    removeBiometryKekData(context);
                     listener.onRemoveBiometryFactorSucceed();
                 }
 
@@ -2622,10 +2621,24 @@ public class PowerAuthSDK {
     }
 
     /**
+     * Private check if biometry factor KEK is present in PowerAuth Keychain and in Android Keystore.
+     * @param context Android context object.
+     * @return {@code true} in case biometry factor is present, false otherwise.
+     */
+    private boolean hasBiometryKekData(@NonNull Context context) {
+        // Initialize keystore
+        final IBiometricKeystore keystore = BiometricAuthentication.getBiometricKeystore();
+        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keystore, context, BiometricDataMapper.BIO_MAPPING_NOOP);
+        // Check presence of data in keystore and keychain.
+        return keystore.containsBiometricKeyEncryptor(biometricDataMapping.keystoreId) &&
+                mBiometryKeychain.contains(biometricDataMapping.keychainKey);
+    }
+
+    /**
      * Private method to remove the biometry related factor key.
      * @param context Android context object.
      */
-    private void removeBiometryKeyData(@NonNull Context context) {
+    private void removeBiometryKekData(@NonNull Context context) {
         final IBiometricKeystore keystore = BiometricAuthentication.getBiometricKeystore();
         final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keystore, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
         saveSerializedState();

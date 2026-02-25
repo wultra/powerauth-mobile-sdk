@@ -156,10 +156,11 @@ public:
     
     /// Fetch activation status.
     ///
+    /// - Parameter data: Structure containing additional hints for proper activation status processing.
     /// - Returns: Task for fetching activation status.
     /// - Throws:
     ///   - `Exception` in case of failure.
-    TaskPtr fetchActivationStatus();
+    TaskPtr fetchActivationStatus(const FetchActivationStatusData& data);
     
     /// Start upgrade from protocol V3 to V4.
     ///

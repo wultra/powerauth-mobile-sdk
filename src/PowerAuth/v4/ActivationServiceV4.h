@@ -43,6 +43,7 @@ public:
     RequestPtr changePassword(const PasswordPtr& old_password, const PasswordPtr& new_password) override;
     RequestPtr addBiometricFactor(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek) override;
     RequestPtr removeBiometricFactor() override;
+    void cleanupBiometricFactorData() override;
     
     RequestPtr fetchUserInfo() override;
     

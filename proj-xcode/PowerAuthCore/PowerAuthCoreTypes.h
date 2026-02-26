@@ -116,6 +116,10 @@ typedef NS_ENUM(int, PowerAuthCoreErrorCode) {
      ask session for processing.
      */
     PowerAuthCoreErrorCode_WrongParam   = 3,
+    /**
+     Upgrade SDK is required.
+     */
+    PowerAuthCoreErrorCode_UpgradeSDK   = 4
 };
 
 

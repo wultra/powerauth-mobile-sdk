@@ -34,7 +34,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         PROTOCOL_UPGRADE, PENDING_PROTOCOL_UPGRADE,
         BIOMETRY_NOT_SUPPORTED, BIOMETRY_NOT_AVAILABLE, BIOMETRY_NOT_RECOGNIZED,
         INSUFFICIENT_KEYCHAIN_PROTECTION, BIOMETRY_LOCKOUT, TIME_SYNCHRONIZATION,
-        BIOMETRY_NOT_ENROLLED})
+        BIOMETRY_NOT_ENROLLED, UPGRADE_SDK})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -168,4 +168,12 @@ public @interface PowerAuthErrorCodes {
      * The biometric authentication failed because there's no biometry enrolled on the device.
      */
     int BIOMETRY_NOT_ENROLLED = 24;
+    /**
+     * Upgrade the PowerAuth Mobile SDK in your application. This error may occur if the local activation data was created
+     * with a newer version of the SDK than the one currently used in your application. This situation can happen if you
+     * downgraded your application during testing.
+     * <p>
+     * Note that this error code is reserved for future use and is actually never reported in this version of SDK.
+     */
+    int UPGRADE_SDK = 25;
 }

@@ -206,10 +206,15 @@ namespace protocol
         return true;
     }
     
-    bool DeserializePersistentData(PersistentData & pd, utils::DataReader & reader)
+    ErrorCode DeserializePersistentData(PersistentData & pd, utils::DataReader & reader)
     {
         // Open version with V2, which automatically allows deserialization of future variants.
         bool result = reader.openVersion(PD_TAG, PD_VERSION_V2);
+        
+        if (reader.currentVersion() > PD_VERSION_V5) {
+            // unsupported PD version
+            return EC_UpgradeSDK;
+        }
         
         // Deserialize hash data or counter, depending on version stored in the header.
         if (reader.currentVersion() >= PD_VERSION_V3) {
@@ -257,7 +262,7 @@ namespace protocol
         result = result && reader.closeVersion();
         result = result && ValidatePersistentData(pd);
         
-        return result;
+        return result ? EC_Ok : EC_WrongParam;
     }
     
     

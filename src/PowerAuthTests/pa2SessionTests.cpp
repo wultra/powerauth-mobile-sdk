@@ -1189,7 +1189,7 @@ namespace powerAuthTests
             data_reader.skipBytes(1);           // Skip flag byte
             
             auto b_result = protocol::DeserializePersistentData(pd, data_reader);
-            ccstAssertTrue(b_result);
+            ccstAssertTrue(b_result == EC_Ok);
             ccstAssertEqual(pd.flags.hasSignatureCounterByte, 0);
         }
         
@@ -1243,7 +1243,7 @@ namespace powerAuthTests
             data_reader.skipBytes(1);           // Skip flag byte
             
             auto b_result = protocol::DeserializePersistentData(pd, data_reader);
-            ccstAssertTrue(b_result);
+            ccstAssertTrue(b_result == EC_Ok);
             ccstAssertEqual(pd.flags.hasSignatureCounterByte, 0);
         }
         
@@ -1297,7 +1297,7 @@ namespace powerAuthTests
             data_reader.skipBytes(1);           // Skip byte with flags
             
             auto b_result = protocol::DeserializePersistentData(pd, data_reader);
-            ccstAssertTrue(b_result);
+            ccstAssertTrue(b_result == EC_Ok);
             ccstAssertEqual(pd.flags.hasSignatureCounterByte, 0);
         }
         

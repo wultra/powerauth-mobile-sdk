@@ -23,6 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 
 import static io.getlime.security.powerauth.core.ErrorCode.Encryption;
 import static io.getlime.security.powerauth.core.ErrorCode.OK;
+import static io.getlime.security.powerauth.core.ErrorCode.UpgradeSDK;
 import static io.getlime.security.powerauth.core.ErrorCode.WrongParam;
 import static io.getlime.security.powerauth.core.ErrorCode.WrongState;
 
@@ -36,7 +37,7 @@ import static io.getlime.security.powerauth.core.ErrorCode.WrongState;
  * then it's usually your fault and you're using Session in wrong way.
  */
 @Retention(RetentionPolicy.SOURCE)
-@IntDef({OK, Encryption, WrongState, WrongParam})
+@IntDef({OK, Encryption, WrongState, WrongParam, UpgradeSDK})
 public @interface ErrorCode
 {
     /**
@@ -72,4 +73,8 @@ public @interface ErrorCode
      * ask Session for processing.
      */
     int WrongParam  = 3;
+    /**
+     * Upgrade SDK is required.
+     */
+    int UpgradeSDK = 4;
 }

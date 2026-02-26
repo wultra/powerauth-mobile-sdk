@@ -213,8 +213,6 @@ typedef struct LocalContext {
 #endif
         // Acquire local recursive lock to get a thread safety for debug and support functions
         _localLock = [_statusLock createLocalRecusiveLock];
-        // Everything looks OK, so restore the state and unlock the shared lock.
-        [self loadState:YES];
         
         // Finally, release the shared lock
         [_statusLock unlock];
@@ -223,16 +221,16 @@ typedef struct LocalContext {
 }
 
 /**
- READ_BLOCK macro all its parameters expands between [self lockImpl:NO] and [self unlockImpl:NO].
+ READ_BLOCK macro all its parameters expands between [self lockImpl:NO error:nil] and [self unlockImpl:NO].
  */
-#define READ_BLOCK(...)     [self lockImpl:NO];     \
-                            __VA_ARGS__;            \
+#define READ_BLOCK(...)     [self lockImpl:NO error:nil];   \
+                            __VA_ARGS__;                    \
                             [self unlockImpl:NO];
 /**
- WRITE_BLOCK macro all its parameters expands between [self lockImpl:YES] and [self unlockImpl:YES].
+ WRITE_BLOCK macro all its parameters expands between [self lockImpl:YES error:nil] and [self unlockImpl:YES].
  */
-#define WRITE_BLOCK(...)    [self lockImpl:YES];    \
-                            __VA_ARGS__;            \
+#define WRITE_BLOCK(...)    [self lockImpl:YES error:nil];  \
+                            __VA_ARGS__;                    \
                             [self unlockImpl:YES];
 
 #pragma mark - PowerAuthCoreSessionProvider protocol
@@ -305,7 +303,7 @@ typedef struct LocalContext {
 
 - (BOOL) lockTokenStore
 {
-    [self lockImpl:YES];
+    [self lockImpl:YES error:nil];
     return _LocalContextTokenIsDirty(&_localContext);
 }
 
@@ -431,22 +429,38 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
  is NO, then function try to determine whether local session needs to deserialize its state.
  If force is YES, then the session's state is always restored from the persistent storage.
  */
-- (void) loadState:(BOOL)force
+- (BOOL) loadState:(BOOL)force error:(NSError**)error
 {
     if (!force && !_LocalContextStateIsDirty(&_localContext)) {
         // Do nothing if local session has still valid data.
-        return;
+        return YES;
     }
     
     // Temporarily allow call session's methods that require write access.
     _internalAccessGranted = YES;
     
     // Reload data from data provider
+    BOOL result;
     NSData * statusData = [_dataProvider sessionData];
     if (statusData) {
-        [_session deserializeState:statusData];
+        NSError * loadError = nil;
+        switch ([_session deserializeState:statusData]) {
+            case PowerAuthCoreErrorCode_Ok:
+                break;
+            case PowerAuthCoreErrorCode_UpgradeSDK:
+                loadError = PA2MakeError(PowerAuthErrorCode_UpgradeSDK, @"Upgrade PowerAuthSDK in your application");
+                break;
+            default:
+                loadError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, @"Unsupported activation data format");
+                break;
+        }
+        if (loadError && error) {
+            *error = loadError;
+        }
+        result = loadError == nil;
     } else {
         [_session resetSession:NO];
+        result = YES;
     }
     _stateBefore = [_session serializedState];
     
@@ -454,6 +468,8 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
     _internalAccessGranted = NO;
     // Set context synchronized with others
     _LocalContextStateSynchronize(&_localContext, NO);
+    
+    return result;
 }
 
 /**
@@ -474,7 +490,7 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 /**
  Acquire shared lock for read or write operation.
  */
-- (void) lockImpl:(BOOL)write
+- (BOOL) lockImpl:(BOOL)write error:(NSError**)error
 {
     // At first, acquire a shared lock.
     [_statusLock lock];
@@ -486,8 +502,10 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
     
     if (_readWriteAccessCount == 1) {
         // First lock, we should restore session's data if needed.
-        [self loadState:NO];
+        return [self loadState:NO error:error];
     }
+    
+    return YES;
 }
 
 /**
@@ -517,6 +535,27 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
     _readWriteAccessCount--;
     // Finally, release the shared lock.
     [_statusLock unlock];
+}
+
+// Initial load
+
+- (BOOL) loadInitialState:(BOOL)cleanupOnFail
+                    error:(NSError * _Nullable __autoreleasing *)error
+{
+    // Initial load is achieved with using sequence of lock - unlock.
+    BOOL result = [self lockImpl:YES error:error];
+    if (!result) {
+        // This is a bit tricky. If fail occurred and we explicitly don't want to
+        // erase the existing data, then we have to manually set '_saveOnUnlock' property
+        // to false. This will guarantee that the next unlock call will not overwrite the data.
+        //
+        // In an opposite scenario, if cleanup is required, then we have to set _stateBefore
+        // to nil to force overwrite the data on unlock.
+        _stateBefore = nil;
+        _saveOnUnlock = cleanupOnFail;
+    }
+    [self unlockImpl:YES];
+    return result;
 }
 
 #pragma mark Lock context

@@ -316,7 +316,7 @@ namespace protocol
      Deserializes a persistent data from the |reader| into the |pd| reference.
      Returns false if the byte stream contains invalid data.
      */
-    bool DeserializePersistentData(PersistentData & pd, utils::DataReader & reader);
+    ErrorCode DeserializePersistentData(PersistentData & pd, utils::DataReader & reader);
 
     
     //

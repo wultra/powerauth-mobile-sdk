@@ -146,7 +146,15 @@ typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
     /**
      Failed to synchronize time with the server.
      */
-    PowerAuthErrorCode_TimeSynchronization          = 20
+    PowerAuthErrorCode_TimeSynchronization          = 20,
+    /**
+     Upgrade the PowerAuth Mobile SDK in your application. This error may occur if the local activation data was created
+     with a newer version of the SDK than the one currently used in your application.
+
+     This situation can happen if you downgraded your application during testing, or if you are using the activation
+     data sharing feature and another application upgraded the shared activation data to a newer format.
+     */
+    PowerAuthErrorCode_UpgradeSDK                   = 24
 };
 
 @interface NSError (PowerAuthErrorCode)

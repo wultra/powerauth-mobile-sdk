@@ -29,6 +29,7 @@ void PowerAuthCoreObjc_DebugDumpErrorImpl(id instance, NSString * message, Error
             case EC_Encryption: codeStr = @"EC_Encryption"; break;
             case EC_WrongParam: codeStr = @"EC_WrongParam"; break;
             case EC_WrongState: codeStr = @"EC_WrongState"; break;
+            case EC_UpgradeSDK: codeStr = @"EC_UpgradeSDK"; break;
             default:
                 codeStr = [@(code) stringValue];
                 break;

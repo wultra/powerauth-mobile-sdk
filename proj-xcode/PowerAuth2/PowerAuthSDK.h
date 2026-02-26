@@ -828,3 +828,51 @@
                         NS_SWIFT_NAME(fetchServerStatus(callback:));
 
 @end
+
+#pragma mark - Forward compatibility
+
+@interface PowerAuthSDK (SafeConstruction)
+
+/// Creates an instance of `PowerAuthSDK` using all configuration objects. Unlike the similar class constructor, this method throws
+/// an error if the configuration is invalid or if the local activation data is in an incorrect format. Importantly, the local activation
+/// data remains intact in case of such failure.
+///
+/// - Parameters:
+///   - configuration: Configuration to be used for initialization.
+///   - keychainConfiguration: Configuration to be used for the keychain. If `nil` is provided, `PowerAuthKeychainConfiguration.sharedInstance()` is used.
+///   - clientConfiguration: Configuration to be used for the HTTP client. If `nil` is provided, `PowerAuthClientConfiguration.sharedInstance()` is used.
+///   - error: Pointer to an `NSError` that is set in case of failure.
+/// - Returns: An instance of `PowerAuthSDK`, or `nil` in case of failure.
+/// - Throws: An `NSError` in the `PowerAuthErrorDomain` in case of failure.
++ (nullable instancetype) createWithConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                            keychainConfiguration:(nullable PowerAuthKeychainConfiguration*)keychainConfiguration
+                              clientConfiguration:(nullable PowerAuthClientConfiguration*)clientConfiguration
+                                            error:(NSError *_Nullable *_Nullable)error
+                            NS_SWIFT_NAME(create(configuration:clientConfiguration:keychainConfiguration:));
+
+/// Creates an instance of `PowerAuthSDK` using the provided configuration object and the default keychain and client configurations.
+/// Unlike the similar class constructor, this method throws an error if the configuration is invalid or if the local
+/// activation data is in an incorrect format. Importantly, the local activation data remains intact in case of such failure.
+///
+/// - Parameters:
+///   - configuration: Configuration to be used for initialization.
+///   - error: Pointer to an `NSError` that is set in case of failure.
+/// - Returns: An instance of `PowerAuthSDK`, or `nil` in case of failure.
+/// - Throws: An `NSError` in the `PowerAuthErrorDomain` in case of failure.
++ (nullable instancetype) createWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                                            error:(NSError *_Nullable *_Nullable)error
+                            NS_SWIFT_NAME(create(configuration:));
+
+/// Clears the local activation data for the `PowerAuthSDK` instance identified by the provided configuration object.
+/// This method is useful when using `PowerAuthSDK.create(configuration:)` and the initialization fails,
+/// and you need to manually remove the local activation data.
+///
+/// - Parameters:
+///   - configuration: Configuration to be used for instance identification.
+///   - keychainConfiguration: Configuration to be used for the keychain. If `nil` is provided, `PowerAuthKeychainConfiguration.sharedInstance()` is used.
+/// - Returns: `true` in case of success, `false` if you provide invalid configuration.
++ (BOOL) clearInstanceDataForConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                     keychainConfiguration:(nullable PowerAuthKeychainConfiguration*)keychainConfiguration
+                            NS_SWIFT_NAME(clearInstanceData(configuration:keychainConfiguration:));
+
+@end

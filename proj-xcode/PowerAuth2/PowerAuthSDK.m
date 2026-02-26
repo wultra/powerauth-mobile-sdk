@@ -81,19 +81,34 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 
 #pragma mark - Private methods
 
-- (void) initializeWithConfiguration:(PowerAuthConfiguration*)configuration
+/// Internal SDK initialization. Function returns the following errors in case of failure:
+/// - `PowerAuthErrorCode_WrongParameter` in case configuration is invalid.
+/// - `PowerAuthErrorCode_InvalidActivationData` in case unsupported activation data format is detected.
+/// - `PowerAuthErrorCode_UpgradeSDK` in case SDK needs to be upgraded.
+///
+/// - Parameters:
+///   - configuration: Instance configuration.
+///   - keychainConfiguration: Keychain configuration.
+///   - clientConfiguration: Client configuration.
+///   - cleanupWrongData: If YES, then an unrecognized activation data will be erased.
+///   - error: Pointer where error is set.
+- (BOOL) initializeWithConfiguration:(PowerAuthConfiguration*)configuration
                keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
                  clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration
+                    cleanupWrongData:(BOOL)cleanupWrongData
+                               error:(NSError**)error
 {
     
     // Check if the configuration was nil
     if (configuration == nil) {
-        [PowerAuthSDK throwInvalidConfigurationException];
+        *error = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Configuration is missing");
+        return NO;
     }
     
     // Validate that the configuration was set up correctly
     if (![configuration validateConfiguration]) {
-        [PowerAuthSDK throwInvalidConfigurationException];
+        *error = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Configuration is not valid");
+        return NO;
     }
     
     // Exclusive lock
@@ -129,7 +144,8 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     // Create a new session
     _coreSession = [[PowerAuthCoreSession alloc] initWithSessionSetup:setup timeService:_timeSynchronizationService];
     if (_coreSession == nil || ![_coreSession hasValidSetup]) {
-        [PowerAuthSDK throwInvalidConfigurationException];
+        *error = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Failed to initialize PowerAuthCoreSession");
+        return NO;
     }
     
     // Create a new keychain instances
@@ -183,7 +199,8 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
         NSString * operationLockPath = [appGroupContainer pathToFileLockWithIdentifier:[@"operationLock:" stringByAppendingString:instanceId]];
         NSString * queueLockPath = [appGroupContainer pathToFileLockWithIdentifier:[@"queueLock:" stringByAppendingString:instanceId]];
         if (!sharedMemoryId || !statusLockPath || !queueLockPath || !operationLockPath) {
-            [PowerAuthSDK throwInvalidConfigurationException];
+            *error = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Failed to initialize activation data sharing");
+            return NO;
         }
         // Finally, construct the shared session provider.
         _sessionInterface = [[PA2SharedSessionInterface alloc] initWithSession:_coreSession
@@ -195,10 +212,12 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
                                                              operationLockPath:operationLockPath
                                                                  queueLockPath:queueLockPath];
     }
-    // Throw a failure if session provider is not available.
+    // Report a failure if session provider is not available.
     if (!_sessionInterface) {
-        [PowerAuthSDK throwInvalidConfigurationException];
+        *error = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Failed to create session interface");
+        return NO;
     }
+    BOOL loadSuccess = [_sessionInterface loadInitialState:cleanupWrongData error:error];
     
     // Create and setup a new HTTP client
     _client = [[PA2HttpClient alloc] initWithConfiguration:_clientConfiguration
@@ -220,7 +239,39 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     // Register this instance to handle messages
     [[PowerAuthWCSessionManager sharedInstance] registerDataHandler:self];
 #endif
+    
+    return loadSuccess;
 }
+
+/// Private constructor used in safe SDK construction method. The constructor should not be exposed to public API,
+/// otherwise it will cause a breaking API change (throwing method in Swift).
+/// - Parameters:
+///   - configuration: Instance configuration.
+///   - keychainConfiguration: Keychain configuration.
+///   - clientConfiguration: Client configuration.
+///   - error: Pointer where error is set.
+- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                          keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
+                            clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
+                                          error:(NSError**)error
+{
+    self = [super init];
+    if (self) {
+        NSError * initError = nil;
+        if (![self initializeWithConfiguration:configuration
+                         keychainConfiguration:keychainConfiguration
+                           clientConfiguration:clientConfiguration
+                              cleanupWrongData:NO
+                                         error:&initError]) {
+            if (error) {
+                *error = initError;
+            }
+            return nil;
+        }
+    }
+    return self;
+}
+
 
 - (void) dealloc
 {
@@ -471,9 +522,18 @@ static PowerAuthSDK * s_inst;
 {
     self = [super init];
     if (self) {
+        // To maintain API compatibility, we can ignore all errors except "WrongParameter". Such code
+        // is returned for non-recoverable errors, so we have to throw Objective-C exception as we did
+        // in the previous SDK versions.
+        NSError * initError = nil;
         [self initializeWithConfiguration:configuration
                     keychainConfiguration:keychainConfiguration
-                      clientConfiguration:clientConfiguration];
+                      clientConfiguration:clientConfiguration
+                         cleanupWrongData:YES
+                                    error:&initError];
+        if (initError.powerAuthErrorCode == PowerAuthErrorCode_WrongParameter) {
+            [PowerAuthSDK throwInvalidConfigurationException];
+        }
     }
     return self;
 }
@@ -1840,6 +1900,47 @@ static PowerAuthSDK * s_inst;
             // during waiting to execute the operation block.
             [self getSystemStatusTask:task didFinishedWithStatus:nil error:nil];
         }];
+    }
+}
+
+@end
+
+#pragma mark - Forward compatibility
+
+@implementation PowerAuthSDK (SafeConstruction)
+
++ (nullable PowerAuthSDK*) createWithConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                             keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
+                               clientConfiguration:(nullable PowerAuthClientConfiguration*)clientConfiguration
+                                             error:(NSError*_Nullable*_Nullable)error
+{
+    return [[PowerAuthSDK alloc] initWithConfiguration:configuration
+                                 keychainConfiguration:keychainConfiguration
+                                   clientConfiguration:clientConfiguration
+                                                 error:error];
+}
+
++ (nullable instancetype) createWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                                            error:(NSError * _Nullable __autoreleasing *)error
+{
+    return [[PowerAuthSDK alloc] initWithConfiguration:configuration
+                                 keychainConfiguration:nil
+                                   clientConfiguration:nil
+                                                 error:error];
+}
+
++ (BOOL) clearInstanceDataForConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                     keychainConfiguration:(nullable PowerAuthKeychainConfiguration*)keychainConfiguration
+
+{
+    @try {
+        [[[PowerAuthSDK alloc] initWithConfiguration:configuration
+                               keychainConfiguration:keychainConfiguration
+                                 clientConfiguration:nil] removeActivationLocal];
+        return YES;
+    } @catch (NSException *exception) {
+        PowerAuthLog(@"Failed to initialize temporary PowerAuthSDK object: %@", exception);
+        return NO;
     }
 }
 

@@ -48,7 +48,6 @@
 #if DEBUG
         _session.debugMonitor = self;
 #endif
-        [self loadState];
     }
     return self;
 }
@@ -56,25 +55,47 @@
 
 #pragma mark - Private
 
-- (void) loadState
+- (BOOL) loadInitialState:(BOOL)cleanupOnFail
+                    error:(NSError * _Nullable __autoreleasing *)error
 {
-    // We don't need to acquire access lock, because the object is still
-    // in its initialization phase. We need to just temporarily simulate
+    BOOL result;
+    // We don't need to acquire access lock, because we're still
+    // in initialization phase. We need to just temporarily simulate
     // that write access is granted.
     _readWriteAccessCount = 1;
     _saveOnUnlock = YES;
     
     NSData * statusData = [_dataProvider sessionData];
     if (statusData) {
-        [_session deserializeState:statusData];
+        NSError * loadError = nil;
+        switch ([_session deserializeState:statusData]) {
+            case PowerAuthCoreErrorCode_Ok:
+                break;
+            case PowerAuthCoreErrorCode_UpgradeSDK:
+                loadError = PA2MakeError(PowerAuthErrorCode_UpgradeSDK, @"Upgrade PowerAuthSDK in your application");
+                break;
+            default:
+                loadError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, @"Unsupported activation data format");
+                break;
+        }
+        if (loadError && error) {
+            *error = loadError;
+        }
+        result = loadError == nil;
     } else {
         [_session resetSession];
+        result = YES;
     }
     _stateBefore = [_session serializedState];
+    if (cleanupOnFail) {
+        [_dataProvider saveSessionData:_stateBefore];
+    }
     
     // Set counters to initial state
     _readWriteAccessCount = 0;
     _saveOnUnlock = NO;
+    
+    return result;
 }
 
 - (void) lockImpl:(BOOL)write

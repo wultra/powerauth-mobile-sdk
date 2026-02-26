@@ -1309,4 +1309,86 @@
     XCTAssertEqual(info, _sdk.lastFetchedUserInfo);
 }
 
+
+// Forward data compatibility
+
+- (void) testForwardActivationDataCompatibility
+{
+    NSString * instanceId = _sdk.configuration.instanceId;
+    PowerAuthConfiguration * configuration = [_sdk.configuration copy];
+    PowerAuthKeychainConfiguration * keychainConfiguration = [_sdk.keychainConfiguration copy];
+    
+    // Old fashioned way
+    [self insertV4ActivationData:instanceId];
+    
+    _sdk = [[PowerAuthSDK alloc] initWithConfiguration:_sdk.configuration
+                                 keychainConfiguration:_sdk.keychainConfiguration
+                                   clientConfiguration:_sdk.clientConfiguration];
+    XCTAssertFalse(_sdk.hasValidActivation);
+    XCTAssertNotEqualObjects([self v4ActivationData], [self instanceData:instanceId]);
+    
+    // new way
+    [self insertV4ActivationData:instanceId];
+    NSError * error = nil;
+    _sdk = [PowerAuthSDK createWithConfiguration:_sdk.configuration
+                           keychainConfiguration:_sdk.keychainConfiguration
+                             clientConfiguration:_sdk.clientConfiguration
+                                           error:&error];
+    XCTAssertEqual(PowerAuthErrorCode_UpgradeSDK, error.powerAuthErrorCode);
+    XCTAssertEqualObjects([self v4ActivationData], [self instanceData:instanceId]);
+    
+    BOOL result = [PowerAuthSDK clearInstanceDataForConfiguration:configuration
+                                            keychainConfiguration:keychainConfiguration];
+    XCTAssertTrue(result);
+    XCTAssertNotEqualObjects([self v4ActivationData], [self instanceData:instanceId]);
+}
+
+- (PowerAuthKeychain*) instanceKeychain
+{
+    NSString * keychainId = _sdk.keychainConfiguration.keychainInstanceName_Status;
+    NSString * accessGroup = _sdk.configuration.sharingConfiguration.appGroup;
+    return [[PowerAuthKeychain alloc] initWithIdentifier:keychainId accessGroup:accessGroup];
+}
+
+- (void) insertV4ActivationData:(NSString*)instanceId
+{
+    PowerAuthKeychain * keychain = [self instanceKeychain];
+    
+    NSData * v4Data = [self v4ActivationData];
+    if ([keychain containsDataForKey:instanceId]) {
+        [keychain updateValue:v4Data forKey:instanceId];
+    } else {
+        [keychain addValue:v4Data forKey:instanceId];
+    }
+}
+
+- (NSData*) instanceData:(NSString*)instanceId
+{
+    PowerAuthKeychain * keychain = [self instanceKeychain];
+    NSData * data = [keychain dataForKey:instanceId status:NULL];
+    return data;
+}
+
+- (NSData*) v4ActivationData
+{
+    NSString * v4Data =
+        @"UEECUDcBJGJmZGQ2MzhhLWZjYzgtNDBiZi1hYjM0LTA0Nzk4MWZjMTBlNwEgoLj0JDQnSnD+CDRoW/JTbC2wlOsE9"
+        @"RIM9o4C9BroOs8wFZCDdwb2MdJuMRoczoWudDuXwFr+kHtppkqJqgoEU0iYqIZYmvQWrc0/fLErw00uMJWbrZlFynJW"
+        @"+be5gcBdFaoSNVfCm2KKdj9o16brsLWASFTgRiPV8SMNtsiLWczDUgAgdJdz7UrqPiUv0gtyYkMA8VIgnG0GWc5xWXc"
+        @"uVAulwbhMtLaUHJU9HWr8uB4a/yz48aAgQRrMuDJq9s2wl5O60YtJG6boKvkQgwKpFCDkMaIkapM94HqkfA9T/boj08"
+        @"iJVXbbw/4Qh3UvAzJOykwleuc7/e8glsNhpPhzBYvw47TirG3fm96xTr3iQPcre0/l+Z+r3jj5taFP8lXUb5MdZimjg"
+        @"APmvEO+Y16UOpM6rLPnaXItNpwQWiM4MG9vQpS7dB9OHM2Ow80a2C6zhCw29myg8srlDk7wJOf/AbOMgoqaPYh8u60X"
+        @"40yJWDC++hXVORI/kp5fS0nlN3yxGGvULuHkd7sDwv+VGAvo40SW6WnCz6TqTrLTpUoBnAWArn0WiJ8MMrHNF0Vw28B"
+        @"B8Aokt6xRBSHANiIB3t7CwlKlpUGshT/3x4Ce+Hn9m1PwVI+CvgGJlu0AV6ftABheXNyTybBEdhDlBthjW91Lk7+PZc"
+        @"hJkVVxBoncD3rsJKtKgikx99rT1YqI1mtRjfKjV1dE1dO3kXGwyo+51sOBhv0OWZrqVSdxH3yweW6/NZM5tPHm1iaVR"
+        @"GDleWTlRCRLk00RWW6F/4ZC0kHXxczbD4CufOV3QEGqdx0SqYxVowjgwtUTw6gRid1saXr9YWf4hs9w8A1IZw+RWKBt"
+        @"gUE6PvuMOPGWDUdf9qDh0xHOIdarFuMnksqZMwY+grTh3SnoraC0KW5AAjY8qHm2i4FooBOlWcd+C47h4Nzo6KJnjt6"
+        @"gwbPqGXjSBkAnV9uHd3PzyuwLWhrTXcjNZg7hqWOVVKo0JEY+GoPWw+n3jZDjkPjeQa0qDU6cwlLQyYG49Mq/gPBmmt"
+        @"AyZGBjyU0Rx6ZpRWEQ4zc1rpfpBGHle/ieCkarFwbSw2lj20YOGfxyWmeVCEao1HmBYSrPK46usy/S7VN69Iy0W4CtH"
+        @"vraWxYp1nkLK6JJzOAUnHifEeZDWXcmi3oMYfheBZ1hPzAYQAOu/pDlix3mrB8sJVoShaeEjq20/8je2VRMjX8xTeeY"
+        @"8BCgClfiPgiYhoKKlnbv7ChwH6JIL2nqq7KELebNe1IBSKb3e4iGHcqFXpJNPRPNptlcML2yNFcty9bplDrffCBiZWq"
+        @"a6zhAUuvKX0w9ffbhU+ZwiVvwvYlGHSJ5g0BX2OZjhhYAAAAA";
+    return [[NSData alloc] initWithBase64EncodedString:v4Data options:0];
+}
+
 @end

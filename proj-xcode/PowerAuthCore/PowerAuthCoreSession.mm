@@ -153,12 +153,12 @@ using namespace io::getlime::powerAuth;
 }
 
 
-- (BOOL) deserializeState:(nonnull NSData *)state
+- (PowerAuthCoreErrorCode) deserializeState:(nonnull NSData *)state
 {
     REQUIRE_WRITE_ACCESS();
     auto error = _session->loadSessionState(cc7::ByteRange(state.bytes, state.length));
     REPORT_ERROR_CODE(@"DeserializeState", error);
-    return error == EC_Ok;
+    return (PowerAuthCoreErrorCode)error;
 }
 
 

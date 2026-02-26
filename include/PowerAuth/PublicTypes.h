@@ -130,6 +130,10 @@ namespace powerAuth
          ask session for processing.
          */
         EC_WrongParam,
+        /**
+         Upgrade SDK is required.
+         */
+        EC_UpgradeSDK,
     };
     
     /**

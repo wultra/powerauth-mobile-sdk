@@ -20,26 +20,7 @@ import androidx.annotation.IntDef;
 
 import java.lang.annotation.Retention;
 
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PENDING_ACTIVATION;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.BIOMETRY_LOCKOUT;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.BIOMETRY_CANCEL;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.ENCRYPTION_ERROR;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.INSUFFICIENT_KEYCHAIN_PROTECTION;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.INVALID_ACTIVATION_CODE;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.INVALID_ACTIVATION_DATA;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.INVALID_ACTIVATION_STATE;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.INVALID_TOKEN;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.MISSING_ACTIVATION;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.NETWORK_ERROR;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.OPERATION_CANCELED;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PROTOCOL_UPGRADE;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.SIGNATURE_ERROR;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.WRONG_PARAMETER;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.SUCCEED;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.*;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
@@ -53,7 +34,8 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         INVALID_TOKEN, ENCRYPTION_ERROR, WRONG_PARAMETER,
         PROTOCOL_UPGRADE, PENDING_PROTOCOL_UPGRADE,
         BIOMETRY_NOT_SUPPORTED, BIOMETRY_NOT_AVAILABLE, BIOMETRY_NOT_RECOGNIZED,
-        INSUFFICIENT_KEYCHAIN_PROTECTION, BIOMETRY_LOCKOUT})
+        INSUFFICIENT_KEYCHAIN_PROTECTION, BIOMETRY_LOCKOUT,
+        UPGRADE_SDK})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -177,4 +159,13 @@ public @interface PowerAuthErrorCodes {
      * authentication (PIN, password, pattern).
      */
     int BIOMETRY_LOCKOUT = 22;
+
+    /**
+     * Upgrade the PowerAuth Mobile SDK in your application. This error may occur if the local activation data was created
+     * with a newer version of the SDK than the one currently used in your application. This situation can happen if you
+     * downgraded your application during testing.
+     * <p>
+     * Note that this error code is reserved for future use and is actually never reported in this version of SDK.
+     */
+    int UPGRADE_SDK = 25;
 }

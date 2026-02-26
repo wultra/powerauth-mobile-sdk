@@ -141,14 +141,14 @@
 
 /**
  Loads state of session from previously saved sequence of bytes. If the serialized state is
- invalid then the session ends in empty, unitialized state.
+ invalid then the session ends in empty, uninitialized state.
  
- Returns YES if operation succeeds. In case of faulure, you can determine the failure reason from
+ Returns YES if operation succeeds. In case of failure, you can determine the failure reason from
  DEBUG log.
  
  This function changes the session's state, so write access must be guaranteed.
  */
-- (BOOL) deserializeState:(nonnull NSData *)state;
+- (PowerAuthCoreErrorCode) deserializeState:(nonnull NSData *)state;
 
 
 #pragma mark - Activation

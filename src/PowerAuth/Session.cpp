@@ -186,14 +186,21 @@ namespace powerAuth
         
         bool has_data  = false;
         auto new_data = new protocol::PersistentData();
+        ErrorCode error_code = EC_WrongParam;
         
         bool result = reader.openVersion(DATA_TAG, DATA_VER) &&
                       reader.readByte(flags);
         
+        if (result && reader.currentVersion() > DATA_VER) {
+            error_code = EC_UpgradeSDK;
+            result = false;
+        }
         if (result && (flags != 'M')) {
             if (flags & HAS_PERSISTENT_DATA) {
-                result = result && protocol::DeserializePersistentData(*new_data, reader);
-                has_data = result;
+                auto load_result = protocol::DeserializePersistentData(*new_data, reader);
+                if (!(result = has_data = (load_result == EC_Ok))) {
+                    error_code = load_result;
+                }
             }
         } else {
             result = has_data = false;
@@ -201,7 +208,7 @@ namespace powerAuth
         
         State new_state = has_data ? SS_Activated : SS_Empty;
         commitNewPersistentState(new_data, new_state);
-        return result ? EC_Ok : EC_WrongParam;
+        return result ? EC_Ok : error_code;
     }
     
     

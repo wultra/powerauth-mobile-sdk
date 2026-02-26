@@ -28,6 +28,12 @@
 @required
 
 /**
+ Load initial state of session.
+ */
+- (BOOL) loadInitialState:(BOOL)cleanupOnFail
+                    error:(NSError*_Nullable*_Nullable)error;
+
+/**
  Contains instance to `PowerAuthExternalPendingOperation` in case that other application is doing the critical
  operation right now.
  */

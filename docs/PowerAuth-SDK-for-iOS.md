@@ -1867,8 +1867,24 @@ configuration.sharingConfiguration = PowerAuthSharingConfiguration(
     appIdentifier: "com.powerauth.demo.App", 
     keychainAccessGroup: "KTT00000MR.com.powerauth.demo.App")
 
-// Create a PowerAuthSDK instance
-let powerAuthSDK = PowerAuthSDK(configuration)
+do {
+    // Create a PowerAuthSDK instance
+    // Use different method for construction, to safely detect unsupported data format.
+    let powerAuthSDK = try PowerAuthSDK.create(configuration)
+} catch let err as NSError {
+    switch err.powerAuthErrorCode {
+    case .wrongParameter:
+        // Invalid configuration.
+    case .invalidActivationData:
+        // Unrecognized data format. You can log this event, clear data and retry SDK construction
+        PowerAuthSDK.clearInstanceData(configuration: configuration, keychainConfiguration: nil)
+    case .upgradeSDK:
+        // Application upgrade is required
+    default:
+        // other errors
+        break
+    }
+}
 ```
 
 The `PowerAuthSharingConfiguration` object contains the following properties:
@@ -1900,7 +1916,45 @@ powerAuthSDK.createActivation(activation) { (result, error) in
         }
     }
 }
+
 ``` 
+### Detect Unsupported Activation Data Format
+
+The PowerAuth Mobile SDK version `1.9.7` introduced a new way to create a `PowerAuthSDK` instance that allows you to detect an unsupported format of local activation data. This is particularly important if you are using the [Activation Data Sharing](#share-activation-data) feature and sharing activation data between multiple applications. In such a setup, you may encounter a situation where one of your applications is already upgraded to a newer SDK version, and the modified data is not recognized by an application using an older SDK version. This situation may lead to unexpected removal of activation data.
+
+To prevent this, use the following code to instantiate `PowerAuthSDK` in all your applications:
+
+```swift
+do {
+    let sdk = try PowerAuthSDK.create(configuration: configuration, clientConfiguration: nil, keychainConfiguration: nil)
+} catch let err as NSError {
+    switch err.powerAuthErrorCode {
+    case .wrongParameter:
+        // Invalid configuration.
+    case .invalidActivationData:
+        // Unrecognized data format. You can log this event, clear data and retry SDK construction
+        PowerAuthSDK.clearInstanceData(configuration: configuration, keychainConfiguration: nil)
+    case .upgradeSDK:
+        // Application upgrade is required
+    default:
+        // other errors
+        break
+    }
+}
+```
+
+It is recommended to follow these steps to reliably upgrade your applications to PowerAuth SDK 2.0 (and later):
+
+1. First, upgrade all your applications to SDK `1.9.7` and implement safe `PowerAuthSDK` instantiation.
+2. Wait until a significant portion of your users are using version `1.9.7` across all your applications.
+3. Then upgrade all your applications to SDK `2.0.0` or newer.
+
+As an alternative, you can take advantage of the fact that PowerAuth Mobile SDK 2.0+ can operate in a mode compatible with older SDK versions. In this case, you can upgrade directly to 2.0+ and continue using the `LEGACY_P256` algorithm until a significant portion of your users have upgraded. After that, you can switch to algorithms that use the new data format, such as `EC_P384_ML_L3`.
+
+<!-- begin box info -->
+The procedure above is not required if you are using activation data sharing to share data between a single application and its extensions. This setup is safe because the extensions are part of the main application and are upgraded at the same time.
+<!-- end -->
+
 
 ## Synchronized Time
 
@@ -2066,6 +2120,9 @@ if error == nil {
             
         case .timeSynchronization:
             print("Failed to synchronize time with the server.")
+
+        case .upgradeSDK:
+            print("Local activation data is created in newer SDK version")
             
         default:
             print("Unknown error")
@@ -2083,6 +2140,7 @@ Here's the list of important error codes, which the application should properly 
 - `PowerAuthErrorCode.protocolUpgrade` is reported when SDK fails to upgrade itself to a newer protocol version. The code may be reported from `PowerAuthSDK.fetchActivationStatus()`. This is an unrecoverable error resulting in the broken activation on the device, so the best situation is to inform the user about the situation and remove the activation locally.
 - `PowerAuthErrorCode.pendingProtocolUpgrade` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The code is typically reported in situations when SDK is performing protocol upgrade in the background (as a part of activation status fetch), and the application wants to calculate the PowerAuth signature in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
 - `PowerAuthErrorCode.externalPendingOperation` is reported when the requested operation collides with the same operation type already started in the external application.
+- `PowerAuthErrorCode.upgradeSDK` is reported during `PowerAuthSDK` construction if the local activation data is in a format created by a newer SDK version. This situation may occur when you use the [Activation Data Sharing](#share-activation-data) feature and another application is already using a newer SDK version. The recommended solution is to instruct the user to update the application in the App Store.
 
 ### Working with Invalid SSL Certificates
 

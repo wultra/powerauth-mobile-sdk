@@ -88,3 +88,7 @@ You can watch the following related issues:
 - [wultra/powerauth-mobile-sdk#551](https://github.com/wultra/powerauth-mobile-sdk/issues/551)
 - [wultra/powerauth-mobile-watch-sdk#7](https://github.com/wultra/powerauth-mobile-watch-sdk/issues/7)
 - [wultra/powerauth-mobile-extensions-sdk#7](https://github.com/wultra/powerauth-mobile-extensions-sdk/issues/7)
+
+## iOS changes in 1.9.7+
+
+Version 1.9.7 introduces a feature that allows you to detect an unsupported local activation data format during `PowerAuthSDK` instantiation. This is particularly important if you are using the [Activation Data Sharing](PowerAuth-SDK-for-iOS.md#share-activation-data) feature to share activation data between multiple applications. Please refer to the [Detect Unsupported Activation Data Format](PowerAuth-SDK-for-iOS.md#detect-unsupported-activation-data-format) section for more details.

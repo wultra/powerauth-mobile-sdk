@@ -307,4 +307,9 @@ You can watch the following related issues:
   - Method `PowerAuthSDK.removeActivationLocal(Context, boolean)` is now deprecated. Use `removeActivationLocal(Context)` as a replacement.
   - Method `PowerAuthKeychainConfiguration.getKeychainBiometryDefaultKey()` is now deprecated. Use `getKeychainKeyBiometry()` as a replacement.
   - Method `PowerAuthKeychainConfiguration.Builder.keychainBiometryDefaultKey(String)` is now deprecated. Use `keychainKeyBiometry(String)` as a replacement.
-  
+
+## Changes in 1.8.6+
+
+### iOS
+
+Version 1.8.6 introduces a feature that allows you to detect an unsupported local activation data format during `PowerAuthSDK` instantiation. This is particularly important if you are using the [Activation Data Sharing](PowerAuth-SDK-for-iOS.md#share-activation-data) feature to share activation data between multiple applications. Please refer to the [Detect Unsupported Activation Data Format](PowerAuth-SDK-for-iOS.md#detect-unsupported-activation-data-format) section for more details.

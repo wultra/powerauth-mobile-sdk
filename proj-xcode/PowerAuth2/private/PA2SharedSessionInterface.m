@@ -33,7 +33,7 @@
 // Erase invalid state data
 #define ACQ_ERASE_INVD  2
 
-/// Lenght of SHA256 hash, calculated from PowerAuthConfiguration.instanceId
+/// Length of SHA256 hash, calculated from PowerAuthConfiguration.instanceId
 #define INSTANCE_ID_SIZE    32
 
 /// Length of application identifier, reserved in SharedData.

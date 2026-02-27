@@ -53,9 +53,10 @@ NSString * PA2MakeDefaultErrorDescription(NSInteger errorCode, NSString * messag
         _CODE_DESC(PowerAuthErrorCode_InvalidToken, @"Invalid or unknown token")
         _CODE_DESC(PowerAuthErrorCode_WatchConnectivity, @"Watch connectivity error")
         _CODE_DESC(PowerAuthErrorCode_ProtocolUpgrade, @"Protocol upgrade error")
-        _CODE_DESC(PowerAuthErrorCode_PendingProtocolUpgrade, @"Pending protocol ugprade, try later")
+        _CODE_DESC(PowerAuthErrorCode_PendingProtocolUpgrade, @"Pending protocol upgrade, try later")
         _CODE_DESC(PowerAuthErrorCode_ExternalPendingOperation, @"Other application does critical operation")
         _CODE_DESC(PowerAuthErrorCode_TimeSynchronization, @"Failed to synchronize time with the server")
+        _CODE_DESC(PowerAuthErrorCode_WrongSignature, @"Wrong digital signature")
         _CODE_DESC(PowerAuthErrorCode_UpgradeSDK, @"PowerAuth Mobile SDK update is required")
         _CODE_DESC(PowerAuthErrorCode_Other, @"Unspecified error")
         default:

@@ -78,10 +78,10 @@ const size_t PASSKDF_SALT_SIZE = 32;
 /// Length of all factor keys
 const size_t FACTOR_KEY_SIZE = 32;
 
-/// Lenght of factor key encrypted with UKE
+/// Length of factor key encrypted with UKE
 const size_t UKE_PROTECTED_KEY_SIZE = 16 + 32;
 
-/// Lenght of factor (or similar) key encrypted with AEAD
+/// Length of factor (or similar) key encrypted with AEAD
 const size_t AEAD_PROTECTED_KEY_SIZE = 12 + 32 + 32;
 
 /// Length of vault key.

@@ -3206,4 +3206,136 @@
     [_helper cleanup];
 }
 
+// Forward data compatibility
+
+- (PowerAuthKeychain*) instanceKeychain
+{
+    NSString * keychainId = _sdk.keychainConfiguration.keychainInstanceName_Status;
+    NSString * accessGroup = _sdk.configuration.sharingConfiguration.appGroup;
+    return [[PowerAuthKeychain alloc] initWithIdentifier:keychainId accessGroup:accessGroup];
+}
+
+- (void) insertInstanceActivationData:(NSData*)data instanceId:(NSString*)instanceId
+{
+    PowerAuthKeychain * keychain = [self instanceKeychain];
+    
+    if ([keychain containsDataForKey:instanceId]) {
+        [keychain updateValue:data forKey:instanceId];
+    } else {
+        [keychain addValue:data forKey:instanceId];
+    }
+}
+
+- (NSData*) getInstanceActivationData:(NSString*)instanceId
+{
+    PowerAuthKeychain * keychain = [self instanceKeychain];
+    NSData * data = [keychain dataForKey:instanceId status:NULL];
+    return data;
+}
+
+- (void) testCleanupActivationData
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    XCTAssertTrue(_sdk.hasValidActivation);
+    NSError * error = nil;
+    BOOL result = [PowerAuthSDK cleanupInstanceDataForConfiguration:_sdk.configuration error:&error];
+    XCTAssertTrue(result);
+    XCTAssertNil(error);
+    
+    // re-instantiate SDK object
+    _sdk = [_helper reCreateSdkInstance];
+    
+    // Activation should be gone
+    XCTAssertFalse(_sdk.hasValidActivation);
+}
+
+
+- (void) testUnsupportedDataHandling
+{
+    NSData * unsupportedData = [@"HELLO" dataUsingEncoding:NSASCIIStringEncoding];
+    
+    NSString * instanceId = _sdk.configuration.instanceId;
+    PowerAuthConfiguration * configuration = [_sdk.configuration copy];
+    PowerAuthKeychainConfiguration * keychainConfiguration = [_sdk.keychainConfiguration copy];
+        
+    // Insert unsupported data
+    [self insertInstanceActivationData:unsupportedData instanceId:instanceId];
+        
+    NSError * error = nil;
+    _sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
+                                biometricConfiguration:nil
+                                   clientConfiguration:nil
+                                 keychainConfiguration:keychainConfiguration
+                                                 error:&error];
+    XCTAssertNil(_sdk);
+    XCTAssertEqual(PowerAuthErrorCode_InvalidActivationData, error.powerAuthErrorCode);
+    
+    // Check whether keychain is not modified after initialization
+    XCTAssertEqualObjects(unsupportedData, [self getInstanceActivationData:instanceId]);
+    
+    error = nil;
+    BOOL result = [PowerAuthSDK cleanupInstanceDataForConfiguration:configuration
+                                              keychainConfiguration:keychainConfiguration
+                                                              error:&error];
+    XCTAssertTrue(result);
+    XCTAssertNil(error);
+    
+    _sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
+                                biometricConfiguration:nil
+                                   clientConfiguration:nil
+                                 keychainConfiguration:keychainConfiguration
+                                                 error:&error];
+
+    XCTAssertNotNil(_sdk);
+    XCTAssertNil(error);
+    XCTAssertFalse(_sdk.hasValidActivation);
+}
+
+- (void) testUpgradeSDKDetection
+{
+    // Session's data blob begins with sequence 'P' 'A' (data version) and status flag.
+    NSData * unsupportedData = [@"PX0" dataUsingEncoding:NSASCIIStringEncoding];
+    
+    NSString * instanceId = _sdk.configuration.instanceId;
+    PowerAuthConfiguration * configuration = [_sdk.configuration copy];
+    PowerAuthKeychainConfiguration * keychainConfiguration = [_sdk.keychainConfiguration copy];
+        
+    // Insert unsupported data
+    [self insertInstanceActivationData:unsupportedData instanceId:instanceId];
+        
+    NSError * error = nil;
+    _sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
+                                biometricConfiguration:nil
+                                   clientConfiguration:nil
+                                 keychainConfiguration:keychainConfiguration
+                                                 error:&error];
+    XCTAssertNil(_sdk);
+    XCTAssertEqual(PowerAuthErrorCode_UpgradeSDK, error.powerAuthErrorCode);
+    
+    // Check whether keychain is not modified after initialization
+    XCTAssertEqualObjects(unsupportedData, [self getInstanceActivationData:instanceId]);
+    
+    error = nil;
+    BOOL result = [PowerAuthSDK cleanupInstanceDataForConfiguration:configuration
+                                              keychainConfiguration:keychainConfiguration
+                                                              error:&error];
+    XCTAssertTrue(result);
+    XCTAssertNil(error);
+    
+    _sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
+                                biometricConfiguration:nil
+                                   clientConfiguration:nil
+                                 keychainConfiguration:keychainConfiguration
+                                                 error:&error];
+
+    XCTAssertNotNil(_sdk);
+    XCTAssertNil(error);
+    XCTAssertFalse(_sdk.hasValidActivation);
+}
+
 @end

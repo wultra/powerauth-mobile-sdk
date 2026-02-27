@@ -83,6 +83,7 @@ public class PowerAuthSDK {
         private PowerAuthKeychainConfiguration mKeychainConfiguration;
         private ISavePowerAuthStateListener mStateListener;
         private ICallbackDispatcher mCallbackDispatcher;
+        private boolean ignoreInitialStateLoadFail;
 
         /**
          * Creates a builder for {@link PowerAuthSDK}.
@@ -142,6 +143,16 @@ public class PowerAuthSDK {
          */
         public @NonNull Builder callbackDispatcher(ICallbackDispatcher callbackDispatcher) {
             this.mCallbackDispatcher = callbackDispatcher;
+            return this;
+        }
+
+        /**
+         * Set flag indicating that initial state load failure can be ignored. This flag is used
+         * internally for constructing a temporary PowerAuthSDK instance.
+         * @return {@link Builder}
+         */
+        @NonNull Builder ignoreInitialStateLoadFail() {
+            this.ignoreInitialStateLoadFail = true;
             return this;
         }
 
@@ -250,7 +261,14 @@ public class PowerAuthSDK {
             // Register time service for automatic reset.
             PowerAuthAppLifecycleListener.getInstance().registerTimeSynchronizationService(context, timeSynchronizationService);
             // Restore state of this SDK instance.
-            instance.restoreState(instance.mStateListener.serializedState(mConfiguration.getInstanceId()));
+            try {
+                instance.restoreState(instance.mStateListener.serializedState(mConfiguration.getInstanceId()));
+            } catch (PowerAuthErrorException exception) {
+                if (!ignoreInitialStateLoadFail) {
+                    // Rethrow exception if ignore is off
+                    throw exception;
+                }
+            }
             return instance;
         }
 
@@ -364,6 +382,37 @@ public class PowerAuthSDK {
         }
         // Possession only
         return CoreCredentials.possession();
+    }
+
+    /**
+     * Erases local data associated with the {@code PowerAuthSDK} instance identified by the provided configuration and keychain configuration.
+     * <p>
+     * Use this method when {@code PowerAuthSDK} initialization fails with an error indicating an unsupported local activation data format
+     * and the stored local activation data must be removed before retrying initialization.
+     * @param context Android context.
+     * @param configuration The configuration used to identify the instance data.
+     * @param keychainConfiguration The keychain configuration used to locate the instance data. If {@code null}, the default configuration is applied.
+     * @throws PowerAuthErrorException In case the configuration is not valid.
+     */
+    public static void cleanupInstanceData(@NonNull Context context, @NonNull PowerAuthConfiguration configuration, @Nullable PowerAuthKeychainConfiguration keychainConfiguration) throws PowerAuthErrorException {
+        PowerAuthSDK temporary = new Builder(configuration)
+                .keychainConfiguration(keychainConfiguration)
+                .ignoreInitialStateLoadFail()
+                .build(context);
+        temporary.removeActivationLocal(context);
+    }
+
+    /**
+     * Erases local data associated with the {@code PowerAuthSDK} instance identified by the provided configuration.
+     * <p>
+     * Use this method when {@code PowerAuthSDK} initialization fails with an error indicating an unsupported local activation data format
+     * and the stored local activation data must be removed before retrying initialization.
+     * @param context Android context.
+     * @param configuration The configuration used to identify the instance data.
+     * @throws PowerAuthErrorException In case the configuration is not valid.
+     */
+    public static void cleanupInstanceData(@NonNull Context context, @NonNull PowerAuthConfiguration configuration) throws PowerAuthErrorException {
+        cleanupInstanceData(context, configuration, null);
     }
 
     /**

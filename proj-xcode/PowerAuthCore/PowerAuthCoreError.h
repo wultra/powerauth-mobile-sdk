@@ -39,8 +39,7 @@ typedef NS_ENUM(NSInteger, PowerAuthCoreError) {
     PowerAuthCoreError_NotAllowed,
     /// Operation require synchronized time.
     PowerAuthCoreError_TimeNotSynchronized,
-    /// Invalid data. Error is reported in situations, when configuration or
-    /// serialized data format is not valid.
+    /// Invalid data. Error is reported in situations, when SDK configuration data format is not valid.
     PowerAuthCoreError_InvalidData,
     /// Invalid response received from the server.
     PowerAuthCoreError_InvalidResponse,
@@ -55,7 +54,11 @@ typedef NS_ENUM(NSInteger, PowerAuthCoreError) {
     /// Operation is not allowed due to pending protocol upgrade. Try again later.
     PowerAuthCoreError_PendingProtocolUpgrade,
 	/// Other, unspecified type of error.
-    PowerAuthCoreError_Other
+    PowerAuthCoreError_Other,
+    /// Unknown activation data.
+    PowerAuthCoreError_InvalidActivationData,
+    /// Upgrade SDK is required. A newer version of local activation data detected.
+    PowerAuthCoreError_UpgradeSDK,
 };
 
 @interface NSError (PowerAuthCoreError)

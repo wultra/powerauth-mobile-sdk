@@ -187,7 +187,7 @@ UpgradeData& SessionData::upgradeData()
 // Serialization
 
 static const cc7::byte SD_TAG   = 'P';
-static const cc7::byte SD_VER1  = 'A';                // SDK 0.x.y - 1.x.y
+static const cc7::byte SD_VER1  = 'A';                // SDK 0.x.y - 2.x.y
 
 static const cc7::byte SD_VER1_FLAG_NONE  = 0;        // No additional data included
 static const cc7::byte SD_VER1_FLAG_PD    = 1 << 1;   // PersistentData included
@@ -213,8 +213,14 @@ void SessionData::deserialize(const cc7::ByteRange& serialized_data)
 {
     cc7::byte flags = 0;
     cc7::utils::DataReader reader(serialized_data, false);
-    if (!reader.openVersion(SD_TAG, SD_VER1, SD_VER1) || !reader.readByte(flags)) {
-        throw Exception(EC_InvalidData, "Unknown SessionData format");
+    if (!reader.openVersion(SD_TAG, SD_VER1)) {
+        throw Exception(EC_InvalidActivationData, "Unknown session data format");
+    }
+    if (reader.currentVersion() > SD_VER1) {
+        throw Exception(EC_UpgradeSDK, "Session data created in newer SDK version");
+    }
+    if (!reader.readByte(flags)) {
+        throw Exception(EC_InvalidActivationData, "Unknown session data format");
     }
     if (flags & SD_VER1_FLAG_PD) {
         auto pd = PersistentData::deserialize(reader);

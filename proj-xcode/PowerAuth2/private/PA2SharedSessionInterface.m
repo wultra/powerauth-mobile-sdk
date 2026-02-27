@@ -27,9 +27,11 @@
 #pragma mark Private constants
 
 // Acquire read lock
-#define ACQ_READ     0
+#define ACQ_READ        0
 // Acquire write lock
-#define ACQ_WRITE    1
+#define ACQ_WRITE       1
+// Erase invalid state data
+#define ACQ_ERASE_INVD  2
 
 /// Lenght of SHA256 hash, calculated from PowerAuthConfiguration.instanceId
 #define INSTANCE_ID_SIZE    32
@@ -435,8 +437,6 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
         }
         // Acquire local recursive lock to get a thread safety for debug and support functions
         _localLock = [_statusLock createLocalRecursiveLock];
-        // Everything looks OK, so restore the state and unlock the shared lock.
-        [self loadState:YES error:error];
         
         // Finally, release the shared lock
         [_statusLock unlock];
@@ -444,6 +444,21 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
     return self;
 }
 
+- (BOOL) loadInitialState:(BOOL)clearUnsupportedData
+                    error:(NSError*_Nullable*_Nullable)error
+{
+    NSError * localError = nil;
+    int access = ACQ_WRITE;
+    if (clearUnsupportedData) access |= ACQ_ERASE_INVD;
+    if ([self lockWithAccess:access error:&localError]) {
+        // Simple lock - unlock will guarantee initial state load.
+        [self unlockWithError:&localError];
+    }
+    if (localError) {
+        PA2WrapError(localError, error);
+    }
+    return localError == nil;
+}
 
 #pragma mark - PowerAuthCoreSessionProvider protocol
 
@@ -713,7 +728,7 @@ static void _ThrowInternalInitFail(void)
  is NO, then function try to determine whether local session needs to deserialize its state.
  If force is YES, then the session's state is always restored from the persistent storage.
  */
-- (BOOL) loadState:(BOOL)force error:(NSError**)error
+- (BOOL) loadState:(BOOL)force clearInvalidData:(BOOL)clearInvalidData error:(NSError**)error
 {
     if (!force && !_LocalContextStateIsDirty(&_localContext)) {
         // Do nothing if local session has still valid data.
@@ -728,16 +743,23 @@ static void _ThrowInternalInitFail(void)
     NSData * statusData = [_dataProvider sessionData];
     if (statusData) {
         if (![_session deserializeState:statusData error:&localError]) {
-            PA2WrapError(localError, error);
-            return NO;
+            PowerAuthCoreError coreError = localError.powerAuthCoreErrorCode;
+            if (clearInvalidData && (coreError == PowerAuthCoreError_InvalidActivationData || coreError == PowerAuthCoreError_UpgradeSDK)) {
+                // Explicit clear is requested, so reset the session and pretend that everything's OK
+                [_session resetSession];
+                localError = nil;
+            } else {
+                PA2WrapError(localError, error);
+                // Clear temporary granted access.
+                _internalAccessGranted = NO;
+                return NO;
+            }
         }
     } else {
         [_session resetSession];
     }
-    if (!(_stateBefore = [_session serializedState:&localError])) {
-        PA2WrapError(localError, error);
-        return NO;
-    }
+    
+    _stateBefore = statusData;
     
     // Clear temporary granted access.
     _internalAccessGranted = NO;
@@ -754,7 +776,7 @@ static void _ThrowInternalInitFail(void)
 {
     NSData * serializedState = [_session serializedState:error];
     if (serializedState) {
-        if (![serializedState isEqualToData:_stateBefore]) {
+        if (![_stateBefore isEqualToData:serializedState]) {
             // Data is different, so we really need to save the data.
             [_dataProvider saveSessionData:serializedState];
             _stateBefore = serializedState;
@@ -774,13 +796,14 @@ static void _ThrowInternalInitFail(void)
     [_statusLock lock];
     
     _readWriteAccessCount++;
-    if (access == ACQ_WRITE) {
+    if ((access & ACQ_WRITE) == ACQ_WRITE) {
         _saveOnUnlock = YES;
     }
     
     if (_readWriteAccessCount == 1) {
         // First lock, we should restore session's data if needed.
-        if (![self loadState:NO error:error]) {
+        BOOL clearInvalidData = (access & ACQ_ERASE_INVD) == ACQ_ERASE_INVD;
+        if (![self loadState:NO clearInvalidData:clearInvalidData error:error]) {
             // state load failed, release lock and return error
             _readWriteAccessCount = 0;
             [_statusLock unlock];

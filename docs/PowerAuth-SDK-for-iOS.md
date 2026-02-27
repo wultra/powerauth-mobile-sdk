@@ -1255,6 +1255,9 @@ In case an activation does not yet have biometry-related factor data, and you wo
 powerAuthSDK.addBiometryFactor(password: "1234") { error in
     if let error  {
         // Error occurred, report it to the user
+
+        // It's also recommended to fetch activation's status to synchronize biometric factor
+        // configuration with the server.
     } else {
         // Everything went OK, biometry is ready to be used
     }
@@ -1270,6 +1273,9 @@ To remove biometry-related factor data used by Touch or Face ID use the followin
 powerAuthSDK.removeBiometryFactor { error in
     if let error {
         // handle error
+
+        // It's recommended to fetch activation's status to synchronize biometric factor
+        // configuration with the server.
     }
 }
 ```
@@ -1802,7 +1808,7 @@ powerAuthSDK.startProtocolUpgrade(password: "1234") { (result, error) in
             // Protocol upgrade is completed
         }
     } else {
-        // Error occured
+        // Error occurred
     }
 }
 ```
@@ -1810,7 +1816,7 @@ powerAuthSDK.startProtocolUpgrade(password: "1234") { (result, error) in
 If the call succeeds, the application must inspect the
 `activationStatusFetchRequired` field of the result object. If set to `true`,
 activation status fetch must be performed to complete the protocol upgrade. Only
-after successfull activation status fetch is the protocol upgrade considered
+after successful activation status fetch is the protocol upgrade considered
 completed. If the `activationStatusFetchRequired` field of the result object is
 set to `false`, the protocol upgrade is considered completed without any further
 action and the result object also contains new `activationFingerprint`. If an

@@ -403,6 +403,11 @@ RequestPtr ActivationServiceV3::removeBiometricFactor()
     return nullptr;
 }
 
+void ActivationServiceV3::cleanupBiometricFactorData()
+{
+    throw Exception(EC_InternalError, "V3 doesn't support cleanupBiometricFactorData");
+}
+
 // MARK: - User Info
 
 RequestPtr ActivationServiceV3::fetchUserInfo()

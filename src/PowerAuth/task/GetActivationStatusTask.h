@@ -24,7 +24,7 @@ namespace powerAuth {
 class GetActivationStatusTask : public Task
 {
 public:
-    GetActivationStatusTask(const ContextPtr& context);
+    GetActivationStatusTask(const ContextPtr& context, const FetchActivationStatusData& data);
     
 protected:
     void onTaskStart() override;
@@ -35,18 +35,30 @@ protected:
     {
         FETCH_STATUS = 1,
         SYNC_COUNTER,
-        PROTOCOL_UPGRADE_CONFIRM
+        PROTOCOL_UPGRADE_CONFIRM,
+        REMOVE_BIOMETRIC_FACTOR
     };
     
 private:
     
     /// Process activation status received from the server.
     /// - Parameter status: Received status.
-    void processActivationStatus(const ActivationStatus& status);
+    void processActivationStatus(ActivationStatus& status);
+    
+    /// Send fetch activation status request.
+    void fetchActivationStatus();
     
     /// Send protocol upgrade confirm request.
     void confirmProtocolUpgrade();
     
+    /// Send request for removing biometric factor.
+    void removeBiometricFactor();
+    
+    /// Send dummy possession factor verification request to synchronize server's and client's counters.
+    void synchronizeCounters();
+    
+    const FetchActivationStatusData _fetch_data;
+    SessionDataPtr _session_data;
     IActivationServicePtr _activation_service;
     IAuthenticationServicePtr _authentication_service;
 };

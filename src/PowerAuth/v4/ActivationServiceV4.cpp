@@ -484,6 +484,12 @@ void ActivationServiceV4::doRemoveBiometricFactor(Context& context)
     key_provider.lockSecretKeys(secrets);
 }
 
+void ActivationServiceV4::cleanupBiometricFactorData()
+{
+    LOCK_GUARD();
+    doRemoveBiometricFactor(*lockContext());
+}
+
 // MARK: - User Info
 
 RequestPtr ActivationServiceV4::fetchUserInfo()

@@ -566,6 +566,17 @@ public class ActivationHelper {
     }
 
     /**
+     * Re-create instance of {@link PowerAuthSDK} with new {@link PowerAuthConfiguration}.
+     * @return New instance of {@link PowerAuthSDK}.
+     * @throws Exception In case of failure.
+     */
+    @NonNull
+    PowerAuthSDK reCreateSdk(final PowerAuthConfiguration configuration) throws Exception {
+        powerAuthSDK = testHelper.reCreateSdk(configuration, null, null, null);
+        return powerAuthSDK;
+    }
+
+    /**
      * Validate user password on server.
      * This implementation is for integration testing only. Do NOT use `beginPasswordChange`
      * as a general password-validation mechanism.

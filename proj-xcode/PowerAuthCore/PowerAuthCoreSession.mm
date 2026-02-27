@@ -363,13 +363,14 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     return nil;
 }
 
-- (nullable PowerAuthCoreTask*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error
+- (nullable PowerAuthCoreTask*) fetchActivationStatus:(nonnull PowerAuthCoreFetchActivationStatusData*)fetchData
+                                                error:(NSError*_Nullable*_Nullable)error
 {
     if (![self requireReadAccess:error]) {
         return nil;
     }
     try {
-        auto task = _session->fetchActivationStatus();
+        auto task = _session->fetchActivationStatus({ static_cast<bool>(fetchData.biometricKekAvailable) });
         return [[PowerAuthCoreTask alloc] initWithTask:task withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
             auto status = std::dynamic_pointer_cast<powerAuth::ActivationStatus>(response);
             if (!status) {
@@ -387,7 +388,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 
 - (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePassword*)password
                                                  withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
-                                               error: (NSError*_Nullable*_Nullable)error;
+                                                           error:(NSError*_Nullable*_Nullable)error;
 {
     if (![self requireWriteAccess:error]) {
         return nil;

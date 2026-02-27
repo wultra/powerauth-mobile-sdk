@@ -34,6 +34,7 @@ public class CoreActivationStatus {
     private final boolean isProtocolUpgradeAvailable;
     private final boolean isCounterSynchronizationRecommended;
     private final boolean isSessionSerializationNeeded;
+    private final boolean isRemoveBiometricKekRecommended;
     @Nullable
     private final Map<String, Object> customObject;
 
@@ -46,6 +47,7 @@ public class CoreActivationStatus {
      * @param isProtocolUpgradeAvailable Contains true if upgrade to a newer protocol version is available.
      * @param isCounterSynchronizationRecommended Contains true if dummy authentication code calculation is recommended to prevent the counter's de-synchronization.
      * @param isSessionSerializationNeeded Contains true if session's state should be serialized after the successful activation status decryption.
+     * @param isRemoveBiometricKekRecommended Contains true if biometric KEK should be removed from Android Keystore.
      * @param customObject Contains custom object returned from the server.
      */
     public CoreActivationStatus(int state,
@@ -55,6 +57,7 @@ public class CoreActivationStatus {
                                 boolean isProtocolUpgradeAvailable,
                                 boolean isCounterSynchronizationRecommended,
                                 boolean isSessionSerializationNeeded,
+                                boolean isRemoveBiometricKekRecommended,
                                 @Nullable Map<String, Object> customObject) {
         this.state = state;
         this.failCount = failCount;
@@ -63,6 +66,7 @@ public class CoreActivationStatus {
         this.isProtocolUpgradeAvailable = isProtocolUpgradeAvailable;
         this.isCounterSynchronizationRecommended = isCounterSynchronizationRecommended;
         this.isSessionSerializationNeeded = isSessionSerializationNeeded;
+        this.isRemoveBiometricKekRecommended = isRemoveBiometricKekRecommended;
         this.customObject = customObject;
     }
 
@@ -115,6 +119,13 @@ public class CoreActivationStatus {
      */
     public boolean isSessionSerializationNeeded() {
         return isSessionSerializationNeeded;
+    }
+
+    /**
+     * @return true if biometric KEK should be removed from Android Keystore.
+     */
+    public boolean isRemoveBiometricKekRecommended() {
+        return isRemoveBiometricKekRecommended;
     }
 
     /**

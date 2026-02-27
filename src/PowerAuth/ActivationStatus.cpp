@@ -45,6 +45,7 @@ ActivationStatus::ActivationStatus(ProtocolVersion version,
     _is_unsupported_algorithm(data.statusFlags & STATUS_FLAG_UNSUPPORTED_ALGORITHM),
     _is_protocol_upgrade_available(data.currentVersion < data.upgradeVersion),
     _is_pending_upgrade_confirm(data.statusFlags & STATUS_FLAG_UPGRADE_CONFIRM),
+    _is_remove_biometric_kek_recommended(false),
     _custom_object(custom_object)
 {
     bool is_valid;
@@ -70,6 +71,11 @@ ActivationState ActivationStatus::activationState() const noexcept
 ActivationStatus::ServerState ActivationStatus::serverState() const noexcept
 {
     return _server_state;
+}
+
+ActivationStatus::BiometricFactor ActivationStatus::biometricFactor() const noexcept
+{
+    return _biometric_factor;
 }
 
 bool ActivationStatus::isPendingActivationConfirm() const noexcept
@@ -109,6 +115,16 @@ bool ActivationStatus::isCounterSynchronizationRecommended() const noexcept
 bool ActivationStatus::isSessionStateSerializationRecommended() const noexcept
 {
     return _counter_state == CounterState_Updated;
+}
+
+bool ActivationStatus::isRemoveBiometricKekRecommended() const noexcept
+{
+    return _is_remove_biometric_kek_recommended;
+}
+
+void ActivationStatus::setRemoveBiometricKekRecommended() noexcept
+{
+    _is_remove_biometric_kek_recommended = true;
 }
 
 ProtocolVersion ActivationStatus::protocolVersion() const noexcept

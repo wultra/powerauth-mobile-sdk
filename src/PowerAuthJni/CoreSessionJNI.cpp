@@ -266,6 +266,7 @@ static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const Ac
     //              boolean isProtocolUpgradeAvailable,
     //              boolean isCounterSynchronizationRecommended,
     //              boolean isSessionSerializationNeeded,
+    //              boolean isRemoveBiometricKekRecommended,
     //              Map<String, Object> customObject)
     return jni.createObject(specs.respActivationStatus.methods.init,
                             jni.toJava(specs.coreActivationState, status->activationState()),
@@ -275,14 +276,20 @@ static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const Ac
                             status->isProtocolUpgradeAvailable(),
                             status->isCounterSynchronizationRecommended(),
                             status->isSessionStateSerializationRecommended(),
+                            status->isRemoveBiometricKekRecommended(),
                             JsonValueToJava(jni, status->customObject()));
 }
 
-CC7_JNI_METHOD(jobject, fetchActivationStatus)
+CC7_JNI_METHOD_PARAMS(jobject, fetchActivationStatus, jobject fetchData)
 {
     NH_TRY
     {
-        auto task = THIS_OBJ()->fetchActivationStatus();
+        jni.requireParameter(fetchData, "fetchData");
+        auto& specs = NH_SPECS();
+        auto fetchDataObj = jni.fromJava(fetchData, specs.coreFetchActivationStatusData.classRef);
+        auto task = THIS_OBJ()->fetchActivationStatus( {
+            static_cast<bool>(fetchDataObj.getBoolean(specs.coreFetchActivationStatusData.fields.biometricKekAvailable))
+        });
         return BuildCoreTask(jni, task, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
             auto result = std::dynamic_pointer_cast<ActivationStatus>(response);
             if (!result) {
@@ -331,6 +338,27 @@ CC7_JNI_METHOD_PARAMS(jobject, removeActivation, jobject credentials)
         auto cpp_credentials = jni.fromJava<Credentials>(NH_SPECS().coreCredentials, credentials);
         auto request = THIS_OBJ()->removeActivation(cpp_credentials);
         return BuildCoreRequest(jni, request);
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, startProtocolUpgrade, jobject password, jobject biometryKek)
+{
+    NH_TRY
+    {
+        auto cpp_password = jni.fromJava<Password>(NH_SPECS().password, password);
+        auto cpp_biometry = CopyFromSecureData(jni, biometryKek);
+
+        auto task = THIS_OBJ()->startProtocolUpgrade(cpp_password, cpp_biometry);
+        return BuildCoreTask(jni, task, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            auto result = std::dynamic_pointer_cast<ProtocolUpgradeResult>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No ProtocolUpgradeResult object created");
+            }
+            return jni.createObject(specs.respProtocolUpgradeResult.methods.init,
+                                    result->isPendingUpgradeConfirm(),
+                                    jni.toJavaNullable(result->activationFingerprint()));
+        });
     }
     NH_CATCH(nullptr)
 }

@@ -24,6 +24,7 @@ import java.util.Map;
 
 import io.getlime.security.powerauth.core.response.CoreActivationResult;
 import io.getlime.security.powerauth.core.response.CoreActivationStatus;
+import io.getlime.security.powerauth.core.response.CoreProtocolUpgradeResult;
 import io.getlime.security.powerauth.core.response.CoreTokenData;
 import jakarta.validation.constraints.Null;
 
@@ -205,11 +206,12 @@ public class CoreSession extends NativeObject {
 
     /**
      * Fetch activation status from the server.
+     * @param fetchData Additional data required for proper fetch execution.
      * @return {@link CoreTask} for getting activation status.
      * @throws CoreException In case of failure.
      */
     @NonNull
-    public native CoreTask<CoreActivationStatus> fetchActivationStatus() throws CoreException;
+    public native CoreTask<CoreActivationStatus> fetchActivationStatus(@NonNull CoreFetchActivationStatusData fetchData) throws CoreException;
 
     /**
      * Get last activation status received from the server. This property provides the most recent
@@ -241,6 +243,19 @@ public class CoreSession extends NativeObject {
      */
     @NonNull
     public native CoreRequest<Object> removeActivation(@NonNull CoreCredentials credentials) throws CoreException;
+
+    /**
+     * Start protocol upgrade procedure.
+     *
+     * @param password User's password to authenticate start of the protocol upgrade,
+     *                 if {@code null} the task is only allowed to confirm the protocol upgrade.
+     * @param biometryKek Biometric factor KEK. Should be set if the session already have a biometry configured.
+     * @return {@link CoreTask} for protocol upgrade procedure.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreTask<CoreProtocolUpgradeResult> startProtocolUpgrade(@Nullable Password password,
+                                                                           @Nullable SecureData biometryKek) throws CoreException;
 
     // Factor keys management
 

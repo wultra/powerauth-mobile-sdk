@@ -59,11 +59,13 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         spec.coreDevicePublicKeyData = jni.buildClassSpec<CoreDevicePublicKeyData>("io/getlime/security/powerauth/core/CoreDevicePublicKeyData");
         spec.coreEncryptedRequest = jni.buildClassSpec<CoreEncryptedRequest>("io/getlime/security/powerauth/core/CoreEncryptedRequest");
         spec.coreEncryptedResponse = jni.buildClassSpec<CoreEncryptedResponse>("io/getlime/security/powerauth/core/CoreEncryptedResponse");
+        spec.coreFetchActivationStatusData = jni.buildClassSpec<CoreFetchActivationStatusData>("io/getlime/security/powerauth/core/CoreFetchActivationStatusData");
 
         // Response
         spec.respServerStatus = jni.buildClassSpec<RespServerStatus>("io/getlime/security/powerauth/core/response/CoreServerStatus");
         spec.respActivationResult = jni.buildClassSpec<RespActivationResult>("io/getlime/security/powerauth/core/response/CoreActivationResult");
         spec.respActivationStatus = jni.buildClassSpec<RespActivationStatus>("io/getlime/security/powerauth/core/response/CoreActivationStatus");
+        spec.respProtocolUpgradeResult = jni.buildClassSpec<RespProtocolUpgradeResult>("io/getlime/security/powerauth/core/response/CoreProtocolUpgradeResult");
         spec.respTokenData = jni.buildClassSpec<RespTokenData>("io/getlime/security/powerauth/core/response/CoreTokenData");
 
         // Enums
@@ -158,6 +160,7 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         jni.releaseSpec(spec.coreHttpHeader);
         jni.releaseSpec(spec.coreDevicePublicKeyData);
         jni.releaseSpec(spec.secureData);
+        jni.releaseSpec(spec.coreFetchActivationStatusData);
         // response
         jni.releaseSpec(spec.respServerStatus);
         jni.releaseSpec(spec.respActivationResult);

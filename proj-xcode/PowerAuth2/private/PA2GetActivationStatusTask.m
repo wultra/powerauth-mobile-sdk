@@ -31,16 +31,17 @@
 {
     PA2CoreHttpClient * _client;
     id<PowerAuthCoreSessionProvider> _sessionProvider;
+    PowerAuthCoreFetchActivationStatusData* _fetchData;
     __weak id<PA2GetActivationStatusTaskDelegate> _delegate;
     
     // Runtime variables
     NSInteger _upgradeAttempts;
-    BOOL _disableAutoCancel;
     PowerAuthActivationStatus * _receivedStatus;
 }
 
 - (id) initWithHttpClient:(PA2CoreHttpClient*)httpClient
           sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
+                fetchData:(PowerAuthCoreFetchActivationStatusData*)fetchData
                  delegate:(id<PA2GetActivationStatusTaskDelegate>)delegate
                sharedLock:(id<NSLocking>)sharedLock
 {
@@ -48,10 +49,10 @@
     if (self) {
         _client = httpClient;
         _sessionProvider = sessionProvider;
+        _fetchData = fetchData;
         _delegate = delegate;
         
         _upgradeAttempts = 3;
-        _disableAutoCancel = NO;
     }
     return self;
 }
@@ -69,7 +70,6 @@
 {
     [super onTaskRestart];
     _upgradeAttempts = 3;
-    _disableAutoCancel = NO;
     _receivedStatus = nil;
 }
 
@@ -77,11 +77,6 @@
 {
     [super onTaskCompleteWithResult:result error:error];
     [_delegate getActivationStatusTask:self didFinishedWithStatus:result error:error];
-}
-
-- (BOOL) shouldCancelWhenNoChildOperationIsSet
-{
-    return _disableAutoCancel == NO;
 }
 
 #pragma mark - Activation status fetcher
@@ -105,7 +100,7 @@
 {
     NSError* localError = nil;
     PowerAuthCoreTask * task = [_sessionProvider readTaskWithSession:^PowerAuthCoreTask* (PowerAuthCoreSession * session, NSError** error) {
-        return [session fetchActivationStatus:error];
+        return [session fetchActivationStatus:_fetchData error:error];
     } error:&localError];
     if (localError) {
         callback(nil, localError);
@@ -114,6 +109,9 @@
     id<PowerAuthOperationTask> fetchStatusTask = [_client postCoreTask:task completion:^(PowerAuthCoreTask * task, PowerAuthCoreActivationStatus * response, NSError * error) {
         PowerAuthActivationStatus * status;
         if (response) {
+            if (response.isRemoveBiometricKekRecommended) {
+                [_delegate getActivationStatusTaskNeedRemoveBiometricFactorKek:self];
+            }
             status = [[PowerAuthActivationStatus alloc] initWithCoreStatus:response];
         } else {
             status = nil;

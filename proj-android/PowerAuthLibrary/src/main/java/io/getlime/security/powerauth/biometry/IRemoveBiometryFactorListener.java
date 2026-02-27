@@ -18,7 +18,6 @@ package io.getlime.security.powerauth.biometry;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
-import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
  * Listener for removing biometry factor.

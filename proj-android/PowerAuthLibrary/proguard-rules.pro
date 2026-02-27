@@ -21,21 +21,12 @@
     <fields>;
 }
 
-# @Deprecated - remove before release
--keep class io.getlime.security.powerauth.ecies.EciesMetadata {
-    <fields>;
-}
 -keep class io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData {
     <fields>;
 }
-# @Deprecated - remove before release
--keepclassmembers class io.getlime.core.rest.model.** {
+
+-keepclassmembers class io.getlime.core.rest.model.base.** {
     <fields>;
 }
 # necessary for R8 fullMode
--keep, allowobfuscation class io.getlime.core.rest.model.**
-
-# @Deprecated - remove before release
--keep class io.getlime.security.powerauth.networking.model.** {
-    <fields>;
-}
+-keep, allowobfuscation class io.getlime.core.rest.model.base.**

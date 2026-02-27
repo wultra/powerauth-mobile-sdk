@@ -35,8 +35,8 @@ public interface IOfflineAuthenticationCodeListener {
     /**
      * Called when offline authentication code calculation fails.
      *
-     * @param error error that occurred during the authentication code calculation.
+     * @param throwable error that occurred during the authentication code calculation.
      */
     @MainThread
-    void onOfflineAuthenticationCodeFailed(@NonNull PowerAuthErrorException error);
+    void onOfflineAuthenticationCodeFailed(@NonNull Throwable throwable);
 }

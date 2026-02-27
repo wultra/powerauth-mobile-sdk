@@ -33,8 +33,8 @@ public interface IRemoveBiometryFactorListener {
     /**
      * Called when biometry factor removal fails.
      *
-     * @param error Error that occurred during the biometry factor removal.
+     * @param throwable Error that occurred during the biometry factor removal.
      */
     @MainThread
-    void onRemoveBiometryFactorFailed(@NonNull PowerAuthErrorException error);
+    void onRemoveBiometryFactorFailed(@NonNull Throwable throwable);
 }

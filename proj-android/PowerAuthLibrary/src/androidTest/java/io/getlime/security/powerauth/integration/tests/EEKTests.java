@@ -144,7 +144,7 @@ public class EEKTests extends BaseTest {
                 }
 
                 @Override
-                public void onOfflineAuthenticationCodeFailed(@NonNull PowerAuthErrorException error) {
+                public void onOfflineAuthenticationCodeFailed(@NonNull Throwable throwable) {
                     resultCatcher.completeWithResult(null);
                 }
             });

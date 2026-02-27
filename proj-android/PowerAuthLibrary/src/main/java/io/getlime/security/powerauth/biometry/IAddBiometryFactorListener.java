@@ -35,8 +35,8 @@ public interface IAddBiometryFactorListener {
     /**
      * Called when biometry factor addition fails.
      *
-     * @param error Error that occurred during the biometry factor addition.
+     * @param throwable Error that occurred during the biometry factor addition.
      */
     @MainThread
-    void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error);
+    void onAddBiometryFactorFailed(@NonNull Throwable throwable);
 }

@@ -454,7 +454,7 @@ val cancelable = powerAuthSDK.persistActivationWithAuthentication(context, authe
         // Success
     }
 
-    override fun onPersistActivationFailed(error: PowerAuthErrorException) {
+    override fun onPersistActivationFailed(error: Throwable) {
         // Failure
     }
 
@@ -483,7 +483,7 @@ val cancelable = powerAuthSDK.persistActivationWithAuthentication(context, authe
         // Success
     }
 
-    override fun onPersistActivationFailed(error: PowerAuthErrorException) {
+    override fun onPersistActivationFailed(error: Throwable) {
         // Failure
     }
 
@@ -778,7 +778,7 @@ powerAuthSDK.offlineAuthenticationCode(context, authentication, "/confirm/offlin
         Log.d(TAG, "Offline authentication code is: $authenticationCode")
     }
 
-    override fun onOfflineAuthenticationCodeFailed(error: PowerAuthErrorException) {
+    override fun onOfflineAuthenticationCodeFailed(error: Throwable) {
         // Handle the error, such as biometric authentication cancel.
     }
 })
@@ -1410,7 +1410,7 @@ powerAuthSDK.addBiometryFactor(context, "1234", biometricPrompt, object: IAddBio
         // Everything went OK, biometric authentication is ready to be used
     }
 
-    override fun onAddBiometryFactorFailed(error: PowerAuthErrorException) {
+    override fun onAddBiometryFactorFailed(error: Throwable) {
         // Error occurred, report it to the user.
 
         // It's recommended to fetch activation's status to synchronize biometric factor
@@ -1456,7 +1456,7 @@ powerAuthSDK.removeBiometryFactor(context, object: IRemoveBiometryFactorListener
         // Everything went OK, biometric authentication is ready to be used
     }
 
-    override fun onRemoveBiometryFactorFailed(error: PowerAuthErrorException) {
+    override fun onRemoveBiometryFactorFailed(error: Throwable) {
         // Error occurred, report it to the user.
 
         // It's recommended to fetch activation's status to synchronize biometric factor

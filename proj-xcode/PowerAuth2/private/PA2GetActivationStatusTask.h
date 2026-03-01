@@ -20,7 +20,6 @@
 
 @class PA2CoreHttpClient;
 @class PowerAuthCoreSession;
-@class PowerAuthCoreFetchActivationStatusData;
 @class PA2GetActivationStatusTask;
 @class PowerAuthCoreData;
 
@@ -51,14 +50,12 @@
 
  @param httpClient HTTP client for communicating with the server
  @param sessionProvider PowerAuthCoreSession provider.
- @param fetchData Additional data for getting activation status.
  @param delegate Delegate to be called once the task is finished. The weak reference is used internally.
  @param sharedLock Shared lock with recursive locking capability.
  @return initialized object
  */
 - (id) initWithHttpClient:(PA2CoreHttpClient*)httpClient
           sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
-                fetchData:(PowerAuthCoreFetchActivationStatusData*)fetchData
                  delegate:(id<PA2GetActivationStatusTaskDelegate>)delegate
                sharedLock:(id<NSLocking>)sharedLock;
 

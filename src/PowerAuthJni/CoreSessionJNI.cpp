@@ -280,16 +280,12 @@ static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const Ac
                             JsonValueToJava(jni, status->customObject()));
 }
 
-CC7_JNI_METHOD_PARAMS(jobject, fetchActivationStatus, jobject fetchData)
+CC7_JNI_METHOD(jobject, fetchActivationStatus)
 {
     NH_TRY
     {
-        jni.requireParameter(fetchData, "fetchData");
         auto& specs = NH_SPECS();
-        auto fetchDataObj = jni.fromJava(fetchData, specs.coreFetchActivationStatusData.classRef);
-        auto task = THIS_OBJ()->fetchActivationStatus( {
-            static_cast<bool>(fetchDataObj.getBoolean(specs.coreFetchActivationStatusData.fields.biometricKekAvailable))
-        });
+        auto task = THIS_OBJ()->fetchActivationStatus();
         return BuildCoreTask(jni, task, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
             auto result = std::dynamic_pointer_cast<ActivationStatus>(response);
             if (!result) {

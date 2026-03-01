@@ -865,11 +865,8 @@ static PowerAuthSDK * s_inst;
     id<PowerAuthOperationTask> task = [_getActivationStatusTask createChildTask:callback];
     if (!task) {
         // If there's no grouping task, or task is already finished, then simply create new one with the child task.
-        PowerAuthCoreFetchActivationStatusData * fetchData = [[PowerAuthCoreFetchActivationStatusData alloc] init];
-        fetchData.biometricKekAvailable = [_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier];
         _getActivationStatusTask = [[PA2GetActivationStatusTask alloc] initWithHttpClient:_client
                                                                           sessionProvider:_sessionInterface
-                                                                                fetchData:fetchData
                                                                                  delegate:self
                                                                                sharedLock:_lock];
         task = [_getActivationStatusTask createChildTask:callback];

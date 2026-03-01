@@ -218,14 +218,4 @@ private:
 
 CC7_SHARED_PTR(ActivationStatus)
 
-/// The `FetchActivationStatusData` structure contains additional
-/// information for proper getting activation status execution.
-struct FetchActivationStatusData
-{
-    /// Indicates that KEK for biometric factor key is available at
-    /// external storage (iOS Keychain or Android Keystore)
-    bool biometricKekAvailable;
-};
-
-
 } // namespace powerAuth

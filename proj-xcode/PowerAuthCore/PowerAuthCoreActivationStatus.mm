@@ -75,7 +75,3 @@
 }
 
 @end
-
-
-@implementation PowerAuthCoreFetchActivationStatusData
-@end

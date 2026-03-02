@@ -19,8 +19,6 @@ package io.getlime.security.powerauth.biometry;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 
-import io.getlime.security.powerauth.exception.PowerAuthErrorException;
-
 /**
  * Listener for adding biometry factor.
  */
@@ -35,8 +33,8 @@ public interface IAddBiometryFactorListener {
     /**
      * Called when biometry factor addition fails.
      *
-     * @param error Error that occurred during the biometry factor addition.
+     * @param throwable Error that occurred during the biometry factor addition.
      */
     @MainThread
-    void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error);
+    void onAddBiometryFactorFailed(@NonNull Throwable throwable);
 }

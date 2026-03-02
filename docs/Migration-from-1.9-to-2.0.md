@@ -67,6 +67,9 @@ Notable changes on Android:
   - `IPersistActivationListener` callback interface:
     - `onPersistActivationFailed()` method now receives `Throwable` instead of `PowerAuthErrorException`. You can also expect `FailedApiException` and similar exceptions if communication with the server failed.
   
+  - `IAddBiometryFactorListener` callback interface:
+    - `onAddBiometryFactorFailed()` method now receives `Throwable` instead of `PowerAuthErrorException`. You can also expect `FailedApiException` and similar exceptions if communication with the server failed.
+
   - `IDataSignatureListener` callback interface is deprecated, use API method that takes `IDigitalSignatureListener` listener at input.
 
   - `IJwtSignatureListener` callback interface is deprecated, use API method that takes `IJwsSignatureListener` listener at input.

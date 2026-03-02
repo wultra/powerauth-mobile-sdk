@@ -18,7 +18,6 @@ package io.getlime.security.powerauth.biometry;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
-import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
  * Listener for removing biometry factor.
@@ -33,8 +32,8 @@ public interface IRemoveBiometryFactorListener {
     /**
      * Called when biometry factor removal fails.
      *
-     * @param error Error that occurred during the biometry factor removal.
+     * @param throwable Error that occurred during the biometry factor removal.
      */
     @MainThread
-    void onRemoveBiometryFactorFailed(@NonNull PowerAuthErrorException error);
+    void onRemoveBiometryFactorFailed(@NonNull Throwable throwable);
 }

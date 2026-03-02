@@ -2543,7 +2543,7 @@ public class PowerAuthSDK {
 
                 @Override
                 public void onNetworkError(@NonNull Throwable throwable) {
-                    listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(throwable));
+                    listener.onAddBiometryFactorFailed(throwable);
                 }
 
                 @Override
@@ -2607,7 +2607,7 @@ public class PowerAuthSDK {
 
                 @Override
                 public void onNetworkError(@NonNull Throwable throwable) {
-                    listener.onRemoveBiometryFactorFailed(PowerAuthErrorException.wrapException(throwable));
+                    listener.onRemoveBiometryFactorFailed(throwable);
                 }
 
                 @Override

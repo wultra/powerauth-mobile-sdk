@@ -64,16 +64,6 @@ public class PowerAuthKeychainConfiguration {
     }
 
     /**
-     * Get name of the Keychain key used for storing the default biometry key information.
-     * @return Name of the default biometry Keychain key.
-     * @deprecated Use {@link #getKeychainKeyBiometry()} method instead.
-     */
-    @Deprecated // 1.7.10 - remove in 2.0.0
-    public @NonNull String getKeychainBiometryDefaultKey() {
-       return keychainKeyBiometry == null ? KEYCHAIN_KEY_SHARED_BIOMETRY_KEY : keychainKeyBiometry;
-    }
-
-    /**
      * Get name of the Keychain key used for storing the biometry key information for the PowerAuthSDK instance. If null
      * then PowerAuthSDK instance will use its instance identifier to store the biometry key information.
      * @return Get name of the Keychain key used for storing the biometry key information for the PowerAuthSDK instance.
@@ -252,19 +242,6 @@ public class PowerAuthKeychainConfiguration {
          */
         public @NonNull Builder keychainTokenStoreId(@NonNull String keychainTokenStoreId) {
             this.keychainTokenStoreId = keychainTokenStoreId;
-            return this;
-        }
-
-        /**
-         * Set name of the Keychain key used to store the default biometry key.
-         *
-         * @param keychainKeyBiometry Name of the Keychain key used to store the default biometry key.
-         * @return {@link Builder}
-         * @deprecated Use {@link #keychainKeyBiometry(String)} as a replacement.
-         */
-        @Deprecated // 1.7.10 - remove in 2.0.0
-        public @NonNull Builder keychainBiometryDefaultKey(@NonNull String keychainKeyBiometry) {
-            this.keychainKeyBiometry = keychainKeyBiometry;
             return this;
         }
 

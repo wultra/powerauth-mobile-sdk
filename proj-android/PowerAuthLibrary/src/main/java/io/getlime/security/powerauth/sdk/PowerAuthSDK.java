@@ -1211,8 +1211,7 @@ public class PowerAuthSDK {
                 task = mGetActivationStatusTask.createChildTask(completion);
             }
             if (task == null) {
-                CoreFetchActivationStatusData fetchData = new CoreFetchActivationStatusData(hasBiometryKekData(context));
-                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, fetchData, mLock, mCallbackDispatcher, this::saveSerializedState, getActivationStatusTask -> {
+                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, mLock, mCallbackDispatcher, this::saveSerializedState, getActivationStatusTask -> {
                     // The mLock is already locked, because GetActivationStatusTask uses shared lock.
                     if (getActivationStatusTask == mGetActivationStatusTask) {
                         mGetActivationStatusTask = null;

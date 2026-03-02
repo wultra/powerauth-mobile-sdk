@@ -23,7 +23,6 @@ import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.getlime.security.powerauth.core.CoreException;
-import io.getlime.security.powerauth.core.CoreFetchActivationStatusData;
 import io.getlime.security.powerauth.core.CoreSession;
 import io.getlime.security.powerauth.core.CoreTask;
 import io.getlime.security.powerauth.core.response.CoreActivationStatus;
@@ -45,8 +44,6 @@ public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStat
     @NonNull
     private final CoreSession session;
     @NonNull
-    private final CoreFetchActivationStatusData fetchData;
-    @NonNull
     private final Runnable saveStateCallback;
     @NonNull
     private final IConsumer<GetActivationStatusTask> onCompleteConsumer;
@@ -64,7 +61,6 @@ public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStat
     public GetActivationStatusTask(
             @NonNull CoreHttpClient httpClient,
             @NonNull CoreSession session,
-            @NonNull CoreFetchActivationStatusData fetchData,
             @NonNull ReentrantLock sharedLock,
             @NonNull ICallbackDispatcher callbackDispatcher,
             @NonNull Runnable saveStateCallback,
@@ -72,7 +68,6 @@ public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStat
         super("GetActivationStatus", sharedLock, callbackDispatcher);
         this.httpClient = httpClient;
         this.session = session;
-        this.fetchData = fetchData;
         this.saveStateCallback = saveStateCallback;
         this.onCompleteConsumer = onCompleteConsumer;
     }
@@ -85,7 +80,7 @@ public class GetActivationStatusTask extends GroupedTask<PowerAuthActivationStat
     public void onGroupedTaskStart() {
         super.onGroupedTaskStart();
         try {
-            final CoreTask<CoreActivationStatus> coreTask = session.fetchActivationStatus(fetchData);
+            final CoreTask<CoreActivationStatus> coreTask = session.fetchActivationStatus();
             final ICancelable cancelable = httpClient.post(coreTask, new INetworkResponseListener<>() {
                 @Override
                 public void onNetworkResponse(@Nullable CoreActivationStatus status) {

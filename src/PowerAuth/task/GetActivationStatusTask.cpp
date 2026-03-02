@@ -19,12 +19,11 @@
 
 namespace powerAuth {
 
-GetActivationStatusTask::GetActivationStatusTask(const ContextPtr& context, const FetchActivationStatusData& data) :
+GetActivationStatusTask::GetActivationStatusTask(const ContextPtr& context) :
     Task("GetActivationStatus", context),
     _session_data(context->getSessionDataPtr()),
     _activation_service(context->getActivationServicePtr()),
-    _authentication_service(context->getAuthenticationServicePtr()),
-    _fetch_data(data)
+    _authentication_service(context->getAuthenticationServicePtr())
 {
 }
 
@@ -87,7 +86,7 @@ void GetActivationStatusTask::processActivationStatus(ActivationStatus &status)
             _session_data->hasPersistentData()) {
             // Status of biometry on the server is different than the local status.
             auto serverBioON = status.biometricFactor() == ActivationStatus::BiometricFactor_On;
-            auto localBioON = _fetch_data.biometricKekAvailable && _session_data->persistentData().hasBiometricFactorKey();
+            auto localBioON = _session_data->persistentData().hasBiometricFactorKey();
             if (serverBioON != localBioON) {
                 // Local and server's biometric state is different
                 if (serverBioON) {

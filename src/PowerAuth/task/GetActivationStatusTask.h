@@ -24,7 +24,7 @@ namespace powerAuth {
 class GetActivationStatusTask : public Task
 {
 public:
-    GetActivationStatusTask(const ContextPtr& context, const FetchActivationStatusData& data);
+    GetActivationStatusTask(const ContextPtr& context);
     
 protected:
     void onTaskStart() override;
@@ -57,7 +57,6 @@ private:
     /// Send dummy possession factor verification request to synchronize server's and client's counters.
     void synchronizeCounters();
     
-    const FetchActivationStatusData _fetch_data;
     SessionDataPtr _session_data;
     IActivationServicePtr _activation_service;
     IAuthenticationServicePtr _authentication_service;

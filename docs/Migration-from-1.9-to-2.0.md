@@ -95,6 +95,11 @@ Notable changes on Android:
   - `PowerAuthAuthorizationHttpHeader` is deprecated, use functions that provide `PowerAuthHttpHeader` instead.
 
   - `PowerAuthMissingConfigException` is removed. The configuration is validated in `PowerAuthConfiguration.Builder.build()` method.
+  
+  - `PowerAuthErrorCodes` interface now contains the following new error codes:
+    - `.UPGRADE_SDK` is reported when local activation data format was created in newer SDK version.
+    - `.WRONG_SIGNATURE` is reported from functions validating digital or JWS signatures.
+    - `.OTHER` is reported for unknown errors.
 
   - `PowerAuthActivationStatus` is a new class that replaces `io.getlime.security.powerauth.core.ActivationStatus`. This change affects the following APIs:
     - `IActivationStatusListener` callback interface now gets `PowerAuthActivationStatus` in success.
@@ -234,6 +239,11 @@ Notable changes on iOS:
   - `authenticateUsingBiometry(withPrompt:callback:)`
   - `authenticateUsingBiometry(withContext:callback:)`
 
+- `PowerAuthErrorCode` enumeration now contains the following new error codes:
+  - `.upgradeSDK` is reported when local activation data format was created in newer SDK version.
+  - `.wrongSignature` is reported from functions validating digital or JWS signatures.
+  - `.other` is reported for unknown errors.
+
 - Due to discontinued support for "External Encryption Key" feature, the following methods has been changed:
   - `PowerAuthSDK.setExternalEncryptionKey()` method has been removed.
   - `PowerAuthSDK.addExternalEncryptionKey()` method has been removed.
@@ -263,7 +273,7 @@ Notable changes on iOS:
 
 ### Other changes
 
-- TBA
+If you're using [Activation Data Sharing](PowerAuth-SDK-for-iOS.md#share-activation-data) feature, then please refer to the [Upgrade from older SDKs](PowerAuth-SDK-for-iOS.md#upgrade-from-older-sdks) section for more information.
 
 ## iOS & tvOS App Extensions
 

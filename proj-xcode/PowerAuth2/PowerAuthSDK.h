@@ -44,15 +44,12 @@
 
 @interface PowerAuthSDK : NSObject<PowerAuthSessionStatusProvider>
 
-/** Reference to object that provides the low-level PowerAuthCoreSession class.
+/** Reference to an object that provides the low-level PowerAuthCoreSession class.
  
  WARNING
  
- This property is exposed only for the purpose of giving developers full low-level control over the cryptographic algorithm and
- managed activation state. For example, you can call a direct password change method without prior check of the password correctness
- in cooperation with the server API. Be extremely careful when calling any methods of this instance directly. There are very few
- protective mechanisms for keeping the session state actually consistent in the functional (not low level) sense. As a result, you
- may break your activation state (for example, by changing password from incorrect value to some other value).
+ This property is exposed solely for SDK testing purposes. The API defined in the provider may change
+ without further notice and may not be mentioned in the release notes or migration guide.
  */
 @property (nonatomic, strong, nonnull, readonly) id<PowerAuthCoreSessionProvider> sessionProvider;
 
@@ -92,7 +89,7 @@
 @property (nonatomic, strong, nonnull, readonly) id<PowerAuthTokenStore> tokenStore;
 
 /**
- Object providing functions to sychronize time with the server. The time is automatically synchronized with the server
+ Object providing functions to synchronize time with the server. The time is automatically synchronized with the server
  */
 @property (nonatomic, strong, nonnull, readonly) id<PowerAuthTimeSynchronizationService> timeSynchronizationService;
 
@@ -145,6 +142,32 @@
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
                                           error:(NSError*_Nullable*_Nullable)error;
+
+/// Erases local data associated with the `PowerAuthSDK` instance identified by the provided configuration and keychain configuration.
+///
+/// Use this method when `PowerAuthSDK` initialization fails with an error indicating an unsupported local activation data format
+/// and the stored local activation data must be removed before retrying initialization.
+///
+/// @param configuration The configuration used to identify the instance data.
+/// @param keychainConfiguration The keychain configuration used to locate the instance data. If nil, the default configuration is applied.
+/// @param error Pointer where error is set in case of failure.
+/// @return true in case of success, false otherwise.
++ (BOOL) cleanupInstanceDataForConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                       keychainConfiguration:(nullable PowerAuthKeychainConfiguration*)keychainConfiguration
+                                       error:(NSError*_Nullable*_Nullable)error
+                            NS_SWIFT_NAME(cleanupInstanceData(configuration:keychainConfiguration:));
+
+/// Erases local data associated with the `PowerAuthSDK` instance identified by the provided configuration.
+///
+/// Use this method when `PowerAuthSDK` initialization fails with an error indicating an unsupported local activation data format
+/// and the stored local activation data must be removed before retrying initialization.
+///
+/// @param configuration The configuration used to identify the instance data.
+/// @param error Pointer where error is set in case of failure.
+/// @return true in case of success, false otherwise.
++ (BOOL) cleanupInstanceDataForConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                                       error:(NSError*_Nullable*_Nullable)error
+                            NS_SWIFT_NAME(cleanupInstanceData(configuration:));
 
 /** Creates an instance of SDK and initializes it with given configuration objects.
  

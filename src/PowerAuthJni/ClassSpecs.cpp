@@ -133,7 +133,9 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
             "CRYPTOGRAPHY",
             "CANCELED",
             "PENDING_PROTOCOL_UPGRADE",
-            "OTHER"
+            "OTHER",
+            "INVALID_ACTIVATION_DATA",
+            "UPGRADE_SDK"
         });
         spec.coreException = jni.buildClassSpec<CoreException>("io/getlime/security/powerauth/core/CoreException");
 

@@ -36,8 +36,7 @@ enum ErrorCode
     EC_NotAllowed,
     /// Operation require synchronized time.
     EC_TimeNotSynchronized,
-    /// Invalid data. Error is reported in situations, when configuration or
-    /// serialized data format is not valid.
+    /// Invalid data. Error is reported in situations, when configuration is not valid.
     EC_InvalidData,
     /// Invalid response received from the server.
     EC_InvalidResponse,
@@ -52,7 +51,11 @@ enum ErrorCode
     /// Operation is not allowed due to pending protocol upgrade. Try again later.
     EC_PendingProtocolUpgrade,
     /// Other, unspecified type of error.
-    EC_Other
+    EC_Other,
+    /// Unknown activation data.
+    EC_InvalidActivationData,
+    /// Upgrade SDK is required. A newer version of local activation data detected.
+    EC_UpgradeSDK
 };
 
 /// The `Exception` class is error type reported from this library in case the operation fails.

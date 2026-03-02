@@ -26,7 +26,7 @@ import java.lang.annotation.Retention;
 @Retention(SOURCE)
 @IntDef({MISSING_ACTIVATION, WRONG_ACTIVATION_STATE, WRONG_PARAMETER, BIOMETRY_NOT_ALLOWED, NOT_ALLOWED,
         TIME_NOT_SYNCHRONIZED, INVALID_DATA, INVALID_RESPONSE, WRONG_SIGNATURE, INTERNAL_ERROR,
-        CRYPTOGRAPHY, CANCELED, PENDING_PROTOCOL_UPGRADE, OTHER})
+        CRYPTOGRAPHY, CANCELED, PENDING_PROTOCOL_UPGRADE, OTHER, INVALID_ACTIVATION_DATA, UPGRADE_SDK})
 public @interface CoreErrorCode {
     /**
      * Session has no activation but activation is required for the operation.
@@ -53,7 +53,7 @@ public @interface CoreErrorCode {
      */
     int TIME_NOT_SYNCHRONIZED = 6;
     /**
-     * Invalid data. Error is reported in situations, when configuration or serialized data format is not valid.
+     * Invalid data. Error is reported in situations, when configuration data format is not valid.
      */
     int INVALID_DATA = 7;
     /**
@@ -84,4 +84,12 @@ public @interface CoreErrorCode {
      * Other, unspecified type of error.
      */
     int OTHER = 14;
+    /**
+     * Unknown activation data format.
+     */
+    int INVALID_ACTIVATION_DATA = 15;
+    /**
+     * Upgrade SDK is required. A newer version of local activation data detected.
+     */
+    int UPGRADE_SDK = 16;
 }

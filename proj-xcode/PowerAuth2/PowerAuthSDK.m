@@ -114,12 +114,14 @@ static NSData * _BuildDeviceSpecificData(void)
 ///   - biometricConfiguration: Optional biometric configuration.
 ///   - clientConfiguration: Optional client configuration.
 ///   - keychainConfiguration: Optional keychain configuration.
+///   - clearUnsupportedData: If true, then unsupported session data will be erased.
 ///   - error: Pointer to store error.
 /// - Returns: YES in case of success, NO otherwise.
 - (BOOL) initializeWithConfiguration:(PowerAuthConfiguration*)configuration
               biometricConfiguration:(PowerAuthBiometricConfiguration*)biometricConfiguration
                  clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration
                keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
+                clearUnsupportedData:(BOOL)clearUnsupportedData
                                error:(NSError**)error
 {
     NSError * localError = nil;
@@ -259,6 +261,13 @@ static NSData * _BuildDeviceSpecificData(void)
     }
     // Link core session and session interface together
     coreSession.delegate = _sessionInterface;
+    
+    // Load initial session's state
+    if (![_sessionInterface loadInitialState:clearUnsupportedData error:&localError]) {
+        PowerAuthCoreLog(@"ERROR: Failed to load initial session state");
+        PA2WrapError(localError, error);
+        return NO;
+    }
     
     // Create and setup a new HTTP client
     _client = [[PA2CoreHttpClient alloc] initWithConfiguration:_clientConfiguration
@@ -499,6 +508,7 @@ static NSData * _BuildDeviceSpecificData(void)
                         biometricConfiguration:biometricConfiguration
                            clientConfiguration:clientConfiguration
                          keychainConfiguration:keychainConfiguration
+                          clearUnsupportedData:NO
                                          error:error]) {
             return nil;
         }
@@ -526,6 +536,45 @@ static NSData * _BuildDeviceSpecificData(void)
                    clientConfiguration:nil
                  keychainConfiguration:nil
                                  error:error];
+}
+
+// Private init function
+
+- (instancetype) initForCleanupWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                           keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
+                                           error:(NSError **)error
+{
+    self = [super init];
+    if (self) {
+        if (![self initializeWithConfiguration:configuration
+                        biometricConfiguration:nil
+                           clientConfiguration:nil
+                         keychainConfiguration:keychainConfiguration
+                          clearUnsupportedData:YES
+                                         error:error]) {
+            return nil;
+        }
+    }
+    return self;
+}
+
+
++ (BOOL) cleanupInstanceDataForConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                       keychainConfiguration:(nullable PowerAuthKeychainConfiguration*)keychainConfiguration
+                                       error:(NSError*_Nullable*_Nullable)error
+{
+    PowerAuthSDK * temporary = [[PowerAuthSDK alloc] initForCleanupWithConfiguration:configuration
+                                                               keychainConfiguration:keychainConfiguration error:error];
+    if (temporary) {
+        [temporary removeActivationLocal];
+    }
+    return temporary != nil;
+}
+
++ (BOOL) cleanupInstanceDataForConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                                       error:(NSError*_Nullable*_Nullable)error
+{
+    return [self cleanupInstanceDataForConfiguration:configuration keychainConfiguration:nil error:error];
 }
 
 static void _ThrowDeprecatedInitException(NSError * error)

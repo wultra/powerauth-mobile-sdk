@@ -20,12 +20,16 @@ import androidx.annotation.NonNull;
 
 import io.getlime.security.powerauth.core.CoreEncryptor;
 import io.getlime.security.powerauth.core.SecureData;
+import io.getlime.security.powerauth.keychain.Keychain;
+import io.getlime.security.powerauth.keychain.KeychainFactory;
+import io.getlime.security.powerauth.keychain.KeychainProtection;
 import io.getlime.security.powerauth.sdk.PowerAuthActivationState;
 import io.getlime.security.powerauth.sdk.PowerAuthActivationStatus;
 import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
 import io.getlime.security.powerauth.networking.response.*;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,6 +41,9 @@ import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.PowerAuthActivation;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
+import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
 import static org.junit.Assert.*;
@@ -722,5 +729,72 @@ public class BaseSdkTest extends BaseTest {
         });
         assertNotNull(result);
         System.out.println("Server name: " + result.getApplicationName() + ", version: " + result.getApplicationVersion());
+    }
+
+    @Test
+    public void cleanupActivationData() throws Exception {
+        activationHelper.createStandardActivation(false, null);
+        assertTrue(powerAuthSDK.hasValidActivation());
+        PowerAuthSDK.cleanupInstanceData(testHelper.getContext(), powerAuthSDK.getConfiguration(), powerAuthSDK.getKeychainConfiguration());
+        powerAuthSDK = activationHelper.reCreateSdk();
+        assertFalse(powerAuthSDK.hasValidActivation());
+    }
+
+    Keychain getInstanceKeychain() throws Exception {
+        String keychainId = powerAuthSDK.getKeychainConfiguration().getKeychainStatusId();
+        return KeychainFactory.getKeychain(testHelper.getContext(), keychainId, KeychainProtection.NONE);
+    }
+
+    @Test
+    public void testUnsupportedDataHandling() throws Exception {
+        byte[] unsupportedData = "HELLO".getBytes(StandardCharsets.UTF_8);
+        String instanceId = powerAuthSDK.getConfiguration().getInstanceId();
+        PowerAuthConfiguration configuration = powerAuthSDK.getConfiguration();
+        PowerAuthKeychainConfiguration keychainConfiguration = powerAuthSDK.getKeychainConfiguration();
+
+        // Insert status data
+        Keychain keychain = getInstanceKeychain();
+        keychain.putData(unsupportedData, instanceId);
+
+        // re-create SDK
+        PowerAuthErrorException exception = assertThrows(PowerAuthErrorException.class, () ->
+            new PowerAuthSDK.Builder(configuration)
+                    .keychainConfiguration(keychainConfiguration)
+                    .build(testHelper.getContext())
+        );
+        assertEquals(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, exception.getPowerAuthErrorCode());
+
+        // Erase instance data
+        PowerAuthSDK.cleanupInstanceData(testHelper.getContext(), configuration, keychainConfiguration);
+
+        // re-create should work now
+        powerAuthSDK = activationHelper.reCreateSdk();
+    }
+
+    @Test
+    public void testUpgradeSDKDetection() throws Exception {
+        // Session's data blob begins with sequence 'P' 'A' (data version) and status flag.
+        byte[] unsupportedData = "PX0".getBytes(StandardCharsets.UTF_8);
+        String instanceId = powerAuthSDK.getConfiguration().getInstanceId();
+        PowerAuthConfiguration configuration = powerAuthSDK.getConfiguration();
+        PowerAuthKeychainConfiguration keychainConfiguration = powerAuthSDK.getKeychainConfiguration();
+
+        // Insert status data
+        Keychain keychain = getInstanceKeychain();
+        keychain.putData(unsupportedData, instanceId);
+
+        // re-create SDK
+        PowerAuthErrorException exception = assertThrows(PowerAuthErrorException.class, () ->
+                new PowerAuthSDK.Builder(configuration)
+                        .keychainConfiguration(keychainConfiguration)
+                        .build(testHelper.getContext())
+        );
+        assertEquals(PowerAuthErrorCodes.UPGRADE_SDK, exception.getPowerAuthErrorCode());
+
+        // Erase instance data
+        PowerAuthSDK.cleanupInstanceData(testHelper.getContext(), configuration, keychainConfiguration);
+
+        // re-create should work now
+        powerAuthSDK = activationHelper.reCreateSdk();
     }
 }

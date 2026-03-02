@@ -20,6 +20,7 @@
  The PA2WCSessionManager_RegisterDefaultHandlers function is called once per process
  lifetime, just after the PA2WCSessionManager shared instance is created.
  */
+PA2_NO_EXPORT
 void PA2WCSessionManager_RegisterDefaultHandlers(PowerAuthWCSessionManager * sessionManager)
 {
     // We don't need default handlers on IOS side yet.

@@ -133,9 +133,23 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
         instanceId: Bundle.main.bundleIdentifier!,
         baseEndpointUrl: "https://<your-domain>/enrollment-server",
         configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
-
-    // Create a PowerAuthSDK instance with the configuration
-    let powerAuth = try PowerAuthSDK(configuration)
+    do {
+        // Create a PowerAuthSDK instance with the configuration
+        let powerAuth = try PowerAuthSDK(configuration: configuration)
+    } catch let err as NSError {
+        switch err.powerAuthErrorCode {
+        case .wrongParameter:
+            // Invalid configuration.
+        case .invalidActivationData:
+            // Unrecognized data format. You can log this event, clear data and retry SDK construction
+            try PowerAuthSDK.cleanupInstanceData(configuration: configuration)
+        case .upgradeSDK:
+            // Upgrade SDK in your application
+        default:
+            // other errors
+            break
+        }
+    }
 }
 ```
 
@@ -230,7 +244,7 @@ let configuration = PowerAuthConfiguration(
     algorithm: .EC_P384_ML_L5)
 
 // Create a PowerAuthSDK instance with the configuration
-let powerAuth = try PowerAuthSDK(configuration)
+let powerAuth = try PowerAuthSDK(configuration: configuration)
 ```
 
 The selected algorithm cannot be changed after a `PowerAuthSDK` instance is created, but it can be updated across the lifetime of your application. If the selected algorithm does not match the one used for the activation currently present on the device, the [authenticated protocol upgrade](#authenticated-protocol-upgrade) process must be performed to switch to the new algorithm.
@@ -1313,7 +1327,7 @@ let biometricConfiguration = PowerAuthBiometricConfiguration()
 biometricConfiguration.invalidateBiometricFactorAfterChange = true
 
 // Init PowerAuthSDK instance
-let powerAuthSDK = PowerAuthSDK(configuration: configuration, biometricConfiguration: biometricConfiguration, clientConfiguration: nil)
+let powerAuthSDK = try PowerAuthSDK(configuration: configuration, biometricConfiguration: biometricConfiguration, clientConfiguration: nil)
 ```
 
 <!-- begin box warning -->
@@ -1335,7 +1349,7 @@ let biometricConfiguration = PowerAuthBiometricConfiguration()
 biometricConfiguration.allowFallbackToDevicePasscode = true
 
 // Init PowerAuthSDK instance
-let powerAuthSDK = PowerAuthSDK(configuration: configuration, biometricConfiguration: biometricConfiguration, clientConfiguration: nil)
+let powerAuthSDK = try PowerAuthSDK(configuration: configuration, biometricConfiguration: biometricConfiguration, clientConfiguration: nil)
 ``` 
 
 Once the configuration above is used, then the `invalidateBiometricFactorAfterChange` option does not affect the biometry factor-related key lifetime. 
@@ -2041,6 +2055,10 @@ This chapter explains how to share the `PowerAuthSDK` activation state between a
 This feature is not supported on the macOS Catalyst platform.
 <!-- end -->
 
+<!-- begin box warning -->
+If you used this feature in an SDK version older than 2.0.0, please read the [Upgrade from older SDKs](#upgrade-from-older-sdks) chapter first.
+<!-- end -->
+
 ### Prepare Activation Data Sharing
 
 The App Extension normally doesn't have access to data created by the main application, so the first step is to set up data sharing for your project.
@@ -2103,7 +2121,7 @@ configuration.sharingConfiguration = PowerAuthSharingConfiguration(
     keychainAccessGroup: keychainSharing)
 
 // Create a PowerAuthSDK instance
-let powerAuthSDK = PowerAuthSDK(configuration)
+let powerAuthSDK = try PowerAuthSDK(configuration: configuration)
 ```
 
 The `PowerAuthSharingConfiguration` object contains the following properties:
@@ -2134,7 +2152,7 @@ powerAuthSDK.createActivation(activation) { (result, error) in
         }
     }
 }
-``` 
+```
 
 ## Synchronized Time
 
@@ -2300,6 +2318,15 @@ if error == nil {
             
         case .timeSynchronization:
             print("Failed to synchronize time with the server.")
+
+        case .wrongSignature:
+            print("Digital or JWS signature is not valid.")
+
+        case .upgradeSDK:
+            print("Upgrade PowerAuth Mobile SDK in your application.")
+
+        case .other:
+            print("Unspecified error.")
             
         default:
             print("Unknown error")
@@ -2316,6 +2343,7 @@ Here's the list of important error codes, which the application should properly 
 - `PowerAuthErrorCode.biometryFallback` is reported when the user cancels the biometric authentication dialog with a fallback button
 - `PowerAuthErrorCode.pendingProtocolUpgrade` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The error code is typically reported in situations when SDK is performing protocol upgrade and the application wants to calculate the PowerAuth authentication code in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
 - `PowerAuthErrorCode.externalPendingOperation` is reported when the requested operation collides with the same operation type already started in the external application.
+- `PowerAuthErrorCode.upgradeSDK` is reported when the local activation data format is not understandable by this version of PowerAuth Mobile SDK.
 
 ### Working with Invalid SSL Certificates
 
@@ -2568,3 +2596,18 @@ private func migrateUserDefaults(appGroup: String) {
     }
 }
 ```
+
+### Upgrade from older SDKs
+
+PowerAuth Mobile SDK version `2.0.0` introduced a new internal activation data format that is incompatible with previous SDK versions. This change is particularly important if you are using the [Activation Data Sharing](#share-activation-data) feature to share activation data between multiple applications. In such a setup, you may encounter a situation where one of your applications is already upgraded to a newer SDK version and the modified data is not recognized by an application using an older SDK version. This situation may lead to unexpected removal of activation data.
+
+To prevent this, it is very important to carefully plan how you roll out application updates to your users. It is recommended to follow these steps to reliably upgrade your applications to PowerAuth SDK 2.0 (and later):
+
+1. First, upgrade all your applications to SDK 2.0+ and set the [algorithm](#algorithms-for-communication) to `LEGACY_P256`. In this setup, the activation data format remains fully compatible with older SDK versions.
+2. Wait until a significant portion of your users are using version `2.0+` across all your applications.
+3. Then switch the [algorithm](#algorithms-for-communication) to the one you intend to use going forward (for example, `EC_P384_ML_L3`).
+
+<!-- begin box info -->
+The procedure above is not required if you are using activation data sharing to share data between a single application and its extensions. This setup is safe because the extensions are part of the main application and are upgraded at the same time.
+<!-- end -->
+

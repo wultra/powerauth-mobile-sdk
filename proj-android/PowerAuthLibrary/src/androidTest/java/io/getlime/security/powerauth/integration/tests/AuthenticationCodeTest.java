@@ -59,8 +59,8 @@ public class AuthenticationCodeTest extends BaseTest {
                     }
 
                     @Override
-                    public void onOfflineAuthenticationCodeFailed(@NonNull PowerAuthErrorException error) {
-                        resultCatcher.completeWithError(error);
+                    public void onOfflineAuthenticationCodeFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithError(throwable);
                     }
                 });
             });
@@ -122,8 +122,8 @@ public class AuthenticationCodeTest extends BaseTest {
                 }
 
                 @Override
-                public void onOfflineAuthenticationCodeFailed(@NonNull PowerAuthErrorException error) {
-                    resultCatcher.completeWithError(error);
+                public void onOfflineAuthenticationCodeFailed(@NonNull Throwable throwable) {
+                    resultCatcher.completeWithError(throwable);
                 }
             });
         });
@@ -268,8 +268,8 @@ public class AuthenticationCodeTest extends BaseTest {
                     }
 
                     @Override
-                    public void onOfflineAuthenticationCodeFailed(@NonNull PowerAuthErrorException error) {
-                        resultCatcher.completeWithError(error);
+                    public void onOfflineAuthenticationCodeFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithError(throwable);
                     }
                 });
             });
@@ -301,8 +301,8 @@ public class AuthenticationCodeTest extends BaseTest {
                     }
 
                     @Override
-                    public void onOfflineAuthenticationCodeFailed(@NonNull PowerAuthErrorException error) {
-                        resultCatcher.completeWithError(error);
+                    public void onOfflineAuthenticationCodeFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithError(throwable);
                     }
                 });
             });

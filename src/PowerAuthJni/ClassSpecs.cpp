@@ -59,7 +59,6 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         spec.coreDevicePublicKeyData = jni.buildClassSpec<CoreDevicePublicKeyData>("io/getlime/security/powerauth/core/CoreDevicePublicKeyData");
         spec.coreEncryptedRequest = jni.buildClassSpec<CoreEncryptedRequest>("io/getlime/security/powerauth/core/CoreEncryptedRequest");
         spec.coreEncryptedResponse = jni.buildClassSpec<CoreEncryptedResponse>("io/getlime/security/powerauth/core/CoreEncryptedResponse");
-        spec.coreFetchActivationStatusData = jni.buildClassSpec<CoreFetchActivationStatusData>("io/getlime/security/powerauth/core/CoreFetchActivationStatusData");
 
         // Response
         spec.respServerStatus = jni.buildClassSpec<RespServerStatus>("io/getlime/security/powerauth/core/response/CoreServerStatus");
@@ -134,7 +133,9 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
             "CRYPTOGRAPHY",
             "CANCELED",
             "PENDING_PROTOCOL_UPGRADE",
-            "OTHER"
+            "OTHER",
+            "INVALID_ACTIVATION_DATA",
+            "UPGRADE_SDK"
         });
         spec.coreException = jni.buildClassSpec<CoreException>("io/getlime/security/powerauth/core/CoreException");
 
@@ -160,7 +161,6 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
         jni.releaseSpec(spec.coreHttpHeader);
         jni.releaseSpec(spec.coreDevicePublicKeyData);
         jni.releaseSpec(spec.secureData);
-        jni.releaseSpec(spec.coreFetchActivationStatusData);
         // response
         jni.releaseSpec(spec.respServerStatus);
         jni.releaseSpec(spec.respActivationResult);

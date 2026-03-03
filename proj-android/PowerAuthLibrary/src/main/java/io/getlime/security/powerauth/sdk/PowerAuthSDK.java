@@ -84,6 +84,7 @@ public class PowerAuthSDK {
         private PowerAuthKeychainConfiguration mKeychainConfiguration;
         private ISavePowerAuthStateListener mStateListener;
         private ICallbackDispatcher mCallbackDispatcher;
+        private boolean ignoreInitialStateLoadFail;
 
         /**
          * Creates a builder for {@link PowerAuthSDK}.
@@ -143,6 +144,16 @@ public class PowerAuthSDK {
          */
         public @NonNull Builder callbackDispatcher(ICallbackDispatcher callbackDispatcher) {
             this.mCallbackDispatcher = callbackDispatcher;
+            return this;
+        }
+
+        /**
+         * Set flag indicating that initial state load failure can be ignored. This flag is used
+         * internally for constructing a temporary PowerAuthSDK instance.
+         * @return {@link Builder}
+         */
+        @NonNull Builder ignoreInitialStateLoadFail() {
+            this.ignoreInitialStateLoadFail = true;
             return this;
         }
 
@@ -251,7 +262,14 @@ public class PowerAuthSDK {
             // Register time service for automatic reset.
             PowerAuthAppLifecycleListener.getInstance().registerTimeSynchronizationService(context, timeSynchronizationService);
             // Restore state of this SDK instance.
-            instance.restoreState(instance.mStateListener.serializedState(mConfiguration.getInstanceId()));
+            try {
+                instance.restoreState(instance.mStateListener.serializedState(mConfiguration.getInstanceId()));
+            } catch (PowerAuthErrorException exception) {
+                if (!ignoreInitialStateLoadFail) {
+                    // Rethrow exception if ignore is off
+                    throw exception;
+                }
+            }
             return instance;
         }
 
@@ -365,6 +383,37 @@ public class PowerAuthSDK {
         }
         // Possession only
         return CoreCredentials.possession();
+    }
+
+    /**
+     * Erases local data associated with the {@code PowerAuthSDK} instance identified by the provided configuration and keychain configuration.
+     * <p>
+     * Use this method when {@code PowerAuthSDK} initialization fails with an error indicating an unsupported local activation data format
+     * and the stored local activation data must be removed before retrying initialization.
+     * @param context Android context.
+     * @param configuration The configuration used to identify the instance data.
+     * @param keychainConfiguration The keychain configuration used to locate the instance data. If {@code null}, the default configuration is applied.
+     * @throws PowerAuthErrorException In case the configuration is not valid.
+     */
+    public static void cleanupInstanceData(@NonNull Context context, @NonNull PowerAuthConfiguration configuration, @Nullable PowerAuthKeychainConfiguration keychainConfiguration) throws PowerAuthErrorException {
+        PowerAuthSDK temporary = new Builder(configuration)
+                .keychainConfiguration(keychainConfiguration)
+                .ignoreInitialStateLoadFail()
+                .build(context);
+        temporary.removeActivationLocal(context);
+    }
+
+    /**
+     * Erases local data associated with the {@code PowerAuthSDK} instance identified by the provided configuration.
+     * <p>
+     * Use this method when {@code PowerAuthSDK} initialization fails with an error indicating an unsupported local activation data format
+     * and the stored local activation data must be removed before retrying initialization.
+     * @param context Android context.
+     * @param configuration The configuration used to identify the instance data.
+     * @throws PowerAuthErrorException In case the configuration is not valid.
+     */
+    public static void cleanupInstanceData(@NonNull Context context, @NonNull PowerAuthConfiguration configuration) throws PowerAuthErrorException {
+        cleanupInstanceData(context, configuration, null);
     }
 
     /**
@@ -1211,8 +1260,7 @@ public class PowerAuthSDK {
                 task = mGetActivationStatusTask.createChildTask(completion);
             }
             if (task == null) {
-                CoreFetchActivationStatusData fetchData = new CoreFetchActivationStatusData(hasBiometryKekData(context));
-                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, fetchData, mLock, mCallbackDispatcher, this::saveSerializedState, getActivationStatusTask -> {
+                mGetActivationStatusTask = new GetActivationStatusTask(mClient, mSession, mLock, mCallbackDispatcher, this::saveSerializedState, getActivationStatusTask -> {
                     // The mLock is already locked, because GetActivationStatusTask uses shared lock.
                     if (getActivationStatusTask == mGetActivationStatusTask) {
                         mGetActivationStatusTask = null;
@@ -1314,24 +1362,6 @@ public class PowerAuthSDK {
         cancelGetActivationStatusTask();
     }
 
-    /**
-     * Removes existing activation from the device.
-     * <p>
-     * This method removes the activation session state and optionally also shared biometry factor key. Cached possession related
-     * key remains intact. Unlike the `removeActivationWithAuthentication`, this method doesn't inform server about activation removal.
-     * In this case user has to remove the activation by using another channel (typically internet banking, or similar web management console)
-     * <p>
-     * <b>NOTE:</b>The removeSharedBiometryKey parameter is now ignored, because PowerAuthSDK no longer use the shared key for a newly created
-     * biometry factors.
-     *
-     * @param context                   Android context.
-     * @param removeSharedBiometryKey   This parameter is ignored.
-     * @deprecated Use {@link #removeActivationLocal(Context)} as a replacement.
-     */
-    @Deprecated // 1.7.10 - remove in 2.0.0
-    public void removeActivationLocal(@NonNull Context context, boolean removeSharedBiometryKey) {
-        removeActivationLocal(context);
-    }
 
     // Protocol Upgrade
 
@@ -2543,7 +2573,7 @@ public class PowerAuthSDK {
 
                 @Override
                 public void onNetworkError(@NonNull Throwable throwable) {
-                    listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(throwable));
+                    listener.onAddBiometryFactorFailed(throwable);
                 }
 
                 @Override
@@ -2607,7 +2637,7 @@ public class PowerAuthSDK {
 
                 @Override
                 public void onNetworkError(@NonNull Throwable throwable) {
-                    listener.onRemoveBiometryFactorFailed(PowerAuthErrorException.wrapException(throwable));
+                    listener.onRemoveBiometryFactorFailed(throwable);
                 }
 
                 @Override

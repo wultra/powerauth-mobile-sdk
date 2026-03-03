@@ -193,11 +193,11 @@ std::string Session::activationFingerprint() const noexcept
     return std::string();
 }
 
-TaskPtr Session::fetchActivationStatus(const FetchActivationStatusData& data)
+TaskPtr Session::fetchActivationStatus()
 {
     LOCK_GUARD();
     checkActivationData();
-    return std::make_shared<GetActivationStatusTask>(_context, data);
+    return std::make_shared<GetActivationStatusTask>(_context);
 }
 
 TaskPtr Session::startProtocolUpgrade(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek)

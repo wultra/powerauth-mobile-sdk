@@ -34,7 +34,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         PROTOCOL_UPGRADE, PENDING_PROTOCOL_UPGRADE,
         BIOMETRY_NOT_SUPPORTED, BIOMETRY_NOT_AVAILABLE, BIOMETRY_NOT_RECOGNIZED,
         INSUFFICIENT_KEYCHAIN_PROTECTION, BIOMETRY_LOCKOUT, TIME_SYNCHRONIZATION,
-        BIOMETRY_NOT_ENROLLED, WRONG_SIGNATURE, OTHER})
+        BIOMETRY_NOT_ENROLLED, WRONG_SIGNATURE, OTHER, UPGRADE_SDK})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -173,7 +173,14 @@ public @interface PowerAuthErrorCodes {
      */
     int WRONG_SIGNATURE = 25;
     /**
+     * Upgrade the PowerAuth Mobile SDK in your application. This error may occur if the local
+     * activation data was created with a newer version of the SDK than the one currently used
+     * in your application. This situation can happen if you downgraded your application during
+     * testing.
+     */
+    int UPGRADE_SDK = 26;
+    /**
      * Other, unspecified error.
      */
-    int OTHER = 26;
+    int OTHER = 27;
 }

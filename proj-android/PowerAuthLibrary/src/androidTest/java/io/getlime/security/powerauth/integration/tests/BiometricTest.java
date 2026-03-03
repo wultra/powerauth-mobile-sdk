@@ -98,8 +98,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
                 }
 
                 @Override
-                public void onRemoveBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
-                    resultCatcher.completeWithError(error);
+                public void onRemoveBiometryFactorFailed(@NonNull Throwable throwable) {
+                    resultCatcher.completeWithError(throwable);
                 }
             });
         });
@@ -245,8 +245,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
                     }
 
                     @Override
-                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
-                        resultCatcher.completeWithError(error);
+                    public void onAddBiometryFactorFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithError(throwable);
                     }
                 });
             });
@@ -271,8 +271,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
                     }
 
                     @Override
-                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
-                        resultCatcher.completeWithError(error);
+                    public void onAddBiometryFactorFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithError(throwable);
                     }
                 });
             });
@@ -294,8 +294,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
                     }
 
                     @Override
-                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
-                        resultCatcher.completeWithError(error);
+                    public void onAddBiometryFactorFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithError(throwable);
                     }
                 })
         );
@@ -325,8 +325,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
                     }
 
                     @Override
-                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
-                        resultCatcher.completeWithError(error);
+                    public void onAddBiometryFactorFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithError(throwable);
                     }
                 })
         );
@@ -369,8 +369,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
                     }
 
                     @Override
-                    public void onRemoveBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
-                        resultCatcher.completeWithResult(error);
+                    public void onRemoveBiometryFactorFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithResult(throwable);
                     }
                 });
             });
@@ -397,8 +397,8 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
                     }
 
                     @Override
-                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
-                        resultCatcher.completeWithResult(error);
+                    public void onAddBiometryFactorFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithResult(throwable);
                     }
                 });
             });

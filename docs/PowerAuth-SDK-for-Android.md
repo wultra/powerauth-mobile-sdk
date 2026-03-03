@@ -113,8 +113,22 @@ try {
     val powerAuthSDK = PowerAuthSDK.Builder(configuration)
         .build(applicationContext)
 } catch (exception: PowerAuthErrorException) {
-    // Failed to construct `PowerAuthSDK` due to insufficient keychain protection.
-    // (See next chapter for details)
+    when (exception.powerAuthErrorCode) {
+        PowerAuthErrorCodes.INVALID_ACTIVATION_DATA -> {
+            // Activation data format is not recognized
+            // Clear activation data and retry PowerAuthSDK object construction
+            PowerAuthSDK.cleanupInstanceData(applicationContext, configuration)
+        }
+        PowerAuthErrorCodes.INSUFFICIENT_KEYCHAIN_PROTECTION -> {
+            // This device doesn't support the requested level of keychain protection.
+            // See next chapters for details
+        }
+        PowerAuthErrorCodes.UPGRADE_SDK -> {
+            // You have somehow downgraded your application and activation data
+            // is in newer format. You can clear activation data and retry the operation.
+        }
+        else -> Log.d(TAG, "Other error")
+    }    
 }
 ```
 
@@ -454,7 +468,7 @@ val cancelable = powerAuthSDK.persistActivationWithAuthentication(context, authe
         // Success
     }
 
-    override fun onPersistActivationFailed(error: PowerAuthErrorException) {
+    override fun onPersistActivationFailed(error: Throwable) {
         // Failure
     }
 
@@ -483,7 +497,7 @@ val cancelable = powerAuthSDK.persistActivationWithAuthentication(context, authe
         // Success
     }
 
-    override fun onPersistActivationFailed(error: PowerAuthErrorException) {
+    override fun onPersistActivationFailed(error: Throwable) {
         // Failure
     }
 
@@ -778,7 +792,7 @@ powerAuthSDK.offlineAuthenticationCode(context, authentication, "/confirm/offlin
         Log.d(TAG, "Offline authentication code is: $authenticationCode")
     }
 
-    override fun onOfflineAuthenticationCodeFailed(error: PowerAuthErrorException) {
+    override fun onOfflineAuthenticationCodeFailed(error: Throwable) {
         // Handle the error, such as biometric authentication cancel.
     }
 })
@@ -1410,7 +1424,7 @@ powerAuthSDK.addBiometryFactor(context, "1234", biometricPrompt, object: IAddBio
         // Everything went OK, biometric authentication is ready to be used
     }
 
-    override fun onAddBiometryFactorFailed(error: PowerAuthErrorException) {
+    override fun onAddBiometryFactorFailed(error: Throwable) {
         // Error occurred, report it to the user.
 
         // It's recommended to fetch activation's status to synchronize biometric factor
@@ -1456,7 +1470,7 @@ powerAuthSDK.removeBiometryFactor(context, object: IRemoveBiometryFactorListener
         // Everything went OK, biometric authentication is ready to be used
     }
 
-    override fun onRemoveBiometryFactorFailed(error: PowerAuthErrorException) {
+    override fun onRemoveBiometryFactorFailed(error: Throwable) {
         // Error occurred, report it to the user.
 
         // It's recommended to fetch activation's status to synchronize biometric factor
@@ -2117,9 +2131,13 @@ when (t) {
             PowerAuthErrorCodes.OPERATION_CANCELED -> Log.d(TAG, "Error code for cancelled operations")
             PowerAuthErrorCodes.ENCRYPTION_ERROR -> Log.d(TAG, "Error code for errors related to end-to-end encryption")
             PowerAuthErrorCodes.INVALID_TOKEN -> Log.d(TAG, "Error code for errors related to token-based auth.")
+            PowerAuthErrorCodes.INSUFFICIENT_KEYCHAIN_PROTECTION -> Log.d(TAG, "Device doesn't support requested keychain protection.")
             PowerAuthErrorCodes.PROTOCOL_UPGRADE -> Log.d(TAG, "Error code for error that occurs when protocol upgrade fails at unrecoverable error.")
             PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE -> Log.d(TAG, "The operation is temporarily unavailable, due to pending protocol upgrade.")
             PowerAuthErrorCodes.TIME_SYNCHRONIZATION -> Log.d(TAG, "Failed to synchronize time with the server.")
+            PowerAuthErrorCodes.WRONG_SIGNATURE -> Log.d(TAG, "Digital or JWS signature is not valid.")
+            PowerAuthErrorCodes.UPGRADE_SDK -> Log.d(TAG, "Upgrade PowerAuth Mobile SDK in your application.")
+            PowerAuthErrorCodes.OTHER -> Log.d(TAG, "Unspecified error.")
         }
         // Process additional information
         val additionalInfo = error.additionalInformation

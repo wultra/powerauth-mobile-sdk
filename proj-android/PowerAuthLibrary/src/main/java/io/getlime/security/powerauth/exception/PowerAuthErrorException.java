@@ -179,6 +179,12 @@ public class PowerAuthErrorException extends Exception {
             case CoreErrorCode.PENDING_PROTOCOL_UPGRADE:
                 errorCode = PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE;
                 break;
+            case CoreErrorCode.INVALID_ACTIVATION_DATA:
+                errorCode = PowerAuthErrorCodes.INVALID_ACTIVATION_DATA;
+                break;
+            case CoreErrorCode.UPGRADE_SDK:
+                errorCode = PowerAuthErrorCodes.UPGRADE_SDK;
+                break;
             default:
                 errorCode = suggestedErrorCode;
                 break;

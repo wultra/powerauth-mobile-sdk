@@ -64,12 +64,3 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
 @property (nonatomic, strong, nullable, readonly) NSDictionary<NSString*, NSObject*>* customObject;
 
 @end
-
-/// The `PowerAuthCoreFetchActivationStatusData` contains additional information
-/// for proper getting activation status execution.
-@interface PowerAuthCoreFetchActivationStatusData : NSObject
-
-/// Indicates that KEK for biometric factor key is available in iOS keychain.
-@property (nonatomic, assign) BOOL biometricKekAvailable;
-
-@end

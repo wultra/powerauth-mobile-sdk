@@ -18,7 +18,6 @@ package io.getlime.security.powerauth.networking.response;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
-import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
  * Listener for offline authentication code calculation.
@@ -35,8 +34,8 @@ public interface IOfflineAuthenticationCodeListener {
     /**
      * Called when offline authentication code calculation fails.
      *
-     * @param error error that occurred during the authentication code calculation.
+     * @param throwable error that occurred during the authentication code calculation.
      */
     @MainThread
-    void onOfflineAuthenticationCodeFailed(@NonNull PowerAuthErrorException error);
+    void onOfflineAuthenticationCodeFailed(@NonNull Throwable throwable);
 }

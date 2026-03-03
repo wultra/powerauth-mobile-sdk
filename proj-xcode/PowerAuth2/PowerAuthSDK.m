@@ -48,7 +48,7 @@
 #pragma mark - Constants
 
 /** In case a config is missing, exception with this identifier is thrown. */
-NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingConfig";
+NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingConfig"; // PA2_DEPRECATED(2.0.0)
 
 #pragma mark - PowerAuth SDK implementation
 

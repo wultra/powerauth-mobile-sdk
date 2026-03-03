@@ -85,6 +85,7 @@
     #define PA2_EXTERN_C_END
 #endif
 
+#define PA2_NO_EXPORT __attribute__((visibility("hidden")))
 
 #pragma mark - Apple platforms
 

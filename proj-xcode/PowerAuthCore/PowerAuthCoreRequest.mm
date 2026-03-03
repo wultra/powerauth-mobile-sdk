@@ -221,6 +221,7 @@
 
 namespace powerAuth {
 
+POWERAUTH_NO_EXPORT
 NSArray<PowerAuthCoreHttpHeader*>* BuildNSArrayWithHeaders(const HttpHeaderList& headers)
 {
     NSMutableArray * result = [NSMutableArray arrayWithCapacity:headers.size()];

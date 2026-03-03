@@ -46,6 +46,7 @@ NSString * const PowerAuthCoreErrorInfoKey_AdditionalErrors = @"PowerAuthCoreErr
 
 namespace powerAuth {
 
+POWERAUTH_NO_EXPORT
 NSError* BuildCoreNSError(PowerAuthCoreError error_code, NSString * message)
 {
     return [NSError errorWithDomain:PowerAuthCoreErrorDomain code:error_code userInfo:@{
@@ -53,6 +54,7 @@ NSError* BuildCoreNSError(PowerAuthCoreError error_code, NSString * message)
     }];
 }
 
+POWERAUTH_NO_EXPORT
 NSError * BuildNSErrorFromException(std::exception_ptr ptr)
 {
     // This is similar to NativeHelper::handleException() on Android platform.

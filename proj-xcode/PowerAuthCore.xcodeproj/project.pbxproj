@@ -19,7 +19,6 @@
 		8F97E47D2E58AC9E00063075 /* AuthenticationServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F97E47B2E58AC9E00063075 /* AuthenticationServiceV3.cpp */; };
 		8FE2E31A2EBCEA770044055E /* ProtocolUpgradeResult.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FE2E3192EBCEA770044055E /* ProtocolUpgradeResult.cpp */; };
 		8FE2E31B2EBCEA770044055E /* ProtocolUpgradeResult.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FE2E3192EBCEA770044055E /* ProtocolUpgradeResult.cpp */; };
-		8FE2E31C2EBCEA770044055E /* ProtocolUpgradeResult.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FE2E3192EBCEA770044055E /* ProtocolUpgradeResult.cpp */; };
 		8FE2E3632EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 8FE2E3612EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8FE2E3642EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8FE2E3622EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.mm */; };
 		8FE2E3652EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 8FE2E3612EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -207,12 +206,8 @@
 		BFA980A5253DA55A004D2CF9 /* PowerAuthCoreTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98085253DA559004D2CF9 /* PowerAuthCoreTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA980A6253DA55A004D2CF9 /* PowerAuthCorePassword.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98086253DA559004D2CF9 /* PowerAuthCorePassword.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA980A7253DA55A004D2CF9 /* PowerAuthCorePassword.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98086253DA559004D2CF9 /* PowerAuthCorePassword.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BFA980AA253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98088253DA559004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm */; };
-		BFA980AB253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98088253DA559004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm */; };
 		BFA980AC253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98089253DA559004D2CF9 /* PowerAuthCoreCryptoUtils.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA980AD253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98089253DA559004D2CF9 /* PowerAuthCoreCryptoUtils.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BFA980AE253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9808A253DA559004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BFA980AF253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9808A253DA559004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA980B0253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA9808B253DA559004D2CF9 /* PowerAuthCoreCryptoUtils.mm */; };
 		BFA980B1253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA9808B253DA559004D2CF9 /* PowerAuthCoreCryptoUtils.mm */; };
 		BFA980B2253DA55A004D2CF9 /* PowerAuthCorePrivateImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9808C253DA559004D2CF9 /* PowerAuthCorePrivateImpl.h */; };
@@ -225,7 +220,6 @@
 		BFAAC9902E3E609700062165 /* PowerAuthCoreActivationResult.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFAAC98C2E3E609700062165 /* PowerAuthCoreActivationResult.mm */; };
 		BFAAC9982E3E6B0600062165 /* ActivationResult.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFAAC9972E3E6B0600062165 /* ActivationResult.cpp */; };
 		BFAAC9992E3E6B0600062165 /* ActivationResult.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFAAC9972E3E6B0600062165 /* ActivationResult.cpp */; };
-		BFAAC99A2E3E6B0600062165 /* ActivationResult.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFAAC9972E3E6B0600062165 /* ActivationResult.cpp */; };
 		BFAAC99F2E3F6E4800062165 /* CommonFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFAAC99E2E3F6E4800062165 /* CommonFunctions.cpp */; };
 		BFAAC9A02E3F6E4800062165 /* CommonFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFAAC99E2E3F6E4800062165 /* CommonFunctions.cpp */; };
 		BFABCD6A214AC31F00A9221F /* pa2CRC16Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */; };
@@ -667,9 +661,7 @@
 		BFA98085253DA559004D2CF9 /* PowerAuthCoreTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreTypes.h; sourceTree = "<group>"; };
 		BFA98086253DA559004D2CF9 /* PowerAuthCorePassword.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCorePassword.h; sourceTree = "<group>"; };
 		BFA98087253DA559004D2CF9 /* PowerAuthCoreSession.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreSession.mm; sourceTree = "<group>"; };
-		BFA98088253DA559004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreProtocolUpgradeData.mm; sourceTree = "<group>"; };
 		BFA98089253DA559004D2CF9 /* PowerAuthCoreCryptoUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreCryptoUtils.h; sourceTree = "<group>"; };
-		BFA9808A253DA559004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreProtocolUpgradeData.h; sourceTree = "<group>"; };
 		BFA9808B253DA559004D2CF9 /* PowerAuthCoreCryptoUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreCryptoUtils.mm; sourceTree = "<group>"; };
 		BFA9808C253DA559004D2CF9 /* PowerAuthCorePrivateImpl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCorePrivateImpl.h; sourceTree = "<group>"; };
 		BFA9808D253DA559004D2CF9 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1178,8 +1170,6 @@
 				BF3DADE62D65EDD90096ED4F /* PowerAuthCoreData.mm */,
 				BFA98089253DA559004D2CF9 /* PowerAuthCoreCryptoUtils.h */,
 				BFA9808B253DA559004D2CF9 /* PowerAuthCoreCryptoUtils.mm */,
-				BFA9808A253DA559004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h */,
-				BFA98088253DA559004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm */,
 				BF44F35D26400E6100F3D498 /* PowerAuthCoreDeprecated.h */,
 				BF720DCE2642A5EA00D5932A /* PowerAuthCoreDeprecated.m */,
 				BF28A1D62A6AC56600E50F76 /* PowerAuthCoreTimeService.h */,
@@ -1300,7 +1290,6 @@
 				BFC8923A2E5486BD009169A9 /* PowerAuthCoreActivationStatus.h in Headers */,
 				BFA980A2253DA55A004D2CF9 /* PowerAuthCore.h in Headers */,
 				BFF21BB12E170C48000BF450 /* PowerAuthCoreEncryptorFactory.h in Headers */,
-				BFA980AE253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h in Headers */,
 				BF28A1D82A6AC56600E50F76 /* PowerAuthCoreTimeService.h in Headers */,
 				BFA980A4253DA55A004D2CF9 /* PowerAuthCoreTypes.h in Headers */,
 				BFAAC98D2E3E609700062165 /* PowerAuthCoreActivationResult.h in Headers */,
@@ -1331,7 +1320,6 @@
 				BFC8923C2E5486BD009169A9 /* PowerAuthCoreActivationStatus.h in Headers */,
 				BFA980A3253DA55A004D2CF9 /* PowerAuthCore.h in Headers */,
 				BFF21BB32E170C48000BF450 /* PowerAuthCoreEncryptorFactory.h in Headers */,
-				BFA980AF253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h in Headers */,
 				BF28A1D92A6AC56600E50F76 /* PowerAuthCoreTimeService.h in Headers */,
 				BFA980A5253DA55A004D2CF9 /* PowerAuthCoreTypes.h in Headers */,
 				BFAAC98F2E3E609700062165 /* PowerAuthCoreActivationResult.h in Headers */,
@@ -1734,7 +1722,6 @@
 				BFA9809C253DA55A004D2CF9 /* PowerAuthCoreTypes.mm in Sources */,
 				BFA98090253DA559004D2CF9 /* PowerAuthCorePassword.mm in Sources */,
 				8FE2E3642EBD43170044055E /* PowerAuthCoreProtocolUpgradeResult.mm in Sources */,
-				BFA980AA253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm in Sources */,
 				BFF21BAB2E169554000BF450 /* PowerAuthCoreSession.mm in Sources */,
 				BFF21BB22E170C48000BF450 /* PowerAuthCoreEncryptorFactory.mm in Sources */,
 				BF3DADE92D65EDD90096ED4F /* PowerAuthCoreData.mm in Sources */,
@@ -1763,17 +1750,14 @@
 				BFA980B1253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.mm in Sources */,
 				BFA9809D253DA55A004D2CF9 /* PowerAuthCoreTypes.mm in Sources */,
 				BFA98091253DA559004D2CF9 /* PowerAuthCorePassword.mm in Sources */,
-				BFA980AB253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm in Sources */,
 				BFF21BAC2E169554000BF450 /* PowerAuthCoreSession.mm in Sources */,
 				BFF21BB42E170C48000BF450 /* PowerAuthCoreEncryptorFactory.mm in Sources */,
 				BFC8923D2E5486BD009169A9 /* PowerAuthCoreActivationStatus.mm in Sources */,
-				BFAAC99A2E3E6B0600062165 /* ActivationResult.cpp in Sources */,
 				BF3DADE82D65EDD90096ED4F /* PowerAuthCoreData.mm in Sources */,
 				BFF21B962E155B7A000BF450 /* PowerAuthCoreConfig.mm in Sources */,
 				BF062BE22E6B11F2001436AD /* PowerAuthCoreTask.mm in Sources */,
 				BFF21BA82E158E61000BF450 /* PowerAuthCoreRequest.mm in Sources */,
 				BFF21B9E2E157263000BF450 /* PowerAuthCoreError.mm in Sources */,
-				8FE2E31C2EBCEA770044055E /* ProtocolUpgradeResult.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2139,6 +2123,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OTHER_CFLAGS = "-fvisibility=hidden";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2150,6 +2135,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OTHER_CFLAGS = "-fvisibility=hidden";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2322,6 +2308,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OTHER_CFLAGS = "-fvisibility=hidden";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
@@ -2333,6 +2320,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OTHER_CFLAGS = "-fvisibility=hidden";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;

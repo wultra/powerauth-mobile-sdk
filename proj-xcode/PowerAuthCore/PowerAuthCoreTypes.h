@@ -18,7 +18,6 @@
 #import <PowerAuthCore/PowerAuthCorePassword.h>
 #import <PowerAuthCore/PowerAuthCoreData.h>
 #import <PowerAuthCore/PowerAuthCoreOtpUtil.h>
-#import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
 
 
 /// The `PowerAuthCoreProtocolVersion` enum defines PowerAuth protocol versions.

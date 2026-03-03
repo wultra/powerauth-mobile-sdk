@@ -13,3 +13,4 @@
 **Other Links**
 
 - [Mobile Runtime Security](./Runtime-Security.md)
+- [Changelog](./Changelog.md)

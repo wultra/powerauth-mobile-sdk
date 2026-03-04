@@ -517,7 +517,12 @@ cc7::ByteArray Session::generateFactorKek() const
 cc7::ByteArray Session::generateFactorKekFromData(const cc7::ByteRange& data) const
 {
     LOCK_GUARD();
-    switch (_context->protocolVersion()) {
+    return generateFactorKekFromData(data, _context->protocolVersion());
+}
+
+cc7::ByteArray Session::generateFactorKekFromData(const cc7::ByteRange& data, ProtocolVersion version)
+{
+    switch (version) {
         case Version_V4: {
             return algorithms().v4.sha3_256().digest(data);
         }
@@ -542,6 +547,12 @@ cc7::ByteArray Session::generateFactorKekForProtocol(ProtocolVersion version)
             throw Exception(EC_WrongParameter, "Unsupported protocol version");
     }
     return cc7::crypto::GetRandomData(kek_size);
+}
+
+void Session::cleanupBiometricFactorData()
+{
+    LOCK_GUARD();
+    return _context->activationService().cleanupBiometricFactorData();
 }
 
 // MARK: - Services

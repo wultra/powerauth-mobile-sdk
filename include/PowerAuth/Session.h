@@ -463,10 +463,29 @@ public:
     /// - Returns: KEK calculated from input data.
     cc7::ByteArray generateFactorKekFromData(const cc7::ByteRange& data) const;
     
+    /// Generates a factor KEK from the provided input data. This method is typically used to derive
+    /// a KEK for a biometric factor for a specific protocol version.
+    ///
+    /// If KEK is derived for protocol V3, the method is compatible with the normalization
+    /// used in SDK 1.9.x and older (`Session.normalizeSignatureUnlockKeyFromData()`).
+    /// - Parameters:
+    ///   - data: Input data.
+    ///   - version: Protocol version for which the KEK will be used.
+    /// - Returns: KEK calculated from input data for specified protocol version.
+    static cc7::ByteArray generateFactorKekFromData(const cc7::ByteRange& data, ProtocolVersion version);
+    
     /// Generate new factor KEK for selected protocol version.
     /// - Parameter version: Protocol version.
     /// - Returns: New factor KEK for the selected protocol version.
     static cc7::ByteArray generateFactorKekForProtocol(ProtocolVersion version);
+    
+    /// Remove biometric factor from the persistent data.
+    ///
+    /// Warning: This method is not supported for protocol V3.
+    ///
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    void cleanupBiometricFactorData();
     
 public:
     // --------------------------------------------------------------------------------------------

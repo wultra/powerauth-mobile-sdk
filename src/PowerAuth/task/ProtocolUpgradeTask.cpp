@@ -89,7 +89,7 @@ void ProtocolUpgradeTask::startProtocolUpgrade()
         throw Exception(EC_WrongParameter, "Password not present for the protocol upgrade.");
     }
     Credentials::validatePassword(*_password);
-    if (_session_data->persistentData().hasBiometricFactorKey()) {
+    if (!_new_biometry_kek.empty()) {
         Credentials::validateFactorKek(_new_biometry_kek, Version_V4);
     }
     

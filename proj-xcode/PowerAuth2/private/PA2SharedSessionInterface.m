@@ -823,10 +823,12 @@ static void _ThrowInternalInitFail(void)
         // The shared lock will be released at the end of this function. If error is already
         // triggered, then do nothing at this step. We don't want to save session if
         // operation failed.
-        if (_saveOnUnlock && !*error) {
+        BOOL isFailure = error && (*error != nil);
+        if (_saveOnUnlock && !isFailure) {
             // Some task requested write access, so save the state.
             result = [self saveState:error];
             if (result) {
+                // Clear dirty flag if save succeeds
                 _saveOnUnlock = NO;
             }
         }

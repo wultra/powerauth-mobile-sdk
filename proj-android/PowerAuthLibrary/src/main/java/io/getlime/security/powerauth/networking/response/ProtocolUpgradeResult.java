@@ -28,9 +28,12 @@ public class ProtocolUpgradeResult {
     @Nullable
     private final String activationFingerprint;
 
-    public ProtocolUpgradeResult(boolean activationStatusFetchRequired, @Nullable String activationFingerprint) {
+    private final boolean biometryFactorRemoved;
+
+    public ProtocolUpgradeResult(boolean activationStatusFetchRequired, @Nullable String activationFingerprint, boolean biometryRemoved) {
         this.activationStatusFetchRequired = activationStatusFetchRequired;
         this.activationFingerprint = activationFingerprint;
+        this.biometryFactorRemoved = biometryRemoved;
     }
 
     /**
@@ -55,4 +58,14 @@ public class ProtocolUpgradeResult {
         return activationFingerprint;
     }
 
+    /**
+     * Indicates whether biometry factor was removed during the protocol upgrade process.
+     * If {@code true}, consider adding the biometry factor again.
+     *
+     * @return {@code true} if the biometry was removed during the protocol upgrade process,
+     *         {@code false} otherwise.
+     */
+    public boolean isBiometryFactorRemoved() {
+        return biometryFactorRemoved;
+    }
 }

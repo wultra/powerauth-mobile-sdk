@@ -1370,27 +1370,58 @@ public class PowerAuthSDK {
      *
      * @param context Android context.
      * @param password Required {@link Password} instance used to authenticate the protocol upgrade start.
-     * @param encryptedBiometryKey TODO
+     * @param authentication Optional authentication object.
+     *                       Pass authentication object with {@link PowerAuthBiometricPrompt} if
+     *                       activation uses biometry factor and authentication is not required on
+     *                       biometry key setup to upgrade biometry key.
+     *                       Or pass authentication object with {@link SecureData} if activation
+     *                       uses external biometry factor key to upgrade biometry key.
      * @param listener A callback with protocol upgrade result.
      * @return {@link ICancelable} associated with the running task.
      */
     public @Nullable
     ICancelable startProtocolUpgrade(@NonNull final Context context,
                                      @NonNull final Password password,
-                                     @Nullable final SecureData encryptedBiometryKey,
+                                     @Nullable final PowerAuthAuthentication authentication,
                                      @NonNull final IProtocolUpgradeListener listener) {
 
         try {
-            final CoreTask<CoreProtocolUpgradeResult> task = mSession.startProtocolUpgrade(password, encryptedBiometryKey);
+        if (hasBiometryFactor(context) && !mBiometricConfiguration.isAuthenticateOnBiometricKeySetup() && authentication != null) {
+            final PowerAuthBiometricPrompt biometricPrompt = authentication.getBiometricPrompt();
+            if (biometricPrompt != null) {
+                // Upgrade is requested for an activation having biometry, authentication on biometry
+                // key setup is not required and biometric prompt is passed. Biometry can be upgraded.
+                return startProtocolUpgradeWithPrompt(context, password, biometricPrompt, listener);
+            }
+        }
+
+        // Only external biometry is upgradable at this point.
+        final boolean hadLocalBiometry = hasBiometryFactor(context);
+        final boolean hadCoreBiometry = mSession.hasBiometryFactor();
+
+        // If external biometry is used, use the passed biometry key.
+        final SecureData newBiometryKek = (hadCoreBiometry && !hadLocalBiometry && authentication != null)
+                ? authentication.getBiometryFactorRelatedKey()
+                : null;
+
+            final CoreTask<CoreProtocolUpgradeResult> task = mSession.startProtocolUpgrade(password, newBiometryKek);
             return mClient.post(task, new INetworkResponseListener<>() {
                 @Override
                 public void onNetworkResponse(@Nullable CoreProtocolUpgradeResult coreProtocolUpgradeResult) {
                     final CoreProtocolUpgradeResult coreResult = Objects.requireNonNull(coreProtocolUpgradeResult);
-                    saveSerializedState();
+                    if (hadLocalBiometry) {
+                        // Biometry was used before upgrade, remove keychain data.
+                        removeBiometryKekData(context);
+                    } else {
+                        saveSerializedState();
+                    }
                     listener.onProtocolUpgradeSucceed(
                             new ProtocolUpgradeResult(
                                     coreResult.isActivationStatusFetchRequired(),
-                                    coreResult.getActivationFingerprint()
+                                    coreResult.getActivationFingerprint(),
+                                    // Biometry was removed, if local biometry was used
+                                    // or had external biometry before and now it is not set.
+                                    hadLocalBiometry || (hadCoreBiometry && !mSession.hasBiometryFactor())
                             )
                     );
                 }
@@ -1415,16 +1446,21 @@ public class PowerAuthSDK {
      *
      * @param context Android context.
      * @param password Required password used to authenticate the protocol upgrade start.
-     * @param encryptedBiometryKey TODO
+     * @param authentication Optional authentication object.
+     *                       Pass authentication object with {@link PowerAuthBiometricPrompt} if
+     *                       activation uses biometry factor and authentication is not required on
+     *                       biometry key setup to upgrade biometry key.
+     *                       Or pass authentication object with {@link SecureData} if activation
+     *                       uses external biometry factor key to upgrade biometry key.
      * @param listener A callback with protocol upgrade result.
      * @return {@link ICancelable} associated with the running task.
      */
     public @Nullable
     ICancelable startProtocolUpgrade(@NonNull final Context context,
                                      @NonNull final String password,
-                                     @Nullable final SecureData encryptedBiometryKey,
+                                     @Nullable final PowerAuthAuthentication authentication,
                                      @NonNull final IProtocolUpgradeListener listener) {
-        return startProtocolUpgrade(context, new Password(password), encryptedBiometryKey, listener);
+        return startProtocolUpgrade(context, new Password(password), authentication, listener);
     }
 
     /**
@@ -1476,6 +1512,150 @@ public class PowerAuthSDK {
      */
     public boolean hasPendingProtocolUpgrade() {
         return mSession.hasPendingProtocolUpgrade();
+    }
+
+    /**
+     * Private helper method to handle protocol upgrade of an activation that uses biometry factor
+     * and is configured to not require biometric authentication for the biometric factor setup.
+     *
+     * @param context Android context.
+     * @param password Required {@link Password} instance used to authenticate the protocol upgrade start.
+     * @param biometricPrompt Prompt displayed during the biometric authentication. A "dummy" prompt may be provided.
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running authentication task.
+     * @throws CoreException In case of a core error.
+     */
+    private @NonNull
+    ICancelable startProtocolUpgradeWithPrompt(@NonNull final Context context,
+                                               @NonNull final Password password,
+                                               @NonNull final PowerAuthBiometricPrompt biometricPrompt,
+                                               @NonNull final IProtocolUpgradeListener listener) throws CoreException {
+
+        final CompositeCancelableTask composite = new CompositeCancelableTask(true);
+
+        final SecureData newBiometryKek = CoreSession.generateFactorKekForProtocolVersion(CoreProtocolVersion.V4);
+        final SecureData normalizedNewBiometryKek = CoreSession.generateFactorKekFromDataForVersion(newBiometryKek, CoreProtocolVersion.V4);
+
+        final ICancelable protocolUpgradeTask = mClient.post(mSession.startProtocolUpgrade(password, normalizedNewBiometryKek), new INetworkResponseListener<>() {
+            @Override
+            public void onNetworkResponse(@Nullable CoreProtocolUpgradeResult coreProtocolUpgradeResult) {
+                final CoreProtocolUpgradeResult coreResult = Objects.requireNonNull(coreProtocolUpgradeResult);
+
+                // Protocol upgrade succeeded, remove old biometry kek data.
+                removeBiometryKekData(context);
+
+                // The Consumer `onAuthError` will take action in case biometry key could not be upgraded on Java level.
+                final IConsumer<CoreProtocolUpgradeResult> onAuthError = (protocolUpgradeResult) -> {
+                    final ICancelable removeBiometryTask = removeBiometryOnUpgradeFailure(context, protocolUpgradeResult, listener);
+                    composite.addCancelable(removeBiometryTask);
+                };
+
+                final ICancelable authenticationTask = finishBiometryUpgrade(context, coreResult, biometricPrompt, newBiometryKek, listener, onAuthError);
+                composite.addCancelable(authenticationTask);
+            }
+
+            @Override
+            public void onNetworkError(@NonNull Throwable throwable) {
+                listener.onProtocolUpgradeFailed(throwable);
+            }
+
+            @Override
+            public void onCancel() {
+            }
+        });
+
+        composite.addCancelable(protocolUpgradeTask);
+        return composite;
+    }
+
+    /**
+     * Helper private method to handle biometry key upgrade after the main protocol upgrade
+     * process succeeded.
+     *
+     * @param context Android context.
+     * @param protocolUpgradeResult Result object obtained from successful protocol upgrade process.
+     * @param biometricPrompt Prompt displayed during the biometric authentication. A "dummy" prompt may be provided.
+     * @param newBiometryKek The upgraded biometry key used during the protocol upgrade.
+     * @param listener A callback with protocol upgrade result.
+     * @param onError Action that should be taken when the biometry key could not be upgraded.
+     * @return {@link ICancelable} associated with the running authentication task.
+     */
+    private ICancelable finishBiometryUpgrade(@NonNull final Context context,
+                                              @NonNull final CoreProtocolUpgradeResult protocolUpgradeResult,
+                                              @NonNull final PowerAuthBiometricPrompt biometricPrompt,
+                                              @NonNull final SecureData newBiometryKek,
+                                              @NonNull final IProtocolUpgradeListener listener,
+                                              @NonNull final IConsumer<CoreProtocolUpgradeResult> onError) {
+        return setupKeyUsingBiometrics(context, biometricPrompt, newBiometryKek, new IBiometricAuthenticationCallback() {
+            @Override
+            public void onBiometricDialogCancelled(boolean userCancel) {
+                // Try to remove biometry factor
+                onError.accept(protocolUpgradeResult);
+            }
+
+            @Override
+            public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
+                // Both protocol upgrade and biometry key upgrade succeeded
+                listener.onProtocolUpgradeSucceed(
+                        new ProtocolUpgradeResult(
+                                protocolUpgradeResult.isActivationStatusFetchRequired(),
+                                protocolUpgradeResult.getActivationFingerprint(),
+                                false
+                        )
+                );
+            }
+
+            @Override
+            public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
+                // Try to remove biometry factor
+                onError.accept(protocolUpgradeResult);
+            }
+        });
+    }
+
+    /**
+     * Helper private method to handle biometry factor removal, when biometry key could not be
+     * upgraded after the main protocol upgrade process succeeded.
+     *
+     * @param context Android context.
+     * @param protocolUpgradeResult Result object obtained from successful protocol upgrade process.
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running remove biometry task.
+     */
+    private ICancelable removeBiometryOnUpgradeFailure(@NonNull final Context context,
+                                                       @NonNull final CoreProtocolUpgradeResult protocolUpgradeResult,
+                                                       @NonNull final IProtocolUpgradeListener listener) {
+
+        return removeBiometryFactor(context, new IRemoveBiometryFactorListener() {
+            @Override
+            public void onRemoveBiometryFactorSucceed() {
+                // Protocol upgrade succeeded, but biometry key could not be upgraded on Java level.
+                // Biometry removal request succeeded. Return upgrade result and set biometry as removed.
+                listener.onProtocolUpgradeSucceed(
+                        new ProtocolUpgradeResult(
+                                protocolUpgradeResult.isActivationStatusFetchRequired(),
+                                protocolUpgradeResult.getActivationFingerprint(),
+                                true
+                        )
+                );
+            }
+
+            @Override
+            public void onRemoveBiometryFactorFailed(@NonNull Throwable throwable) {
+                // Protocol upgrade succeeded, but biometry key could not be upgraded on Java level.
+                // Moreover biometry removal request failed. Force remove biometry from persistent
+                // data and modify upgrade result to recommend activation status fetch, so biometry
+                // is synchronized with the server.
+                mSession.cleanupBiometricFactorData();
+                listener.onProtocolUpgradeSucceed(
+                        new ProtocolUpgradeResult(
+                                true,
+                                protocolUpgradeResult.getActivationFingerprint(),
+                                true
+                        )
+                );
+            }
+        });
     }
 
     // Authentication codes
@@ -2799,7 +2979,7 @@ public class PowerAuthSDK {
 
             @Override
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
-                final PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithBiometry(biometricKeyData.getDerivedData());
+                final PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithBiometry(biometricKeyData.getDerivedData().copy());
                 // TODO: This should be moved in the next release to some global point to make sure that we always clear this object.
                 biometricKeyData.destroy();
                 listener.onBiometricDialogSuccess(authentication);
@@ -2818,6 +2998,8 @@ public class PowerAuthSDK {
      * @param context Context.
      * @param prompt Prompt with information required for the dialog presentation.
      * @param forceGenerateNewKey Pass true to indicate that a new key should be generated in Keystore
+     * @param newBiometryKey Pass a new key that should be used instead of generating one.
+     *                       Relevant only if {@code forceGenerateNewKey} is {@code true}.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
@@ -2827,6 +3009,7 @@ public class PowerAuthSDK {
             final @NonNull Context context,
             final @NonNull PowerAuthBiometricPrompt prompt,
             final boolean forceGenerateNewKey,
+            final @Nullable SecureData newBiometryKey,
             final @NonNull IBiometricAuthenticationCallback callback) {
 
         if (prompt.isDummy()) {
@@ -2840,7 +3023,9 @@ public class PowerAuthSDK {
         }
         final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(null, context, forceGenerateNewKey ? BiometricDataMapper.BIO_MAPPING_CREATE_KEY : BiometricDataMapper.BIO_MAPPING_NOOP);
         final SecureData rawKeyData;
-        if (forceGenerateNewKey) {
+        if (forceGenerateNewKey && newBiometryKey != null) {
+            rawKeyData = newBiometryKey;
+        } else if (forceGenerateNewKey) {
             // new key has to be generated
             try {
                 // Always generate a 256-bit key, even for the V3 protocol. This prepares the
@@ -2933,6 +3118,55 @@ public class PowerAuthSDK {
                 }
             }
         });
+    }
+
+    /**
+     * Setup a new biometry key. This method allows to pass a new biometry key, instead using
+     * automatically generated one.
+     *
+     * @param context Context.
+     * @param prompt Prompt with information required for the dialog presentation.
+     * @param newBiometryKey New biometry key to be used instead.
+     * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     */
+    @UiThread
+    @NonNull
+    private ICancelable setupKeyUsingBiometrics(
+            final @NonNull Context context,
+            final @NonNull PowerAuthBiometricPrompt prompt,
+            final @NonNull SecureData newBiometryKey,
+            final @NonNull IBiometricAuthenticationCallback callback) {
+
+        if (BuildConfig.DEBUG) {
+            // For testing purpose only
+            if (HttpConnectionFailureSimulator.shouldFailAuthenticationUsingBiometrics()) {
+                PowerAuthLog.d("Simulated error on authenticate using biometrics");
+                dispatchCallback(() -> callback.onBiometricDialogFailed(new PowerAuthErrorException(PowerAuthErrorCodes.OTHER, "Simulated error during biometrics authentication")));
+                return new DummyCancelable();
+            }
+        }
+
+        return authenticateUsingBiometrics(context, prompt, true, newBiometryKey, callback);
+    }
+
+    /**
+     * Authenticate a client using biometric authentication.
+     *
+     * @param context Context.
+     * @param prompt Prompt with information required for the dialog presentation.
+     * @param forceGenerateNewKey Pass true to indicate that a new key should be generated in Keystore
+     * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     */
+    @UiThread
+    @NonNull
+    private ICancelable authenticateUsingBiometrics(
+            final @NonNull Context context,
+            final @NonNull PowerAuthBiometricPrompt prompt,
+            final boolean forceGenerateNewKey,
+            final @NonNull IBiometricAuthenticationCallback callback) {
+        return authenticateUsingBiometrics(context, prompt, forceGenerateNewKey, null, callback);
     }
 
     // Vault keys

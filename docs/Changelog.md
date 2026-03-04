@@ -6,7 +6,7 @@
 ### Important notice
 
 - If you already using older versions of SDK, then please read our [Migration guide from 1.9.x to 2.0.x version](Migration-from-1.9-to-2.0)
-- This version of SDK requires PowerAuth Server version `1.9.0` or `2.0.0` and newer, depending on PowerAuth Mobile SDK configuration. Check [Support and Compatibility](Readme.md#support-and-compatibility) for more details.
+- This version of SDK requires PowerAuth Server version `1.9.0+` or `2.0.0+`, depending on PowerAuth Mobile SDK configuration. Check [Support and Compatibility](Readme.md#support-and-compatibility) for more details.
 
 ### Both platforms
 

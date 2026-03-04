@@ -754,6 +754,27 @@ CC7_JNI_METHOD_PARAMS(jobject, generateFactorKekFromData, jobject data)
     NH_CATCH(nullptr)
 }
 
+CC7_JNI_STATIC_METHOD_PARAMS(jobject, generateFactorKekFromDataForVersion, jobject data, jint protocolVersion)
+{
+    NH_TRY
+    {
+        jni.requireParameter(data, "data");
+        auto input_data = CopyFromSecureData(jni, data);
+        auto version = jni.fromJava<ProtocolVersion>(NH_SPECS().coreProtocolVersion, protocolVersion);
+        return CopyToSecureData(jni, Session::generateFactorKekFromData(input_data, version));
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD(void, cleanupBiometricFactorData)
+{
+    NH_TRY
+    {
+        THIS_OBJ()->cleanupBiometricFactorData();
+    }
+    NH_CATCH()
+}
+
 CC7_JNI_STATIC_METHOD_PARAMS(jobject, generateFactorKekForProtocolVersion, jint protocolVersion)
 {
     NH_TRY

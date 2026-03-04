@@ -104,6 +104,10 @@ public abstract class BaseTest {
         return HttpConnectionFailureSimulator.isRequestFailureSimulatorAvailable();
     }
 
+    void simulateNextAuthenticationUsingBiometricsFailure() {
+        HttpConnectionFailureSimulator.failNextAuthenticationUsingBiometrics();
+    }
+
     void simulateNextResponseFailure(final String relativePath, final int statusCode) {
         assertTrue(statusCode > 400);
         HttpConnectionFailureSimulator.setNextResponseFailure(patchRelativePathForSimulatedFailure(relativePath), statusCode);

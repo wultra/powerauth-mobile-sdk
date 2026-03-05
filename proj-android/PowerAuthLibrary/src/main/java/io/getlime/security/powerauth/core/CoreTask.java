@@ -78,12 +78,17 @@ public class CoreTask<TResponse> extends NativeObject {
 
     @Override
     protected void finalize() {
-        // Make sure the task is also canceled if it has not completed yet. If this happens,
-        // it means that the Java wrapper was abandoned and being destroyed before completion.
-        // This is important for some tasks that modify pending flags on the parent Session.
-        // The cancelIfNotDone() also releases `responseBuilderHandle` if still set.
-        cancelIfNotDone();
-        super.finalize();
+        try {
+            // Make sure the task is also canceled if it has not completed yet. If this happens,
+            // it means that the Java wrapper was abandoned and being destroyed before completion.
+            // This is important for some tasks that modify pending flags on the parent Session.
+            // The cancelIfNotDone() also releases `responseBuilderHandle` if still set.
+            cancelIfNotDone();
+        } catch (Throwable ignore) {
+            // Ignore failures during native cancellation to allow superclass finalization.
+        } finally {
+            super.finalize();
+        }
     }
 
     /**

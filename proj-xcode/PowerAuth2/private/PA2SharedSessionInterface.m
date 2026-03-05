@@ -828,7 +828,7 @@ static void _ThrowInternalInitFail(void)
             // Some task requested write access, so save the state.
             result = [self saveState:error];
             if (result) {
-                // Clear dirty flag if save succeeds
+                // Clear save-on-unlock flag if save succeeds
                 _saveOnUnlock = NO;
             }
         }

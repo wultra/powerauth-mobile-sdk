@@ -72,8 +72,12 @@ public class CoreRequest<TResponse> extends NativeObject {
 
     @Override
     protected void finalize() {
+        // Make sure the request is also canceled if it has not completed yet. If this happens,
+        // it means that the Java wrapper was abandoned and destroyed before completion.
+        // This is important for some requests that modify state on the parent Session.
+        // The cancel() also releases `responseBuilderHandle` if still set.
+        cancel();
         super.finalize();
-        NativeObject.safeNativeDestroy(responseBuilderHandle);
     }
 
     /**

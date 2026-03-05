@@ -75,10 +75,15 @@ public class CoreTask<TResponse> extends NativeObject {
      * Property is modified from JNI.
      */
     private Object responseJson;
+
     @Override
     protected void finalize() {
+        // Make sure the task is also canceled if it has not completed yet. If this happens,
+        // it means that the Java wrapper was abandoned and being destroyed before completion.
+        // This is important for some tasks that modify pending flags on the parent Session.
+        // The cancelIfNotDone() also releases `responseBuilderHandle` if still set.
+        cancelIfNotDone();
         super.finalize();
-        NativeObject.safeNativeDestroy(responseBuilderHandle);
     }
 
     /**
@@ -144,6 +149,11 @@ public class CoreTask<TResponse> extends NativeObject {
      * Cancel the task.
      */
     public native void cancel();
+
+    /**
+     * Cancels the task if it has not completed yet.
+     */
+    private native void cancelIfNotDone();
 
     /**
      * Get the next request to execute as a part of this task.

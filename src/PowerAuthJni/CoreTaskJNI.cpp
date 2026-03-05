@@ -161,19 +161,38 @@ CC7_JNI_METHOD(void, updateResponse)
     NH_CATCH()
 }
 
-CC7_JNI_METHOD(void, cancel)
+/// Common cancel implementation.
+/// @param env JNI context.
+/// @param thiz Java "this" object.
+/// @param regular_cancel If true, then perform a regular cancel, otherwise cleanup from finalize().
+static void cancelImpl(JNIEnv * env, jobject thiz, bool regular_cancel)
 {
     NH_TRY
     {
         auto& specs = NH_SPECS();
         auto this_wrapped = jni.fromJava(thiz, specs.coreTask.native.classRef);
         auto this_obj = jni.fromHandle<Task>(this_wrapped.getLong(specs.coreTask.native.handle));
-        // Cancel task
-        this_obj->cancel();
+        if (regular_cancel) {
+            // regular cancel
+            this_obj->cancel();
+        } else {
+            // cleanup from finalize()
+            this_obj->cancelIfNotDone();
+        }
         // Cleanup builder
         jni::ClearResponseBuilderClosure(jni, specs, this_wrapped);
     }
-    NH_CATCH()
+    NH_CATCH_RT_ONLY()
+}
+
+CC7_JNI_METHOD(void, cancel)
+{
+    cancelImpl(env, thiz, true);
+}
+
+CC7_JNI_METHOD(void, cancelIfNotDone)
+{
+    cancelImpl(env, thiz, false);
 }
 
 CC7_JNI_METHOD(jobject, getNextRequestImpl)

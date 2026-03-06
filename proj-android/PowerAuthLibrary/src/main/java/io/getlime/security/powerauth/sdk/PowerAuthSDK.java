@@ -1619,6 +1619,7 @@ public class PowerAuthSDK {
 
                 final ICancelable authenticationTask = finishBiometryUpgrade(context, coreResult, biometricPrompt, newBiometryKek, listener, onAuthError);
                 composite.addCancelable(authenticationTask);
+                saveSerializedState();
             }
 
             @Override

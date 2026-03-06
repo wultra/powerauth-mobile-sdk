@@ -299,11 +299,11 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
     /**
      * Test protocol upgrade from V3 to V4. First, upgradable activation with biometry factor enabled
      * is created, then the protocol upgrade process is initiated. It is expected the protocol
-     * upgrade process completes successfully and the biometry key is removed during the process,
-     * as the authentication on biometric key setup is required in this case.
+     * upgrade process fails, as method variant with prompt is used and SDK is configured to require
+     * authentication on biometric key setup.
      */
     @Test
-    public void testProtocolUpgrade_withBiometrySetupAuthentication() throws Exception {
+    public void testProtocolUpgrade_withBiometrySetupAuthentication_failOnPassedPrompt() throws Exception {
         assertBiometryEnrolled();
 
         runWithFragmentActivity(() -> {
@@ -312,7 +312,30 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
 
             final PowerAuthBiometricPrompt biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragmentActivity());
-            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), biometricPrompt);
+            final Throwable error = activationHelper.startProtocolUpgradeExpectFailure(getAlgorithmForTest(), biometricPrompt);
+            assertEquals(PowerAuthAlgorithm.LEGACY_P256, powerAuthSDK.getCurrentAlgorithm());
+
+            assertTrue(error instanceof PowerAuthErrorException);
+            assertEquals(15, ((PowerAuthErrorException) error).getPowerAuthErrorCode());
+            assertEquals("Biometric key cannot be upgraded when authenticateOnBiometricKeySetup is enabled", error.getMessage());
+        });
+    }
+
+    /**
+     * Test protocol upgrade from V3 to V4. First, upgradable activation with biometry factor enabled
+     * is created, then the protocol upgrade process is initiated. It is expected the protocol
+     * upgrade process completes successfully and the biometry key is removed during the process.
+     */
+    @Test
+    public void testProtocolUpgrade_withBiometrySetupAuthentication_removeBiometry() throws Exception {
+        assertBiometryEnrolled();
+
+        runWithFragmentActivity(() -> {
+            powerAuthSDK = activationHelper.prepareActivationForUpgradeTest(getAlgorithmForTest(), ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, true);
+            assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+            assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+
+            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest());
 
             assertEquals(getAlgorithmForTest(), powerAuthSDK.getCurrentAlgorithm());
             if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
@@ -328,6 +351,31 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
                 assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
                 assertFalse(powerAuthSDK.getCoreSession().hasBiometryFactor());
             }
+        });
+    }
+
+    /**
+     * Test protocol upgrade from V3 to V4. First, upgradable activation with biometry factor enabled
+     * is created, then the protocol upgrade process is initiated. It is expected the protocol
+     * upgrade process fails, as method variant with prompt is used and SDK uses external key.
+     */
+    @Test
+    public void testProtocolUpgrade_externalBiometryKey_failOnPassedPrompt() throws Exception {
+        assertBiometryEnrolled();
+
+        runWithFragmentActivity(() -> {
+            powerAuthSDK = activationHelper.prepareActivationForUpgradeTest(getAlgorithmForTest(), ActivationHelper.TF_PERSIST_WITH_FAKE_BIOMETRY | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD);
+            assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+            assertTrue(powerAuthSDK.getCoreSession().hasBiometryFactor());
+            assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+
+            final PowerAuthBiometricPrompt biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragmentActivity());
+            final Throwable error = activationHelper.startProtocolUpgradeExpectFailure(getAlgorithmForTest(), biometricPrompt);
+            assertEquals(PowerAuthAlgorithm.LEGACY_P256, powerAuthSDK.getCurrentAlgorithm());
+
+            assertTrue(error instanceof PowerAuthErrorException);
+            assertEquals(15, ((PowerAuthErrorException) error).getPowerAuthErrorCode());
+            assertEquals("Biometric key cannot be upgraded using biometric prompt", error.getMessage());
         });
     }
 

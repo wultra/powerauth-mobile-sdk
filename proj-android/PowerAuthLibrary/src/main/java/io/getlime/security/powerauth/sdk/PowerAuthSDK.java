@@ -1510,15 +1510,34 @@ public class PowerAuthSDK {
                                          @NonNull final IProtocolUpgradeListener listener) {
         try {
             final boolean hadLocalBiometry = hasBiometryFactor(context);
+            final boolean hadCoreBiometry = mSession.hasBiometryFactor();
 
-            if (hadLocalBiometry && !mBiometricConfiguration.isAuthenticateOnBiometricKeySetup() && biometricPrompt != null) {
-                // Upgrade is requested for an activation having biometry, authentication on biometry
-                // key setup is not required and biometric prompt is passed. Biometry can be upgraded.
-                return startProtocolUpgradeWithPrompt(context, password, biometricPrompt, listener);
+            if (hadLocalBiometry) {
+                if (biometricPrompt != null) {
+                    if (mBiometricConfiguration.isAuthenticateOnBiometricKeySetup()) {
+                        // Activation has a biometry enabled and biometry prompt is provided, which
+                        // indicates that the caller expects the biometric key to be upgraded.
+                        // However, the SDK configuration requires user authentication on biometric key
+                        // setup and so the key cannot be upgraded. Instead of silently removing
+                        // the biometric factor fail explicitly so the caller can handle the situation.
+                        dispatchCallback(() -> listener.onProtocolUpgradeFailed(new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Biometric key cannot be upgraded when authenticateOnBiometricKeySetup is enabled")));
+                        return null;
+                    }
+
+                    // Upgrade is requested for an activation having biometry, authentication on biometry
+                    // key setup is not required and biometric prompt is passed. Biometry can be upgraded.
+                    return startProtocolUpgradeWithPrompt(context, password, biometricPrompt, listener);
+                }
+            } else if (hadCoreBiometry && biometricPrompt != null) {
+                // Activation seems to use external biometry, yet biometric prompt is provided.
+                // That indicates that the caller expects the biometric key to be upgraded.
+                // Instead of silently removing the biometric factor fail explicitly so the caller
+                // can handle the situation.
+                dispatchCallback(() -> listener.onProtocolUpgradeFailed(new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Biometric key cannot be upgraded using biometric prompt")));
+                return null;
             }
 
-            // Only external biometry is upgradable at this point.
-            final boolean hadCoreBiometry = mSession.hasBiometryFactor();
+            // Only external biometry is upgradable at this point. For other cases, biometry will be removed.
 
             // If external biometry is used, use the passed biometry key.
             final SecureData newBiometryKek = (hadCoreBiometry && !hadLocalBiometry)

@@ -990,13 +990,13 @@ public class ActivationHelper {
      * Start the protocol upgrade and expect a failure.
      *
      * @param targetAlgorithm Target algorithm for the protocol upgrade.
-     * @param newBiometryKey A new biometry key to be used.
+     * @param upgradeStartCall Consumer that calls the protocol upgrade start method.
      * @return {@link Throwable} representing an expected error during protocol upgrade.
      * @throws Exception In case of unexpected error.
      */
-    Throwable startProtocolUpgradeExpectFailure(final @PowerAuthAlgorithm int targetAlgorithm, final SecureData newBiometryKey) throws Exception {
+    private Throwable startProtocolUpgradeExpectFailure(final @PowerAuthAlgorithm int targetAlgorithm, final IConsumer<IProtocolUpgradeListener> upgradeStartCall) throws Exception {
         return AsyncHelper.await(resultCatcher ->
-                powerAuthSDK.startProtocolUpgrade(testHelper.getContext(), getValidPassword(), newBiometryKey, new IProtocolUpgradeListener() {
+                upgradeStartCall.accept(new IProtocolUpgradeListener() {
                     @Override
                     public void onProtocolUpgradeSucceed(@NonNull ProtocolUpgradeResult result) {
                         resultCatcher.completeWithResult(null);
@@ -1018,7 +1018,46 @@ public class ActivationHelper {
      * @throws Exception In case of unexpected error.
      */
     Throwable startProtocolUpgradeExpectFailure(final @PowerAuthAlgorithm int targetAlgorithm) throws Exception {
-        return startProtocolUpgradeExpectFailure(targetAlgorithm, null);
+        final Password password = getValidPassword();
+        final IConsumer<IProtocolUpgradeListener> upgradeStartCall = (listener ->
+                powerAuthSDK.startProtocolUpgrade(testHelper.getContext(), password, listener)
+        );
+
+        return startProtocolUpgradeExpectFailure(targetAlgorithm, upgradeStartCall);
+    }
+
+    /**
+     * Start the protocol upgrade and expect a failure.
+     *
+     * @param targetAlgorithm Target algorithm for the protocol upgrade.
+     * @param newBiometryKey The new biometry key to be set.
+     * @return {@link Throwable} representing an expected error during protocol upgrade.
+     * @throws Exception In case of unexpected error.
+     */
+    Throwable startProtocolUpgradeExpectFailure(final @PowerAuthAlgorithm int targetAlgorithm, final SecureData newBiometryKey) throws Exception {
+        final Password password = getValidPassword();
+        final IConsumer<IProtocolUpgradeListener> upgradeStartCall = (listener ->
+                powerAuthSDK.startProtocolUpgrade(testHelper.getContext(), password, newBiometryKey, listener)
+        );
+
+        return startProtocolUpgradeExpectFailure(targetAlgorithm, upgradeStartCall);
+    }
+
+    /**
+     * Start the protocol upgrade and expect a failure.
+     *
+     * @param targetAlgorithm Target algorithm for the protocol upgrade.
+     * @param biometricPrompt Biometric prompt to use for the biometry key upgrade.
+     * @return {@link Throwable} representing an expected error during protocol upgrade.
+     * @throws Exception In case of unexpected error.
+     */
+    Throwable startProtocolUpgradeExpectFailure(final @PowerAuthAlgorithm int targetAlgorithm, final PowerAuthBiometricPrompt biometricPrompt) throws Exception {
+        final Password password = getValidPassword();
+        final IConsumer<IProtocolUpgradeListener> upgradeStartCall = (listener ->
+                powerAuthSDK.startProtocolUpgrade(testHelper.getContext(), password, biometricPrompt, listener)
+        );
+
+        return startProtocolUpgradeExpectFailure(targetAlgorithm, upgradeStartCall);
     }
 
     /**

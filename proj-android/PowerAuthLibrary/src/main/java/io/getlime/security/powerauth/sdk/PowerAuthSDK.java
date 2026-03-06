@@ -1386,23 +1386,23 @@ public class PowerAuthSDK {
                                      @NonNull final IProtocolUpgradeListener listener) {
 
         try {
-        if (hasBiometryFactor(context) && !mBiometricConfiguration.isAuthenticateOnBiometricKeySetup() && authentication != null) {
-            final PowerAuthBiometricPrompt biometricPrompt = authentication.getBiometricPrompt();
-            if (biometricPrompt != null) {
-                // Upgrade is requested for an activation having biometry, authentication on biometry
-                // key setup is not required and biometric prompt is passed. Biometry can be upgraded.
-                return startProtocolUpgradeWithPrompt(context, password, biometricPrompt, listener);
+            if (hasBiometryFactor(context) && !mBiometricConfiguration.isAuthenticateOnBiometricKeySetup() && authentication != null) {
+                final PowerAuthBiometricPrompt biometricPrompt = authentication.getBiometricPrompt();
+                if (biometricPrompt != null) {
+                    // Upgrade is requested for an activation having biometry, authentication on biometry
+                    // key setup is not required and biometric prompt is passed. Biometry can be upgraded.
+                    return startProtocolUpgradeWithPrompt(context, password, biometricPrompt, listener);
+                }
             }
-        }
 
-        // Only external biometry is upgradable at this point.
-        final boolean hadLocalBiometry = hasBiometryFactor(context);
-        final boolean hadCoreBiometry = mSession.hasBiometryFactor();
+            // Only external biometry is upgradable at this point.
+            final boolean hadLocalBiometry = hasBiometryFactor(context);
+            final boolean hadCoreBiometry = mSession.hasBiometryFactor();
 
-        // If external biometry is used, use the passed biometry key.
-        final SecureData newBiometryKek = (hadCoreBiometry && !hadLocalBiometry && authentication != null)
-                ? authentication.getBiometryFactorRelatedKey()
-                : null;
+            // If external biometry is used, use the passed biometry key.
+            final SecureData newBiometryKek = (hadCoreBiometry && !hadLocalBiometry && authentication != null)
+                    ? authentication.getBiometryFactorRelatedKey()
+                    : null;
 
             final CoreTask<CoreProtocolUpgradeResult> task = mSession.startProtocolUpgrade(password, newBiometryKek);
             return mClient.post(task, new INetworkResponseListener<>() {

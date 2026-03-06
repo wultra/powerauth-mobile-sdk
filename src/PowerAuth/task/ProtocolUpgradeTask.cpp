@@ -81,6 +81,12 @@ void ProtocolUpgradeTask::onTaskEnd()
     resetState();
 }
 
+void ProtocolUpgradeTask::onTaskCancel()
+{
+    Task::onTaskCancel();
+    resetState();
+}
+
 void ProtocolUpgradeTask::startProtocolUpgrade()
 {
     auto current_context = lockContext();

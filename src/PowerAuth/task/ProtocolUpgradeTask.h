@@ -32,6 +32,7 @@ protected:
     void onRequestSuccess(const Request &request) override;
     void onRequestFailure(const Request &request) override;
     void onTaskEnd() override;
+    void onTaskCancel() override;
     
     enum RequestId
     {

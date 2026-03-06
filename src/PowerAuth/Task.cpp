@@ -82,12 +82,28 @@ void Task::start() noexcept
 void Task::cancel() noexcept
 {
     LOCK_GUARD();
+    auto notify_about_cancel = _state != State::CANCELED;
     _state = State::CANCELED;
     if (_next_request) {
         _next_request->cancel();
         _next_request = nullptr;
     }
     cancelCurrentRequest();
+    if (notify_about_cancel) {
+        try {
+            onTaskCancel();
+        } catch (...) {
+            log("cancel failed with exception");
+        }
+    }
+}
+
+void Task::cancelIfNotDone() noexcept
+{
+    LOCK_GUARD();
+    if (_state <= State::PENDING) {
+        cancel();
+    }
 }
 
 bool Task::isDone() const noexcept
@@ -295,6 +311,11 @@ void Task::onTaskEnd()
         default:
             break;
     }
+}
+
+void Task::onTaskCancel()
+{
+    log("Task canceled");
 }
 
 void Task::onRequestSuccess(const Request& request)

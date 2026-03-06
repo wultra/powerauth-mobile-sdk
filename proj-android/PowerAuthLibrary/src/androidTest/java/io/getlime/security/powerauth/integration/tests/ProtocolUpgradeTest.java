@@ -125,8 +125,7 @@ public class ProtocolUpgradeTest extends BaseTest {
 
         // Start protocol upgrade with custom new biometry KEK.
         final SecureData newBiometryKek = CryptoUtils.randomSecureData(32);
-        final PowerAuthAuthentication newBiometryAuthentication = PowerAuthAuthentication.possessionWithBiometry(newBiometryKek);
-        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), newBiometryAuthentication);
+        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), newBiometryKek);
 
         assertEquals(getAlgorithmForTest(), powerAuthSDK.getCurrentAlgorithm());
         if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
@@ -163,7 +162,7 @@ public class ProtocolUpgradeTest extends BaseTest {
         assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
 
         // Start protocol upgrade with custom new biometry KEK.
-        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), null);
+        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest());
         assertEquals(getAlgorithmForTest(), powerAuthSDK.getCurrentAlgorithm());
         if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
             assertNull(result);
@@ -223,10 +222,9 @@ public class ProtocolUpgradeTest extends BaseTest {
         powerAuthSDK = activationHelper.prepareActivationForUpgradeTest(getAlgorithmForTest(), ActivationHelper.TF_PERSIST_WITH_FAKE_BIOMETRY);
 
         final SecureData newBiometryKek = CryptoUtils.randomSecureData(32);
-        final PowerAuthAuthentication newBiometryAuthentication = PowerAuthAuthentication.possessionWithBiometry(newBiometryKek);
 
         simulateNextResponseFailure("/pa/v4/upgrade/start", 500);
-        final Throwable upgradeException = activationHelper.startProtocolUpgradeExpectFailure(getAlgorithmForTest(), newBiometryAuthentication);
+        final Throwable upgradeException = activationHelper.startProtocolUpgradeExpectFailure(getAlgorithmForTest(), newBiometryKek);
 
         // Assert expected error occurred
         assertNotNull("Protocol upgrade should fail with exception", upgradeException);
@@ -254,7 +252,7 @@ public class ProtocolUpgradeTest extends BaseTest {
         assertTrue(biometryFactorIsValid(activationHelper.getBiometricAuthentication(null), true));
 
         // Second attempt to upgrade protocol should succeed
-        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), newBiometryAuthentication);
+        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), newBiometryKek);
         assertEquals(getAlgorithmForTest(), powerAuthSDK.getCurrentAlgorithm());
         if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
             assertNull(result);
@@ -277,10 +275,9 @@ public class ProtocolUpgradeTest extends BaseTest {
         powerAuthSDK = activationHelper.prepareActivationForUpgradeTest(getAlgorithmForTest(), ActivationHelper.TF_PERSIST_WITH_FAKE_BIOMETRY);
 
         final SecureData newBiometryKek = CryptoUtils.randomSecureData(32);
-        final PowerAuthAuthentication newBiometryAuthentication = PowerAuthAuthentication.possessionWithBiometry(newBiometryKek);
 
         simulateNextResponseFailure("/pa/v4/upgrade/confirm", 500);
-        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), newBiometryAuthentication);
+        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), newBiometryKek);
 
         if (getAlgorithmForTest() <= PowerAuthAlgorithm.LEGACY_P256) {
             // Exit this test when on legacy protocol, cannot upgrade due to missing configuration
@@ -333,10 +330,9 @@ public class ProtocolUpgradeTest extends BaseTest {
         powerAuthSDK = activationHelper.prepareActivationForUpgradeTest(getAlgorithmForTest(), ActivationHelper.TF_PERSIST_WITH_FAKE_BIOMETRY);
 
         final SecureData newBiometryKek = CryptoUtils.randomSecureData(32);
-        final PowerAuthAuthentication newBiometryAuthentication = PowerAuthAuthentication.possessionWithBiometry(newBiometryKek);
 
         simulateNetworkErrorOnSend("/pa/v4/upgrade/confirm", 3);
-        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), newBiometryAuthentication);
+        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), newBiometryKek);
 
         if (getAlgorithmForTest() <= PowerAuthAlgorithm.LEGACY_P256) {
             // Exit this test when on legacy protocol, cannot upgrade due to missing configuration
@@ -420,9 +416,8 @@ public class ProtocolUpgradeTest extends BaseTest {
         powerAuthSDK = activationHelper.prepareActivationForUpgradeTest(getAlgorithmForTest(), 0);
 
         final SecureData newBiometryKek = CryptoUtils.randomSecureData(32);
-        final PowerAuthAuthentication newBiometryAuthentication = PowerAuthAuthentication.possessionWithBiometry(newBiometryKek);
 
-        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), newBiometryAuthentication);
+        final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), newBiometryKek);
         assertFalse(powerAuthSDK.getCoreSession().hasBiometryFactor());
 
         // Protocol version is upgraded.
@@ -573,6 +568,5 @@ public class ProtocolUpgradeTest extends BaseTest {
         assertEquals(AuthCodeType.POSSESSION_BIOMETRY, authenticationResult.getAuthenticationCodeType());
         return authenticationResult.isAuthenticationValid();
     }
-
 
 }

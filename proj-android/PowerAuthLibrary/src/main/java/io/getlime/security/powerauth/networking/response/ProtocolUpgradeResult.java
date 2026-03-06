@@ -48,8 +48,7 @@ public class ProtocolUpgradeResult {
 
     /**
      * Decimalized fingerprint calculated from device and server public keys.
-     * The value is not present, if the protocol upgrade is not yet finished,
-     * i.e. the {@link #isActivationStatusFetchRequired()} is {@code true}.
+     * The value is not present, if the protocol upgrade is not yet finished.
      *
      * @return Decimalized activation fingerprint, might be {@code null}.
      */

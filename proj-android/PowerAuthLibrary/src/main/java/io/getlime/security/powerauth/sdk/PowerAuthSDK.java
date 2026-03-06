@@ -1366,43 +1366,163 @@ public class PowerAuthSDK {
     // Protocol Upgrade
 
     /**
-     * Start the protocol upgrade process.
+     * Start the protocol upgrade process and set a new biometry key.
      *
      * @param context Android context.
      * @param password Required {@link Password} instance used to authenticate the protocol upgrade start.
-     * @param authentication Optional authentication object.
-     *                       Pass authentication object with {@link PowerAuthBiometricPrompt} if
-     *                       activation uses biometry factor and authentication is not required on
-     *                       biometry key setup to upgrade biometry key.
-     *                       Or pass authentication object with {@link SecureData} if activation
-     *                       uses external biometry factor key to upgrade biometry key.
+     * @param encryptedBiometryKey The new biometry key to be used.
      * @param listener A callback with protocol upgrade result.
      * @return {@link ICancelable} associated with the running task.
      */
     public @Nullable
     ICancelable startProtocolUpgrade(@NonNull final Context context,
                                      @NonNull final Password password,
-                                     @Nullable final PowerAuthAuthentication authentication,
+                                     @NonNull final SecureData encryptedBiometryKey,
                                      @NonNull final IProtocolUpgradeListener listener) {
+        return startProtocolUpgradeImpl(context, password, null, encryptedBiometryKey, listener);
+    }
 
+    /**
+     * Start the protocol upgrade process and set a new biometry key.
+     *
+     * @param context Android context.
+     * @param password Required password used to authenticate the protocol upgrade start.
+     * @param encryptedBiometryKey The new biometry key to be used.
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running task.
+     */
+    public @Nullable
+    ICancelable startProtocolUpgrade(@NonNull final Context context,
+                                     @NonNull final String password,
+                                     @NonNull final SecureData encryptedBiometryKey,
+                                     @NonNull final IProtocolUpgradeListener listener) {
+        return startProtocolUpgradeImpl(context, new Password(password), null, encryptedBiometryKey, listener);
+    }
+
+    /**
+     * Start the protocol upgrade process and upgrade biometry key.
+     * If the activation has biometry factor enabled and authentication on the biometry key setup
+     * is required, then the biometry factor will be removed after a successful protocol upgrade.
+     *
+     * @param context Android context.
+     * @param password Required {@link Password} instance used to authenticate the protocol upgrade start.
+     * @param biometricPrompt Prompt displayed during the biometric authentication. A "dummy" prompt can be provided.
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running task.
+     */
+    public @Nullable
+    ICancelable startProtocolUpgrade(@NonNull final Context context,
+                                     @NonNull final Password password,
+                                     @NonNull final PowerAuthBiometricPrompt biometricPrompt,
+                                     @NonNull final IProtocolUpgradeListener listener) {
+        return startProtocolUpgradeImpl(context, password, biometricPrompt, null, listener);
+    }
+
+    /**
+     * Start the protocol upgrade process and upgrade biometry key.
+     * If the activation has biometry factor enabled and authentication on the biometry key setup
+     * is required, then the biometry factor will be removed after a successful protocol upgrade.
+     *
+     * @param context Android context.
+     * @param password Required password used to authenticate the protocol upgrade start.
+     * @param biometricPrompt Prompt displayed during the biometric authentication. A "dummy" prompt can be provided.
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running task.
+     */
+    public @Nullable
+    ICancelable startProtocolUpgrade(@NonNull final Context context,
+                                     @NonNull final String password,
+                                     @NonNull final PowerAuthBiometricPrompt biometricPrompt,
+                                     @NonNull final IProtocolUpgradeListener listener) {
+        return startProtocolUpgradeImpl(context, new Password(password), biometricPrompt, null, listener);
+    }
+
+    /**
+     * Start the protocol upgrade process.
+     * If the activation has biometry factor enabled, it will be removed after a successful protocol upgrade.
+     *
+     * @param context Android context.
+     * @param password Required {@link Password} instance used to authenticate the protocol upgrade start.
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running task.
+     */
+    public @Nullable
+    ICancelable startProtocolUpgrade(@NonNull final Context context,
+                                     @NonNull final Password password,
+                                     @NonNull final IProtocolUpgradeListener listener) {
+        return startProtocolUpgradeImpl(context, password, null, null, listener);
+    }
+
+    /**
+     * Start the protocol upgrade process.
+     * If the activation has biometry factor enabled, it will be removed after a successful protocol upgrade.
+     *
+     * @param context Android context.
+     * @param password Required password used to authenticate the protocol upgrade start.
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running task.
+     */
+    public @Nullable
+    ICancelable startProtocolUpgrade(@NonNull final Context context,
+                                     @NonNull final String password,
+                                     @NonNull final IProtocolUpgradeListener listener) {
+        return startProtocolUpgradeImpl(context, new Password(password), null, null, listener);
+    }
+
+    /**
+     * Returns {@code true}, if there is a valid activation that has available protocol upgrade.
+     * Once the upgrade process has started, it contains {@code false}.
+     *
+     * @return {@code true} if protocol upgrade is available. {@code false} otherwise.
+     */
+    public boolean hasProtocolUpgradeAvailable() {
+        return mSession.hasProtocolUpgradeAvailable();
+    }
+
+    /**
+     * Returns {@code true} if the session has pending protocol upgrade, meaning the protocol
+     * upgrade process has started, but has not yet finished. Some SDK functionality may be
+     * temporarily blocked during the upgrade process.
+     *
+     * @return {@code true} if the protocol upgrade process is pending, {@code false} otherwise.
+     */
+    public boolean hasPendingProtocolUpgrade() {
+        return mSession.hasPendingProtocolUpgrade();
+    }
+
+    /**
+     * Start the protocol upgrade process.
+     *
+     * @param context Android context.
+     * @param password Required {@link Password} instance used to authenticate the protocol upgrade start.
+     * @param biometricPrompt Required for upgrading the biometry key when the activation uses the biometry factor
+     *                        and the biometry key setup does not require user authentication.
+     * @param encryptedBiometryKey Required for upgrading the biometry key when the activation uses
+     *                             external biometry factor key
+     * @param listener A callback with protocol upgrade result.
+     * @return {@link ICancelable} associated with the running task.
+     */
+    private @Nullable
+    ICancelable startProtocolUpgradeImpl(@NonNull final Context context,
+                                         @NonNull final Password password,
+                                         @Nullable final PowerAuthBiometricPrompt biometricPrompt,
+                                         @Nullable final SecureData encryptedBiometryKey,
+                                         @NonNull final IProtocolUpgradeListener listener) {
         try {
             final boolean hadLocalBiometry = hasBiometryFactor(context);
 
-            if (hadLocalBiometry && !mBiometricConfiguration.isAuthenticateOnBiometricKeySetup() && authentication != null) {
-                final PowerAuthBiometricPrompt biometricPrompt = authentication.getBiometricPrompt();
-                if (biometricPrompt != null) {
-                    // Upgrade is requested for an activation having biometry, authentication on biometry
-                    // key setup is not required and biometric prompt is passed. Biometry can be upgraded.
-                    return startProtocolUpgradeWithPrompt(context, password, biometricPrompt, listener);
-                }
+            if (hadLocalBiometry && !mBiometricConfiguration.isAuthenticateOnBiometricKeySetup() && biometricPrompt != null) {
+                // Upgrade is requested for an activation having biometry, authentication on biometry
+                // key setup is not required and biometric prompt is passed. Biometry can be upgraded.
+                return startProtocolUpgradeWithPrompt(context, password, biometricPrompt, listener);
             }
 
             // Only external biometry is upgradable at this point.
             final boolean hadCoreBiometry = mSession.hasBiometryFactor();
 
             // If external biometry is used, use the passed biometry key.
-            final SecureData newBiometryKek = (hadCoreBiometry && !hadLocalBiometry && authentication != null)
-                    ? authentication.getBiometryFactorRelatedKey()
+            final SecureData newBiometryKek = (hadCoreBiometry && !hadLocalBiometry)
+                    ? encryptedBiometryKey
                     : null;
 
             final CoreTask<CoreProtocolUpgradeResult> task = mSession.startProtocolUpgrade(password, newBiometryKek);
@@ -1440,79 +1560,6 @@ public class PowerAuthSDK {
             dispatchCallback(() -> listener.onProtocolUpgradeFailed(PowerAuthErrorException.wrapException(e)));
             return null;
         }
-    }
-
-    /**
-     * Start the protocol upgrade process.
-     *
-     * @param context Android context.
-     * @param password Required password used to authenticate the protocol upgrade start.
-     * @param authentication Optional authentication object.
-     *                       Pass authentication object with {@link PowerAuthBiometricPrompt} if
-     *                       activation uses biometry factor and authentication is not required on
-     *                       biometry key setup to upgrade biometry key.
-     *                       Or pass authentication object with {@link SecureData} if activation
-     *                       uses external biometry factor key to upgrade biometry key.
-     * @param listener A callback with protocol upgrade result.
-     * @return {@link ICancelable} associated with the running task.
-     */
-    public @Nullable
-    ICancelable startProtocolUpgrade(@NonNull final Context context,
-                                     @NonNull final String password,
-                                     @Nullable final PowerAuthAuthentication authentication,
-                                     @NonNull final IProtocolUpgradeListener listener) {
-        return startProtocolUpgrade(context, new Password(password), authentication, listener);
-    }
-
-    /**
-     * Start the protocol upgrade process.
-     *
-     * @param context Android context.
-     * @param password Required {@link Password} instance used to authenticate the protocol upgrade start.
-     * @param listener A callback with protocol upgrade result.
-     * @return {@link ICancelable} associated with the running task.
-     */
-    public @Nullable
-    ICancelable startProtocolUpgrade(@NonNull final Context context,
-                                     @NonNull final Password password,
-                                     @NonNull final IProtocolUpgradeListener listener) {
-        return startProtocolUpgrade(context, password, null, listener);
-    }
-
-    /**
-     * Start the protocol upgrade process.
-     *
-     * @param context Android context.
-     * @param password Required password used to authenticate the protocol upgrade start.
-     * @param listener A callback with protocol upgrade result.
-     * @return {@link ICancelable} associated with the running task.
-     */
-    public @Nullable
-    ICancelable startProtocolUpgrade(@NonNull final Context context,
-                                     @NonNull final String password,
-                                     @NonNull final IProtocolUpgradeListener listener) {
-        return startProtocolUpgrade(context, new Password(password), null, listener);
-    }
-
-    /**
-     * Returns {@code true}, if there is a valid activation that has available protocol upgrade.
-     * Once the upgrade process has started, it contains {@code false}.
-     *
-     * @return {@code true} if protocol upgrade is available. {@code false} otherwise.
-     */
-    public boolean hasProtocolUpgradeAvailable() {
-        return mSession.hasProtocolUpgradeAvailable();
-    }
-
-    /**
-     * Returns {@code true} if the session has pending protocol upgrade, meaning the protocol
-     * upgrade process has started, but has not yet finished. Some SDK functionality may be
-     * temporarily blocked during the upgrade process.
-     *
-     * @return {@code true} if the protocol upgrade process is pending, {@code false} otherwise.
-     */
-    public boolean hasPendingProtocolUpgrade() {
-        return mSession.hasPendingProtocolUpgrade();
     }
 
     /**

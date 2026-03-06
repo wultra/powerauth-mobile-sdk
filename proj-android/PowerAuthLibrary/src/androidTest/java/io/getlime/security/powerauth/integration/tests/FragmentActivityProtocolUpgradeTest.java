@@ -98,7 +98,7 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
 
             final PowerAuthBiometricPrompt biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragmentActivity());
-            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), PowerAuthAuthentication.possessionWithBiometry(biometricPrompt));
+            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), biometricPrompt);
 
             assertEquals(getAlgorithmForTest(), powerAuthSDK.getCurrentAlgorithm());
             if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
@@ -131,7 +131,7 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
 
-            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), PowerAuthAuthentication.possessionWithBiometry(CryptoUtils.randomSecureData(32)));
+            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), CryptoUtils.randomSecureData(32));
 
             assertEquals(getAlgorithmForTest(), powerAuthSDK.getCurrentAlgorithm());
             if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
@@ -165,7 +165,7 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
             final PowerAuthBiometricPrompt biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragmentActivity());
 
             simulateNextAuthenticationUsingBiometricsFailure();
-            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), PowerAuthAuthentication.possessionWithBiometry(biometricPrompt));
+            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), biometricPrompt);
 
             assertEquals(getAlgorithmForTest(), powerAuthSDK.getCurrentAlgorithm());
             if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
@@ -202,7 +202,7 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
 
             simulateNextAuthenticationUsingBiometricsFailure();
             simulateNextResponseFailure("/biometry/remove", 500);
-            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), PowerAuthAuthentication.possessionWithBiometry(biometricPrompt));
+            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), biometricPrompt);
 
             assertEquals(getAlgorithmForTest(), powerAuthSDK.getCurrentAlgorithm());
             if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
@@ -248,7 +248,7 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
 
             simulateNextAuthenticationUsingBiometricsFailure();
             simulateNetworkErrorOnSend("/biometry/remove");
-            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), PowerAuthAuthentication.possessionWithBiometry(biometricPrompt));
+            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), biometricPrompt);
 
             assertEquals(getAlgorithmForTest(), powerAuthSDK.getCurrentAlgorithm());
             if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
@@ -312,7 +312,7 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
 
             final PowerAuthBiometricPrompt biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragmentActivity());
-            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), PowerAuthAuthentication.possessionWithBiometry(biometricPrompt));
+            final ProtocolUpgradeResult result = activationHelper.startProtocolUpgradeExpectResult(getAlgorithmForTest(), biometricPrompt);
 
             assertEquals(getAlgorithmForTest(), powerAuthSDK.getCurrentAlgorithm());
             if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {

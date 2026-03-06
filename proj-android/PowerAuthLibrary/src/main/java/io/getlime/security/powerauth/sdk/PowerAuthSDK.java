@@ -1386,7 +1386,9 @@ public class PowerAuthSDK {
                                      @NonNull final IProtocolUpgradeListener listener) {
 
         try {
-            if (hasBiometryFactor(context) && !mBiometricConfiguration.isAuthenticateOnBiometricKeySetup() && authentication != null) {
+            final boolean hadLocalBiometry = hasBiometryFactor(context);
+
+            if (hadLocalBiometry && !mBiometricConfiguration.isAuthenticateOnBiometricKeySetup() && authentication != null) {
                 final PowerAuthBiometricPrompt biometricPrompt = authentication.getBiometricPrompt();
                 if (biometricPrompt != null) {
                     // Upgrade is requested for an activation having biometry, authentication on biometry
@@ -1396,7 +1398,6 @@ public class PowerAuthSDK {
             }
 
             // Only external biometry is upgradable at this point.
-            final boolean hadLocalBiometry = hasBiometryFactor(context);
             final boolean hadCoreBiometry = mSession.hasBiometryFactor();
 
             // If external biometry is used, use the passed biometry key.

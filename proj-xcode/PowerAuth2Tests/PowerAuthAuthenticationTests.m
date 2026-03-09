@@ -26,6 +26,7 @@
 @property (nonatomic, strong) PowerAuthCoreData * customPossessionKey;
 @property (nonatomic, strong) NSString * biometryPrompt;
 @property (nonatomic, strong) id biometryContext;
+@property (nonatomic, readonly) BOOL hasBiometry;
 @end
 
 @implementation PowerAuthAuthenticationTests
@@ -42,6 +43,11 @@
 #else
     #define XCTAssertContextNil(x)
 #endif // PA2_HAS_LACONTEXT
+#if defined(PA2_BIOMETRY_SUPPORT)
+    _hasBiometry = YES;
+#else
+    _hasBiometry = NO;
+#endif
     
     PowerAuthLogSetEnabled(YES);
 }
@@ -78,7 +84,11 @@
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
     XCTAssertNil(auth.customBiometryKey);
-    XCTAssertNil([auth validateUsage:YES]);
+    if (self.hasBiometry) {
+        XCTAssertNil([auth validateUsage:YES]);
+    } else {
+        XCTAssertNotNil([auth validateUsage:YES]);
+    }
     
     auth = [PowerAuthAuthentication persistWithPasswordAndBiometry:@"4321" customBiometryKey:_customBiometryKey];
     XCTAssertTrue(auth.usePossession);
@@ -87,7 +97,11 @@
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
     XCTAssertEqualObjects(self.customBiometryKey, auth.customBiometryKey);
-    XCTAssertNil([auth validateUsage:YES]);
+    if (self.hasBiometry) {
+        XCTAssertNil([auth validateUsage:YES]);
+    } else {
+        XCTAssertNotNil([auth validateUsage:YES]);
+    }
     
     // core password variants
     
@@ -98,7 +112,11 @@
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
     XCTAssertNil(auth.customBiometryKey);
-    XCTAssertNil([auth validateUsage:YES]);
+    if (self.hasBiometry) {
+        XCTAssertNil([auth validateUsage:YES]);
+    } else {
+        XCTAssertNotNil([auth validateUsage:YES]);
+    }
     
     auth = [PowerAuthAuthentication persistWithCorePasswordAndBiometry:[PowerAuthCorePassword passwordWithString:@"4321"] customBiometryKey:_customBiometryKey];
     XCTAssertTrue(auth.usePossession);
@@ -107,7 +125,11 @@
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
     XCTAssertEqualObjects(self.customBiometryKey, auth.customBiometryKey);
-    XCTAssertNil([auth validateUsage:YES]);
+    if (self.hasBiometry) {
+        XCTAssertNil([auth validateUsage:YES]);
+    } else {
+        XCTAssertNotNil([auth validateUsage:YES]);
+    }
 }
 
 - (void) testSignPossessionOnly
@@ -154,7 +176,11 @@
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
     XCTAssertNil(auth.customBiometryKey);
-    XCTAssertNil([auth validateUsage:NO]);
+    if (self.hasBiometry) {
+        XCTAssertNil([auth validateUsage:NO]);
+    } else {
+        XCTAssertNotNil([auth validateUsage:NO]);
+    }
 
     auth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:_customBiometryKey];
     XCTAssertTrue(auth.usePossession);
@@ -163,7 +189,11 @@
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
     XCTAssertEqualObjects(self.customBiometryKey, auth.customBiometryKey);
-    XCTAssertNil([auth validateUsage:NO]);
+    if (self.hasBiometry) {
+        XCTAssertNil([auth validateUsage:NO]);
+    } else {
+        XCTAssertNotNil([auth validateUsage:NO]);
+    }
     
     auth = [PowerAuthAuthentication possessionWithBiometryPrompt:_biometryPrompt];
     XCTAssertTrue(auth.usePossession);
@@ -172,7 +202,11 @@
     XCTAssertEqualObjects(_biometryPrompt, auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
     XCTAssertNil(auth.customBiometryKey);
-    XCTAssertNil([auth validateUsage:NO]);
+    if (self.hasBiometry) {
+        XCTAssertNil([auth validateUsage:NO]);
+    } else {
+        XCTAssertNotNil([auth validateUsage:NO]);
+    }
         
 #if PA2_HAS_LACONTEXT
     auth = [PowerAuthAuthentication possessionWithBiometryContext:_biometryContext];

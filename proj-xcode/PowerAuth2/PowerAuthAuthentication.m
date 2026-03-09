@@ -405,17 +405,24 @@
 - (NSError*) validateUsage:(BOOL)forPersist
 {
     NSString * errorMessage;
+    PowerAuthErrorCode errorCode = PowerAuthErrorCode_WrongParameter;
     if (forPersist != (_objectUsage == AUTH_FOR_PERSIST)) {
         errorMessage = forPersist
             ? @"Using PowerAuthAuthentication object for a different purpose. The object for activation persist is expected."
             : @"Using PowerAuthAuthentication object for a different purpose. The object for authentication code calculation is expected.";
     } else if (_overridenPossessionKey) {
         errorMessage = @"Using PowerAuthAuthentication with a custom possession key is no longer supported.";
+#if !defined(PA2_BIOMETRY_SUPPORT)
+    } else if (_useBiometry) {
+        errorMessage = @"Biometry is not supported on this device.";
+        errorCode = PowerAuthErrorCode_BiometryNotAvailable;
+#endif // !defined(PA2_BIOMETRY_SUPPORT)
     } else {
         errorMessage = nil;
     }
+
     if (errorMessage) {
-        return PA2MakeError(PowerAuthErrorCode_WrongParameter, errorMessage);
+        return PA2MakeError(errorCode, errorMessage);
     }
     return nil;
 }

@@ -16,6 +16,13 @@
 
 #import "PowerAuthSdkTestHelper.h"
 
+// Expose some private PowerAuthSDK APIs for test purposes
+@interface PowerAuthSDK (PrivateHiddenAPI)
+/// Simulates object deallocation. This is necessary because the instance of PowerAuthSDK
+/// is not always released at controlled points during the tests.
+- (void) unsubscribeBeforeDestroy;
+@end
+
 @implementation PowerAuthSdkActivation
 
 - (id) initWithActivationData:(PATSInitActivationResponse*)activationData
@@ -183,6 +190,7 @@ static NSString * PA_Ver_Current = @"4.0";
 
 + (PowerAuthSdkTestHelper*) clone:(PowerAuthSdkTestHelper*)testHelper
                 withConfiguration:(PowerAuthConfiguration*)configuration
+                 removeActivation:(BOOL)removeActivation
 {
     [self setupLog];
     
@@ -190,7 +198,9 @@ static NSString * PA_Ver_Current = @"4.0";
     PowerAuthSDK *sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration error:&error];
     XCTAssertNotNil(sdk);
     XCTAssertNil(error);
-    [sdk removeActivationLocal];
+    if (removeActivation) {
+        [sdk removeActivationLocal];
+    }
     
     BOOL result = sdk != nil;
     result = result && [sdk hasPendingActivation] == NO;
@@ -521,7 +531,7 @@ static NSString * PA_Ver_Current = @"4.0";
 }
 
 - (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)customBiometryKek
-                                      shouldFinish:(BOOL)shouldFinish
+                                                                 shouldFinish:(BOOL)shouldFinish
 {
     PowerAuthProtocolUpgradeResult * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         // Start protocol upgrade task.
@@ -572,6 +582,7 @@ static NSString * PA_Ver_Current = @"4.0";
         clientConfiguration = [_sdk.clientConfiguration copy];
     }
     NSError * error = nil;
+    [_sdk unsubscribeBeforeDestroy];
     _sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
                                 biometricConfiguration:biometricConfiguration
                                    clientConfiguration:clientConfiguration

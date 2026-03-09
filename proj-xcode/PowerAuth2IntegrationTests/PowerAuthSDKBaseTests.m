@@ -2794,6 +2794,7 @@
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
     
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
     
     [self createTokenAndValidateTokenHeader:@"TestToken" createToken:YES];
         
@@ -3037,7 +3038,9 @@
     XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
     
     // Simulate application restart before testing authentication.
+    XCTAssertNil(_sdk.externalPendingOperation);
     _sdk = [_helper reCreateSdkInstance];
+    XCTAssertNil(_sdk.externalPendingOperation);
     
     // Check biometry factor not possible during upgrade.
     PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek];

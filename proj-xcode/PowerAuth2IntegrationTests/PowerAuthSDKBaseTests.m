@@ -381,7 +381,9 @@
     PowerAuthAuthentication * auth = activation.credentials;
     PowerAuthAuthentication * auth_possession = _helper.authPossession;
     PowerAuthAuthentication * auth_possession_knowledge = _helper.authPossessionWithKnowledge;
-    PowerAuthAuthentication * auth_possession_biometry = _helper.authPossessionWithBiometry;
+    PowerAuthAuthentication * auth_possession_biometry = self.hasBiometrySupport
+                                ? _helper.authPossessionWithBiometry
+                                : _helper.authPossessionWithKnowledge;
     
     //
     // Online & offline signatures (calculated as http auth header)
@@ -467,20 +469,22 @@
                                                                           componentLength:componentLength];
     XCTAssertTrue(response.signatureValid);
     
-    // possession + biometry
-    code = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk offlineAuthenticationCodeWithAuthentication:_helper.authPossessionWithBiometry uriId:@"/some/uriId" body:nil nonce:nonce callback:^(NSString * _Nullable authenticationCode, NSError * _Nullable error) {
-            [waiting reportCompletion:authenticationCode];
+    if (self.hasBiometrySupport) {
+        // possession + biometry
+        code = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk offlineAuthenticationCodeWithAuthentication:_helper.authPossessionWithBiometry uriId:@"/some/uriId" body:nil nonce:nonce callback:^(NSString * _Nullable authenticationCode, NSError * _Nullable error) {
+                [waiting reportCompletion:authenticationCode];
+            }];
         }];
-    }];
-    XCTAssertNotNil(code);
-    XCTAssertEqual(componentLength*2+1, code.length);
-    response = [_helper.testServerApi verifyOfflineAuthCode:activation.activationData.activationId
-                                                       data:normalized_data
-                                                   authCode:code
-                                              allowBiometry:YES
-                                            componentLength:componentLength];
-    XCTAssertTrue(response.signatureValid);
+        XCTAssertNotNil(code);
+        XCTAssertEqual(componentLength*2+1, code.length);
+        response = [_helper.testServerApi verifyOfflineAuthCode:activation.activationData.activationId
+                                                           data:normalized_data
+                                                       authCode:code
+                                                  allowBiometry:YES
+                                                componentLength:componentLength];
+        XCTAssertTrue(response.signatureValid);
+    }
 }
 
 - (void) testActivationStatus
@@ -1003,9 +1007,11 @@
     // By default, EEK is not set
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
     XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-    // Check biometry
-    result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"data" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
-    XCTAssertTrue(result);
+    if (self.hasBiometrySupport) {
+        // Check biometry
+        result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"data" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
+        XCTAssertTrue(result);
+    }
     
     if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
         // V3 activations
@@ -1038,9 +1044,11 @@
         XCTAssertTrue(_sdk.hasExternalEncryptionKey);
         // auth codes should not work
         XCTAssertFalse([_helper checkForCorePassword:activation.credentials.password]);
-        // biometry
-        result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"B10" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
-        XCTAssertFalse(result);
+        if (self.hasBiometrySupport) {
+            // biometry
+            result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"B10" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
+            XCTAssertFalse(result);
+        }
         // knowledge - offline
         result = [_helper validateAuthentication:_helper.authPossessionWithKnowledge data:[@"0ffl1n3" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:NO cripple:0];
         XCTAssertFalse(result);
@@ -1059,9 +1067,11 @@
         
         XCTAssertFalse(_sdk.hasExternalEncryptionKey);
         XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-        // biometry
-        result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"data" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
-        XCTAssertTrue(result);
+        if (self.hasBiometrySupport) {
+            // biometry
+            result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"data" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
+            XCTAssertTrue(result);
+        }
         // knowledge - offline
         result = [_helper validateAuthentication:_helper.authPossessionWithKnowledge data:[@"0ffl1n3" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:NO cripple:0];
         XCTAssertTrue(result);
@@ -1110,12 +1120,6 @@
 - (void) testBiometrySignatureWhenNotConfigured
 {
     CHECK_TEST_CONFIG();
-
-#if defined(PA2_BIOMETRY_SUPPORT)
-    BOOL supportsBiometry = YES;
-#else
-    BOOL supportsBiometry = NO;
-#endif
     
     //
     // This test validates that signing with biometry doesn't work when
@@ -1134,7 +1138,7 @@
     authentication = [PowerAuthAuthentication possessionWithBiometry];
     header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
     XCTAssertNil(header);
-    if (supportsBiometry) {
+    if (self.hasBiometrySupport) {
         XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
     } else {
         XCTAssertEqual(PowerAuthErrorCode_BiometryNotAvailable, error.powerAuthErrorCode);
@@ -1145,7 +1149,7 @@
     header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
     XCTAssertNil(header);
     
-    if (supportsBiometry) {
+    if (self.hasBiometrySupport) {
         XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
     } else {
         XCTAssertEqual(PowerAuthErrorCode_BiometryNotAvailable, error.powerAuthErrorCode);
@@ -2201,8 +2205,10 @@
         any2fa = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:YES];
         otherKDK = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:YES];
         XCTAssertEqualObjects(any2fa, otherKDK);
-        otherKDK = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.biometryCredentials shouldPass:YES];
-        XCTAssertEqualObjects(any2fa, otherKDK);
+        if (self.hasBiometrySupport) {
+            otherKDK = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.biometryCredentials shouldPass:YES];
+            XCTAssertEqualObjects(any2fa, otherKDK);
+        }
 
         knowledge = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_Knowledge credentials:activation.credentials shouldPass:YES];
         XCTAssertNotEqualObjects(any2fa, knowledge);
@@ -2823,6 +2829,10 @@
 - (void) testProtocolUpgradeWithBiometry
 {
     CHECK_TEST_CONFIG();
+    if (!self.hasBiometrySupport) {
+        NSLog(@"Test skipped, device has no biometry support.");
+        return;
+    }
     
     //
     // Test successful upgrade from V3 to V4 protocol.
@@ -2893,7 +2903,10 @@
     XCTAssertEqual(_sdk.hasProtocolUpgradeAvailable, targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256);
     
     // Assert the old biometry factor key still works.
-    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
+    // If biometry not supported, then use knowledge factor.
+    PowerAuthAuthentication * oldBiometryAuth = self.hasBiometrySupport
+                ? _helper.currentActivation.biometryCredentials
+                : _helper.currentActivation.credentials;
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
                                                           data:randomData
@@ -2933,7 +2946,11 @@
     XCTAssertEqual(_sdk.hasProtocolUpgradeAvailable, targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256);
     
     // Assert the old biometry factor key still works.
-    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
+    // If biometry not supported, then use knowledge factor.
+    PowerAuthAuthentication * oldBiometryAuth = self.hasBiometrySupport
+                    ? _helper.currentActivation.biometryCredentials
+                    : _helper.currentActivation.credentials;
+    
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
                                                           data:randomData
@@ -2992,24 +3009,26 @@
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     
-    // Check that the old biometry factor does not work anymore.
-    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
-    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
-    BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
-                                                          data:randomData
-                                                        method:@"POST"
-                                                         uriId:@"/hello/there"
-                                                        online:YES
-                                                       cripple:0];
-    XCTAssertFalse(authenticationValid);
+    if (self.hasBiometrySupport) {
+        // Check that the old biometry factor does not work anymore.
+        PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
+        NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+        BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
+                                                              data:randomData
+                                                            method:@"POST"
+                                                             uriId:@"/hello/there"
+                                                            online:YES
+                                                           cripple:0];
+        XCTAssertFalse(authenticationValid);
+    }
 
     [_helper cleanup];
 }
 
+
 - (void) testProtocolUpgrade_upgradeConfirmRequestFailure
 {
     CHECK_TEST_CONFIG();
-    CHECK_BIOMETRY();
     
     //
     // Test successful upgrade from V3 to V4 protocol. In this case
@@ -3020,7 +3039,7 @@
     // required to confirm the protocol upgrade in the background.
     //
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
-    PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:32];
+    PowerAuthCoreData * newBiometryKek = self.hasBiometrySupport ? [PowerAuthCoreCryptoUtils randomCoreData:32] : nil;
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithBiometry];
     
     // Set 3 failures in a row, as there are 3 confirm attempts in the task.
@@ -3043,19 +3062,21 @@
     XCTAssertNil(_sdk.externalPendingOperation);
     
     // Check biometry factor not possible during upgrade.
-    PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek];
+    PowerAuthAuthentication * newAuth = self.hasBiometrySupport
+            ? [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek]
+            : [_helper.authPossessionWithKnowledge copy];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     
     // Authentication header calculation not allowed when protocol upgrade pending.
     NSError * authCalcError;
-    [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:newBiometryAuth method:@"POST" uriId:@"/hello/there" body:randomData error:&authCalcError];
+    [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:newAuth method:@"POST" uriId:@"/hello/there" body:randomData error:&authCalcError];
     XCTAssertEqual(PowerAuthErrorCode_PendingProtocolUpgrade, authCalcError.powerAuthErrorCode);
     // Same applies to offline.
-    [_sdk offlineAuthenticationCodeWithAuthentication:newBiometryAuth uriId:@"/hello/there" body:randomData nonce:@"trustmeitisarandomstring" callback:^(NSString * authenticationCode, NSError * error){
+    [_sdk offlineAuthenticationCodeWithAuthentication:newAuth uriId:@"/hello/there" body:randomData nonce:@"trustmeitisarandomstring" callback:^(NSString * authenticationCode, NSError * error){
         XCTAssertEqual(PowerAuthErrorCode_PendingProtocolUpgrade, error.powerAuthErrorCode);
     }];
     
-    BOOL authenticationValid = [_helper validateAuthentication:newBiometryAuth
+    BOOL authenticationValid = [_helper validateAuthentication:newAuth
                                                           data:randomData
                                                         method:@"POST"
                                                          uriId:@"/hello/there"
@@ -3086,7 +3107,7 @@
     
     // Simulate application restart before testing authentication.
     _sdk = [_helper reCreateSdkInstance];
-    authenticationValid = [_helper validateAuthentication:newBiometryAuth
+    authenticationValid = [_helper validateAuthentication:newAuth
                                                      data:randomData
                                                    method:@"POST"
                                                     uriId:@"/hello/there"
@@ -3094,7 +3115,6 @@
                                                   cripple:0];
     XCTAssertTrue(authenticationValid);
     
-
     [_helper cleanup];
 }
 

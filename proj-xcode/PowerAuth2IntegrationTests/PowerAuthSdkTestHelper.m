@@ -523,9 +523,13 @@ static NSString * PA_Ver_Current = @"4.0";
     PowerAuthActivationStatus * status = [self fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
     
+#if defined(PA2_BIOMETRY_SUPPORT)
     if (flags & (TestActivationFlags_PersistWithFakeBiometry | TestActivationFlags_PersistWithBiometry)) {
         XCTAssertTrue(_sdk.hasBiometryFactor);
     }
+#else
+    XCTAssertFalse(_sdk.hasBiometryFactor);
+#endif
     
     return _sdk;
 }
@@ -648,6 +652,10 @@ static NSString * PA_Ver_Current = @"4.0";
 {
     NSArray<NSString*> * veryCleverPasswords = [self veryStrongPasswords];
     NSString * newPassword = veryCleverPasswords[arc4random_uniform((uint32_t)veryCleverPasswords.count)];
+#if !defined(PA2_BIOMETRY_SUPPORT)
+    // Clear persist with biometry if biometry not supported on this platform.
+    flags &= ~(TestActivationFlags_PersistWithBiometry | TestActivationFlags_PersistWithFakeBiometry);
+#endif // !defined(PA2_BIOMETRY_SUPPORT)
 
     if (flags & TestActivationFlags_PersistWithBiometry) {
         return [PowerAuthAuthentication persistWithPasswordAndBiometry:newPassword];

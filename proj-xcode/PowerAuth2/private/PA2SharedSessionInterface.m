@@ -305,7 +305,7 @@ static BOOL _LocalContextRestoreSpecialOp(LocalContext * ctx, PA2SharedLock * op
             PowerAuthLog(@"PA2SharedSessionProvider: Failed to acquire special operation lock.");
             return NO;
         }
-        // Lock acquired, we owns a special operation now
+        // Lock acquired, we own a special operation now
         PowerAuthLog(@"PA2SharedSessionProvider: Restoring ownership of special operation type %@", @(operationType));
         ctx->specialOpType = operationType;
         ctx->specialOpTicket = ctx->sharedData->specialOpTicket;
@@ -514,7 +514,7 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
         if (restoreOpType) {
             if (!_LocalContextRestoreSpecialOp(&_localContext, _operationLock, restoreOpType)) {
                 // The restore may fail only if another instance of PowerAuthSDK did acquire operation lock before this instance.
-                // This is in general wrong and it indicate that more than one PowerAuthSDK with the same instance is in this process.
+                // This is in general wrong and it indicates that more than one PowerAuthSDK with the same instance is in this process.
                 localError = PA2MakeError(PowerAuthErrorCode_ExternalPendingOperation, @"Two PowerAuthSDK instances use the same application ID for activation data sharing.");
             }
         }

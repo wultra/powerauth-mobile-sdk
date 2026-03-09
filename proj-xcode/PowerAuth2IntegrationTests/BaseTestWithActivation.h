@@ -27,6 +27,7 @@
 @property (nonatomic, strong, readonly) PowerAuthSDK * sdk;
 @property (nonatomic, readonly) PowerAuthAlgorithm powerAuthAlgorithm;  // override in subclass
 @property (nonatomic, readonly) BOOL supportsActivationWithSignature;
+@property (nonatomic, readonly) BOOL hasBiometrySupport;
 
 - (void) prepareConfigs:(PowerAuthConfiguration**)configuration
         biometricConfig:(PowerAuthBiometricConfiguration**)biometricConfiguration

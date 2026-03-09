@@ -1608,10 +1608,12 @@ public class PowerAuthSDK {
             public void onNetworkResponse(@Nullable CoreProtocolUpgradeResult coreProtocolUpgradeResult) {
                 final CoreProtocolUpgradeResult coreResult = Objects.requireNonNull(coreProtocolUpgradeResult);
 
-                // Protocol upgrade succeeded, remove old biometry kek data.
+                // Protocol upgrade succeeded and biometry key on core level is upgraded,
+                // remove old biometry KEK data on Java level.
                 removeBiometryKekData(context);
 
-                // The Consumer `onAuthError` will take action in case biometry key could not be upgraded on Java level.
+                // Upgrade the biometry KEK data.
+                // Remove the biometry key in case biometry KEK data could not be upgraded.
                 final IConsumer<CoreProtocolUpgradeResult> onAuthError = (protocolUpgradeResult) -> {
                     final ICancelable removeBiometryTask = removeBiometryOnUpgradeFailure(context, protocolUpgradeResult, listener);
                     composite.addCancelable(removeBiometryTask);
@@ -1682,8 +1684,8 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Helper private method to handle biometry factor removal, when biometry key could not be
-     * upgraded after the main protocol upgrade process succeeded.
+     * Helper private method to handle biometry factor removal in case when the protocol and biometry
+     * upgrade succeeded, but biometry KEK data could not be upgraded on Java level.
      *
      * @param context Android context.
      * @param protocolUpgradeResult Result object obtained from successful protocol upgrade process.
@@ -1697,7 +1699,6 @@ public class PowerAuthSDK {
         return removeBiometryFactor(context, new IRemoveBiometryFactorListener() {
             @Override
             public void onRemoveBiometryFactorSucceed() {
-                // Protocol upgrade succeeded, but biometry key could not be upgraded on Java level.
                 // Biometry removal request succeeded. Return upgrade result and set biometry as removed.
                 listener.onProtocolUpgradeSucceed(
                         new ProtocolUpgradeResult(
@@ -1710,10 +1711,9 @@ public class PowerAuthSDK {
 
             @Override
             public void onRemoveBiometryFactorFailed(@NonNull Throwable throwable) {
-                // Protocol upgrade succeeded, but biometry key could not be upgraded on Java level.
-                // Moreover biometry removal request failed. Force remove biometry from persistent
-                // data and modify upgrade result to recommend activation status fetch, so biometry
-                // is synchronized with the server.
+                // Removal request failed. The biometry key in the core persistent data have to be
+                // manually removed. Modify upgrade result to recommend activation status fetch,
+                // so biometry is synchronized with the server.
                 mSession.cleanupBiometricFactorData();
                 listener.onProtocolUpgradeSucceed(
                         new ProtocolUpgradeResult(

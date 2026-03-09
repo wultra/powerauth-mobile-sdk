@@ -83,10 +83,10 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
     }
 
     /**
-     * Test protocol upgrade from V3 to V4. First, upgradable activation with biometry factor enabled
-     * is created, then the protocol upgrade process is initiated. It is expected the protocol
-     * upgrade process completes successfully and the biometry key is upgraded and valid.
-     * The new biometry key is not validated if {@link #RUN_INTERACTIVE_SECTIONS} is {@code false}.
+     * Test protocol upgrade process with biometric key upgrade when authentication on biometric key
+     * setup is not required. It is expected the protocol upgrade process to complete successfully
+     * and the biometry key is upgraded and valid.
+     * The new key is validated only if the {@link #RUN_INTERACTIVE_SECTIONS} is set to {@code true}.
      */
     @Test
     public void testProtocolUpgrade_noBiometrySetupAuthentication() throws Exception {
@@ -118,8 +118,8 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
     }
 
     /**
-     * Test protocol upgrade from V3 to V4. First, upgradable activation with biometry factor enabled
-     * is created, then the protocol upgrade process is initiated with missing biometric prompt.
+     * Test protocol upgrade process with biometric key upgrade when authentication on biometric key
+     * setup is not required. The protocol upgrade process is initiated with missing biometric prompt.
      * It is expected the protocol upgrade process completes successfully and the biometry is removed.
      */
     @Test
@@ -148,10 +148,9 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
     }
 
     /**
-     * Test protocol upgrade from V3 to V4. First, upgradable activation with biometry factor enabled
-     * is created, then the protocol upgrade process is initiated.
-     * Because of a simulated error during biometric authentication, the biometry key cannot be
-     * upgraded and biometry should be removed completely.
+     * Test protocol upgrade process with biometric key upgrade when authentication on biometric key
+     * setup is not required. Because of a simulated error during biometric authentication,
+     * the biometry KEK data cannot be upgraded and biometry should be removed completely.
      */
     @Test
     public void testProtocolUpgrade_noBiometrySetupAuthentication_authenticationFailure() throws Exception {
@@ -182,12 +181,11 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
     }
 
     /**
-     * Test protocol upgrade from V3 to V4. First, upgradable activation with biometry factor enabled
-     * is created, then the protocol upgrade process is initiated.
-     * Because of a simulated error during biometric authentication, the biometry key cannot be
-     * upgraded and biometry should be removed completely. Because of a response failure when
-     * trying the remove biometry, protocol upgrade result shows the activation status should be
-     * fetched to synchronize biometry.
+     * Test protocol upgrade process with biometric key upgrade when authentication on biometric key
+     * setup is not required. Because of a simulated error during biometric authentication,
+     * the biometry KEK data cannot be upgraded and biometry should be removed completely. However,
+     * because of a simulated response failure when trying the remove biometry, protocol upgrade
+     * result should show that the activation status should be fetched to synchronize biometry.
      */
     @Test
     public void testProtocolUpgrade_noBiometrySetupAuthentication_authenticationFailure_biometryRemoveResponseFailure() throws Exception {
@@ -228,12 +226,11 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
     }
 
     /**
-     * Test protocol upgrade from V3 to V4. First, upgradable activation with biometry factor enabled
-     * is created, then the protocol upgrade process is initiated.
-     * Because of a simulated error during biometric authentication, the biometry key cannot be
-     * upgraded and biometry should be removed completely. Because of a request failure when
-     * trying the remove biometry, protocol upgrade result shows the activation status should be
-     * fetched to synchronize biometry.
+     * Test protocol upgrade process with biometric key upgrade when authentication on biometric key
+     * setup is not required. Because of a simulated error during biometric authentication,
+     * the biometry KEK data cannot be upgraded and biometry should be removed completely. However,
+     * because of a simulated request failure when trying the remove biometry, protocol upgrade
+     * result should show that the activation status should be fetched to synchronize biometry.
      */
     @Test
     public void testProtocolUpgrade_noBiometrySetupAuthentication_authenticationFailure_biometryRemoveRequestSendFailure() throws Exception {
@@ -273,6 +270,7 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
             assertThrows(Exception.class, () -> activationHelper.fetchActivationStatus());
             activationHelper.fetchActivationStatus();
 
+            // Add the biometry factor again.
             AsyncHelper.await(resultCatcher -> {
                 powerAuthSDK.addBiometryFactor(testHelper.getContext(), activationHelper.getValidPassword(), biometricPrompt, new IAddBiometryFactorListener() {
                     @Override
@@ -297,10 +295,9 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
     }
 
     /**
-     * Test protocol upgrade from V3 to V4. First, upgradable activation with biometry factor enabled
-     * is created, then the protocol upgrade process is initiated. It is expected the protocol
-     * upgrade process fails, as method variant with prompt is used and SDK is configured to require
-     * authentication on biometric key setup.
+     * Test protocol upgrade process with biometric key upgrade when authentication on biometric key
+     * setup is required. It is expected the protocol upgrade process fails, as method variant
+     * with prompt is used and SDK is configured to require authentication on biometric key setup.
      */
     @Test
     public void testProtocolUpgrade_withBiometrySetupAuthentication_failOnPassedPrompt() throws Exception {
@@ -322,9 +319,9 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
     }
 
     /**
-     * Test protocol upgrade from V3 to V4. First, upgradable activation with biometry factor enabled
-     * is created, then the protocol upgrade process is initiated. It is expected the protocol
-     * upgrade process completes successfully and the biometry key is removed during the process.
+     * Test protocol upgrade process with biometric key upgrade when authentication on biometric key
+     * setup is required. It is expected the protocol upgrade process completes successfully
+     * and the biometry key is removed during the process.
      */
     @Test
     public void testProtocolUpgrade_withBiometrySetupAuthentication_removeBiometry() throws Exception {
@@ -355,9 +352,8 @@ public class FragmentActivityProtocolUpgradeTest extends FragmentActivityBaseTes
     }
 
     /**
-     * Test protocol upgrade from V3 to V4. First, upgradable activation with biometry factor enabled
-     * is created, then the protocol upgrade process is initiated. It is expected the protocol
-     * upgrade process fails, as method variant with prompt is used and SDK uses external key.
+     * Test protocol upgrade process with external biometric key set. This test should fail,
+     * as method variant with prompt is used to upgrade biometry key and SDK uses external key.
      */
     @Test
     public void testProtocolUpgrade_externalBiometryKey_failOnPassedPrompt() throws Exception {

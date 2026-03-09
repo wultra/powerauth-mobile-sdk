@@ -172,6 +172,7 @@ RequestPtr Task::getNextRequest()
         setCompleted();
     }
     if (_state == State::FAILED) {
+        setCompleted();
         reThrowFailure();
     }
     return nullptr;

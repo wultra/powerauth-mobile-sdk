@@ -304,12 +304,21 @@ static NSData * _BuildDeviceSpecificData(void)
 
 - (void) dealloc
 {
+    [self unsubscribeBeforeDestroy];
+}
+
+/// The private method unregisters this instance from all external subscribers.
+/// Be aware that the method is exposed for the integration tests, allowing us to simulate
+/// the application restart.
+- (void) unsubscribeBeforeDestroy
+{
     [(PA2TimeSynchronizationService*)_timeSynchronizationService unsubscribeForSystemNotifications];
 #if defined(PA2_WATCH_SUPPORT)
     // Unregister this instance for processing packets...
     [[PowerAuthWCSessionManager sharedInstance] unregisterDataHandler:self];
 #endif
     [self cancelAllPendingTasks];
+    [_sessionInterface releaseResourcesBeforeDestroy];
 }
 
 - (id<PowerAuthTokenStore>) tokenStore
@@ -703,15 +712,14 @@ static PowerAuthSDK * s_inst;
     PA2DictionarySafeSet(L2data, @"activationOtp", activation.additionalActivationOtp);
     PA2DictionarySafeSet(L2data, @"platform", [PowerAuthSystem platform]);
     PA2DictionarySafeSet(L2data, @"deviceInfo", [PowerAuthSystem deviceInfo]);
-    
-    // Notify other applications about pending activation
-    if (![_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation error:&error]) {
-        callback(nil, error);
-        return nil;
-    }
-    
+        
     // Start an activation
     PowerAuthCoreRequest * request = [_sessionInterface writeTaskWithSession:^PowerAuthCoreRequest*(PowerAuthCoreSession * session, NSError ** error) {
+        // Notify other applications about pending activation
+        if (![_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation error:error]) {
+            return nil;
+        }
+        // Create activation in session
         return [session createActivation:L1data withL2Data:L2data error:error];
     } error:&error];
     
@@ -979,9 +987,7 @@ static PowerAuthSDK * s_inst;
         if (customBiometryKek) {
             biometryKek = customBiometryKek;
         } else {
-            biometryKek = [_sessionInterface readTaskWithSession:^PowerAuthCoreData* _Nullable(PowerAuthCoreSession* session, NSError** error) {
-                return [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V4 error:error];
-            } error:&localError];
+            biometryKek = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V4 error:&localError];
         }
     }
     if (localError) {
@@ -990,9 +996,14 @@ static PowerAuthSDK * s_inst;
     }
     
     id<PowerAuthOperationTask> task = [_sessionInterface writeTaskWithSession:^PowerAuthCoreTask*(PowerAuthCoreSession * session, NSError ** error) {
-            return [session startProtocolUpgradeWithPassword:password
-                                             withBiometryKek:biometryKek
-                                                       error:error];
+        // Notify other applications about pending upgrade
+        if (![_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_ProtocolUpgrade error:error]) {
+            return nil;
+        }
+        // Start upgrade in session
+        return [session startProtocolUpgradeWithPassword:password
+                                         withBiometryKek:biometryKek
+                                                   error:error];
     } error:&localError];
     if (localError) {
         callback(nil, localError);

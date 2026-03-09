@@ -36,6 +36,9 @@
 - (BOOL) loadInitialState:(BOOL)clearUnsupportedData
                     error:(NSError*_Nullable*_Nullable)error;
 
+/// Release acquired resources before the instance is destroyed
+- (void) releaseResourcesBeforeDestroy;
+
 /**
  Contains instance to `PowerAuthExternalPendingOperation` in case that other application is doing the critical
  operation right now.

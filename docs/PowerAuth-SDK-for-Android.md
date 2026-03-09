@@ -2004,9 +2004,15 @@ activation status fetch must be performed to complete the protocol upgrade. Only
 after successful activation status fetch is the protocol upgrade considered
 completed. If the `activationStatusFetchRequired` field of the result object is
 set to `false`, the protocol upgrade is considered completed without any further
-action and the result object also contains new `activationFingerprint`. If an
-error occurs, the PowerAuth SDK will revert to the previous activation state,
-and the upgrade can be safely retried later.
+action and the result object also contains new `activationFingerprint`. The
+application should also inspect the `biometryFactorRemoved` field of the result
+object. If set to `true`, it indicates that the biometry factor was previously
+enabled but was removed during the protocol upgrade. In such case we
+recommend re-enabling the biometry factor using the standard workflow to
+[enable biometric authentication](#enable-biometric-authentication).
+
+If an error occurs, the PowerAuth SDK will revert to the previous activation
+state, and the upgrade can be safely retried later.
 
 Until the protocol upgrade is fully completed, the PowerAuth SDK restricts
 certain functionality, such as PowerAuth authentication code calculation. To
@@ -2017,6 +2023,27 @@ val upgradePending = powerAuthSDK.hasPendingProtocolUpgrade()
 ```
 
 If this call returns true, the application must perform an activation status fetch to complete the upgrade.
+
+The `startProtocolUpgrade()` method is available in three variants, each
+designed for different biometric configurations.
+
+The variant with `PowerAuthBiometricPrompt` allows the biometric key to be
+upgraded during the protocol upgrade, if the SDK configuration has the
+`authenticateOnBiometricKeySetup` disabled or external biometric key is not
+used. If the SDK configuration has the `authenticateOnBiometricKeySetup`
+enabled, biometric key cannot be upgraded. If external biometric key is used,
+use the method variant with `SecureData` instead.
+
+The method variant with `SecureData` is intended for cases where the activation
+uses external biometric key. Provided `SecureData` will replace the biometric
+key during the protocol upgrade. If external biometric key is not used,
+this method variant has same behavior as the the variant without
+`PowerAuthBiometricPrompt` or `SecureData`.
+
+The variant without `PowerAuthBiometricPrompt` or `SecureData` performs the
+protocol upgrade without handling biometric key upgrade. If the activation
+currently has a biometric factor enabled, it will be removed during the protocol
+upgrade.
 
 ## External Encryption Key
 

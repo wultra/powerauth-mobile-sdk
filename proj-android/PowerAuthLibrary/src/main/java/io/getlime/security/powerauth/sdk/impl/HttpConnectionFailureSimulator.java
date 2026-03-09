@@ -67,7 +67,9 @@ public final class HttpConnectionFailureSimulator {
      */
     public static void failNextAuthenticationUsingBiometrics() {
         if (BuildConfig.DEBUG) {
-            failAuthenticationUsingBiometrics = true;
+            synchronized (HttpConnectionFailureSimulator.class) {
+                failAuthenticationUsingBiometrics = true;
+            }
         } else {
             throw new IllegalStateException("Failure simulator is not available in release build");
         }
@@ -78,11 +80,13 @@ public final class HttpConnectionFailureSimulator {
      */
     public static boolean shouldFailAuthenticationUsingBiometrics() {
         if (BuildConfig.DEBUG) {
-            if (failAuthenticationUsingBiometrics) {
-                failAuthenticationUsingBiometrics = false;
-                return true;
-            } else {
-                return false;
+            synchronized (HttpConnectionFailureSimulator.class) {
+                if (failAuthenticationUsingBiometrics) {
+                    failAuthenticationUsingBiometrics = false;
+                    return true;
+                } else {
+                    return false;
+                }
             }
         } else {
             throw new IllegalStateException("Failure simulator is not available in release build");

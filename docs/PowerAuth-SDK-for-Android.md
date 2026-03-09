@@ -2037,7 +2037,7 @@ use the method variant with `SecureData` instead.
 The method variant with `SecureData` is intended for cases where the activation
 uses external biometric key. Provided `SecureData` will replace the biometric
 key during the protocol upgrade. If external biometric key is not used,
-this method variant has same behavior as the the variant without
+this method variant has same behavior as the method variant without
 `PowerAuthBiometricPrompt` or `SecureData`.
 
 The variant without `PowerAuthBiometricPrompt` or `SecureData` performs the

@@ -224,6 +224,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
                     KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                     .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
+                    .setKeySize(3072)
                     .setUserAuthenticationRequired(true);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 builder.setInvalidatedByBiometricEnrollment(invalidateByBiometricEnrollment);

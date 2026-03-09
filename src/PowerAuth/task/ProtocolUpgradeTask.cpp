@@ -83,6 +83,12 @@ void ProtocolUpgradeTask::onTaskEnd()
     resetState();
 }
 
+void ProtocolUpgradeTask::onTaskCancel()
+{
+    Task::onTaskCancel();
+    resetState();
+}
+
 void ProtocolUpgradeTask::prepareUpgradeData()
 {
     auto new_upgrade_data = UpgradeData::create();

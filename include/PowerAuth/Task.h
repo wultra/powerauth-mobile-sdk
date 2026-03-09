@@ -63,6 +63,9 @@ public:
     /// Cancel the task.
     void cancel() noexcept;
     
+    /// Cancels the task if it has not completed yet.
+    void cancelIfNotDone() noexcept;
+    
     /// Test whether task is finished its execution no matter of the type of the result.
     bool isDone() const noexcept;
     
@@ -129,6 +132,11 @@ protected:
     ///
     /// The shared lock is acquired before the call.
     virtual void onTaskEnd();
+    
+    /// Overridable method, called when task is canceled.
+    ///
+    /// The shared lock is acquired before the call.
+    virtual void onTaskCancel();
 
     /// Overridable method, called when partial request ends with success.
     ///

@@ -772,7 +772,7 @@ CC7_JNI_METHOD(void, cleanupBiometricFactorData)
     {
         THIS_OBJ()->cleanupBiometricFactorData();
     }
-    NH_CATCH()
+    NH_CATCH_RT_ONLY()
 }
 
 CC7_JNI_STATIC_METHOD_PARAMS(jobject, generateFactorKekForProtocolVersion, jint protocolVersion)

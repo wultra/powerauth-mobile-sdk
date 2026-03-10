@@ -281,6 +281,38 @@ static void _LocalContextUpdateSpecialOp(LocalContext * ctx, PA2SharedLock * opL
     }
 }
 
+/**
+ Abandon ownership of special operation due to instance destroy.
+ */
+static void _LocalContextAbandonSpecialOp(LocalContext * ctx, PA2SharedLock * opLock)
+{
+    PowerAuthLog(@"PA2SharedSessionProvider: WARNING: Abandoning special operation type %@ due to instance destroy.", @(ctx->specialOpType));
+    ctx->specialOpType = 0;
+    [opLock unlock];
+}
+
+/**
+ Try to take ownership of special operation. If NO is returned, then it indicates that there's another instance of PowerAuthSDK with the same
+ application identifier.
+ */
+static BOOL _LocalContextRestoreSpecialOp(LocalContext * ctx, PA2SharedLock * opLock, PowerAuthExternalPendingOperationType operationType)
+{
+    BOOL canRestoreOp = ctx->sharedData->specialOpType == operationType &&
+                        !memcmp(ctx->thisAppIdentifier, ctx->sharedData->specialOpAppId, ctx->thisAppIdentifierSize);
+    if (canRestoreOp) {
+        if (![opLock tryLock]) {
+            // This basically indicate that there are two instances of PowerAuthSDK with the same application ID.
+            PowerAuthLog(@"PA2SharedSessionProvider: Failed to acquire special operation lock.");
+            return NO;
+        }
+        // Lock acquired, we own a special operation now
+        PowerAuthLog(@"PA2SharedSessionProvider: Restoring ownership of special operation type %@", @(operationType));
+        ctx->specialOpType = operationType;
+        ctx->specialOpTicket = ctx->sharedData->specialOpTicket;
+        ctx->sharedData->specialOpStart = [NSDate date].timeIntervalSince1970;
+    }
+    return YES;
+}
 
 #pragma mark Private shared memory
 
@@ -444,6 +476,28 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
     return self;
 }
 
+- (void) dealloc
+{
+    [self releaseResourcesBeforeDestroy];
+}
+
+- (void) releaseResourcesBeforeDestroy
+{
+    if (_statusLock) {
+        [_statusLock lock];
+        if (_LocalContextThisRunningSpecialOp(&_localContext)) {
+            // This instance holds a lock for a special operation and is about to be destroyed. This is bad.
+            // We have to release the lock and keep the information about the special operation in shared memory.
+            // This is similar to a sudden application crash, but in that case the kernel releases the lock.
+            //
+            // Keeping the data in the shared region allows us to restore the state once the same instance
+            // of PowerAuthSDK is re-created.
+            _LocalContextAbandonSpecialOp(&_localContext, _operationLock);
+        }
+        [_statusLock unlock];
+    }
+}
+
 - (BOOL) loadInitialState:(BOOL)clearUnsupportedData
                     error:(NSError*_Nullable*_Nullable)error
 {
@@ -451,7 +505,19 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
     int access = ACQ_WRITE;
     if (clearUnsupportedData) access |= ACQ_ERASE_INVD;
     if ([self lockWithAccess:access error:&localError]) {
-        // Simple lock - unlock will guarantee initial state load.
+        // Simple lock - unlock is enough to restore the state.
+        // We have to also try to restore ownership of the special operation.
+        int restoreOpType = 0;
+        if (_session.hasPendingProtocolUpgrade) {
+            restoreOpType = PowerAuthExternalPendingOperationType_ProtocolUpgrade;
+        }
+        if (restoreOpType) {
+            if (!_LocalContextRestoreSpecialOp(&_localContext, _operationLock, restoreOpType)) {
+                // The restore may fail only if another instance of PowerAuthSDK did acquire operation lock before this instance.
+                // This is in general wrong and it indicates that more than one PowerAuthSDK with the same instance is in this process.
+                localError = PA2MakeError(PowerAuthErrorCode_ExternalPendingOperation, @"Two PowerAuthSDK instances use the same application ID for activation data sharing.");
+            }
+        }
         [self unlockWithError:&localError];
     }
     if (localError) {

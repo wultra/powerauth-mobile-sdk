@@ -66,6 +66,10 @@ if (![self unlockImpl:&lerr] || lerr) {         \
     return self;
 }
 
+- (void) releaseResourcesBeforeDestroy
+{
+}
+
 - (BOOL) loadInitialState:(BOOL)clearUnsupportedData
                     error:(NSError*_Nullable*_Nullable)error
 {

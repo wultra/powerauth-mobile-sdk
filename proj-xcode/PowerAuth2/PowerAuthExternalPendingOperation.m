@@ -29,4 +29,10 @@
     return self;
 }
 
+- (NSString*) description
+{
+    return [NSString stringWithFormat:@"<PowerAuthExternalPendingOperation type=%@, appId=\"%@\">",
+            @(_externalOperationType), _externalApplicationId];
+}
+
 @end

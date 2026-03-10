@@ -90,6 +90,15 @@
     return relativePath;
 }
 
+- (BOOL) hasBiometrySupport
+{
+#if defined(PA2_BIOMETRY_SUPPORT)
+    return YES;
+#else
+    return NO;
+#endif
+}
+
 - (BOOL) isRequestFailureSimulatorAvailable
 {
 #if defined(DEBUG)

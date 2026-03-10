@@ -54,8 +54,14 @@
     [self waitForTestQueues];
     _app1Queue.suspended = YES;
     _app2Queue.suspended = YES;
-    
+
+    [_altHelper cleanup];
     [super tearDown];
+    
+    // Make sure no external pending operation is left behind. If yes,
+    // then this will likely affect unrelated tests executed after.
+    XCTAssertNil(_sdk.externalPendingOperation);
+    XCTAssertNil(_altSdk.externalPendingOperation);
 }
 
 - (void) prepareConfigs:(PowerAuthConfiguration **)configuration
@@ -82,13 +88,24 @@
 
 - (BOOL) prepareAltSdk
 {
+    return [self prepareAltSdk:YES targetAlgorithm:self.powerAuthAlgorithm];
+}
+
+- (BOOL) prepareAltSdk:(BOOL)removeActivation
+       targetAlgorithm:(PowerAuthAlgorithm)algorithm
+{
     if (!self.sdk) {
         return NO;
     }
     
     PowerAuthConfiguration * altConfig = [self.helper.sdk.configuration copy];
-    altConfig.sharingConfiguration = [[PowerAuthSharingConfiguration alloc] initWithAppGroup:_appGroupId appIdentifier:_app2 keychainAccessGroup:_keychainAccessGroup];
-    _altHelper = [PowerAuthSdkTestHelper clone:self.helper withConfiguration:altConfig];
+    altConfig.algorithm = algorithm;
+    altConfig.sharingConfiguration = [[PowerAuthSharingConfiguration alloc] initWithAppGroup:_appGroupId
+                                                                               appIdentifier:_app2
+                                                                         keychainAccessGroup:_keychainAccessGroup];
+    _altHelper = [PowerAuthSdkTestHelper clone:self.helper
+                             withConfiguration:altConfig
+                              removeActivation:removeActivation];
     _altSdk = _altHelper.sdk;
     
     return _altSdk != nil;
@@ -393,6 +410,67 @@
     XCTAssertFalse([self.sdk.tokenStore hasLocalTokenWithName:token2]);
     XCTAssertFalse([_altSdk.tokenStore hasLocalTokenWithName:token1]);
     XCTAssertFalse([_altSdk.tokenStore hasLocalTokenWithName:token2]);
+}
+
+- (void) testProtocolUpgrade_Concurrent
+{
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        NSLog(@"Test not available for LEGACY_P256");
+        return;
+    }
+    
+    _sdk = [_helper prepareActivationForUpgradeTest:self.powerAuthAlgorithm withFlags:0];
+    
+    if (![self prepareAltSdk:NO targetAlgorithm:self.powerAuthAlgorithm]) {
+        XCTFail(@"Failed to initialize SDK objects");
+        return;
+    }
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _altSdk.currentAlgorithm);
+    
+    PowerAuthProtocolUpgradeResult * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk startProtocolUpgradeWithCorePassword:self.helper.authPossessionWithKnowledge.password callback:^(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error) {
+            [waiting reportCompletion:result];
+        }];
+        
+        // Instance initiated upgrade has external pending operation set to nil
+        XCTAssertNil(_sdk.externalPendingOperation);
+        // Other instance has external pending operation available
+        XCTAssertNotNil(_altSdk.externalPendingOperation);
+        XCTAssertEqual(PowerAuthExternalPendingOperationType_ProtocolUpgrade, _altSdk.externalPendingOperation.externalOperationType);
+        
+    }];
+    XCTAssertNotNil(result);
+    
+    XCTAssertEqual(self.powerAuthAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertEqual(self.powerAuthAlgorithm, _altSdk.currentAlgorithm);
+}
+
+- (void) testProtocolUpgrade_ConcurrentLegacyVsV4
+{
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        NSLog(@"Test not available for LEGACY_P256");
+        return;
+    }
+
+    _sdk = [_helper prepareActivationForUpgradeTest:self.powerAuthAlgorithm withFlags:0];
+    
+    if (![self prepareAltSdk:NO targetAlgorithm:PowerAuthAlgorithm_LEGACY_P256]) {
+        XCTFail(@"Failed to initialize SDK objects");
+        return;
+    }
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _altSdk.currentAlgorithm);
+
+    PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:YES];
+    XCTAssertNotNil(result);
+    
+    XCTAssertEqual(self.powerAuthAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertEqual(self.powerAuthAlgorithm, _altSdk.currentAlgorithm);
+    
+    PowerAuthCorePassword * password = [_helper.authPossessionWithKnowledge.password copyToImmutable];
+    XCTAssertTrue([_helper checkForCorePassword:password]);
+    XCTAssertTrue([_altHelper checkForCorePassword:password]);
 }
 
 @end

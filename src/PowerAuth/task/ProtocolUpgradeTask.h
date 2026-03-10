@@ -43,6 +43,8 @@ protected:
     
 private:
     
+    /// Prepare upgrade data and indicate that session is in pending upgrade.
+    void prepareUpgradeData();
     /// Prepare upgrade context and send the start protocol upgrade request to the server.
     void startProtocolUpgrade();
     /// Build the request body for the start protocol upgrade request.

@@ -33,6 +33,8 @@ ProtocolUpgradeTask::ProtocolUpgradeTask(const ContextPtr& context, const Passwo
 void ProtocolUpgradeTask::onTaskStart()
 {
     Task::onTaskStart();
+    // Create upgrade data structure
+    prepareUpgradeData();
     // Fetch activation status to obtain the current state of the protocol upgrade.
     fetchActivationStatus();
 }
@@ -87,6 +89,12 @@ void ProtocolUpgradeTask::onTaskCancel()
     resetState();
 }
 
+void ProtocolUpgradeTask::prepareUpgradeData()
+{
+    auto new_upgrade_data = UpgradeData::create();
+    _session_data->setUpgradeData(new_upgrade_data);
+}
+
 void ProtocolUpgradeTask::startProtocolUpgrade()
 {
     auto current_context = lockContext();
@@ -98,9 +106,6 @@ void ProtocolUpgradeTask::startProtocolUpgrade()
     if (_session_data->persistentData().hasBiometricFactorKey()) {
         Credentials::validateFactorKek(_new_biometry_kek, Version_V4);
     }
-    
-    auto new_ud = UpgradeData::create();
-    _session_data->setUpgradeData(new_ud);
     
     auto upgrade_context = current_context->createTargetAlgorithmContext();
     

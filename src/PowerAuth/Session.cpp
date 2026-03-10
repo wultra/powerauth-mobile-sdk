@@ -204,7 +204,10 @@ TaskPtr Session::startProtocolUpgrade(const PasswordPtr& password, const cc7::By
 {
     LOCK_GUARD();
     checkActivationData();
-    return std::make_shared<ProtocolUpgradeTask>(_context, password, new_biometry_kek);
+    auto task = std::make_shared<ProtocolUpgradeTask>(_context, password, new_biometry_kek);
+    // Start the task to prepare upgrade structure in SessionData class.
+    task->start();
+    return task;
 }
 
 RequestPtr Session::removeActivation(const CredentialsPtr& credentials)

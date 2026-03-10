@@ -2127,10 +2127,16 @@ let powerAuthSDK = try PowerAuthSDK(configuration: configuration)
 The `PowerAuthSharingConfiguration` object contains the following properties:
 
 - `appGroup` is the name of the app group shared between your applications. Be aware, that the length of app group encoded in UTF-8, should not exceed 26 characters. See [troubleshooting](#length-of-application-group) section for more details.
-- `appIdentifier` is an identifier unique across your all applications or extensions that are supposed to use the shared activation data. You can use your applications' bundle identifiers or any other identifier that can be then processed in all your applications. Due to technical limitations, the length of the identifier must not exceed 127 bytes, if represented in UTF-8.
+- `appIdentifier` is an identifier unique across all your applications or extensions that are supposed to use the shared activation data. You can use your applications' bundle identifiers or any other identifier that can be then identified in all your applications (such as `smartBank`, `smartBank.walletExt`, `investmentsApp`, etc.) Due to technical limitations, the length of the identifier must not exceed 127 bytes, if represented in UTF-8.
 - `keychainAccessGroup` is an access group for keychain sharing.
 
+<!-- begin box info -->
 Unlike the regular configuration the `instanceId` value in `PowerAuthConfiguration` should not be derived on the application's bundle identifier. This is because all applications and extensions that share PowerAuth data must use the same identifier. To ensure consistency, use a predefined constant string or an identifier based on the first application that integrated PowerAuth. This guarantees that all related components can access the same PowerAuth instance without conflicts.
+<!-- end -->
+
+<!-- begin box warning -->
+It is also strongly recommended not to use the same `appIdentifier` for more than one instance of `PowerAuthSDK` running in the same application or extension (i.e. do not share the data between multiple instances running in the same process).
+<!-- end -->
 
 ### External pending operations
 

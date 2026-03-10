@@ -26,7 +26,6 @@ import io.getlime.security.powerauth.core.response.CoreActivationResult;
 import io.getlime.security.powerauth.core.response.CoreActivationStatus;
 import io.getlime.security.powerauth.core.response.CoreProtocolUpgradeResult;
 import io.getlime.security.powerauth.core.response.CoreTokenData;
-import jakarta.validation.constraints.Null;
 
 /**
  * The {@code CoreSession} class provides Java interface for low-level C++ Session implementation.
@@ -584,6 +583,26 @@ public class CoreSession extends NativeObject {
      */
     @NonNull
     public native SecureData generateFactorKekFromData(@NonNull SecureData data) throws CoreException;
+
+    /**
+     * Generates a factor KEK from the provided input data. This method is typically used to derive
+     * a KEK for a biometric factor for specific protocol version.
+     * <p>
+     * If KEK is derived for protocol V3, the method is compatible with the normalization
+     * used in SDK 1.9.x and older ({@code Session.normalizeSignatureUnlockKeyFromData()}).
+     *
+     * @param data Input data.
+     * @param protocolVersion Protocol version for which the KEK will be used.
+     * @return KEK calculated from input data for specified protocol version.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public static native SecureData generateFactorKekFromDataForVersion(@NonNull SecureData data, @CoreProtocolVersion int protocolVersion) throws CoreException;
+
+    /**
+     * Remove biometric factor from the persistent data.
+     */
+    public native void cleanupBiometricFactorData();
 
     /**
      * Generate new factor KEK for selected protocol version.

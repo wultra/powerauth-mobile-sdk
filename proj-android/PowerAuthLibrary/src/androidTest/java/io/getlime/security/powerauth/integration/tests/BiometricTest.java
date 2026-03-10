@@ -16,9 +16,6 @@
 
 package io.getlime.security.powerauth.integration.tests;
 
-import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.Lifecycle;
-import androidx.test.core.app.ActivityScenario;
 import io.getlime.security.powerauth.biometry.IAddBiometryFactorListener;
 import io.getlime.security.powerauth.biometry.IRemoveBiometryFactorListener;
 import io.getlime.security.powerauth.core.CryptoUtils;
@@ -40,54 +37,7 @@ import android.util.Base64;
 
 import java.nio.charset.StandardCharsets;
 
-public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConfigurationObserver {
-
-    private ActivityScenario<TestActivity> activityScenario;
-
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        activityScenario = ActivityScenario.launch(TestActivity.class);
-    }
-
-    @Override
-    public void tearDown() {
-        super.tearDown();
-        activityScenario.close();
-    }
-
-    private void runWithFragmentActivity(final ITestExecution execution) throws Exception {
-        runWithFragmentActivity(this, execution);
-    }
-
-    private void runWithFragmentActivity(final PowerAuthTestHelper.IConfigurationObserver configurationObserver,
-                                         final ITestExecution execution) throws Exception {
-        FragmentActivity[] capturedActivity = new FragmentActivity[1];
-        TestFragment fragment = new TestFragment();
-
-        // Create supporting UI
-        activityScenario.moveToState(Lifecycle.State.STARTED);
-        activityScenario.onActivity(activity -> {
-            capturedActivity[0] = activity;
-            activity.getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(android.R.id.content, fragment)
-                    .commitNow(); // Synchronously attach the fragment
-        });
-        assertNotNull(capturedActivity[0]);
-        // Setup
-        testHelper = new PowerAuthTestHelper.Builder()
-                .configurationObserver(configurationObserver)
-                .powerAuthAlgorithm(getAlgorithmForTest())
-                .testFragmentActivity(capturedActivity[0])
-                .testFragment(fragment)
-                .build();
-        powerAuthSDK = testHelper.getSharedSdk();
-        activationHelper = new ActivationHelper(testHelper);
-
-        // Tun test in the same thread
-        execution.execute();
-    }
+public class BiometricTest extends FragmentActivityBaseTest {
 
     private void removeBiometryFactor() throws Exception {
         AsyncHelper.await(resultCatcher -> {
@@ -444,20 +394,4 @@ public class BiometricTest extends BaseTest implements PowerAuthTestHelper.IConf
         });
     }
 
-    @Override
-    public void adjustPowerAuthConfiguration(@NonNull PowerAuthConfiguration.Builder builder) {
-    }
-
-    @Override
-    public void adjustPowerAuthBiometricConfiguration(@NonNull PowerAuthBiometricConfiguration.Builder builder) {
-        builder.authenticateOnBiometricKeySetup(false);
-    }
-
-    @Override
-    public void adjustPowerAuthClientConfiguration(@NonNull PowerAuthClientConfiguration.Builder builder) {
-    }
-
-    @Override
-    public void adjustPowerAuthKeychainConfiguration(@NonNull PowerAuthKeychainConfiguration.Builder builder) {
-    }
 }

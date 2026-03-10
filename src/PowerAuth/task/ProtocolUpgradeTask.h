@@ -71,7 +71,7 @@ private:
     const SessionDataPtr _session_data;
     
     const PasswordPtr _password;
-    const cc7::ByteRange _new_biometry_kek;
+    const cc7::ByteArray _new_biometry_kek;
 };
 
 } // namespace powerAuth

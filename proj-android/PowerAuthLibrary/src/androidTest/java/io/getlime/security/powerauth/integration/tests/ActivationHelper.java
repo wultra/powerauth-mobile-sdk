@@ -20,6 +20,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import io.getlime.security.powerauth.biometry.IPersistActivationWithBiometricsListener;
 import io.getlime.security.powerauth.core.CoreProtocolVersion;
@@ -35,10 +37,13 @@ import io.getlime.security.powerauth.integration.support.model.Activation;
 import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.integration.support.model.ActivationOtpValidation;
 import io.getlime.security.powerauth.integration.support.model.Application;
+import io.getlime.security.powerauth.integration.support.model.ProtocolVersion;
 import io.getlime.security.powerauth.integration.support.model.ServerConstants;
+import io.getlime.security.powerauth.integration.support.model.TokenInfo;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
 import io.getlime.security.powerauth.networking.response.*;
 import io.getlime.security.powerauth.sdk.*;
+import io.getlime.security.powerauth.sdk.impl.IConsumer;
 
 import static org.junit.Assert.*;
 
@@ -566,17 +571,6 @@ public class ActivationHelper {
     }
 
     /**
-     * Re-create instance of {@link PowerAuthSDK} with new {@link PowerAuthConfiguration}.
-     * @return New instance of {@link PowerAuthSDK}.
-     * @throws Exception In case of failure.
-     */
-    @NonNull
-    PowerAuthSDK reCreateSdk(final PowerAuthConfiguration configuration) throws Exception {
-        powerAuthSDK = testHelper.reCreateSdk(configuration, null, null, null);
-        return powerAuthSDK;
-    }
-
-    /**
      * Validate user password on server.
      * This implementation is for integration testing only. Do NOT use `beginPasswordChange`
      * as a general password-validation mechanism.
@@ -790,4 +784,387 @@ public class ActivationHelper {
     public static String extractPlaintextPassword(@NonNull Password password) {
         return PowerAuthAuthenticationHelper.extractPlaintextPassword(password);
     }
+
+    /**
+     * Create a new token or get a local token with the specified token name
+     * and validate it against server.
+     *
+     * @param tokenName Name of the token to validate.
+     * @param createToken If {@code true}, new token is requested. If {@code false}, local token is used.
+     * @throws Exception In case of an error.
+     */
+    public void createTokenAndValidateTokenHeader(final String tokenName, final boolean createToken) throws Exception {
+        if (createToken) {
+            final PowerAuthToken token = AsyncHelper.await(resultCatcher ->
+                    powerAuthSDK.getTokenStore().requestAccessToken(testHelper.getContext(), tokenName, getPossessionAuthentication(), new IGetTokenListener() {
+                        @Override
+                        public void onGetTokenSucceeded(@NonNull PowerAuthToken token) {
+                            resultCatcher.completeWithResult(token);
+                        }
+
+                        @Override
+                        public void onGetTokenFailed(@NonNull Throwable t) {
+                            resultCatcher.completeWithError(t);
+                        }
+                    })
+            );
+            assertNotNull(token);
+        } else {
+            final boolean exists = powerAuthSDK.getTokenStore().hasLocalToken(testHelper.getContext(), tokenName);
+            assertTrue(exists);
+        }
+
+        final PowerAuthHttpHeader header = AsyncHelper.await(resultCatcher ->
+                powerAuthSDK.getTokenStore().generateAuthenticationHeader(testHelper.getContext(), tokenName, new IGenerateTokenHeaderListener() {
+                    @Override
+                    public void onGenerateTokenHeaderSucceeded(@NonNull PowerAuthHttpHeader header) {
+                        resultCatcher.completeWithResult(header);
+                    }
+
+                    @Override
+                    public void onGenerateTokenHeaderFailed(@NonNull Throwable t) {
+                        resultCatcher.completeWithError(t);
+                    }
+                })
+        );
+
+        assertNotNull(header);
+        assertTrue(validateTokenHeader(header));
+    }
+
+    /**
+     * Validates a PowerAuth token-based authentication HTTP header against the test server.
+     *
+     * @param header Token authentication HTTP header to validate.
+     * @return {@code true} if the server reports the token as valid; {@code false} otherwise.
+     * @throws Exception In case of an error.
+     */
+    boolean validateTokenHeader(final PowerAuthHttpHeader header) throws Exception {
+        final Map<String, String> parsedHeader = AuthenticationHelper.parseAuthenticationHeader(header);
+        final TokenInfo tokenInfo = testHelper.getServerApi().validateToken(
+                Objects.requireNonNull(parsedHeader.get("token_id")),
+                Objects.requireNonNull(parsedHeader.get("token_digest")),
+                Objects.requireNonNull(parsedHeader.get("nonce")),
+                Long.parseLong(Objects.requireNonNull(parsedHeader.get("timestamp"))),
+                Objects.requireNonNull(parsedHeader.get("version"))
+        );
+
+        assertEquals(getActivation().getActivationId(), tokenInfo.getActivationId());
+        assertEquals(getApplication().getApplicationId(), tokenInfo.getApplicationId());
+        return tokenInfo.isTokenValid();
+    }
+
+    /**
+     * Fetches secure vault keys using different authentication factors and optionally
+     * verifies them against expected values.
+     *
+     * @param knowledge Expected {@link PowerAuthSecureVaultKeyId#KNOWLEDGE} vault key.
+     * @param knowledgeOrBiometry Expected {@link PowerAuthSecureVaultKeyId#KNOWLEDGE_OR_BIOMETRY} vault key.
+     * @return List containing the fetched keys in order {@link PowerAuthSecureVaultKeyId#KNOWLEDGE}, {@link PowerAuthSecureVaultKeyId#KNOWLEDGE_OR_BIOMETRY}.
+     * @throws Exception In case of an error.
+     */
+    List<PowerAuthSecureVaultKey> fetchSecureVaultKeys(@Nullable final PowerAuthSecureVaultKey knowledge, @Nullable final PowerAuthSecureVaultKey knowledgeOrBiometry) throws Exception {
+        final PowerAuthSecureVaultKey key1 = AsyncHelper.await(resultCatcher ->
+                powerAuthSDK.fetchSecureVaultKey(testHelper.getContext(), getValidAuthentication(), PowerAuthSecureVaultKeyId.KNOWLEDGE, new IFetchSecureVaultKeyListener() {
+                    @Override
+                    public void onFetchSecureVaultKeySucceed(@NonNull PowerAuthSecureVaultKey vaultKey) {
+                        resultCatcher.completeWithResult(vaultKey);
+                    }
+
+                    @Override
+                    public void onFetchSecureVaultKeyFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithError(throwable);
+                    }
+                }));
+        assertNotNull(key1);
+        if (knowledge != null) {
+            assertEquals(knowledge, key1);
+        }
+
+        final PowerAuthSecureVaultKey key2 = AsyncHelper.await(resultCatcher ->
+                powerAuthSDK.fetchSecureVaultKey(testHelper.getContext(), getValidAuthentication(), PowerAuthSecureVaultKeyId.KNOWLEDGE_OR_BIOMETRY, new IFetchSecureVaultKeyListener() {
+                    @Override
+                    public void onFetchSecureVaultKeySucceed(@NonNull PowerAuthSecureVaultKey vaultKey) {
+                        resultCatcher.completeWithResult(vaultKey);
+                    }
+
+                    @Override
+                    public void onFetchSecureVaultKeyFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithError(throwable);
+                    }
+                }));
+
+        assertNotNull(key2);
+        if (knowledgeOrBiometry != null) {
+            assertEquals(knowledgeOrBiometry, key2);
+        }
+
+        return List.of(key1, key2);
+    }
+
+    /**
+     * Prepare an activation that uses {@link PowerAuthAlgorithm#LEGACY_P256} protocol
+     * and is configured to support a future upgrade to the specified target algorithm.
+     *
+     * @param targetAlgorithm The algorithm to which this activation should be upgradable.
+     * @param flags Flags that are forwarded to the {@link ActivationHelper#createStandardActivation(int, String)}.
+     * @param authenticateOnBiometricKeySetup Flag that modifies requirement of authentication on biometry key setup for this SDK instance.
+     * @return A new {@link PowerAuthSDK} instance that can be upgraded.
+     * @throws Exception In case of a failure.
+     */
+    public PowerAuthSDK prepareActivationForUpgradeTest(final @PowerAuthAlgorithm int targetAlgorithm, final int flags, final boolean authenticateOnBiometricKeySetup) throws Exception {
+        // Protocol upgrade not available before calling a fetch activation status.
+        assertFalse(powerAuthSDK.hasProtocolUpgradeAvailable());
+        final ActivationDetail activationDetail = createStandardActivation(flags, null);
+
+        final PowerAuthBiometricConfiguration currentBiometricConfiguration = powerAuthSDK.getBiometricConfiguration();
+        final PowerAuthBiometricConfiguration targetBiometricConfiguration = new PowerAuthBiometricConfiguration.Builder()
+                .authenticateOnBiometricKeySetup(authenticateOnBiometricKeySetup)
+                .confirmBiometricAuthentication(currentBiometricConfiguration.isConfirmBiometricAuthentication())
+                .enableFallbackToSharedBiometryKey(currentBiometricConfiguration.isFallbackToSharedBiometryKeyEnabled())
+                .invalidateBiometricFactorAfterChange(currentBiometricConfiguration.isInvalidateBiometricFactorAfterChange())
+                .build();
+
+        return prepareActivationForUpgradeTest(targetAlgorithm, activationDetail, targetBiometricConfiguration);
+    }
+
+    /**
+     * Prepare an activation that uses {@link PowerAuthAlgorithm#LEGACY_P256} protocol
+     * and is configured to support a future upgrade to the specified target algorithm.
+     *
+     * @param targetAlgorithm The algorithm to which this activation should be upgradable.
+     * @param flags Flags that are forwarded to the {@link ActivationHelper#createStandardActivation(int, String)}.
+     * @return A new {@link PowerAuthSDK} instance that can be upgraded.
+     * @throws Exception In case of a failure.
+     */
+    public PowerAuthSDK prepareActivationForUpgradeTest(final @PowerAuthAlgorithm int targetAlgorithm, final int flags) throws Exception {
+        // Protocol upgrade not available before calling a fetch activation status.
+        assertFalse(powerAuthSDK.hasProtocolUpgradeAvailable());
+        final ActivationDetail activationDetail = createStandardActivation(flags, null);
+        return prepareActivationForUpgradeTest(targetAlgorithm, activationDetail, null);
+    }
+
+    /**
+     * Prepare an activation that uses {@link PowerAuthAlgorithm#LEGACY_P256} protocol
+     * and is configured to support a future upgrade to the specified target algorithm.
+     *
+     * @param targetAlgorithm The algorithm to which this activation should be upgradable.
+     * @param activationDetail Result of the activation creation.
+     * @param biometricConfiguration Biometric configuration to be used for the SDK instance.
+     * @return A new {@link PowerAuthSDK} instance that can be upgraded.
+     * @throws Exception In case of a failure.
+     */
+    private PowerAuthSDK prepareActivationForUpgradeTest(final @PowerAuthAlgorithm int targetAlgorithm, final ActivationDetail activationDetail, final PowerAuthBiometricConfiguration biometricConfiguration) throws Exception {
+        // Protocol upgrade not available before calling a fetch activation status.
+        assertFalse(powerAuthSDK.hasProtocolUpgradeAvailable());
+
+        // Extract session data
+        final byte[] sessionData = powerAuthSDK.getCoreSession().getSerializedState();
+
+        // Reconfigure SDK to support target algorithm
+        final PowerAuthConfiguration currentConfiguration = powerAuthSDK.getConfiguration();
+        final PowerAuthConfiguration targetConfiguration = new PowerAuthConfiguration.Builder(currentConfiguration.getInstanceId(), currentConfiguration.getBaseEndpointUrl(), currentConfiguration.getConfiguration())
+                .algorithm(targetAlgorithm)
+                .build();
+        powerAuthSDK = testHelper.reCreateSdk(targetConfiguration, biometricConfiguration, null, null);
+
+        // Load the old V3 session
+        powerAuthSDK.getCoreSession().deserializeState(sessionData);
+        assertTrue(powerAuthSDK.hasValidActivation());
+        assertEquals(activationDetail.getActivationId(), powerAuthSDK.getActivationIdentifier());
+        assertTrue(validateUserPassword(getValidPassword()));
+
+        // Activation now uses legacy protocol, but is configured to support tested algorithm
+        assertEquals(PowerAuthAlgorithm.LEGACY_P256, powerAuthSDK.getCurrentAlgorithm());
+        assertEquals(targetAlgorithm, powerAuthSDK.getConfiguration().getAlgorithm());
+
+        final PowerAuthActivationStatus status = fetchActivationStatus();
+        assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
+        assertTrue(status.isProtocolUpgradeAvailable());
+        assertEquals(targetAlgorithm > PowerAuthAlgorithm.LEGACY_P256, powerAuthSDK.hasProtocolUpgradeAvailable());
+
+        return powerAuthSDK;
+    }
+
+    /**
+     * Start the protocol upgrade and expect a failure.
+     *
+     * @param targetAlgorithm Target algorithm for the protocol upgrade.
+     * @param upgradeStartCall Consumer that calls the protocol upgrade start method.
+     * @return {@link Throwable} representing an expected error during protocol upgrade.
+     * @throws Exception In case of unexpected error.
+     */
+    private Throwable startProtocolUpgradeExpectFailure(final @PowerAuthAlgorithm int targetAlgorithm, final IConsumer<IProtocolUpgradeListener> upgradeStartCall) throws Exception {
+        return AsyncHelper.await(resultCatcher ->
+                upgradeStartCall.accept(new IProtocolUpgradeListener() {
+                    @Override
+                    public void onProtocolUpgradeSucceed(@NonNull ProtocolUpgradeResult result) {
+                        resultCatcher.completeWithResult(null);
+                    }
+
+                    @Override
+                    public void onProtocolUpgradeFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithResult(throwable);
+                    }
+                })
+        );
+    }
+
+    /**
+     * Start the protocol upgrade and expect a failure.
+     *
+     * @param targetAlgorithm Target algorithm for the protocol upgrade.
+     * @return {@link Throwable} representing an expected error during protocol upgrade.
+     * @throws Exception In case of unexpected error.
+     */
+    Throwable startProtocolUpgradeExpectFailure(final @PowerAuthAlgorithm int targetAlgorithm) throws Exception {
+        final Password password = getValidPassword();
+        final IConsumer<IProtocolUpgradeListener> upgradeStartCall = (listener ->
+                powerAuthSDK.startProtocolUpgrade(testHelper.getContext(), password, listener)
+        );
+
+        return startProtocolUpgradeExpectFailure(targetAlgorithm, upgradeStartCall);
+    }
+
+    /**
+     * Start the protocol upgrade and expect a failure.
+     *
+     * @param targetAlgorithm Target algorithm for the protocol upgrade.
+     * @param newBiometryKey The new biometry key to be set.
+     * @return {@link Throwable} representing an expected error during protocol upgrade.
+     * @throws Exception In case of unexpected error.
+     */
+    Throwable startProtocolUpgradeExpectFailure(final @PowerAuthAlgorithm int targetAlgorithm, final SecureData newBiometryKey) throws Exception {
+        final Password password = getValidPassword();
+        final IConsumer<IProtocolUpgradeListener> upgradeStartCall = (listener ->
+                powerAuthSDK.startProtocolUpgrade(testHelper.getContext(), password, newBiometryKey, listener)
+        );
+
+        return startProtocolUpgradeExpectFailure(targetAlgorithm, upgradeStartCall);
+    }
+
+    /**
+     * Start the protocol upgrade and expect a failure.
+     *
+     * @param targetAlgorithm Target algorithm for the protocol upgrade.
+     * @param biometricPrompt Biometric prompt to use for the biometry key upgrade.
+     * @return {@link Throwable} representing an expected error during protocol upgrade.
+     * @throws Exception In case of unexpected error.
+     */
+    Throwable startProtocolUpgradeExpectFailure(final @PowerAuthAlgorithm int targetAlgorithm, final PowerAuthBiometricPrompt biometricPrompt) throws Exception {
+        final Password password = getValidPassword();
+        final IConsumer<IProtocolUpgradeListener> upgradeStartCall = (listener ->
+                powerAuthSDK.startProtocolUpgrade(testHelper.getContext(), password, biometricPrompt, listener)
+        );
+
+        return startProtocolUpgradeExpectFailure(targetAlgorithm, upgradeStartCall);
+    }
+
+    /**
+     * Start protocol upgrade and expect valid {@link ProtocolUpgradeResult}.
+     * If the {@code targetAlgorithm} is {@link PowerAuthAlgorithm#LEGACY_P256},
+     * then the protocol upgrade request is not valid and {@code null} is returned.
+     *
+     * @param targetAlgorithm Target algorithm for the protocol upgrade.
+     * @param upgradeStartCall Consumer that calls the protocol upgrade start method.
+     * @return Valid protocol upgrade result for newer protocols and {@code null} for legacy protocol.
+     * @throws Exception in case of upgrade process failure.
+     */
+    private ProtocolUpgradeResult startProtocolUpgradeExpectResult(final @PowerAuthAlgorithm int targetAlgorithm, final IConsumer<IProtocolUpgradeListener> upgradeStartCall) throws Exception {
+        final ProtocolUpgradeResult result = AsyncHelper.await(resultCatcher -> {
+            upgradeStartCall.accept(new IProtocolUpgradeListener() {
+                @Override
+                public void onProtocolUpgradeSucceed(@NonNull ProtocolUpgradeResult result) {
+                    resultCatcher.completeWithResult(result);
+                }
+
+                @Override
+                public void onProtocolUpgradeFailed(@NonNull Throwable throwable) {
+                    if (targetAlgorithm == PowerAuthAlgorithm.LEGACY_P256) {
+                        assertTrue(throwable instanceof PowerAuthErrorException);
+                        assertEquals("powerAuth::PowerAuthException: Protocol upgrade is not possible with current configuration", throwable.getMessage());
+                        resultCatcher.completeWithResult(null);
+                    } else {
+                        resultCatcher.completeWithError(throwable);
+                    }
+                }
+            });
+        });
+
+        if (targetAlgorithm > PowerAuthAlgorithm.LEGACY_P256) {
+            testHelper.getServerApi().setClientProtocolVersion(ProtocolVersion.V4_0);
+            if (!result.isActivationStatusFetchRequired()) {
+                // Upgrade finished completely
+                // Fetch status from the server, whether the activation version has been upgraded and activation fingerprint match.
+                final ActivationDetail activationDetail = testHelper.getServerApi().getActivationDetail(getActivation());
+                assertEquals(powerAuthSDK.getActivationFingerprint(), activationDetail.getDevicePublicKeyFingerprint());
+                assertEquals(4, activationDetail.getProtocolVersion());
+                assertTrue(validateUserPassword(getValidPassword()));
+            } else if (result.isActivationStatusFetchRequired() && result.getActivationFingerprint() == null) {
+                // Confirm not completed, so password validation should fail
+                final Exception asyncException = assertThrows(Exception.class, () -> validateUserPassword(getValidPassword()));
+                assertTrue(asyncException.getCause() instanceof PowerAuthErrorException);
+                assertEquals("powerAuth::PowerAuthException: Authentication header calculation is not allowed during pending protocol upgrade", asyncException.getCause().getMessage());
+                assertEquals(17, ((PowerAuthErrorException) asyncException.getCause()).getPowerAuthErrorCode());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Start protocol upgrade and expect valid {@link ProtocolUpgradeResult}.
+     * If the {@code targetAlgorithm} is {@link PowerAuthAlgorithm#LEGACY_P256},
+     * then the protocol upgrade request is not valid and {@code null} is returned.
+     *
+     * @param targetAlgorithm Target algorithm for the protocol upgrade.
+     * @return Valid protocol upgrade result for newer protocols and {@code null} for legacy protocol.
+     * @throws Exception in case of upgrade process failure.
+     */
+    ProtocolUpgradeResult startProtocolUpgradeExpectResult(final @PowerAuthAlgorithm int targetAlgorithm) throws Exception {
+        final Password password = getValidPassword();
+        final IConsumer<IProtocolUpgradeListener> upgradeStartCall = (listener ->
+                powerAuthSDK.startProtocolUpgrade(testHelper.getContext(), password, listener)
+        );
+
+        return startProtocolUpgradeExpectResult(targetAlgorithm, upgradeStartCall);
+    }
+
+    /**
+     * Start protocol upgrade and expect valid {@link ProtocolUpgradeResult}.
+     * If the {@code targetAlgorithm} is {@link PowerAuthAlgorithm#LEGACY_P256},
+     * then the protocol upgrade request is not valid and {@code null} is returned.
+     *
+     * @param targetAlgorithm Target algorithm for the protocol upgrade.
+     * @param newBiometryKey The new biometry key to be set.
+     * @return Valid protocol upgrade result for newer protocols and {@code null} for legacy protocol.
+     * @throws Exception in case of upgrade process failure.
+     */
+    ProtocolUpgradeResult startProtocolUpgradeExpectResult(final @PowerAuthAlgorithm int targetAlgorithm, final SecureData newBiometryKey) throws Exception {
+        final Password password = getValidPassword();
+        final IConsumer<IProtocolUpgradeListener> upgradeStartCall = (listener ->
+                powerAuthSDK.startProtocolUpgrade(testHelper.getContext(), password, newBiometryKey, listener)
+        );
+
+        return startProtocolUpgradeExpectResult(targetAlgorithm, upgradeStartCall);
+    }
+
+    /**
+     * Start protocol upgrade and expect valid {@link ProtocolUpgradeResult}.
+     * If the {@code targetAlgorithm} is {@link PowerAuthAlgorithm#LEGACY_P256},
+     * then the protocol upgrade request is not valid and {@code null} is returned.
+     *
+     * @param targetAlgorithm Target algorithm for the protocol upgrade.
+     * @param biometricPrompt Biometric prompt to use for the biometry key upgrade.
+     * @return Valid protocol upgrade result for newer protocols and {@code null} for legacy protocol.
+     * @throws Exception in case of upgrade process failure.
+     */
+    ProtocolUpgradeResult startProtocolUpgradeExpectResult(final @PowerAuthAlgorithm int targetAlgorithm, final PowerAuthBiometricPrompt biometricPrompt) throws Exception {
+        final Password password = getValidPassword();
+        final IConsumer<IProtocolUpgradeListener> upgradeStartCall = (listener ->
+            powerAuthSDK.startProtocolUpgrade(testHelper.getContext(), password, biometricPrompt, listener)
+        );
+
+        return startProtocolUpgradeExpectResult(targetAlgorithm, upgradeStartCall);
+    }
+
 }

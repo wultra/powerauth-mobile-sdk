@@ -46,6 +46,7 @@ public final class HttpConnectionFailureSimulator {
     private static final Map<String, Integer> responseFailure;
     private static final Map<String, Integer> onSendFailure;
     private static final Set<String> onReceiveFailure;
+    private static boolean failAuthenticationUsingBiometrics = false;
 
     static {
         responseFailure  = BuildConfig.DEBUG ? new HashMap<>() : null;
@@ -59,6 +60,37 @@ public final class HttpConnectionFailureSimulator {
      */
     public static boolean isRequestFailureSimulatorAvailable() {
         return BuildConfig.DEBUG;
+    }
+
+    /**
+     * Set simulated failure during authentication using biometrics method.
+     */
+    public static void failNextAuthenticationUsingBiometrics() {
+        if (BuildConfig.DEBUG) {
+            synchronized (HttpConnectionFailureSimulator.class) {
+                failAuthenticationUsingBiometrics = true;
+            }
+        } else {
+            throw new IllegalStateException("Failure simulator is not available in release build");
+        }
+    }
+
+    /**
+     * @return {@code true} if authentication using biometrics method should fail, {@code false} otherwise.
+     */
+    public static boolean shouldFailAuthenticationUsingBiometrics() {
+        if (BuildConfig.DEBUG) {
+            synchronized (HttpConnectionFailureSimulator.class) {
+                if (failAuthenticationUsingBiometrics) {
+                    failAuthenticationUsingBiometrics = false;
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } else {
+            throw new IllegalStateException("Failure simulator is not available in release build");
+        }
     }
 
     /**
@@ -126,6 +158,7 @@ public final class HttpConnectionFailureSimulator {
                 responseFailure.clear();
                 onSendFailure.clear();
                 onReceiveFailure.clear();
+                failAuthenticationUsingBiometrics = false;
             }
         } else {
             throw new IllegalStateException("Failure simulator is not available in release build");

@@ -128,7 +128,6 @@ public:
     const cc7::crypto::KeyPairFactoryPtr& getSigningKeyPairFactoryPtr() const noexcept;
         
     void updateAfterProtocolVersionChange();
-    void resetState();
     
     void clearSensitiveData();
     void clearActivationData();

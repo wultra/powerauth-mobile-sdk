@@ -226,11 +226,6 @@ void ActivationServiceV4::resetState()
     _activation_fingerprint.clear();
 }
 
-void ActivationServiceV4::clearActivationData()
-{
-    resetState();
-}
-
 RequestPtr ActivationServiceV4::fetchActivationStatus()
 {
     LOCK_GUARD();

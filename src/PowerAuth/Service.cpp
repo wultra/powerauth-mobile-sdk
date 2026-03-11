@@ -74,12 +74,6 @@ void Service::clearSensitiveData()
     CC7_LOG("%s: sensitive data cleanup", _service_name.c_str());
 }
 
-void Service::clearActivationData()
-{
-    checkNotDestroyed();
-    CC7_LOG("%s: activation data cleanup", _service_name.c_str());
-}
-
 void Service::restoreSensitiveData()
 {
     checkNotDestroyed();

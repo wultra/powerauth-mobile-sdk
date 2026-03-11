@@ -48,11 +48,6 @@ public:
     ///
     /// The method is typically called when application is going to foreground.
     virtual void restoreSensitiveData() = 0;
-    
-    /// The service's implementation must erase all data related to activation.
-    ///
-    /// The method is typically called when the session is resetting its state.
-    virtual void clearActivationData() = 0;
 };
 
 CC7_SHARED_PTR(IService)
@@ -78,7 +73,6 @@ public:
     void clearSensitiveData() override;
     void clearActivationData() override;
     void restoreSensitiveData() override;
-    void clearActivationData() override;
     bool isServiceDestroyed() const noexcept override;
     
 protected:

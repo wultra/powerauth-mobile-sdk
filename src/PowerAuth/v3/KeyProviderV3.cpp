@@ -103,11 +103,6 @@ cc7::crypto::ConstPublicKeyPtr KeyProviderV3::getServerPublicKeyPtr()
     return _server_public_key;
 }
 
-void KeyProviderV3::clearActivationData()
-{
-    clearSensitiveData();
-}
-
 // MARK: - Secret Keys
 
 ISecretKeysPtr KeyProviderV3::unlockInitialSecretKeys(const InitialCredentials &credentials, const cc7::ByteArray &shared_secret)

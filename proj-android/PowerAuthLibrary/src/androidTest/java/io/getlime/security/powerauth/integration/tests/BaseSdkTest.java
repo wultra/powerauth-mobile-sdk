@@ -797,4 +797,16 @@ public class BaseSdkTest extends BaseTest {
         // re-create should work now
         powerAuthSDK = activationHelper.reCreateSdk();
     }
+
+    @Test
+    public void testRecreateActivation() throws Exception {
+        //
+        // Tests that activation creation works correctly after a previous activation has been removed
+        // and that the newly created activation is independent of the original one.
+        //
+        activationHelper.createStandardActivation(false, null);
+        activationHelper.cleanupAfterTest();
+        activationHelper.createStandardActivation(false, null);
+        activationHelper.cleanupAfterTest();
+    }
 }

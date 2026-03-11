@@ -44,9 +44,32 @@
     return _status.remainingAttempts;
 }
 
+- (BOOL) isProtocolUpgradeAvailable
+{
+    return _status.isProtocolUpgradeAvailable;
+}
+
 - (NSDictionary<NSString*, NSObject*>*) customObject
 {
     return _status.customObject;
+}
+
+- (NSString*) description
+{
+    NSString * state;
+    switch (_status.state) {
+        case PowerAuthCoreActivationState_Active:       state = @"active"; break;
+        case PowerAuthCoreActivationState_Blocked:      state = @"blocked"; break;
+        case PowerAuthCoreActivationState_Removed:      state = @"removed"; break;
+        case PowerAuthCoreActivationState_PendingCommit:state = @"pendingCommit"; break;
+        case PowerAuthCoreActivationState_Deadlock:     state = @"deadlock"; break;
+        default:
+            state = @"???";
+            break;
+    }
+    NSString * upgrade = _status.isProtocolUpgradeAvailable ? @", upgradeAvail" : @"";
+    return [NSString stringWithFormat:@"<PowerAuthActivationStatus state=%@, remaining=%@/%@%@>",
+            state, @(_status.remainingAttempts), @(_status.maxFailCount), upgrade];
 }
 
 @end

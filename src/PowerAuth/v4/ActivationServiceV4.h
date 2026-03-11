@@ -33,19 +33,23 @@ public:
     ProtocolVersion protocolVersion() const noexcept override;
     IServicePtr asService() override;
     RequestPtr createActivation(cc7::json::JsonValue L1_data, cc7::json::JsonValue L2_data) override;
-    RequestPtr confirmActivation(InitialCredentialsPtr credentials) override;
+    RequestPtr confirmActivation(const InitialCredentialsPtr& credentials) override;
     std::string calculateActivationFingerprint() override;
     
     void resetState() override;
     void clearActivationData() override;
     RequestPtr fetchActivationStatus() override;
-    RequestPtr removeActivation(CredentialsPtr credentials) override;
+    RequestPtr removeActivation(const CredentialsPtr& credentials) override;
     
-    RequestPtr changePassword(PasswordPtr old_password, PasswordPtr new_password) override;
-    RequestPtr addBiometricFactor(PasswordPtr password, const cc7::ByteRange& new_biometry_kek) override;
+    RequestPtr changePassword(const PasswordPtr& old_password, const PasswordPtr& new_password) override;
+    RequestPtr addBiometricFactor(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek) override;
     RequestPtr removeBiometricFactor() override;
+    void cleanupBiometricFactorData() override;
     
     RequestPtr fetchUserInfo() override;
+    
+    // IService
+    void clearActivationData() override;
     
 private:
     

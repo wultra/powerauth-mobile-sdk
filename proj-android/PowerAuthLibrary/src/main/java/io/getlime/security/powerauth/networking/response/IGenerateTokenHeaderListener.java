@@ -18,7 +18,7 @@ package io.getlime.security.powerauth.networking.response;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
-import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
+import io.getlime.security.powerauth.sdk.PowerAuthHttpHeader;
 
 /**
  * Listener for generating the token header.
@@ -27,10 +27,10 @@ public interface IGenerateTokenHeaderListener {
     /**
      * Called when generating token header succeeded.
      *
-     * @param header Authorization header.
+     * @param header Authentication header.
      */
     @MainThread
-    void onGenerateTokenHeaderSucceeded(@NonNull PowerAuthAuthorizationHttpHeader header);
+    void onGenerateTokenHeaderSucceeded(@NonNull PowerAuthHttpHeader header);
 
     /**
      * Called when generating token header fails with an error.

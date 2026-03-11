@@ -18,13 +18,18 @@ package io.getlime.security.powerauth.sdk.impl;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import io.getlime.security.powerauth.networking.client.HttpClient;
-import io.getlime.security.powerauth.networking.endpoints.GetServerStatusEndpoint;
+
+import io.getlime.security.powerauth.core.CoreException;
+import io.getlime.security.powerauth.core.CoreRequest;
+import io.getlime.security.powerauth.core.CoreTimeService;
+import io.getlime.security.powerauth.core.response.CoreServerStatus;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
-import io.getlime.security.powerauth.networking.model.response.ServerStatusResponse;
 import io.getlime.security.powerauth.networking.response.ServerStatus;
+import jakarta.validation.constraints.Null;
 
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class GetServerStatusTask extends GroupedTask<ServerStatus> {
@@ -33,7 +38,10 @@ public class GetServerStatusTask extends GroupedTask<ServerStatus> {
         void onGetServerStatusTaskCompletion(@NonNull GetServerStatusTask task);
     }
 
-    private final HttpClient httpClient;
+    private final CoreHttpClient httpClient;
+
+    private final CoreTimeService timeService;
+
     private final TaskCompletion taskCompletion;
 
 
@@ -43,42 +51,47 @@ public class GetServerStatusTask extends GroupedTask<ServerStatus> {
      * @param sharedLock Instance of shared lock.
      * @param dispatcher Result dispatcher.
      * @param httpClient HTTP client.
+     * @param timeService Core time synchronization service.
      * @param completion Task completion
      */
     public GetServerStatusTask(
             @NonNull ReentrantLock sharedLock,
             @NonNull ICallbackDispatcher dispatcher,
-            @NonNull HttpClient httpClient,
+            @NonNull CoreHttpClient httpClient,
+            @NonNull CoreTimeService timeService,
             @NonNull TaskCompletion completion) {
         super("GetServerStatus", sharedLock, dispatcher);
         this.httpClient = httpClient;
+        this.timeService = timeService;
         this.taskCompletion = completion;
     }
 
     @Override
     public void onGroupedTaskStart() {
         super.onGroupedTaskStart();
-        final ICancelable cancelable = httpClient.post(
-                null,
-                new GetServerStatusEndpoint(),
-                null,
-                new INetworkResponseListener<ServerStatusResponse>() {
-                    @Override
-                    public void onNetworkResponse(@NonNull ServerStatusResponse response) {
-                        complete(new ServerStatus(response));
-                    }
-
-                    @Override
-                    public void onNetworkError(@NonNull Throwable throwable) {
-                        complete(throwable);
-                    }
-
-                    @Override
-                    public void onCancel() {
-                    }
+        try {
+            final CoreRequest<CoreServerStatus> request = timeService.createTimeSynchronizationRequest();
+            final ICancelable cancelable = httpClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable CoreServerStatus coreServerStatus) {
+                    complete(new ServerStatus(Objects.requireNonNull(coreServerStatus)));
                 }
-        );
-        addCancelableOperation(cancelable);
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    complete(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+
+                }
+            });
+            addCancelableOperation(cancelable);
+
+        } catch (CoreException e) {
+            complete(PowerAuthErrorException.wrapException(e));
+        }
     }
 
     @Override

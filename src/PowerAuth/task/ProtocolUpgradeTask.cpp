@@ -33,6 +33,8 @@ ProtocolUpgradeTask::ProtocolUpgradeTask(const ContextPtr& context, const Passwo
 void ProtocolUpgradeTask::onTaskStart()
 {
     Task::onTaskStart();
+    // Create upgrade data structure
+    prepareUpgradeData();
     // Fetch activation status to obtain the current state of the protocol upgrade.
     fetchActivationStatus();
 }
@@ -81,21 +83,29 @@ void ProtocolUpgradeTask::onTaskEnd()
     resetState();
 }
 
+void ProtocolUpgradeTask::onTaskCancel()
+{
+    Task::onTaskCancel();
+    resetState();
+}
+
+void ProtocolUpgradeTask::prepareUpgradeData()
+{
+    auto new_upgrade_data = UpgradeData::create();
+    _session_data->setUpgradeData(new_upgrade_data);
+}
+
 void ProtocolUpgradeTask::startProtocolUpgrade()
 {
-    LOCK_GUARD();
     auto current_context = lockContext();
     
     if (!_password) {
         throw Exception(EC_WrongParameter, "Password not present for the protocol upgrade.");
     }
     Credentials::validatePassword(*_password);
-    if (_session_data->persistentData().hasBiometricFactorKey()) {
+    if (!_new_biometry_kek.empty()) {
         Credentials::validateFactorKek(_new_biometry_kek, Version_V4);
     }
-    
-    auto new_ud = UpgradeData::create();
-    _session_data->setUpgradeData(new_ud);
     
     auto upgrade_context = current_context->createTargetAlgorithmContext();
     
@@ -181,7 +191,6 @@ ProtocolUpgradeResultPtr ProtocolUpgradeTask::processResponseStartProtocolUpgrad
 
 void ProtocolUpgradeTask::confirmProtocolUpgrade()
 {
-    LOCK_GUARD();
     auto context = lockContext();
     
     auto request = RequestBuilder(*context, v4::Endpoint_ProtocolUpgradeConfirm)

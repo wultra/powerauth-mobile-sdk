@@ -28,6 +28,7 @@ id PA2CastToImpl(id instance, Class desiredClass)
     return nil;
 }
 
+PA2_NO_EXPORT
 id PA2CastToProtoImpl(id instance, Protocol * proto)
 {
     if ([instance conformsToProtocol:proto]) {
@@ -36,6 +37,7 @@ id PA2CastToProtoImpl(id instance, Protocol * proto)
     return nil;
 }
 
+PA2_NO_EXPORT
 void PA2DictionarySafeSet(NSMutableDictionary * dict, NSString * key, id value)
 {
     if (value) {

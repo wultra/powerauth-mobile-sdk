@@ -16,11 +16,13 @@
 
 package io.getlime.security.powerauth.integration.support.v15;
 
-import java.util.Collections;
-import java.util.List;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import io.getlime.security.powerauth.integration.support.PowerAuthServerApi;
 import io.getlime.security.powerauth.integration.support.client.HttpRestClient;
 import io.getlime.security.powerauth.integration.support.model.Activation;
@@ -30,11 +32,14 @@ import io.getlime.security.powerauth.integration.support.model.ActivationStatus;
 import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
 import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
+import io.getlime.security.powerauth.integration.support.model.ProtocolVersion;
 import io.getlime.security.powerauth.integration.support.model.ServerConstants;
 import io.getlime.security.powerauth.integration.support.model.ServerVersion;
-import io.getlime.security.powerauth.integration.support.model.SignatureData;
-import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
+import io.getlime.security.powerauth.integration.support.model.SignatureFormat;
+import io.getlime.security.powerauth.integration.support.model.SignatureType;
 import io.getlime.security.powerauth.integration.support.model.TokenInfo;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.BlockActivationEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.CommitActivationEndpoint;
@@ -103,6 +108,17 @@ public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
             }
         }
         return currentServerVersion;
+    }
+
+    @Override
+    public void setClientProtocolVersion(@Nullable ProtocolVersion protocolVersion) {
+        // Do nothing
+    }
+
+    @Nullable
+    @Override
+    public ProtocolVersion getClientProtocolVersion() {
+        return null;
     }
 
     @Nullable
@@ -198,7 +214,7 @@ public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
         request.setActivationOtp(otp);
         request.setActivationOtpValidation(otpValidation);
         request.setMaxFailureCount(maxFailureCount != null ? maxFailureCount : ServerConstants.DEFAULT_MAX_FAILURE_ATTEMPTS);
-        return restClient.send(request, new InitActivationEndpoint());
+        return restClient.send(request, new InitActivationEndpoint()).copyToActivation();
     }
 
     @NonNull
@@ -296,7 +312,7 @@ public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
         final GetActivationStatusEndpoint.Request request = new GetActivationStatusEndpoint.Request();
         request.setActivationId(activationId);
         request.setChallenge(challenge);
-        return restClient.send(request, new GetActivationStatusEndpoint());
+        return restClient.send(request, new GetActivationStatusEndpoint()).copyToActivationDetail();
     }
 
     @NonNull
@@ -314,27 +330,30 @@ public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
         request.setNonce(nonce);
         request.setTimestamp(timestamp);
         request.setProtocolVersion(protocolVersion);
-        return restClient.send(request, new ValidateTokenEndpoint());
+        return restClient.send(request, new ValidateTokenEndpoint()).toTokenInfo();
     }
 
     @NonNull
     @Override
-    public SignatureInfo verifyOnlineSignature(@NonNull SignatureData signatureData) throws Exception {
-        final VerifyOnlineSignatureEndpoint.Request request = new VerifyOnlineSignatureEndpoint.Request(signatureData);
-        return restClient.send(request, new VerifyOnlineSignatureEndpoint());
+    public AuthenticationResult verifyOnlineAuthenticationCode(@NonNull AuthenticationCodeData authenticationCodeData) throws Exception {
+        final VerifyOnlineSignatureEndpoint.Request request = new VerifyOnlineSignatureEndpoint.Request(authenticationCodeData);
+        return restClient.send(request, new VerifyOnlineSignatureEndpoint()).copyToAuthResult();
     }
 
     @NonNull
     @Override
-    public SignatureInfo verifyOfflineSignature(@NonNull SignatureData signatureData) throws Exception {
-        final VerifyOfflineSignatureEndpoint.Request request = new VerifyOfflineSignatureEndpoint.Request(signatureData);
-        return restClient.send(request, new VerifyOfflineSignatureEndpoint());
+    public AuthenticationResult verifyOfflineAuthenticationCode(@NonNull AuthenticationCodeData authenticationCodeData) throws Exception {
+        final VerifyOfflineSignatureEndpoint.Request request = new VerifyOfflineSignatureEndpoint.Request(authenticationCodeData);
+        return restClient.send(request, new VerifyOfflineSignatureEndpoint()).copyToAuthResult();
     }
 
     @Override
-    public boolean verifyEcdsaSignature(@NonNull String activationId, @NonNull String data, @NonNull String signature, @Nullable String format) throws Exception {
-        if (format != null && !"DER".equals(format)) {
-            throw new IllegalArgumentException("Unsupported format: " + format);
+    public boolean verifyDsaSignature(@NonNull String activationId, @NonNull String data, @NonNull String signature, @NonNull SignatureFormat format, @NonNull SignatureType type) throws Exception {
+        if (type != SignatureType.ECDSA) {
+            throw new IllegalArgumentException("Signature type is not supported on the server: " + type.typeValue);
+        }
+        if (format == SignatureFormat.JOSE) {
+            throw new IllegalArgumentException("Signature format is not supported on the server: " + format.formatValue);
         }
         final VerifyEcdsaSignatureEndpoint.Request request = new VerifyEcdsaSignatureEndpoint.Request();
         request.setActivationId(activationId);
@@ -342,6 +361,22 @@ public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
         request.setSignature(signature);
         final VerifyEcdsaSignatureEndpoint.Response response = restClient.send(request, new VerifyEcdsaSignatureEndpoint());
         return response.isSignatureValid();
+    }
+
+    @Override
+    public Map<SignatureType, String> createDsaSignature(@NonNull String activationId, @Nullable String data) throws Exception {
+        throw new IllegalArgumentException("Not implemented");
+    }
+
+    @Override
+    public boolean verifyJwtSignature(@NonNull String activationId, @NonNull String signedData, boolean compactForm) throws Exception {
+        throw new IllegalArgumentException("JWT signatures are not supported on the server");
+    }
+
+    @NonNull
+    @Override
+    public String createJwtSignature(@NonNull String activationId, @Nullable String data, boolean compactForm, @Nullable SignatureType signatureType) throws Exception {
+        throw new IllegalArgumentException("JWT signatures are not supported on the server");
     }
 
     @NonNull

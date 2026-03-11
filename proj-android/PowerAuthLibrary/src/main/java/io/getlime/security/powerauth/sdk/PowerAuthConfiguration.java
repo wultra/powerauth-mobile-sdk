@@ -16,11 +16,18 @@
 
 package io.getlime.security.powerauth.sdk;
 
+import android.annotation.SuppressLint;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import io.getlime.security.powerauth.core.CoreAlgorithm;
+import io.getlime.security.powerauth.core.CoreConfig;
+import io.getlime.security.powerauth.core.CoreException;
 import io.getlime.security.powerauth.core.SecureData;
-import io.getlime.security.powerauth.core.SessionSetup;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
  * Class representing a configuration of a single PowerAuthSDK instance.
@@ -29,9 +36,9 @@ public class PowerAuthConfiguration {
 
     private final @NonNull String instanceId;
     private final @NonNull String baseEndpointUrl;
-    private final @NonNull SessionSetup sessionSetup;
-    private final boolean disableAutomaticProtocolUpgrade;
-    private final int offlineAuthorizationCodeComponentLength;
+    private final @NonNull String configuration;
+    private final int offlineAuthenticationCodeComponentLength;
+    private final @PowerAuthAlgorithm int algorithm;
 
     /**
      * Constant for default PowerAuthSDK instance identifier.
@@ -46,6 +53,13 @@ public class PowerAuthConfiguration {
     }
 
     /**
+     * @return Algorithm specified for communication with the server.
+     */
+    public @PowerAuthAlgorithm int getAlgorithm() {
+        return algorithm;
+    }
+
+    /**
      * @return String with base URL to the PowerAuth Standard REST API (the URL part before {@code "/pa/..."}).
      */
     public @NonNull String getBaseEndpointUrl() {
@@ -56,70 +70,63 @@ public class PowerAuthConfiguration {
      * @return String containing cryptographic configuration.
      */
     public @NonNull String getConfiguration() {
-        return sessionSetup.configuration;
+        return configuration;
     }
 
     /**
-     * @return {@link SessionSetup} object with configuration for cryptographic components.
+     * Property is deprecated. EEK is no longer supported in SDK.
+     * @return Always {@code null}.
+     * @deprecated EEK is no longer supported in SDK.
      */
-    @NonNull SessionSetup getSessionSetup() {
-        return sessionSetup;
-    }
-
-    /**
-     * @return Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
-     */
+    @Deprecated // 2.0.0
     public @Nullable SecureData getExternalEncryptionKey() {
-        return sessionSetup.externalEncryptionKey;
+        return null;
     }
 
     /**
-     * If set to true, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
-     * This option should be used only for the testing purposes.
-     *
-     * @return If set to {@code true}, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
+     * Property is deprecated. Disabling protocol upgrade has no effect in this version of SDK.
+     * @return Always {@code false}.
      */
+    @Deprecated // 2.0.0
     public boolean isAutomaticProtocolUpgradeDisabled() {
-        return disableAutomaticProtocolUpgrade;
+        return false;
     }
 
     /**
-     * @return Length of offline authorization code component.
+     * @return Length of offline authentication code component.
      */
-    public int getOfflineAuthorizationCodeComponentLength() {
-        return offlineAuthorizationCodeComponentLength;
+    public int getOfflineAuthenticationCodeComponentLength() {
+        return offlineAuthenticationCodeComponentLength;
     }
 
     /**
-     * @return Length of offline authorization code component.
+     * @return Length of offline authentication code component.
      */
-    @Deprecated // 1.10.0
+    @Deprecated // 2.0.0
     public int getOfflineSignatureComponentLength() {
-        return offlineAuthorizationCodeComponentLength;
+        return offlineAuthenticationCodeComponentLength;
     }
 
     /**
-     * Minimum allowed length of offline authorization code component.
+     * Minimum allowed length of offline authentication code component.
      */
-    public static final int MIN_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH = 4;
+    public static final int MIN_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH = 4;
 
     /**
-     * Maximum allowed length of offline authorization code component.
+     * Maximum allowed length of offline authentication code component.
      */
-    public static final int MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH = 8;
+    public static final int MAX_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH = 8;
 
     /**
      * Validate the configuration. Be aware that the method performs just a formal validation, so it cannot detect if you
      * provide a wrong cryptographic keys or secrets.
      *
-     * @return {@code true} if configuration appears to be valid.
+     * @return Always returns {@code true}. See deprecation.
+     * @deprecated Method is deprecated. The configuration is validated at the time of its construction.
      */
+    @Deprecated // 2.0.0
     public boolean validateConfiguration() {
-        if (!sessionSetup.isValid()) {
-            return false;
-        }
-        return offlineAuthorizationCodeComponentLength >= MIN_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH &&
-                offlineAuthorizationCodeComponentLength <= MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH;
+        return true;
     }
 
     /**
@@ -127,20 +134,21 @@ public class PowerAuthConfiguration {
      *
      * @param instanceId Identifier of the PowerAuthSDK instance, used as a 'key' to store session state.
      * @param baseEndpointUrl Base URL to the PowerAuth Standard REST API (the URL part before {@code "/pa/..."}).
-     * @param sessionSetup Setup for core/Session object.
-     * @param disableAutomaticProtocolUpgrade If set to {@code true}, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
+     * @param configuration SDK configuration string.
+     * @param algorithm Algorithm selected for communication with the server.
+     * @param offlineAuthenticationCodeComponentLength Length of component in offline authentication code.
      */
     private PowerAuthConfiguration(
             @NonNull String instanceId,
             @NonNull String baseEndpointUrl,
-            @NonNull SessionSetup sessionSetup,
-            boolean disableAutomaticProtocolUpgrade,
-            int offlineSignatureComponentLength) {
+            @NonNull String configuration,
+            int offlineAuthenticationCodeComponentLength,
+            @PowerAuthAlgorithm int algorithm) {
         this.instanceId = instanceId;
         this.baseEndpointUrl = baseEndpointUrl;
-        this.sessionSetup = sessionSetup;
-        this.disableAutomaticProtocolUpgrade = disableAutomaticProtocolUpgrade;
-        this.offlineAuthorizationCodeComponentLength = offlineSignatureComponentLength;
+        this.configuration = configuration;
+        this.offlineAuthenticationCodeComponentLength = offlineAuthenticationCodeComponentLength;
+        this.algorithm = algorithm;
     }
 
     /**
@@ -152,9 +160,8 @@ public class PowerAuthConfiguration {
         private final @NonNull String configuration;
         // optional
         private String instanceId;
-        private SecureData externalEncryptionKey = null;
-        private boolean disableAutomaticProtocolUpgrade = false;
-        private int offlineAuthorizationCodeComponentLength = MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH;
+        private int offlineAuthenticationCodeComponentLength = MAX_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH;
+        private @PowerAuthAlgorithm int algorithm = PowerAuthAlgorithm.DEFAULT;
 
         /**
          * Creates a builder for {@link PowerAuthConfiguration}.
@@ -185,58 +192,114 @@ public class PowerAuthConfiguration {
         }
 
         /**
-         * Set external encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
-         * @param externalEncryptionKey Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
+         * Set algorithm for communication with the server.
+         * @param algorithm Algorithm for communication.
          * @return {@link Builder}
          */
+        public @NonNull Builder algorithm(@PowerAuthAlgorithm int algorithm) {
+            this.algorithm = algorithm;
+            return this;
+        }
+
+        /**
+         * Property is deprecated. EEK is no longer supported in SDK>
+         * @param externalEncryptionKey Encryption key provided by an external context.
+         * @return {@link Builder}
+         * @deprecated EEK is no longer supported in SDK.
+         */
+        @Deprecated // 2.0.0
         public @NonNull Builder externalEncryptionKey(@NonNull SecureData externalEncryptionKey) {
-            this.externalEncryptionKey = externalEncryptionKey.copy();
             return this;
         }
 
         /**
-         * Disable automatic protocol upgrade. This option should be used only for the testing purposes.
+         * Disable automatic protocol upgrade.
+         * @deprecated Option is deprecated and has no effect in PowerAuth Mobile SDK 2.0+.
          * @return {@link Builder}
          */
+        @Deprecated // 2.0.0
         public @NonNull Builder disableAutomaticProtocolUpgrade() {
-            this.disableAutomaticProtocolUpgrade = true;
             return this;
         }
 
         /**
-         * Set the alternative length for offline authorization code component.
+         * Set the alternative length for offline authentication code component.
          * @param length New value for offline signature component length.
          * @return {@link Builder}
          */
-        public @NonNull Builder offlineAuthorizationCodeComponentLength(int length) {
-            this.offlineAuthorizationCodeComponentLength = length;
+        public @NonNull Builder offlineAuthenticationCodeComponentLength(int length) {
+            this.offlineAuthenticationCodeComponentLength = length;
             return this;
         }
 
         /**
-         * Set the alternative length for offline authorization code component.
+         * Set the alternative length for offline authentication code component.
          * @param length New value for offline signature component length.
          * @return {@link Builder}
-         * @deprecated Use {@link #offlineAuthorizationCodeComponentLength(int)} as replacement.
+         * @deprecated Use {@link #offlineAuthenticationCodeComponentLength(int)} as replacement.
          */
-        @Deprecated // 1.10.0
+        @Deprecated // 2.0.0
         public @NonNull Builder offlineSignatureComponentLength(int length) {
-            this.offlineAuthorizationCodeComponentLength = length;
+            this.offlineAuthenticationCodeComponentLength = length;
             return this;
         }
 
         /**
          * Build a final {@link PowerAuthConfiguration} instance.
          * @return New instance of {@link PowerAuthConfiguration}.
+         * @throws PowerAuthErrorException With {@link PowerAuthErrorCodes#WRONG_PARAMETER} in case the wrong parameter is used in the configuration.
          */
-        public @NonNull PowerAuthConfiguration build() {
-            final SessionSetup sessionSetup = new SessionSetup(configuration, externalEncryptionKey);
+        public @NonNull PowerAuthConfiguration build() throws PowerAuthErrorException {
+            if (!CoreConfig.validateConfiguration(configuration, algorithm)) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid SDK configuration");
+            }
+            if (offlineAuthenticationCodeComponentLength < MIN_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH ||
+                offlineAuthenticationCodeComponentLength > MAX_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "offlineAuthenticationCodeComponentLength is out of supported range");
+            }
+            if (instanceId == null) {
+                instanceId = DEFAULT_INSTANCE_ID;
+            }
+            if (TextUtils.isEmpty(instanceId)) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "instanceId is empty");
+            }
+            if (TextUtils.isEmpty(baseEndpointUrl)) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "baseEndpointUrl is empty");
+            }
             return new PowerAuthConfiguration(
-                    instanceId != null ? instanceId : DEFAULT_INSTANCE_ID,
+                    instanceId,
                     baseEndpointUrl,
-                    sessionSetup,
-                    disableAutomaticProtocolUpgrade,
-                    offlineAuthorizationCodeComponentLength);
+                    configuration,
+                    offlineAuthenticationCodeComponentLength,
+                    algorithm);
         }
+    }
+
+    /**
+     * Internal function converts configuration from application into {@link CoreConfig} object.
+     * @param deviceSpecificData Device specific data.
+     * @return {@link CoreConfig} instance.
+     * @throws PowerAuthErrorException In case that configuration is invalid.
+     */
+    @NonNull
+    CoreConfig getCoreConfiguration(@NonNull byte[] deviceSpecificData) throws PowerAuthErrorException {
+        try {
+            return CoreConfig.build(configuration, deviceSpecificData, instanceId, toCoreAlgorithm(algorithm));
+        } catch (CoreException e) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid SDK configuration", e);
+        }
+    }
+
+    /**
+     * Convert {@link PowerAuthAlgorithm} into {@link CoreAlgorithm} constant.
+     * @param algorithm {@link PowerAuthAlgorithm} constant.
+     * @return {@link CoreAlgorithm} constant.
+     */
+    @SuppressLint("WrongConstant")
+    @CoreAlgorithm
+    private static int toCoreAlgorithm(@PowerAuthAlgorithm int algorithm) {
+        // @PowerAuthAlgorithm is defined from @CoreAlgorithm constants, so direct return
+        // with suppressed warning is OK.
+        return algorithm;
     }
 }

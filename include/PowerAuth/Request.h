@@ -111,6 +111,11 @@ public:
     /// Returns `true` if request is authenticated with authentication header.
     bool isAuthenticated() const noexcept;
     
+    /// Returns `true` if response data in JSON representation is publicly available for
+    /// processing in Objective-C or Java layer. If `false` is returned, then appropriate
+    /// wrapper should not marshal response data to managed environment.
+    bool isPublicResponseJson() const noexcept;
+    
     /// Returns scope of temporary key required for proper processing. If request is not
     /// encrypted, then throws exception.
     EncryptorScope encryptorScope() const;

@@ -27,11 +27,13 @@
 #pragma mark Private constants
 
 // Acquire read lock
-#define ACQ_READ     0
+#define ACQ_READ        0
 // Acquire write lock
-#define ACQ_WRITE    1
+#define ACQ_WRITE       1
+// Erase invalid state data
+#define ACQ_ERASE_INVD  2
 
-/// Lenght of SHA256 hash, calculated from PowerAuthConfiguration.instanceId
+/// Length of SHA256 hash, calculated from PowerAuthConfiguration.instanceId
 #define INSTANCE_ID_SIZE    32
 
 /// Length of application identifier, reserved in SharedData.
@@ -279,6 +281,38 @@ static void _LocalContextUpdateSpecialOp(LocalContext * ctx, PA2SharedLock * opL
     }
 }
 
+/**
+ Abandon ownership of special operation due to instance destroy.
+ */
+static void _LocalContextAbandonSpecialOp(LocalContext * ctx, PA2SharedLock * opLock)
+{
+    PowerAuthLog(@"PA2SharedSessionProvider: WARNING: Abandoning special operation type %@ due to instance destroy.", @(ctx->specialOpType));
+    ctx->specialOpType = 0;
+    [opLock unlock];
+}
+
+/**
+ Try to take ownership of special operation. If NO is returned, then it indicates that there's another instance of PowerAuthSDK with the same
+ application identifier.
+ */
+static BOOL _LocalContextRestoreSpecialOp(LocalContext * ctx, PA2SharedLock * opLock, PowerAuthExternalPendingOperationType operationType)
+{
+    BOOL canRestoreOp = ctx->sharedData->specialOpType == operationType &&
+                        !memcmp(ctx->thisAppIdentifier, ctx->sharedData->specialOpAppId, ctx->thisAppIdentifierSize);
+    if (canRestoreOp) {
+        if (![opLock tryLock]) {
+            // This basically indicate that there are two instances of PowerAuthSDK with the same application ID.
+            PowerAuthLog(@"PA2SharedSessionProvider: Failed to acquire special operation lock.");
+            return NO;
+        }
+        // Lock acquired, we own a special operation now
+        PowerAuthLog(@"PA2SharedSessionProvider: Restoring ownership of special operation type %@", @(operationType));
+        ctx->specialOpType = operationType;
+        ctx->specialOpTicket = ctx->sharedData->specialOpTicket;
+        ctx->sharedData->specialOpStart = [NSDate date].timeIntervalSince1970;
+    }
+    return YES;
+}
 
 #pragma mark Private shared memory
 
@@ -435,8 +469,6 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
         }
         // Acquire local recursive lock to get a thread safety for debug and support functions
         _localLock = [_statusLock createLocalRecursiveLock];
-        // Everything looks OK, so restore the state and unlock the shared lock.
-        [self loadState:YES error:error];
         
         // Finally, release the shared lock
         [_statusLock unlock];
@@ -444,6 +476,55 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
     return self;
 }
 
+- (void) dealloc
+{
+    [self releaseResourcesBeforeDestroy];
+}
+
+- (void) releaseResourcesBeforeDestroy
+{
+    if (_statusLock) {
+        [_statusLock lock];
+        if (_LocalContextThisRunningSpecialOp(&_localContext)) {
+            // This instance holds a lock for a special operation and is about to be destroyed. This is bad.
+            // We have to release the lock and keep the information about the special operation in shared memory.
+            // This is similar to a sudden application crash, but in that case the kernel releases the lock.
+            //
+            // Keeping the data in the shared region allows us to restore the state once the same instance
+            // of PowerAuthSDK is re-created.
+            _LocalContextAbandonSpecialOp(&_localContext, _operationLock);
+        }
+        [_statusLock unlock];
+    }
+}
+
+- (BOOL) loadInitialState:(BOOL)clearUnsupportedData
+                    error:(NSError*_Nullable*_Nullable)error
+{
+    NSError * localError = nil;
+    int access = ACQ_WRITE;
+    if (clearUnsupportedData) access |= ACQ_ERASE_INVD;
+    if ([self lockWithAccess:access error:&localError]) {
+        // Simple lock - unlock is enough to restore the state.
+        // We have to also try to restore ownership of the special operation.
+        int restoreOpType = 0;
+        if (_session.hasPendingProtocolUpgrade) {
+            restoreOpType = PowerAuthExternalPendingOperationType_ProtocolUpgrade;
+        }
+        if (restoreOpType) {
+            if (!_LocalContextRestoreSpecialOp(&_localContext, _operationLock, restoreOpType)) {
+                // The restore may fail only if another instance of PowerAuthSDK did acquire operation lock before this instance.
+                // This is in general wrong and it indicates that more than one PowerAuthSDK with the same instance is in this process.
+                localError = PA2MakeError(PowerAuthErrorCode_ExternalPendingOperation, @"Two PowerAuthSDK instances use the same application ID for activation data sharing.");
+            }
+        }
+        [self unlockWithError:&localError];
+    }
+    if (localError) {
+        PA2WrapError(localError, error);
+    }
+    return localError == nil;
+}
 
 #pragma mark - PowerAuthCoreSessionProvider protocol
 
@@ -713,7 +794,7 @@ static void _ThrowInternalInitFail(void)
  is NO, then function try to determine whether local session needs to deserialize its state.
  If force is YES, then the session's state is always restored from the persistent storage.
  */
-- (BOOL) loadState:(BOOL)force error:(NSError**)error
+- (BOOL) loadState:(BOOL)force clearInvalidData:(BOOL)clearInvalidData error:(NSError**)error
 {
     if (!force && !_LocalContextStateIsDirty(&_localContext)) {
         // Do nothing if local session has still valid data.
@@ -728,16 +809,23 @@ static void _ThrowInternalInitFail(void)
     NSData * statusData = [_dataProvider sessionData];
     if (statusData) {
         if (![_session deserializeState:statusData error:&localError]) {
-            PA2WrapError(localError, error);
-            return NO;
+            PowerAuthCoreError coreError = localError.powerAuthCoreErrorCode;
+            if (clearInvalidData && (coreError == PowerAuthCoreError_InvalidActivationData || coreError == PowerAuthCoreError_UpgradeSDK)) {
+                // Explicit clear is requested, so reset the session and pretend that everything's OK
+                [_session resetSession];
+                localError = nil;
+            } else {
+                PA2WrapError(localError, error);
+                // Clear temporary granted access.
+                _internalAccessGranted = NO;
+                return NO;
+            }
         }
     } else {
         [_session resetSession];
     }
-    if (!(_stateBefore = [_session serializedState:&localError])) {
-        PA2WrapError(localError, error);
-        return NO;
-    }
+    
+    _stateBefore = statusData;
     
     // Clear temporary granted access.
     _internalAccessGranted = NO;
@@ -754,7 +842,7 @@ static void _ThrowInternalInitFail(void)
 {
     NSData * serializedState = [_session serializedState:error];
     if (serializedState) {
-        if (![serializedState isEqualToData:_stateBefore]) {
+        if (![_stateBefore isEqualToData:serializedState]) {
             // Data is different, so we really need to save the data.
             [_dataProvider saveSessionData:serializedState];
             _stateBefore = serializedState;
@@ -774,13 +862,14 @@ static void _ThrowInternalInitFail(void)
     [_statusLock lock];
     
     _readWriteAccessCount++;
-    if (access == ACQ_WRITE) {
+    if ((access & ACQ_WRITE) == ACQ_WRITE) {
         _saveOnUnlock = YES;
     }
     
     if (_readWriteAccessCount == 1) {
         // First lock, we should restore session's data if needed.
-        if (![self loadState:NO error:error]) {
+        BOOL clearInvalidData = (access & ACQ_ERASE_INVD) == ACQ_ERASE_INVD;
+        if (![self loadState:NO clearInvalidData:clearInvalidData error:error]) {
             // state load failed, release lock and return error
             _readWriteAccessCount = 0;
             [_statusLock unlock];
@@ -800,10 +889,12 @@ static void _ThrowInternalInitFail(void)
         // The shared lock will be released at the end of this function. If error is already
         // triggered, then do nothing at this step. We don't want to save session if
         // operation failed.
-        if (_saveOnUnlock && !*error) {
+        BOOL isFailure = error && (*error != nil);
+        if (_saveOnUnlock && !isFailure) {
             // Some task requested write access, so save the state.
             result = [self saveState:error];
             if (result) {
+                // Clear save-on-unlock flag if save succeeds
                 _saveOnUnlock = NO;
             }
         }

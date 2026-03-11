@@ -21,6 +21,13 @@ import androidx.annotation.Nullable;
 
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 
+/**
+ * Object representing a HTTP authentication header.
+ *
+ * This class is deprecated. Please migrate your code to use new API functions producing
+ * {@link PowerAuthHttpHeader} at output.
+ */
+@Deprecated // 2.0.0
 public class PowerAuthAuthorizationHttpHeader {
 
     /**
@@ -37,64 +44,39 @@ public class PowerAuthAuthorizationHttpHeader {
      * The property is deprecated and is only effective if header is calculated in deprecated methods from
      * {@link PowerAuthSDK} or {@link PowerAuthToken}.
      */
-    @Deprecated // 1.10.0
     @PowerAuthErrorCodes
     public final int powerAuthErrorCode;
 
     /**
-     * Constructs a new header object created for token based authorization header.
-     *
-     * @param value calculated value for token authentication
-     * @return a new instance of header object created for token based authorization
-     */
-    public static @NonNull PowerAuthAuthorizationHttpHeader createAuthorizationHeader(@NonNull String value) {
-        return new PowerAuthAuthorizationHttpHeader("X-PowerAuth-Authorization", value, PowerAuthErrorCodes.SUCCEED);
-    }
-
-    /**
-     * Constructs a new header object created for token based authorization header.
-     *
-     * @param value calculated value for token authentication
-     * @return a new instance of header object created for token based authorization
-     */
-    public static @NonNull PowerAuthAuthorizationHttpHeader createTokenHeader(@NonNull String value) {
-        return new PowerAuthAuthorizationHttpHeader("X-PowerAuth-Token", value, PowerAuthErrorCodes.SUCCEED);
-    }
-
-    /**
      * Constructs an object with error response.
-     *
      * @param powerAuthErrorCode error to report
-     * @return a new instance of header object created with error
      */
-    public static @NonNull PowerAuthAuthorizationHttpHeader createError(@PowerAuthErrorCodes int powerAuthErrorCode) {
-        return new PowerAuthAuthorizationHttpHeader(null, null, powerAuthErrorCode);
+    public PowerAuthAuthorizationHttpHeader(@PowerAuthErrorCodes int powerAuthErrorCode) {
+        this.key = null;
+        this.value = null;
+        this.powerAuthErrorCode = PowerAuthErrorCodes.SUCCEED;
+    }
+
+    /**
+     * Create instance of deprecated header object from {@link PowerAuthHttpHeader}.
+     * @param header Source HTTP header.
+     */
+    public PowerAuthAuthorizationHttpHeader(@NonNull PowerAuthHttpHeader header) {
+        this.key = header.getKey();
+        this.value = header.getValue();
+        this.powerAuthErrorCode = PowerAuthErrorCodes.SUCCEED;
     }
 
     /**
      * @return true if object contains a valid HTTP header.
-     * @deprecated The new methods for calculating authorization headers throws an exception in case of failure, and
+     * @deprecated The new methods for calculating authentication headers throws an exception in case of failure, and
      *             therefore the returned header is always valid.
      */
-    @Deprecated // 1.10.0
+    @Deprecated
     public boolean isValid() {
         return powerAuthErrorCode == PowerAuthErrorCodes.SUCCEED &&
                 key != null &&
                 value != null;
-    }
-
-
-    /**
-     * A private constructor with all object properties.
-     *
-     * @param key key for HTTP header. May be null for error headers.
-     * @param value value for HTTP header. May be null for error headers.
-     * @param powerAuthErrorCode an error code from <code>PowerAuthErrorCodes</code> set of codes.
-     */
-    private PowerAuthAuthorizationHttpHeader(@Nullable String key, @Nullable String value, @PowerAuthErrorCodes int powerAuthErrorCode) {
-        this.key = key;
-        this.value = value;
-        this.powerAuthErrorCode = powerAuthErrorCode;
     }
 
     //
@@ -102,7 +84,6 @@ public class PowerAuthAuthorizationHttpHeader {
     // final public properties to access the elements.
     //
 
-    @Deprecated // 1.10.0
     @PowerAuthErrorCodes
     public int getPowerAuthErrorCode() {
         return powerAuthErrorCode;

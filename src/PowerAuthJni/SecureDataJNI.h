@@ -16,19 +16,19 @@
 
  #pragma once
 
- #include <cc7/jni/JniHelper.h>
+ #include <cc7/jni/JniWrapper.h>
  #include <PowerAuth/Types.h>
 
-/**
- Create instance of SecureData from provided byte range.
- */
-extern jobject CopyToSecureData(JNIEnv * env, const cc7::ByteRange & data);
-/**
- Create instance of SecureData from provided byte range. If range is empty,
- then returns null.
- */
-extern jobject CopyToNullableSecureData(JNIEnv * env, const cc7::ByteRange & data);
-/**
- Return byte array from bytes stored in SecureData.
- */
-extern cc7::ByteArray CopyFromSecureData(JNIEnv * env, jobject object);
+namespace powerAuth::jni {
+
+/// Create instance of SecureData from provided byte range.
+jobject CopyToSecureData(cc7::jni::JNI& jni, const cc7::ByteRange &data);
+
+/// Create instance of SecureData from provided byte range. If range is empty,
+/// then returns null.
+jobject CopyToNullableSecureData(cc7::jni::JNI& jni, const cc7::ByteRange &data);
+
+/// Return byte array from bytes stored in SecureData.
+cc7::ByteArray CopyFromSecureData(cc7::jni::JNI& jni, jobject object);
+
+} // namespace powerAuth::jni

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,20 +68,12 @@ import androidx.annotation.NonNull;
  * At the end, you can get benefits from a supporting very strong passphrases and also
  * you'll minimize all traces of the passphrase in the memory.
  */
-public class Password {
+public class Password extends NativeObject {
     
     //
     // Init & Destroy
     //
-    static {
-        System.loadLibrary("PowerAuth2Module");
-    }
-    
-    /**
-     * Pointer to native underlying object
-     */
-    private long handle;
-    
+
     /**
      * Constructs a new instance of <b>immutable</b> Password object, initialized with UTF8 data
      * from the given string. The method is useful for scenarios, when you have
@@ -91,7 +83,7 @@ public class Password {
      * @param passphrase string with password.
      */
     public Password(String passphrase) {
-        this(initPassword(passphrase, null, null));
+        this(initPassword(passphrase, null, NATIVE_NULL));
     }
     
     /**
@@ -102,14 +94,14 @@ public class Password {
      * @param passphrase bytes with password
      */
     public Password(byte[] passphrase) {
-       this(initPassword(null, passphrase, null));
+       super(initPassword(null, passphrase, NATIVE_NULL));
     }
     
     /**
      * Constructs a new instance of empty, <b>mutable</b> Password object.
      */
     public Password() {
-        this(initPassword(null, null, null));
+        super(initPassword(null, null, NATIVE_NULL));
     }
 
     /**
@@ -117,9 +109,18 @@ public class Password {
      * @param handle Handle, or 0, if the object is already destroyed.
      */
     private Password(long handle) {
-        this.handle = handle;
+        super(handle);
     }
-    
+
+    /**
+     * Destroys underlying native C++ object. You can call this method
+     * if you want to be sure that internal object is properly destroyed.
+     * You can't use instance of this java object anymore after this call.
+     */
+    public void destroy() {
+        safeNativeDestroy(nativeObjectHandle);
+    }
+
     /**
      * Initializes internal passphrase with given string or byte array based passphrase.
      * You cannot pass a both parameters at the same time, but both parameters can be
@@ -127,22 +128,9 @@ public class Password {
      *
      * @param strPass password in string representation
      * @param dataPass raw password bytes
-     * @param other Other password to copy.
+     * @param handleOtherPassword Handle of other password to copy.
      */
-    private static native long initPassword(String strPass, byte[] dataPass, Password other);
-    
-    
-    /**
-     * Destroys underlying native C++ object. You can call this method
-     * if you want to be sure that internal object is properly destroyed.
-     * You can't use instance of this java object anymore after this call.
-     */
-    public synchronized void destroy() {
-        if (this.handle != 0) {
-            destroy(this.handle);
-            this.handle = 0;
-        }
-    }
+    private static native long initPassword(String strPass, byte[] dataPass, long handleOtherPassword) throws IllegalStateException;
 
     /**
      * Create an immutable copy from this Password. If the password object is already destroyed,
@@ -150,21 +138,9 @@ public class Password {
      * @return Immutable
      */
     @NonNull
-    public synchronized Password copyToImmutable() {
-        return new Password(initPassword(null, null, this));
+    public Password copyToImmutable() {
+        return new Password(initPassword(null, null, nativeObjectHandle));
     }
-    
-    /**
-     * Make sure that the underlying C++ object is always destroyed.
-     */
-    protected void finalize() {
-        destroy();
-    }
-    
-    /**
-     * Internal JNI destroy. You have to provide handle created during the initialization.
-     */
-    private native void destroy(long handle);
 
     //
     // Methods for immutable operations
@@ -173,14 +149,14 @@ public class Password {
     /**
      * @return true if {@code Password} object was created as mutable, or false if is immutable.
      */
-    public native boolean isMutable();
-    
+    public native boolean isMutable() throws IllegalStateException;
+
     /**
      * @return If password is immutable, then returns length of password in bytes.
      *         If password is mutable, then returns a number of characters stored in the object.
      */
-    public native int length();
-    
+    public native int length() throws IllegalStateException;
+
     /**
      * Compares two passwords.
      *
@@ -188,7 +164,21 @@ public class Password {
      *
      * @return true when this object and another password object contains equal passphrase.
      */
-    public native boolean isEqualToPassword(Password anotherPassword);
+    public boolean isEqualToPassword(Password anotherPassword) {
+        if (anotherPassword == null) {
+            return false;
+        }
+        return isEqualToPassword(nativeObjectHandle, anotherPassword.nativeObjectHandle);
+    }
+
+    /**
+     * Compare two underlying native Password objects identified by its handles.
+     * @param thisHandle This object's handle.
+     * @param anotherHandle Another object's handle.
+     * @return true if both objects contains the same password.
+     * @throws IllegalStateException In case handles are no longer valid.
+     */
+    private native static boolean isEqualToPassword(long thisHandle, long anotherHandle) throws IllegalStateException;
 
     public boolean equals(Object anObject) {
         if (this == anObject) {
@@ -208,8 +198,9 @@ public class Password {
      * Clears internally stored passphrase.
      *
      * @return false if the object was initialized as immutable.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    public native boolean clear();
+    public native boolean clear() throws IllegalStateException;
 
     /**
      * Adds one unicode code point at the end of the passphrase.
@@ -218,8 +209,9 @@ public class Password {
      *
      * @return true if operation succeeded or false if object is not
      *         mutable, or code the point is invalid.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    public native boolean addCharacter(int utfCodepoint);
+    public native boolean addCharacter(int utfCodepoint) throws IllegalStateException;
 
     /**
      * Inserts unicode code point at the desired index.
@@ -229,16 +221,18 @@ public class Password {
      *
      * @return true if operation succeeded or false if object is not
      *         mutable, or code point is invalid, or index is out of the range.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    public native boolean insertCharacter(int utfCodepoint, int index);
+    public native boolean insertCharacter(int utfCodepoint, int index) throws IllegalStateException;
 
     /**
      * Removes last unicode code point from the passphrase.
      *
      * @return Returns true if operation succeeded or false if object is not
      *         mutable, or passphrase is already empty.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    public native boolean removeLastCharacter();
+    public native boolean removeLastCharacter() throws IllegalStateException;
 
     /**
      * Removes character from desired index.
@@ -247,8 +241,9 @@ public class Password {
      *
      * @return true if operation succeeded or false if object is not
      *         mutable, or index is out of the range.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    public native boolean removeCharacter(int index);
+    public native boolean removeCharacter(int index) throws IllegalStateException;
 
     //
     // Password complexity validation
@@ -259,8 +254,9 @@ public class Password {
      * plaintext password does safe content cleanup after the array is no longer needed.
      *
      * @return Array of bytes with plaintext password.
+     * @throws IllegalStateException In case native handle is no longer valid.
      */
-    private native byte[] getPlaintextPassword();
+    private native static byte[] getPlaintextPassword(long handle) throws IllegalStateException;
 
     /**
      * The {@code IPasswordComplexityValidator} provides simple interface to validate password
@@ -287,11 +283,8 @@ public class Password {
      * @return Value returned from the complexity validation.
      * @throws IllegalStateException in case that underlying C++ object is already destroyed.
      */
-    public int validatePasswordComplexity(@NonNull IPasswordComplexityValidator complexityValidator) {
-        final byte[] passwordBytes = getPlaintextPassword();
-        if (passwordBytes == null) {
-            throw new IllegalStateException("Password object is no longer valid");
-        }
+    public int validatePasswordComplexity(@NonNull IPasswordComplexityValidator complexityValidator) throws IllegalStateException {
+        final byte[] passwordBytes = getPlaintextPassword(nativeObjectHandle);
         final int result = complexityValidator.validatePasswordComplexity(passwordBytes);
         // cleanup array of bytes
         Arrays.fill(passwordBytes, (byte) 0);

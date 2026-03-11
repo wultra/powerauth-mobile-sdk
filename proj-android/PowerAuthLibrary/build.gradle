@@ -20,7 +20,6 @@ plugins {
     id 'signing'
 }
 
-
 android {
     namespace = "io.getlime.security.powerauth"
 
@@ -42,8 +41,13 @@ android {
         vectorDrawables.useSupportLibrary = true
 
         externalNativeBuild {
+            def cpuCores = Integer.max(1, (Runtime.runtime.availableProcessors() / 2).toInteger())
             ndkBuild {
                 abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+                // The next line causes a lot of "C/C++: fcntl(): Bad file descriptor" dummy warnings,
+                // but significantly improves the build time.
+                arguments "-j${cpuCores}"
+
             }
         }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -151,6 +155,11 @@ tasks.register('prepareOpenSSL', Exec) {
 tasks.register('verifyDebugSymbolsForRelease', Exec) {
     commandLine 'bash', '../../scripts/android-validate-build.sh', '--aar', "${buildDir}/outputs/aar/PowerAuthLibrary-release.aar"
 }
+
+// Uncomment to show usage of deprecated APIs
+//tasks.withType(JavaCompile).configureEach {
+//    options.compilerArgs += ["-Xlint:deprecation"]
+//}
 
 afterEvaluate {
     externalNativeBuildCleanDebug.dependsOn prepareOpenSSL

@@ -62,17 +62,16 @@ if (![self unlockImpl:&lerr] || lerr) {         \
         _lock = [[NSRecursiveLock alloc] init];
         _session = session;
         _dataProvider = dataProvider;
-        if (![self loadState:error]) {
-            return nil;
-        }
     }
     return self;
 }
 
+- (void) releaseResourcesBeforeDestroy
+{
+}
 
-#pragma mark - Private
-
-- (BOOL) loadState:(NSError**)error
+- (BOOL) loadInitialState:(BOOL)clearUnsupportedData
+                    error:(NSError*_Nullable*_Nullable)error
 {
     // We don't need to acquire access lock, because the object is still
     // in its initialization phase. We need to just temporarily simulate
@@ -80,20 +79,39 @@ if (![self unlockImpl:&lerr] || lerr) {         \
     _readWriteAccessCount = 1;
     _saveOnUnlock = YES;
     
+    NSError * localError = nil;
     NSData * statusData = [_dataProvider sessionData];
+    BOOL loadSuccess;
     if (statusData) {
-        [_session deserializeState:statusData error:error];
+        loadSuccess = [_session deserializeState:statusData error:&localError];
+        if (!loadSuccess) {
+            PowerAuthCoreError coreError = localError.powerAuthCoreErrorCode;
+            if (clearUnsupportedData && (coreError == PowerAuthCoreError_InvalidActivationData || coreError == PowerAuthCoreError_UpgradeSDK)) {
+                // If cleanup is requested, then ignore the error and reset the session
+                [_session resetSession];
+                loadSuccess = YES;
+            } else {
+                // Otherwise wrap
+                PA2WrapError(localError, error);
+            }
+        }
     } else {
         [_session resetSession];
+        loadSuccess = YES;
     }
-    _stateBefore = [_session serializedState:error];
+    if (loadSuccess) {
+        _stateBefore = statusData;
+    }
     
     // Set counters to initial state
     _readWriteAccessCount = 0;
     _saveOnUnlock = NO;
     
-    return _stateBefore != nil;
+    return loadSuccess;
 }
+
+
+#pragma mark - Private
 
 - (void) lockImpl:(BOOL)write
 {

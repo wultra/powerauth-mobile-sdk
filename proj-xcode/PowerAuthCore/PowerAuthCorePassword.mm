@@ -22,7 +22,6 @@
 
 @implementation PowerAuthCorePassword
 {
-@protected
     powerAuth::PasswordPtr _password;
 }
 
@@ -157,27 +156,27 @@
 
 - (void) clear
 {
-    _password->clear();
+    self.passObjRef->clear();
 }
 
 - (BOOL) addCharacter:(UInt32)character
 {
-    return _password->addCharacter(character);
+    return self.passObjRef->addCharacter(character);
 }
 
 - (BOOL) insertCharacter:(UInt32)character atIndex:(NSUInteger)index
 {
-    return _password->insertCharacter(character, index);
+    return self.passObjRef->insertCharacter(character, index);
 }
 
 - (BOOL) removeLastCharacter
 {
-    return _password->removeLastCharacter();
+    return self.passObjRef->removeLastCharacter();
 }
 
 - (BOOL) removeCharacterAtIndex:(NSUInteger)index
 {
-    return _password->removeCharacter(index);
+    return self.passObjRef->removeCharacter(index);
 }
 
 @end

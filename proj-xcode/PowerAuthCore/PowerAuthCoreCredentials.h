@@ -17,6 +17,7 @@
 #import <PowerAuthCore/PowerAuthCorePassword.h>
 #import <PowerAuthCore/PowerAuthCoreData.h>
 
+/// Object representing user's credentials for authentication.
 @interface PowerAuthCoreCredentials : NSObject
 
 /// Default construction is unavailable

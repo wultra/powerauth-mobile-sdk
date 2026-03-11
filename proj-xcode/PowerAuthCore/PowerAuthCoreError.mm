@@ -46,6 +46,7 @@ NSString * const PowerAuthCoreErrorInfoKey_AdditionalErrors = @"PowerAuthCoreErr
 
 namespace powerAuth {
 
+POWERAUTH_NO_EXPORT
 NSError* BuildCoreNSError(PowerAuthCoreError error_code, NSString * message)
 {
     return [NSError errorWithDomain:PowerAuthCoreErrorDomain code:error_code userInfo:@{
@@ -53,13 +54,16 @@ NSError* BuildCoreNSError(PowerAuthCoreError error_code, NSString * message)
     }];
 }
 
+POWERAUTH_NO_EXPORT
 NSError * BuildNSErrorFromException(std::exception_ptr ptr)
 {
+    // This is similar to NativeHelper::handleException() on Android platform.
+    
     NSString * message = nil;
     NSMutableArray * additional = [NSMutableArray array];
     powerAuth::ErrorCode error_code = powerAuth::EC_Other;
     
-    ptr = Exception::wrapException();
+    ptr = Exception::wrapException(ptr);
     
     // Iterate over exception chain and extract debug information
     while (ptr != nullptr) {
@@ -80,6 +84,9 @@ NSError * BuildNSErrorFromException(std::exception_ptr ptr)
         } catch (...) {
             cpp_message = "Unknown exception type";
             ptr = nullptr;
+        }
+        if (cpp_message.empty()) {
+            cpp_message = Exception::defaultMessage(error_code);
         }
         if (!message) {
             message = cc7::objc::CopyToNSString(cpp_message);

@@ -60,8 +60,8 @@
 typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::ResponseObjectPtr& response);
 
 @interface PowerAuthCoreRequest (Private)
-- (id) initWithRequest:(powerAuth::RequestPtr&)request;
-- (id) initWithRequest:(powerAuth::RequestPtr&)request
+- (id) initWithRequest:(const powerAuth::RequestPtr&)request;
+- (id) initWithRequest:(const powerAuth::RequestPtr&)request
            withBuilder:(PowerAuthCoreResponseBuilder)builder;
 @end
 
@@ -74,6 +74,10 @@ typedef id(^PowerAuthCoreResponseBuilder)(const powerAuth::ResponseObjectPtr& re
 @interface PowerAuthCoreCredentials (Private)
 - (instancetype) initWithCredentials:(powerAuth::CredentialsPtr)credentials;
 - (const powerAuth::CredentialsPtr&) credentialsRef;
+@end
+
+@interface PowerAuthCoreServerStatus (Private)
+- (instancetype) initWithServerStatus:(const powerAuth::ServerStatusPtr&)serverStatus;
 @end
 
 @interface PowerAuthCoreActivationResult (Private)
@@ -134,15 +138,15 @@ namespace powerAuth {
 ///   - errorCode: Error code.
 ///   - message: Error message.
 /// - Returns: Constructed `NSError`.
-extern NSError* BuildCoreNSError(PowerAuthCoreError errorCode, NSString * message);
+NSError* BuildCoreNSError(PowerAuthCoreError errorCode, NSString * message);
 
 /// Build `NSError` object from provided `std::exception_ptr`. The function is useful in typical
 /// high level `try {} catch (...) {}` statement.
-extern NSError* BuildNSErrorFromException(std::exception_ptr ptr = std::current_exception());
+NSError* BuildNSErrorFromException(std::exception_ptr ptr = std::current_exception());
 
 /// Build `NSDictionary` object from provided list of HTTP headers.
 /// - Parameter headers: Vector with headers.
 /// - Returns: NSArray with headers.
-extern NSArray<PowerAuthCoreHttpHeader*>* BuildNSArrayWithHeaders(const HttpHeaderList& headers);
+NSArray<PowerAuthCoreHttpHeader*>* BuildNSArrayWithHeaders(const HttpHeaderList& headers);
 
 } // namespace powerAuth

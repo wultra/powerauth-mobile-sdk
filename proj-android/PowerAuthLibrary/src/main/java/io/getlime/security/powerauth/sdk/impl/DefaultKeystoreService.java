@@ -18,173 +18,140 @@ package io.getlime.security.powerauth.sdk.impl;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import io.getlime.security.powerauth.core.EciesEncryptorScope;
-import io.getlime.security.powerauth.core.ErrorCode;
-import io.getlime.security.powerauth.core.ICoreTimeService;
-import io.getlime.security.powerauth.core.Session;
-import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
-import io.getlime.security.powerauth.exception.PowerAuthErrorException;
-import io.getlime.security.powerauth.networking.client.HttpClient;
+
+import io.getlime.security.powerauth.core.CoreAlgorithm;
+import io.getlime.security.powerauth.core.CoreEncryptorFactory;
+import io.getlime.security.powerauth.core.CoreEncryptorScope;
+import io.getlime.security.powerauth.core.CoreSession;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
-import io.getlime.security.powerauth.networking.model.response.GetTemporaryKeyResponse;
-import io.getlime.security.powerauth.system.PowerAuthLog;
 
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * The {@code DefaultKeystoreService} class provides temporary encryption keys for ECIES encryption acquired from the
- * server. The key itself is stored in {@link io.getlime.security.powerauth.core.Session} instance and is available
+ * The {@code DefaultKeystoreService} class provides temporary encryption keys for End-To-End encryption acquired from the
+ * server. The key itself is stored in {@link io.getlime.security.powerauth.core.CoreSession} instance and is available
  * for further encryption operations.
  */
 public class DefaultKeystoreService implements IKeystoreService, GetTemporaryKeyTask.TaskCompletion {
 
     private final @NonNull ReentrantLock lock;
-    private final @NonNull Session session;
-    private final @NonNull ICoreTimeService timeService;
+    private final @NonNull CoreSession session;
     private final @NonNull ICallbackDispatcher callbackDispatcher;
-    private final @NonNull HttpClient httpClient;
+    private final @NonNull CoreHttpClient httpClient;
 
-    private final PublicKeyInfo applicationScopePublicKeyInfo;
-    private final PublicKeyInfo activationScopePublicKeyInfo;
-
-    /**
-     * We don't want to use the key that's close to its expiration on the server. This constant specifies for how much
-     * we move the expiration time to backward.
-     */
-    private static final long EXPIRATION_THRESHOLD = 10_000;
 
     /**
      * Service constructor.
-     * @param timeService           Time synchronization service.
-     * @param session               Instance of core Session.
+     * @param session               Instance of core CoreSession.
      * @param callbackDispatcher    Callback dispatcher.
      * @param sharedLock            Reentrant lock shared across multiple SDK objects.
      * @param httpClient            HTTP client implementation.
      */
     public DefaultKeystoreService(
-            @NonNull ICoreTimeService timeService,
-            @NonNull Session session,
+            @NonNull CoreSession session,
             @NonNull ICallbackDispatcher callbackDispatcher,
             @NonNull ReentrantLock sharedLock,
-            @NonNull HttpClient httpClient) {
+            @NonNull CoreHttpClient httpClient) {
         this.lock = sharedLock;
-        this.timeService = timeService;
         this.session = session;
         this.callbackDispatcher = callbackDispatcher;
         this.httpClient = httpClient;
-        this.applicationScopePublicKeyInfo = new PublicKeyInfo(EciesEncryptorScope.APPLICATION);
-        this.activationScopePublicKeyInfo = new PublicKeyInfo(EciesEncryptorScope.ACTIVATION);
     }
 
     @Override
-    public boolean containsKeyForEncryptor(int scope) {
-        try {
-            lock.lock();
-            if (session.hasPublicKeyForEciesScope(scope)) {
-                final PublicKeyInfo publicKeyInfo = getPublicKeyInfoForScope(scope);
-                if (publicKeyInfo.expiration >= 0 && (timeService.getCurrentTime() < publicKeyInfo.expiration - EXPIRATION_THRESHOLD)) {
-                    return true;
-                }
-                PowerAuthLog.d("Removing expired public key for ECIES encryptor " + scope);
-                publicKeyInfo.expiration = -1;
-                session.removePublicKeyForEciesScope(scope);
-            }
-            return false;
-        } finally {
-            lock.unlock();
-        }
+    public boolean containsKeyForEncryptor(@CoreEncryptorScope int scope) {
+        return getEncryptorFactory().hasTemporaryKeyForScope(scope);
     }
 
-    @Override
     @Nullable
-    public ICancelable createKeyForEncryptor(@EciesEncryptorScope int scope, @NonNull IPrivateCryptoHelper cryptoHelper, @NonNull ICreateKeyListener listener) {
-        if (scope == EciesEncryptorScope.ACTIVATION && !session.hasValidActivation()) {
-            callbackDispatcher.dispatchCallback(() -> listener.onCreateKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE)));
-            return null;
-        }
+    @Override
+    public ICancelable createKeyForEncryptor(@CoreEncryptorScope int scope, @NonNull ICreateKeyListener listener) {
         try {
             lock.lock();
-            if (containsKeyForEncryptor(scope)) {
+            final CoreEncryptorFactory encryptorFactory = getEncryptorFactory();
+            if (encryptorFactory.hasTemporaryKeyForScope(scope)) {
+                // Key is available, report success and return immediately,
                 callbackDispatcher.dispatchCallback(listener::onCreateKeySucceeded);
                 return null;
             }
-            final PublicKeyInfo publicKeyInfo = getPublicKeyInfoForScope(scope);
-            GetTemporaryKeyTask mainTask = publicKeyInfo.task;
-            if (mainTask == null) {
-                mainTask = new GetTemporaryKeyTask(scope, cryptoHelper, lock, callbackDispatcher, httpClient, this);
-                publicKeyInfo.task = mainTask;
-                publicKeyInfo.timeSynchronizationTask = timeService.startTimeSynchronizationTask();
-            }
-            return mainTask.createChildTask(new ITaskCompletion<>() {
+            // Key is unavailable, create task for it.
+            return getTaskForScope(encryptorFactory, scope).createChildTask(new ITaskCompletion<>() {
                 @Override
-                public void onSuccess(@NonNull GetTemporaryKeyResponse response) {
-                    listener.onCreateKeySucceeded();
+                public void onSuccess(@NonNull Boolean aBoolean) {
+                    callbackDispatcher.dispatchCallback(listener::onCreateKeySucceeded);
                 }
 
                 @Override
                 public void onFailure(@NonNull Throwable failure) {
-                    listener.onCreateKeyFailed(failure);
+                    callbackDispatcher.dispatchCallback(() -> listener.onCreateKeyFailed(failure));
                 }
             });
+
         } finally {
             lock.unlock();
         }
     }
 
+    private GetTemporaryKeyTask applicationScopedTask;
+    private GetTemporaryKeyTask activationScopedTask;
+
     @Override
-    public void onGetTemporaryKeyTaskCompletion(@NonNull GetTemporaryKeyTask task, @Nullable GetTemporaryKeyResponse response) {
-        final int scope = task.getScope();
-        final PublicKeyInfo publicKeyInfo = getPublicKeyInfoForScope(scope);
-        publicKeyInfo.task = null;
-        if (response != null) {
-            final int errorCode = session.setPublicKeyForEciesScope(scope, response.getPublicKey(), response.getKeyId());
-            if (errorCode == ErrorCode.OK) {
-                publicKeyInfo.expiration = response.getExpiration();
-                timeService.completeTimeSynchronizationTask(publicKeyInfo.timeSynchronizationTask, response.getServerTime());
-                PowerAuthLog.d("Saving public key for ECIES encryptor " + scope);
-            } else {
-                PowerAuthLog.e("Failed to update public key for ECIES encryption. Code = " + errorCode);
+    public void onGetTemporaryKeyTaskCompletion(@NonNull GetTemporaryKeyTask task, boolean success) {
+        try {
+            lock.lock();
+            if (task.equals(applicationScopedTask)) {
+                applicationScopedTask = null;
+            } else if (task.equals(activationScopedTask)) {
+                activationScopedTask = null;
             }
+        } finally {
+            lock.unlock();
         }
-        publicKeyInfo.timeSynchronizationTask = null;
     }
 
+    @NonNull
+    private GetTemporaryKeyTask getTaskForScope(@NonNull CoreEncryptorFactory encryptorFactory, @CoreEncryptorScope int scope) {
+        try {
+            lock.lock();
+            if (scope == CoreEncryptorScope.APPLICATION) {
+                if (applicationScopedTask == null) {
+                    applicationScopedTask = new GetTemporaryKeyTask(scope, lock, callbackDispatcher, httpClient, encryptorFactory, this);
+                }
+                return applicationScopedTask;
+            } else {
+                if (activationScopedTask == null) {
+                    activationScopedTask = new GetTemporaryKeyTask(scope, lock, callbackDispatcher, httpClient, encryptorFactory, this);
+                }
+                return activationScopedTask;
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+    private CoreEncryptorFactory coreEncryptorFactory;
+    private @CoreAlgorithm int coreAlgorithm;
+
     /**
-     * Get instance of {@link PublicKeyInfo} class depending on the scope.
-     * @param scope Scope of encryption.
-     * @return Instance of {@link PublicKeyInfo} class depending on the scope.
+     * @return Instance of {@link CoreEncryptorFactory}.
      */
     @NonNull
-    private PublicKeyInfo getPublicKeyInfoForScope(@EciesEncryptorScope int scope) {
-        return scope == EciesEncryptorScope.APPLICATION ? applicationScopePublicKeyInfo : activationScopePublicKeyInfo;
-    }
-
-    /**
-     * Internal class containing additional information about retrieved public key.
-     */
-    private static class PublicKeyInfo {
-        /**
-         * Scope of the key.
-         */
-        final @EciesEncryptorScope int scope;
-        /**
-         * If positive number, then contain timestamp when the key expires on the server.
-         */
-        long expiration;
-        /**
-         * If not null, then service is currently retrieving the key from the server.
-         */
-        GetTemporaryKeyTask task;
-        /**
-         * Time synchronization task.
-         */
-        Object timeSynchronizationTask;
-
-        PublicKeyInfo(@EciesEncryptorScope int scope) {
-            this.scope = scope;
-            this.expiration = -1;
-            this.task = null;
-            this.timeSynchronizationTask = null;
+    private CoreEncryptorFactory getEncryptorFactory() {
+        try {
+            lock.lock();
+            // TODO: session should manage the reference to factory.
+            int currentAlgorithm = session.getCurrentAlgorithm();
+            if (coreEncryptorFactory == null) {
+                coreEncryptorFactory = session.getEncryptorFactory();
+                coreAlgorithm = currentAlgorithm;
+            } else {
+                if (currentAlgorithm != coreAlgorithm || session.hasPendingProtocolUpgrade()) {
+                    coreEncryptorFactory = session.getEncryptorFactory();
+                    coreAlgorithm = currentAlgorithm;
+                }
+            }
+            return coreEncryptorFactory;
+        } finally {
+            lock.unlock();
         }
     }
 }

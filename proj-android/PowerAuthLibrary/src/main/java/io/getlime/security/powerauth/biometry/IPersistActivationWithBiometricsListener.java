@@ -24,7 +24,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
  *
  * @deprecated Interface is deprecated, use {@link io.getlime.security.powerauth.networking.response.IPersistActivationListener} as replacement.
  */
-@Deprecated // 1.10.0
+@Deprecated // 2.0.0
 public interface IPersistActivationWithBiometricsListener {
     /**
      * Biometric dialog was cancelled.

@@ -51,7 +51,7 @@ typedef void(^PowerAuthCoreRequestCallback)(id _Nullable response, NSError * _Nu
 /// and `failure` property is updated with the error.
 @property (nonatomic, readonly, strong, nonnull) NSData* requestBody;
 
-/// Contains HTTP request body. Be aware, that you have to call `prepareRequest()` method
+/// Contains HTTP request headers. Be aware, that you have to call `prepareRequest()` method
 /// to prepare the headers. If the request is not prepared, then contains `nil` and `failure`
 /// property is updated with the error.
 @property (nonatomic, readonly, strong, nonnull) NSArray<PowerAuthCoreHttpHeader*>* requestHeaders;
@@ -82,7 +82,7 @@ typedef void(^PowerAuthCoreRequestCallback)(id _Nullable response, NSError * _Nu
 
 /// Set request as failed. You have to call this method when the HTTP request ends with
 /// external failure, such as non-200 status code is received.
-- (void) setFailed;
+- (void) setFailedWithError:(nullable NSError*)error;
 
 /// Prepare request body and headers. It's recommended to call this method on background
 /// execution queue to avoid main thread disruptions.

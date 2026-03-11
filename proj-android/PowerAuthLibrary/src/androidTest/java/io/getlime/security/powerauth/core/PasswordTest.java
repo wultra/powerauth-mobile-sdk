@@ -42,17 +42,31 @@ public class PasswordTest {
         assertTrue(p1.isEqualToPassword(p2));
 
         p1.destroy();
-        assertFalse(p1.isEqualToPassword(p2));
+        try {
+            p1.isEqualToPassword(p2);
+            fail();
+        } catch (IllegalStateException e) {
+            // success
+        }
         p2.destroy();
-        assertFalse(p1.isEqualToPassword(p2));
-
+        try {
+            p1.isEqualToPassword(p2);
+            fail();
+        } catch (IllegalStateException e) {
+            // success
+        }
         Password p3 = new Password(new byte[] { 1, 2, 3, 4, 5, 6, 7 });
         assertFalse(p3.isMutable());
         assertEquals(7, p3.length());
         assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7 }, extractBytesFromPassword(p3));
 
         p3.destroy();
-        assertEquals(0, p3.length());
+        try {
+            p3.length();
+            fail();
+        } catch (IllegalStateException e) {
+            // success
+        }
     }
 
     @Test
@@ -92,7 +106,12 @@ public class PasswordTest {
         assertEquals(0, p1.length());
 
         p1.destroy();
-        assertEquals(0, p1.length());
+        try {
+            p1.length();
+            fail();
+        } catch (IllegalStateException exception) {
+            // success
+        }
         try {
             p1.validatePasswordComplexity(passwordBytes -> 0);
             fail();
@@ -133,7 +152,13 @@ public class PasswordTest {
         assertEquals("ello0rl", extractStringFromPassword(p1));
 
         p1.destroy();
-        assertEquals(0, p1.length());
+        p1.destroy();   // must pass
+        try {
+            p1.length();
+            fail();
+        } catch (IllegalStateException exception) {
+            // success
+        }
         try {
             p1.validatePasswordComplexity(passwordBytes -> 0);
             fail();
@@ -210,11 +235,23 @@ public class PasswordTest {
         Password p1copy = p1.copyToImmutable();
         Password p2copy = p2.copyToImmutable();
         Password p3copy = p3.copyToImmutable();
-        Password p4copy = p4.copyToImmutable();
+        Password p4copy;
+        try {
+            p4copy = p4.copyToImmutable();
+            fail();
+        } catch (IllegalStateException exception) {
+            // success
+            p4copy = null;
+        }
         assertEquals(p1, p1copy);
         assertEquals(p2, p2copy);
         assertEquals(p3, p3copy);
-        assertEquals(0, p4.length());
+        try {
+            p4.length();
+            fail();
+        } catch (IllegalStateException exception) {
+            // success
+        }
         assertNotEquals(p4, p4copy); // compare to destroyed is always false
     }
 

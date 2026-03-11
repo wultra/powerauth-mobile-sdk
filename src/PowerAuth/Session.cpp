@@ -15,8 +15,11 @@
  */
 
 #include <PowerAuth/Session.h>
+#include "task/ConfirmActivationTask.h"
 #include "task/GetActivationStatusTask.h"
 #include "task/ProtocolUpgradeTask.h"
+// EEK
+#include "v3/LegacyUKE.h"
 
 namespace powerAuth {
 
@@ -122,7 +125,7 @@ RequestPtr Session::createActivation(const cc7::json::JsonValue& L1_data, const 
     return _context->activationService().createActivation(L1_data, L2_data);
 }
 
-RequestPtr Session::confirmActivation(InitialCredentialsPtr credentials)
+TaskPtr Session::confirmActivation(const InitialCredentialsPtr& credentials)
 {
     LOCK_GUARD();
     // Validate credentials in advance. This is typically done also in key provider,
@@ -136,7 +139,13 @@ RequestPtr Session::confirmActivation(InitialCredentialsPtr credentials)
     if (rd.getActivationId().empty()) {
         throw Exception(EC_WrongActivationState, "Cannot confirm activation. Key-exchange is not completed yet");
     }
-    return _context->activationService().confirmActivation(credentials);
+    if (_context->protocolVersion() < Version_V4) {
+        // V3 doesn't require HTTP communication for activation confirm
+        _context->activationService().confirmActivation(credentials);
+        return nullptr;
+    }
+    // V4+ uses ConfirmActivationTask
+    return std::make_shared<ConfirmActivationTask>(_context, credentials);
 }
 
 bool Session::hasValidActivationData() const noexcept
@@ -195,7 +204,10 @@ TaskPtr Session::startProtocolUpgrade(const PasswordPtr& password, const cc7::By
 {
     LOCK_GUARD();
     checkActivationData();
-    return std::make_shared<ProtocolUpgradeTask>(_context, password, new_biometry_kek);
+    auto task = std::make_shared<ProtocolUpgradeTask>(_context, password, new_biometry_kek);
+    // Start the task to prepare upgrade structure in SessionData class.
+    task->start();
+    return task;
 }
 
 RequestPtr Session::removeActivation(const CredentialsPtr& credentials)
@@ -412,6 +424,138 @@ RequestPtr Session::jwsSignData(const CredentialsPtr& credentials,
 {
     LOCK_GUARD();
     return _context->signatureService().jwsSignData(credentials, data_to_sign, data_type, key_to_use, use_compact_form);
+}
+
+RequestPtr Session::createCertificateSigningRequest(const CredentialsPtr& credentials,
+                                                    const std::map<std::string, std::string>& dn_items,
+                                                    const std::vector<std::string>& san_items,
+                                                    SignatureKeyId key_to_use) const
+{
+    LOCK_GUARD();
+    return _context->signatureService().createCSR(credentials, dn_items, san_items, key_to_use);
+}
+
+// MARK: - EEK
+
+bool Session::hasExternalEncryptionKey() const noexcept
+{
+    LOCK_GUARD();
+    auto& sd = _context->sessionData();
+    if (sd.hasPersistentData(Version_V3)) {
+        return sd.persistentData().v3().flags.usesExternalKey == 1;
+    }
+    return false;
+}
+
+/// Enables or disables EEK in V3 persistent data.
+/// - Parameters:
+///   - pd: Persistent data structure.
+///   - eek: External encryption key.
+///   - enable: Set 1 to enable, or 0 to disable EEK.
+static void EEK_SetEnabled(PersistentData::V3& pd, const cc7::ByteRange& eek, cc7::byte enable)
+{
+    auto& uke = algorithms().v3.uke();
+    auto has_biometry = !pd.cBiometryKey.empty();
+    cc7::ByteArray knowledge;
+    cc7::ByteArray biometry;
+    if (enable) {
+        knowledge = uke.wrap(eek, pd.cKnowledgeKey);
+        if (has_biometry) {
+            biometry = uke.wrap(eek, pd.cBiometryKey);
+        }
+    } else {
+        knowledge = uke.unwrap(eek, pd.cKnowledgeKey);
+        if (has_biometry) {
+            biometry = uke.unwrap(eek, pd.cBiometryKey);
+        }
+    }
+    // Update PD
+    pd.cKnowledgeKey = knowledge;
+    pd.cBiometryKey = biometry;
+    pd.flags.usesExternalKey = enable;
+}
+
+void Session::removeExternalEncryptionKey(const cc7::ByteRange &eek)
+{
+    LOCK_GUARD();
+    auto& sd = _context->sessionData();
+    if (!sd.hasPersistentData()) {
+        throw Exception(EC_MissingActivation);
+    }
+    if (!sd.hasPersistentData(Version_V3)) {
+        throw Exception(EC_WrongActivationState, "Removing EEK requires legacy activation");
+    }
+    auto& pd = sd.persistentData().v3();
+    if (!pd.flags.usesExternalKey) {
+        throw Exception(EC_WrongActivationState, "EEK is not present in activation data");
+    }
+    EEK_SetEnabled(pd, eek, 0);
+}
+
+void Session::addExternalEncryptionKeyForTest(const cc7::ByteRange &eek)
+{
+    LOCK_GUARD();
+    auto& sd = _context->sessionData();
+    if (!sd.hasPersistentData()) {
+        throw Exception(EC_MissingActivation);
+    }
+    if (!sd.hasPersistentData(Version_V3)) {
+        throw Exception(EC_WrongActivationState, "Adding EEK requires legacy activation");
+    }
+    auto& pd = sd.persistentData().v3();
+    if (pd.flags.usesExternalKey) {
+        throw Exception(EC_WrongActivationState, "EEK is already present in activation data");
+    }
+    EEK_SetEnabled(pd, eek, 1);
+}
+
+// MARK: - Utilities
+
+cc7::ByteArray Session::generateFactorKek() const
+{
+    LOCK_GUARD();
+    return generateFactorKekForProtocol(_context->protocolVersion());
+}
+
+cc7::ByteArray Session::generateFactorKekFromData(const cc7::ByteRange& data) const
+{
+    LOCK_GUARD();
+    return generateFactorKekFromData(data, _context->protocolVersion());
+}
+
+cc7::ByteArray Session::generateFactorKekFromData(const cc7::ByteRange& data, ProtocolVersion version)
+{
+    switch (version) {
+        case Version_V4: {
+            return algorithms().v4.sha3_256().digest(data);
+        }
+        case Version_V3: {
+            // Compatible with 1.9.x, Session::normalizeSignatureUnlockKeyFromData()
+            auto kek = algorithms().v3.sha256().digest(data);
+            kek.resize(v3::FACTOR_KEY_SIZE);
+            return kek;
+        }
+        default:
+            throw Exception(EC_WrongParameter, "Unsupported protocol version");
+    }
+}
+
+cc7::ByteArray Session::generateFactorKekForProtocol(ProtocolVersion version)
+{
+    size_t kek_size;
+    switch (version) {
+        case Version_V4: kek_size = v4::FACTOR_KEY_SIZE; break;
+        case Version_V3: kek_size = v3::FACTOR_KEY_SIZE; break;
+        default:
+            throw Exception(EC_WrongParameter, "Unsupported protocol version");
+    }
+    return cc7::crypto::GetRandomData(kek_size);
+}
+
+void Session::cleanupBiometricFactorData()
+{
+    LOCK_GUARD();
+    return _context->activationService().cleanupBiometricFactorData();
 }
 
 // MARK: - Services

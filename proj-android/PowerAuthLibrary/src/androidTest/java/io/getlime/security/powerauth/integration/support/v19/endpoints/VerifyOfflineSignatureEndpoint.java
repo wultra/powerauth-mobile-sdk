@@ -16,13 +16,14 @@
 
 package io.getlime.security.powerauth.integration.support.v19.endpoints;
 
-import com.google.gson.reflect.TypeToken;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.google.gson.reflect.TypeToken;
+
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
-import io.getlime.security.powerauth.integration.support.model.SignatureData;
-import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
+import io.getlime.security.powerauth.integration.support.shared.AuthenticationResponseV10;
 
 public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<VerifyOfflineSignatureEndpoint.Response> {
     @NonNull
@@ -43,12 +44,14 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
         private String data;
         private String signature;
         private boolean allowBiometry;
+        private Long componentLength;
 
-        public Request(@NonNull SignatureData sd) {
+        public Request(@NonNull AuthenticationCodeData sd) {
             activationId = sd.getActivationId();
             data = sd.getData();
-            signature = sd.getSignature();
+            signature = sd.getAuthenticationCode();
             allowBiometry = sd.getAllowBiometry() != null ? sd.getAllowBiometry() : false;
+            componentLength = sd.getOfflineAuthenticationCodeComponentLength();
         }
 
         public String getActivationId() {
@@ -82,8 +85,16 @@ public class VerifyOfflineSignatureEndpoint implements IServerApiEndpoint<Verify
         public void setAllowBiometry(boolean allowBiometry) {
             this.allowBiometry = allowBiometry;
         }
+
+        public Long getComponentLength() {
+            return componentLength;
+        }
+
+        public void setComponentLength(Long componentLength) {
+            this.componentLength = componentLength;
+        }
     }
 
-    public static class Response extends SignatureInfo {
+    public static class Response extends AuthenticationResponseV10 {
     }
 }

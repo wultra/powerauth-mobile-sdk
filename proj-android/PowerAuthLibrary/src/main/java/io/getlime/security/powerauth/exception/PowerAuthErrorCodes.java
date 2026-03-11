@@ -34,7 +34,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         PROTOCOL_UPGRADE, PENDING_PROTOCOL_UPGRADE,
         BIOMETRY_NOT_SUPPORTED, BIOMETRY_NOT_AVAILABLE, BIOMETRY_NOT_RECOGNIZED,
         INSUFFICIENT_KEYCHAIN_PROTECTION, BIOMETRY_LOCKOUT, TIME_SYNCHRONIZATION,
-        BIOMETRY_NOT_ENROLLED})
+        BIOMETRY_NOT_ENROLLED, WRONG_SIGNATURE, OTHER, UPGRADE_SDK})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -136,8 +136,8 @@ public @interface PowerAuthErrorCodes {
      * The biometric authentication did not recognize the biometric image (fingerprint, face, etc...)
      * <p>
      * Be aware that this error code is reported only during the biometric factor setup, but is never
-     * reported when PowerAuth authorization code with biometric factor is requested. This is because the
-     * PowerAuth SDK swallows this error code internally and generates a random authorization code
+     * reported when PowerAuth authentication code with biometric factor is requested. This is because the
+     * PowerAuth SDK swallows this error code internally and generates a random authentication code
      * and pretends that everything is OK. The result is that a counter of failed attempts on the server
      * is increased, so the attacker has a limited ability to fool the biometric sensor.
      */
@@ -168,4 +168,19 @@ public @interface PowerAuthErrorCodes {
      * The biometric authentication failed because there's no biometry enrolled on the device.
      */
     int BIOMETRY_NOT_ENROLLED = 24;
+    /**
+     * Digital or JWS signature is not valid.
+     */
+    int WRONG_SIGNATURE = 25;
+    /**
+     * Upgrade the PowerAuth Mobile SDK in your application. This error may occur if the local
+     * activation data was created with a newer version of the SDK than the one currently used
+     * in your application. This situation can happen if you downgraded your application during
+     * testing.
+     */
+    int UPGRADE_SDK = 26;
+    /**
+     * Other, unspecified error.
+     */
+    int OTHER = 27;
 }

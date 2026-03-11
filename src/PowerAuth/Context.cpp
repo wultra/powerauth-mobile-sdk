@@ -268,6 +268,13 @@ std::shared_ptr<Context> Context::createTargetAlgorithmContext()
     return _target_context;
 }
 
+void Context::resetState() noexcept
+{
+    for (const auto& service : _services) {
+        service->clearActivationData();
+    }
+}
+
 void Context::destroyTargetAlgorithmContext()
 {
     if (!_target_context) {

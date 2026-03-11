@@ -63,6 +63,9 @@ public:
     /// Cancel the task.
     void cancel() noexcept;
     
+    /// Cancels the task if it has not completed yet.
+    void cancelIfNotDone() noexcept;
+    
     /// Test whether task is finished its execution no matter of the type of the result.
     bool isDone() const noexcept;
     
@@ -89,6 +92,9 @@ public:
     /// - Throws: `Exception` with `EC_NotAllowed` if task is not finished yet.
     const cc7::json::JsonValue& getResponseJson() const;
     
+    // Returns true if session state serialization is recommended after this task completes.
+    bool isSessionStateSerializationRecommended() const noexcept;
+    
 protected:
     enum RequestFlags
     {
@@ -111,27 +117,44 @@ protected:
     void setNextRequest(const RequestPtr& request, int tag, int flags);
     
     /// Set task as completed.
-    void setCompleted() noexcept;
+    /// - Parameters:
+    ///   - clear_failure: If `true`, then any previous request failure will be cleared.
+    void setCompleted(bool clear_failure = false) noexcept;
     
     // Overridable methods
     
     /// Overridable method, called when task is started.
+    ///
+    /// The shared lock is acquired before the call.
     virtual void onTaskStart();
     
     /// Overridable method, called when task is ended.
+    ///
+    /// The shared lock is acquired before the call.
     virtual void onTaskEnd();
+    
+    /// Overridable method, called when task is canceled.
+    ///
+    /// The shared lock is acquired before the call.
+    virtual void onTaskCancel();
 
     /// Overridable method, called when partial request ends with success.
+    ///
+    /// The shared lock is acquired before the call.
     /// - Parameters:
     ///   - request: Request that just finished.
     virtual void onRequestSuccess(const Request& request);
     
     /// Overridable method, called when partial request ends with failure.
+    ///
+    /// The shared lock is acquired before the call.
     /// - Parameters:
     ///   - request: Request that just failed.
     virtual void onRequestFailure(const Request& request);
     
     /// Overridable method, called when partial request is canceled.
+    /// 
+    /// The shared lock is acquired before the call.
     /// - Parameters:
     ///   - request: Request that just finished.
     virtual void onRequestCancel(const Request& request);
@@ -147,6 +170,9 @@ protected:
     const std::string _name;
     /// Contains shared mutex.
     const SharedMutexPtr& _mutex;
+    
+    /// Sets the information about session state serialization recommendation.
+    void setSessionStateSerializationRecommended(bool is_recommended = true);
     
 private:
     friend class Request;
@@ -201,6 +227,9 @@ private:
     cc7::json::JsonValue _response_json;
     /// Captured reason of failure.
     std::exception_ptr _failure;
+    
+    /// Indicates that session state serialization is recommended.
+    bool _session_state_serialization_recommended;
 };
 
 CC7_SHARED_PTR(Task)

@@ -87,6 +87,55 @@ using namespace powerAuth;
     _hasDelegate = delegate != nil;
 }
 
+#pragma mark - Helpers
+
+/// Convert ObjC NSDictionary with NSString key and value into `std::map<std::string, std::string>` type.
+/// - Parameters:
+///   - dict: Input dictionary.
+///   - out_map: Reference to output map.
+/// - Returns: YES if success.
+static BOOL _ConvertDictToMap(NSDictionary<NSString*, NSString*>* dict, std::map<std::string, std::string>& out_map)
+{
+    __block std::map<std::string, std::string> map;
+    __block BOOL failure = NO;
+    [dict enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * value, BOOL * stop) {
+        if (![key isKindOfClass:[NSString class]] || ![value isKindOfClass:[NSString class]]) {
+            *stop = failure = YES;
+            return;
+        }
+        map[objc::CopyFromNSString(key)] = objc::CopyFromNSString(value);
+    }];
+    if (!failure) {
+        out_map = std::move(map);
+    }
+    return !failure;
+}
+
+/// Convert ObjC NSArray with NSString values into `std::vector<std::string>` type.
+/// - Parameters:
+///   - array: Input array.
+///   - out_vector: Reference to output vector.
+/// - Returns: YES if success.
+static BOOL _ConvertArrayToVector(NSArray<NSString*>* array, std::vector<std::string>& out_vector)
+{
+    __block std::vector<std::string> vector;
+    __block BOOL failure = NO;
+    vector.reserve(array.count);
+    [array enumerateObjectsUsingBlock:^(NSString * obj, NSUInteger idx, BOOL * stop) {
+        if (![obj isKindOfClass:[NSString class]]) {
+            *stop = failure = YES;
+            return;
+        }
+        vector.push_back(objc::CopyFromNSString(obj));
+    }];
+    
+    if (!failure) {
+        out_vector = std::move(vector);
+    }
+    return !failure;
+}
+
+
 #pragma mark - Read / Write access
 
 static void _ReportError(PowerAuthCoreError code, NSString * message, NSError ** outError)
@@ -292,17 +341,9 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
 }
 
-- (nullable PowerAuthCoreRequest*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
-                                                           error:(NSError*_Nullable*_Nullable)error
-{
-    return [self confirmActivationWithPassword:password
-                               withBiometryKek:nil
-                                         error:error];
-}
-
-- (nullable PowerAuthCoreRequest*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
-                                                 withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
-                                                           error:(NSError*_Nullable*_Nullable)error
+- (nullable PowerAuthCoreTask*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
+                                              withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
+                                                        error:(NSError*_Nullable*_Nullable)error
 {
     if (![self requireWriteAccess:error]) {
         return nil;
@@ -310,9 +351,9 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     try {
         auto biometry = biometryKek ? biometryKek.byteArrayRef : ByteRange();
         auto credentials = InitialCredentials::credentials(password.passObjRef->passwordData(), biometry);
-        auto request = _session->confirmActivation(credentials);
-        if (request) {
-            return [[PowerAuthCoreRequest alloc] initWithRequest:request];
+        auto task = _session->confirmActivation(credentials);
+        if (task) {
+            return [[PowerAuthCoreTask alloc] initWithTask:task];
         }
     } catch (...) {
         if (error) {
@@ -346,7 +387,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 
 - (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePassword*)password
                                                  withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
-                                               error: (NSError*_Nullable*_Nullable)error;
+                                                           error:(NSError*_Nullable*_Nullable)error;
 {
     if (![self requireWriteAccess:error]) {
         return nil;
@@ -544,16 +585,8 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 - (nullable NSData*) normalizeGetRequestParameters:(nonnull NSDictionary<NSString*, NSString*>*)parameters
                                              error:(NSError *_Nullable*_Nullable)error
 {
-    __block std::map<std::string, std::string> map;
-    __block BOOL failure = NO;
-    [parameters enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * value, BOOL * stop) {
-        if (![key isKindOfClass:[NSString class]] || ![value isKindOfClass:[NSString class]]) {
-            *stop = failure = YES;
-            return;
-        }
-        map[objc::CopyFromNSString(key)] = objc::CopyFromNSString(value);
-    }];
-    if (failure) {
+    std::map<std::string, std::string> map;
+    if (!_ConvertDictToMap(parameters, map)) {
         _ReportError(PowerAuthCoreError_WrongParameter, @"Wrong object type provided in parameters dictionary", error);
         return nil;
     }
@@ -699,7 +732,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 }
 
 - (BOOL) verifySignature:(nonnull NSData*)signature
-                    data:(nonnull NSData*)data
+                    data:(nullable NSData*)data
                    keyId:(PowerAuthCoreSignatureKeyId)keyId
                    error:(NSError *_Nullable*_Nullable)error
 {
@@ -707,9 +740,9 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
         return NO;
     }
     try {
-        _session->verifySignature(cc7::objc::CopyFromNSData(data),
-                                  cc7::objc::CopyFromNSData(signature),
-                                  static_cast<SignatureKeyId>(keyId));
+    _session->verifySignature(cc7::objc::CopyFromNSData(data),
+                              cc7::objc::CopyFromNSData(signature),
+                              static_cast<SignatureKeyId>(keyId));
         return YES;
     } catch (...) {
         if (error) {
@@ -788,7 +821,46 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
         return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
             auto stringResponse = std::dynamic_pointer_cast<powerAuth::StringResponse>(response);
             if (!stringResponse) {
-                throw Exception(EC_InternalError, "No DataResponse object created");
+                throw Exception(EC_InternalError, "No StringResponse object created");
+            }
+            return cc7::objc::CopyToNSString(stringResponse->string());
+        }];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
+
+- (nullable PowerAuthCoreRequest*) createCertificateSigningRequest:(nonnull PowerAuthCoreCredentials*)credentials
+                                                           dnItems:(nonnull NSDictionary<NSString*, NSString*>*)dnItems
+                                                          sanItems:(nullable NSArray<NSString*>*)sanItems
+                                                             keyId:(PowerAuthCoreSignatureKeyId)keyId
+                                                             error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
+    try {
+        std::map<std::string, std::string> dn_items;
+        std::vector<std::string> san_items;
+        if (!_ConvertDictToMap(dnItems, dn_items)) {
+            _ReportError(PowerAuthCoreError_WrongParameter, @"Wrong object type provided in dnItems dictionary", error);
+            return nil;
+        }
+        if (!_ConvertArrayToVector(sanItems, san_items)) {
+            _ReportError(PowerAuthCoreError_WrongParameter, @"Wrong object type provided in sanItems array", error);
+            return nil;
+        }
+        auto request = _session->createCertificateSigningRequest(credentials.credentialsRef,
+                                                                 dn_items,
+                                                                 san_items,
+                                                                 static_cast<SignatureKeyId>(keyId));
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto stringResponse = std::dynamic_pointer_cast<powerAuth::StringResponse>(response);
+            if (!stringResponse) {
+                throw Exception(EC_InternalError, "No StringResponse object created");
             }
             return cc7::objc::CopyToNSString(stringResponse->string());
         }];
@@ -804,7 +876,44 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 
 - (BOOL) hasExternalEncryptionKey
 {
-    return NO;
+    if (![self requireReadAccess:nil]) {
+        return NO;
+    }
+    return _session->hasExternalEncryptionKey();
+}
+
+- (BOOL) removeExternalEncryptionKey:(nonnull PowerAuthCoreData*)eek
+                               error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireWriteAccess:error]) {
+        return NO;
+    }
+    try {
+        _session->removeExternalEncryptionKey(eek.byteArrayRef);
+        return YES;
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return NO;
+    }
+}
+
+- (BOOL) addExternalEncryptionKeyForTest:(nonnull PowerAuthCoreData*)eek
+                                   error:(NSError *_Nullable*_Nullable)error
+{
+    if (![self requireWriteAccess:error]) {
+        return NO;
+    }
+    try {
+        _session->addExternalEncryptionKeyForTest(eek.byteArrayRef);
+        return YES;
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return NO;
+    }
 }
 
 #pragma mark - Services
@@ -822,15 +931,29 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     if (![self requireReadAccess:error]) {
         return nil;
     }
-    return [[self class] generateFactorKekForProtocolVersion:(PowerAuthCoreProtocolVersion) _session->getProtocolVersion()
-                                                       error:error];
+    try {
+        auto kek = _session->generateFactorKek();
+        return [[PowerAuthCoreData alloc] initWithByteRange:kek];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
 }
 
 + (nullable PowerAuthCoreData*) generateFactorKekForProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
                                                               error:(NSError**)error
 {
-    auto kek = cc7::crypto::GetRandomData(protocolVersion == PowerAuthCoreProtocolVersion_V4 ? 32 : 16);
-    return [[PowerAuthCoreData alloc] initWithByteRange:kek];
+    try {
+        auto kek = Session::generateFactorKekForProtocol((ProtocolVersion)protocolVersion);
+        return [[PowerAuthCoreData alloc] initWithByteRange:kek];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
 }
 
 + (NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion

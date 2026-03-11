@@ -72,6 +72,11 @@ bool Request::isAuthenticated() const noexcept
     return _endpoint.isAuthenticated();
 }
 
+bool Request::isPublicResponseJson() const noexcept
+{
+    return _endpoint.isPublicResponseJson();
+}
+
 EncryptorScope Request::encryptorScope() const
 {
     return EncryptorSpec::specForId(_endpoint.encryptorId)->scope;

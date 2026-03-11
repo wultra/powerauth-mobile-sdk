@@ -30,7 +30,7 @@
     id _responseJson;
 }
 
-- (id) initWithRequest:(powerAuth::RequestPtr&)request
+- (id) initWithRequest:(const powerAuth::RequestPtr&)request
            withBuilder:(PowerAuthCoreResponseBuilder)builder
 {
     if (!request) {
@@ -38,13 +38,13 @@
     }
     self = [super init];
     if (self) {
-        _request = std::move(request);
+        _request = request;
         _responseBuilder = builder;
     }
     return self;
 }
 
-- (id) initWithRequest:(powerAuth::RequestPtr&)request
+- (id) initWithRequest:(const powerAuth::RequestPtr&)request
 {
     return [self initWithRequest:request withBuilder:nil];
 }
@@ -132,9 +132,29 @@
     _request->cancel();
 }
 
-- (void) setFailed
+- (void) setFailedWithError:(NSError *)error
 {
-    _request->setFailed(nullptr);
+    if (error) {
+        // Keep failure if it's not set yet
+        if (!_failure) {
+            _failure = error;
+        }
+        // Convert NSError to Exception. This will keep at least original message
+        PowerAuthCoreError errorCode = error.powerAuthCoreErrorCode;
+        NSString * message = error.localizedDescription;
+        if (errorCode == PowerAuthCoreError_NA) {
+            errorCode = PowerAuthCoreError_Other;
+        }
+        try {
+            auto ec = static_cast<powerAuth::ErrorCode>(errorCode);
+            throw powerAuth::Exception(ec, message.UTF8String);
+        } catch (...) {
+            _request->setFailed(std::current_exception());
+        }
+    } else {
+        // No reason provided
+        _request->setFailed(nullptr);
+    }
 }
 
 - (BOOL) prepareRequest:(NSError *__autoreleasing *)error
@@ -161,7 +181,9 @@
             _responseObject = _responseBuilder(_request->getResponseObject());
             _responseBuilder = nil;
         }
-        _responseJson = cc7::objc::JsonValueToObjC(_request->getResponseJson());
+        if (_request->isPublicResponseJson()) {
+            _responseJson = cc7::objc::JsonValueToObjC(_request->getResponseJson());
+        }
         return YES;
     } catch (...) {
         _failure = powerAuth::BuildNSErrorFromException();
@@ -199,6 +221,7 @@
 
 namespace powerAuth {
 
+POWERAUTH_NO_EXPORT
 NSArray<PowerAuthCoreHttpHeader*>* BuildNSArrayWithHeaders(const HttpHeaderList& headers)
 {
     NSMutableArray * result = [NSMutableArray arrayWithCapacity:headers.size()];

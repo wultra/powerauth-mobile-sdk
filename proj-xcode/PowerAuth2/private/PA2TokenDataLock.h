@@ -25,15 +25,19 @@
  */
 @protocol PA2TokenDataLock <NSObject>
 
-/**
- Lock token store data and return whether the local cached context
- should be invalidated.
- */
+///  Lock token store data and return information whether the local cached context should be invalidated.
+/// - Parameters:
+///   - dirty: Pointer where information about local cache invalidation is set.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: YES if operation succeeds, NO otherwise.
 - (BOOL) lockTokenStore:(BOOL*_Nonnull)dirty error:(NSError * _Nullable * _Nonnull)error;
 
-/**
- Unlock token store data and mark that token store has been modified.
- */
+
+/// Unlock token store data and mark that token store has been modified.
+/// - Parameters:
+///   - contentModified: If YES, then shared token data has been modified.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: YES if operation succeeds, NO otherwise.
 - (BOOL) unlockTokenStore:(BOOL)contentModified error:(NSError * _Nullable * _Nonnull)error;
 
 @end

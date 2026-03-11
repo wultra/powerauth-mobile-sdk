@@ -27,7 +27,8 @@ Task::Task(const std::string& name, const ContextPtr& context) :
     _context(context),
     _state(State::CREATED),
     _processed_requests(0),
-    _completion_processed(false)
+    _completion_processed(false),
+    _session_state_serialization_recommended(false)
 {
     //log("Task allocated");
 }
@@ -81,12 +82,28 @@ void Task::start() noexcept
 void Task::cancel() noexcept
 {
     LOCK_GUARD();
+    auto notify_about_cancel = _state != State::CANCELED;
     _state = State::CANCELED;
     if (_next_request) {
         _next_request->cancel();
         _next_request = nullptr;
     }
     cancelCurrentRequest();
+    if (notify_about_cancel) {
+        try {
+            onTaskCancel();
+        } catch (...) {
+            log("cancel failed with exception");
+        }
+    }
+}
+
+void Task::cancelIfNotDone() noexcept
+{
+    LOCK_GUARD();
+    if (_state <= State::PENDING) {
+        cancel();
+    }
 }
 
 bool Task::isDone() const noexcept
@@ -119,7 +136,7 @@ void Task::setFailed(std::exception_ptr exception) noexcept
     captureExceptionAndComplete(exception);
 }
 
-void Task::setCompleted() noexcept
+void Task::setCompleted(bool clear_failure) noexcept
 {
     LOCK_GUARD();
     try {
@@ -133,6 +150,9 @@ void Task::setCompleted() noexcept
         }
         if (!_completion_processed) {
             _completion_processed = true;
+            if (clear_failure) {
+                _failure = nullptr;
+            }
             onTaskEnd();
         }
     } catch (...) {
@@ -168,6 +188,7 @@ RequestPtr Task::getNextRequest()
         setCompleted();
     }
     if (_state == State::FAILED) {
+        setCompleted();
         reThrowFailure();
     }
     return nullptr;
@@ -176,6 +197,9 @@ RequestPtr Task::getNextRequest()
 void Task::setNextRequest(const RequestPtr &request, int tag, int flags)
 {
     LOCK_GUARD();
+    if (!request) {
+        throw Exception(EC_InternalError, "Next request is null");
+    }
     if (_next_request) {
         throw Exception(EC_InternalError, "Next request is already set");
     }
@@ -207,7 +231,11 @@ void Task::setRequestCompleted(const Request &request) noexcept
             if (_state == State::PENDING) {
                 if (is_primary) {
                     _response_object = request.getResponseObject();
-                    _response_json = request.getResponseJson();
+                    if (request.isPublicResponseJson()) {
+                        _response_json = request.getResponseJson();
+                    } else {
+                        _response_json = cc7::json::JsonValue();
+                    }
                 }
                 onRequestSuccess(request);
             }
@@ -286,6 +314,11 @@ void Task::onTaskEnd()
     }
 }
 
+void Task::onTaskCancel()
+{
+    log("Task canceled");
+}
+
 void Task::onRequestSuccess(const Request& request)
 {
     // empty
@@ -300,6 +333,16 @@ void Task::onRequestFailure(const Request& request)
 void Task::onRequestCancel(const Request& request)
 {
     // empty
+}
+
+bool Task::isSessionStateSerializationRecommended() const noexcept
+{
+    return _session_state_serialization_recommended;
+}
+
+void Task::setSessionStateSerializationRecommended(bool is_recommended)
+{
+    _session_state_serialization_recommended = is_recommended;
 }
 
 

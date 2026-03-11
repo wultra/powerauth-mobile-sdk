@@ -56,6 +56,12 @@ void EciesEncryptorFactory::doServiceDestroy()
     resetAllData();
 }
 
+void EciesEncryptorFactory::clearActivationData()
+{
+    Service::clearActivationData();
+    resetActivationData();
+}
+
 // MARK: - Public functions
 
 IServicePtr EciesEncryptorFactory::asService()
@@ -143,7 +149,7 @@ IClientEncryptorPtr EciesEncryptorFactory::getClientEncryptor(EncryptorId encryp
                                                           _configuration->applicationKey(),
                                                           _configuration->applicationSecret(),
                                                           ki.keyIdentifier,
-                                                          activationId());
+                                                          activationId(spec->scope));
 
     ByteArray transport_key;
     if (spec->isActivationScoped()) {
@@ -167,7 +173,7 @@ cc7::json::JsonValue EciesEncryptorFactory::createTemporaryKeyRequest(EncryptorS
         throw Exception(EC_NotAllowed, "There's already pending request for temporary key");
     }
 
-    auto activation_id = activationId();
+    auto activation_id = activationId(scope);
     if (act_scope && activation_id.empty()) {
         throw Exception(EC_MissingActivation, "Activation is required for activation scoped temporary key");
     }
@@ -246,7 +252,7 @@ void EciesEncryptorFactory::completeTemporaryKeyRequest(EncryptorScope scope, co
             ki.clear();
             throw Exception(EC_Cryptography, "Request and Response data doesn't match");
         }
-        if (act_scope && activationId() != response.activationId) {
+        if (act_scope && activationId(scope) != response.activationId) {
             ki.clear();
             throw Exception(EC_InternalError, "ActivationID from response is no longer valid");
         }
@@ -307,9 +313,9 @@ EciesEncryptorFactory::GetTemporaryKeyResponse EciesEncryptorFactory::GetTempora
 
 // MARK: - Private functions
 
-std::string EciesEncryptorFactory::activationId() const noexcept
+std::string EciesEncryptorFactory::activationId(EncryptorScope scope) const noexcept
 {
-    if (_session_data->hasPersistentData() && _session_data->getCurrentProtocolVersion() == Version_V3) {
+    if (scope == EncryptorScope::ACTIVATION && _session_data->hasPersistentData(Version_V3)) {
         return _session_data->persistentData().v3().activationId;
     }
     return std::string();

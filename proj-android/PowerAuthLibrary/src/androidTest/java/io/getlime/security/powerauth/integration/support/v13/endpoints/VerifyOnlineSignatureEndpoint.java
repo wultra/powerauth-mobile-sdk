@@ -16,14 +16,15 @@
 
 package io.getlime.security.powerauth.integration.support.v13.endpoints;
 
-import com.google.gson.reflect.TypeToken;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.google.gson.reflect.TypeToken;
+
 import io.getlime.security.powerauth.integration.support.client.IServerApiEndpoint;
-import io.getlime.security.powerauth.integration.support.model.SignatureData;
-import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
-import io.getlime.security.powerauth.integration.support.model.SignatureType;
+import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
+import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
+import io.getlime.security.powerauth.integration.support.shared.AuthenticationResponseV10;
 
 public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyOnlineSignatureEndpoint.Response> {
     @NonNull
@@ -44,18 +45,18 @@ public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyO
         private String applicationKey;
         private String data;
         private String signature;
-        private SignatureType signatureType;
+        private AuthCodeType signatureType;
         private String signatureVersion;
         private Long forcedSignatureVersion;
 
-        public Request(@NonNull SignatureData sd) {
+        public Request(@NonNull AuthenticationCodeData sd) {
             activationId = sd.getActivationId();
             applicationKey = sd.getApplicationKey();
             data = sd.getData();
-            signature = sd.getSignature();
-            signatureType = sd.getSignatureType();
-            signatureVersion = sd.getSignatureVersion();
-            forcedSignatureVersion = sd.getForcedSignatureVersion();
+            signature = sd.getAuthenticationCode();
+            signatureType = sd.getAuthenticationCodeType();
+            signatureVersion = sd.getAuthenticationVersion();
+            forcedSignatureVersion = sd.getForcedAuthenticationVersion();
         }
 
         public String getActivationId() {
@@ -90,11 +91,11 @@ public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyO
             this.signature = signature;
         }
 
-        public SignatureType getSignatureType() {
+        public AuthCodeType getSignatureType() {
             return signatureType;
         }
 
-        public void setSignatureType(SignatureType signatureType) {
+        public void setSignatureType(AuthCodeType signatureType) {
             this.signatureType = signatureType;
         }
 
@@ -115,6 +116,6 @@ public class VerifyOnlineSignatureEndpoint implements IServerApiEndpoint<VerifyO
         }
     }
 
-    public static class Response extends SignatureInfo {
+    public static class Response extends AuthenticationResponseV10 {
     }
 }

@@ -24,6 +24,8 @@ import org.junit.runner.RunWith;
 
 import static org.junit.Assert.*;
 
+import io.getlime.security.powerauth.sdk.impl.JsonSerialization;
+
 @RunWith(AndroidJUnit4.class)
 public class JsonSerializationTest {
 

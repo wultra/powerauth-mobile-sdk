@@ -26,4 +26,10 @@
 /// Time on the server.
 @property (nonatomic, readonly, strong, nonnull) NSDate * serverTime;
 
+/// Server application's name.
+@property (nonatomic, strong, readonly, nonnull) NSString * applicationName;
+
+/// Server application's version.
+@property (nonatomic, strong, readonly, nonnull) NSString * applicationVersion;
+
 @end

@@ -53,6 +53,11 @@ HttpHeader AuthenticationServiceV3::calculateOnlineAuthenticationHeader(const Cr
         throw Exception(EC_PendingProtocolUpgrade, "Authentication header calculation is not allowed during pending protocol upgrade");
     }
     
+    auto& pd = _session_data->persistentData().v3();
+    if (pd.flags.usesExternalKey) {
+        throw Exception(EC_WrongActivationState, "Authentication header calculation is not allowed while EEK is set");
+    }
+    
     auto nonce = cc7::crypto::GetRandomData(v3::ONLINE_AUTH_CODE_NONCE_LENGTH);
     AuthenticationHeaderData header_data {
         Version_V3,
@@ -67,7 +72,6 @@ HttpHeader AuthenticationServiceV3::calculateOnlineAuthenticationHeader(const Cr
                                                                        body,
                                                                        _configuration->applicationSecret());
     
-    auto& pd = _session_data->persistentData().v3();
     auto secrets = _key_provider->unlockSecretKeys(credentials);
     auto factor_keys = prepareFactorKeys(*secrets, credentials.factors());
     auto auth_code = CalculateOnlineAuthenticationCode(factor_keys, pd.authCodeCounterData, normalized_data);
@@ -100,15 +104,18 @@ std::string AuthenticationServiceV3::calculateOfflineAuthenticationCode(const Cr
         throw Exception(EC_PendingProtocolUpgrade, "Offline authentication code calculation is not allowed during protocol upgrade");
     }
     
+    auto& pd = _session_data->persistentData().v3();
+    if (pd.flags.usesExternalKey) {
+        throw Exception(EC_WrongActivationState, "Offline authentication code calculation is not allowed while EEK is set");
+    }
+    
     auto normalized_data = common::NormalizeDataForAuthCodeCalculation("POST",
                                                                        auth_data.uriIdentifier,
                                                                        auth_data.offlineNonce,
                                                                        data,
                                                                        common::PA_OFFLINE_APP_SECRET);
     
-    auto& pd = _session_data->persistentData().v3();
     auto secrets = _key_provider->unlockSecretKeys(credentials);
-    
     auto factor_keys = prepareFactorKeys(*secrets, credentials.factors());
     auto auth_code = CalculateOfflineAuthenticationCode(factor_keys, pd.authCodeCounterData, normalized_data, auth_data.authenticationCodeLength);
     

@@ -15,7 +15,7 @@
  */
 
 #include <PowerAuth/OtpUtil.h>
-#include <cc7/jni/JniHelper.h>
+#include "NativeHelper.h"
 
 // Package: io.getlime.security.powerauth.sdk
 #define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
@@ -25,11 +25,9 @@
 #include <cc7/jni/JniModule.inl>
 
 using namespace powerAuth;
+using namespace powerAuth::jni;
 
-// This class has all its methods declared as static. We don't need to use CC7_JNI_MODULE_CLASS_BEGIN
-// macro, because we're OK with simple "exttern C" declaration.
-
-extern "C" {
+CC7_JNI_MODULE_CLASS_BEGIN()
 
 // ----------------------------------------------------------------------------
 // Parser
@@ -38,19 +36,23 @@ extern "C" {
 //
 // public native static ActivationCode parseFromActivationCode(String activationCode)
 //
-CC7_JNI_METHOD_PARAMS(jobject, parseFromActivationCode, jstring activationCode)
+CC7_JNI_STATIC_METHOD_PARAMS(jobject, parseFromActivationCode, jstring activationCode)
 {
-    std::string cppActivationCode = cc7::jni::CopyFromJavaString(env, activationCode);
-    OtpComponents cppComponents;
-    if (false == OtpUtil::parseActivationCode(cppActivationCode, cppComponents)) {
-        return NULL;
+    NH_TRY
+    {
+        jni.requireParameter(activationCode, "activationCode");
+
+        auto cpp_code = jni.fromJava(activationCode);
+        OtpComponents components;
+        if (!OtpUtil::parseActivationCode(cpp_code, components)) {
+            return nullptr;
+        }
+        const auto& spec = NH_SPECS().activationCode;
+        return jni.createObject(spec.methods.init,
+                                jni.toJava(components.activationCode),
+                                jni.toJavaNullable(components.activationSignature));
     }
-    // Copy cppResult into java result object
-    jclass  resultClazz  = CC7_JNI_MODULE_FIND_CLASS("ActivationCode");
-    jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("ActivationCode"), "()V");
-    CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "activationCode",   cc7::jni::CopyToJavaString(env, cppComponents.activationCode));
-    CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "activationSignature",  cc7::jni::CopyToNullableJavaString(env, cppComponents.activationSignature));
-    return resultObject;
+    NH_NO_THROW(nullptr)
 }
 
 // ----------------------------------------------------------------------------
@@ -60,15 +62,15 @@ CC7_JNI_METHOD_PARAMS(jobject, parseFromActivationCode, jstring activationCode)
 //
 // public native static boolean validateTypedCharacter(int utfCodepoint)
 //
-CC7_JNI_METHOD_PARAMS(jboolean, validateTypedCharacter, jint utfCodepoint)
+CC7_JNI_STATIC_METHOD_PARAMS(jboolean, validateTypedCharacter, jint utfCodepoint)
 {
-    return (jboolean) OtpUtil::validateTypedCharacter((cc7::U32) utfCodepoint);
+    return OtpUtil::validateTypedCharacter((cc7::U32) utfCodepoint);
 }
 
 //
 // public native static int validateAndCorrectTypedCharacter(int utfCodepoint)
 //
-CC7_JNI_METHOD_PARAMS(jint, validateAndCorrectTypedCharacter, jint utfCodepoint)
+CC7_JNI_STATIC_METHOD_PARAMS(jint, validateAndCorrectTypedCharacter, jint utfCodepoint)
 {
     return (jint) OtpUtil::validateAndCorrectTypedCharacter((cc7::U32) utfCodepoint);
 }
@@ -76,10 +78,14 @@ CC7_JNI_METHOD_PARAMS(jint, validateAndCorrectTypedCharacter, jint utfCodepoint)
 //
 // public native static boolean validateActivationCode(String activationCode)
 //
-CC7_JNI_METHOD_PARAMS(jboolean, validateActivationCode, jstring activationCode)
+CC7_JNI_STATIC_METHOD_PARAMS(jboolean, validateActivationCode, jstring activationCode)
 {
-    std::string cppActivationCode = cc7::jni::CopyFromJavaString(env, activationCode);
-    return (jboolean) OtpUtil::validateActivationCode(cppActivationCode);
+    NH_TRY
+    {
+        jni.requireParameter(activationCode, "activationCode");
+        return OtpUtil::validateActivationCode(jni.fromJava(activationCode));
+    }
+    NH_NO_THROW(false)
 }
 
-} // extern "C"
+CC7_JNI_MODULE_CLASS_END()

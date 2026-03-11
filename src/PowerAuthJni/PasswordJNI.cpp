@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "PasswordJNI.h"
-#include <algorithm>
+#include "NativeHelper.h"
+#include <PowerAuth/Password.h>
 
 // Package: io.getlime.security.powerauth.core
 #define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
@@ -28,175 +28,131 @@ using namespace powerAuth;
 
 CC7_JNI_MODULE_CLASS_BEGIN()
 
-// ----------------------------------------------------------------------------
-// Helper functions
-// ----------------------------------------------------------------------------
+#define THIS_OBJ()  jni.fromJava<Password>(NH_SPECS().password, thiz)
 
-Password * GetCppPasswordFromJavaObject(JNIEnv * env, jobject passwordObject)
+CC7_JNI_STATIC_METHOD_PARAMS(jlong, initPassword, jstring strPass, jbyteArray dataPass, jlong handleOtherPassword)
 {
-    if (!env || !passwordObject) {
-        CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
-        return NULL;
-    }
-    auto cppPass = reinterpret_cast<Password*>(env->GetLongField(passwordObject, GetHandleFieldID(env)));
-    if (!cppPass) {
-        CC7_ASSERT(false, "Unable to get C++ object from 'Password' java object.");
-        return NULL;
-    }
-    return cppPass;
-}
+    NH_TRY
+    {
+        auto pass = std::make_shared<Password>();
+        auto has_str = strPass != nullptr;
+        auto has_data = dataPass != nullptr;
+        auto has_other = !cc7::jni::JNI::isNullHandle(handleOtherPassword);
 
-// ----------------------------------------------------------------------------
-// Init & Destroy
-// ----------------------------------------------------------------------------
+        if ((has_str && has_data) || (has_str && has_other) || (has_data && has_other)) {
+            throw std::invalid_argument("Invalid combination of input parameters");
+        }
 
-//
-// private static native long initPassword(String strPass, byte[] dataPass, long handle)
-//
-CC7_JNI_METHOD_PARAMS(jlong, initPassword, jstring strPass, jbyteArray dataPass, jobject other)
-{
-	auto pass = new Password();
-	bool fail = false;
-    if (strPass != nullptr && dataPass == nullptr && other == nullptr) {
-        // initialize immutable password with string
-        auto cppData = cc7::jni::CopyFromJavaStringToByteArray(env, strPass);
-        pass->initAsImmutable(cppData);
-        //
-    } else if (strPass == nullptr && dataPass != nullptr && other == nullptr) {
-        // initialize immutable password with byte array
-        auto cppData = cc7::jni::CopyFromJavaByteArray(env, dataPass);
-        pass->initAsImmutable(cppData);
-        //
-    } else if (strPass == nullptr && dataPass == nullptr && other == nullptr) {
-	    // initialize mutable empty password
-	    pass->initAsMutable();
-	    //
-    } else if (other != nullptr) {
-		// Initialize as copy from another password
-		auto otherPass = GetCppPasswordFromJavaObject(env, other);
-		if (otherPass) {
-			pass->initAsImmutable(otherPass->passwordData());
-		} else {
-			fail = true;
-		}
-    } else {
-        CC7_ASSERT(false, "Invalid combination of parameters.");
-		fail = true;
+        if (has_str) {
+            // initialize immutable password with string
+            pass->initAsImmutable(jni.fromJavaStringToBytes(strPass));
+            //
+        } else if (has_data) {
+            // initialize immutable password with byte array
+            pass->initAsImmutable(jni.fromJava(dataPass));
+        } else if (has_other) {
+            // Initialize as copy from another password
+            auto otherPass = jni.fromHandle<Password>(handleOtherPassword);
+            pass->initAsImmutable(otherPass->passwordData());
+        } else {
+            // otherwise initialize mutable empty password
+            pass->initAsMutable();
+        }
+        return jni.toHandle(pass);
     }
-	if (fail) {
-		delete pass;
-		return 0;
-	}
-    return (jlong)pass;
-}
-
-//
-// private native void destroy(long handle)
-//
-CC7_JNI_METHOD_PARAMS(void, destroy, jlong handle)
-{
-    auto pass = CC7_THIS_OBJ();
-    if (!pass || (jlong)pass != handle) {
-        CC7_ASSERT(false, "Internal object is already destroyed, or provided handle is not ours.");
-        return;
-    }
-    delete pass;
+    NH_CATCH(0)
 }
 
 // ----------------------------------------------------------------------------
 // Methods for immutable operations
 // ----------------------------------------------------------------------------
 
-//
-// public native boolean isMutable();
-//
 CC7_JNI_METHOD(jboolean, isMutable)
 {
-    auto pass = CC7_THIS_OBJ();
-    return pass ? pass->isMutable() : false;
+    NH_TRY
+    {
+        return THIS_OBJ()->isMutable();
+    }
+    NH_CATCH(false)
 }
 
-//
-// public native int length();
-//
 CC7_JNI_METHOD(jint, length)
 {
-    auto pass = CC7_THIS_OBJ();
-    return pass ? (jint)pass->length() : 0; 
+    NH_TRY
+    {
+        return (jint) THIS_OBJ()->length();
+    }
+    NH_CATCH(0)
 }
 
-//
-// public native boolean isEqualToPassword(Password anotherPassword)
-//
-CC7_JNI_METHOD_PARAMS(jboolean, isEqualToPassword, jobject anotherPassword)
+CC7_JNI_STATIC_METHOD_PARAMS(jboolean, isEqualToPassword, jlong handle, jlong handleAnotherPassword)
 {
-    auto pass = CC7_THIS_OBJ();
-    if (!pass || !anotherPassword) {
-        return false;
+    NH_TRY
+    {
+        auto thisPassword = jni.fromHandle<Password>(handle);
+        auto otherPassword = jni.fromHandle<Password>(handleAnotherPassword);
+        return thisPassword->isEqualToPassword(*otherPassword);
     }
-    auto otherPass = GetCppPasswordFromJavaObject(env, anotherPassword);
-    if (!otherPass) {
-        return false;
-    }
-    return pass->isEqualToPassword(*otherPass);
+    NH_CATCH(false)
 }
 
 // ----------------------------------------------------------------------------
 // Methods for mutable operations
 // ----------------------------------------------------------------------------
 
-//
-// public native boolean clear()
-//
 CC7_JNI_METHOD(jboolean, clear)
 {
-    auto pass = CC7_THIS_OBJ();
-    return pass ? pass->clear() : false;
+    NH_TRY
+    {
+        return THIS_OBJ()->clear();
+    }
+    NH_CATCH(false)
 }
 
-//
-// public native boolean addCharacter(int utfCodepoint)
-//
 CC7_JNI_METHOD_PARAMS(jboolean, addCharacter, jint utfCodepoint)
 {
-    auto pass = CC7_THIS_OBJ();
-    return pass ? pass->addCharacter((cc7::U32)utfCodepoint) : false;
+    NH_TRY
+    {
+        return THIS_OBJ()->addCharacter((cc7::U32)utfCodepoint);
+    }
+    NH_CATCH(false)
 }
 
-//
-// public native boolean insertCharacter(int utfCodepoint, int index)
-//
-CC7_JNI_METHOD_PARAMS(jboolean, insertCharacter, jint utfCodepoint, jint index)
+CC7_JNI_METHOD_PARAMS(jboolean, insertCharacter,jint utfCodepoint, jint index)
 {
-    auto pass = CC7_THIS_OBJ();
-    return pass ? pass->insertCharacter((cc7::U32)utfCodepoint, (size_t)index) : false;
+    NH_TRY
+    {
+        return THIS_OBJ()->insertCharacter((cc7::U32)utfCodepoint, (size_t)index);
+    }
+    NH_CATCH(false)
 }
 
-//
-// public native boolean removeLastCharacter()
-//
 CC7_JNI_METHOD(jboolean, removeLastCharacter)
 {
-    auto pass = CC7_THIS_OBJ();
-    return pass ? pass->removeLastCharacter() : false;
+    NH_TRY
+    {
+        return THIS_OBJ()->removeLastCharacter();
+    }
+    NH_CATCH(false)
 }
 
-//
-// public native boolean removeCharacter(int index)
-//
 CC7_JNI_METHOD_PARAMS(jboolean, removeCharacter, jint index)
 {
-    auto pass = CC7_THIS_OBJ();
-    return pass ? pass->removeCharacter((size_t)index) : false;
+    NH_TRY
+    {
+        return THIS_OBJ()->removeCharacter((size_t)index);
+    }
+    NH_CATCH(false)
 }
 
-//
-// private native byte[] getPlaintextPassword();
-//
-CC7_JNI_METHOD(jbyteArray , getPlaintextPassword)
+CC7_JNI_STATIC_METHOD_PARAMS(jbyteArray, getPlaintextPassword, jlong handle)
 {
-	auto pass = CC7_THIS_OBJ();
-	return pass ? cc7::jni::CopyToJavaByteArray(env, pass->passwordData()) : nullptr;
+    NH_TRY
+    {
+        auto pass = jni.fromHandle<Password>(handle);
+        return jni.toJava(pass->passwordData());
+    }
+    NH_CATCH(nullptr)
 }
 
 CC7_JNI_MODULE_CLASS_END()

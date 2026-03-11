@@ -32,6 +32,7 @@ protected:
     void onRequestSuccess(const Request &request) override;
     void onRequestFailure(const Request &request) override;
     void onTaskEnd() override;
+    void onTaskCancel() override;
     
     enum RequestId
     {
@@ -42,6 +43,8 @@ protected:
     
 private:
     
+    /// Prepare upgrade data and indicate that session is in pending upgrade.
+    void prepareUpgradeData();
     /// Prepare upgrade context and send the start protocol upgrade request to the server.
     void startProtocolUpgrade();
     /// Build the request body for the start protocol upgrade request.
@@ -68,7 +71,7 @@ private:
     const SessionDataPtr _session_data;
     
     const PasswordPtr _password;
-    const cc7::ByteRange _new_biometry_kek;
+    const cc7::ByteArray _new_biometry_kek;
 };
 
 } // namespace powerAuth

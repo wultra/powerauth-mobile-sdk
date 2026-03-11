@@ -26,6 +26,7 @@
   - [Producing Signed JWT with Provided Claims](#producing-signed-jwt-with-provided-claims)
   - [Verify Server-Signed Data](#verify-server-signed-data)
   - [Verify JSON Web Signature](#verify-json-web-signature)
+  - [Creating Certificate Signing Request](#creating-certificate-signing-request)
   - [Getting Device Public Keys](#getting-device-public-keys)
 - [Password Change](#password-change)
 - [Working with passwords securely](#working-with-passwords-securely)
@@ -132,9 +133,23 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
         instanceId: Bundle.main.bundleIdentifier!,
         baseEndpointUrl: "https://<your-domain>/enrollment-server",
         configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
-
-    // Create a PowerAuthSDK instance with the configuration
-    let powerAuth = try PowerAuthSDK(configuration)
+    do {
+        // Create a PowerAuthSDK instance with the configuration
+        let powerAuth = try PowerAuthSDK(configuration: configuration)
+    } catch let err as NSError {
+        switch err.powerAuthErrorCode {
+        case .wrongParameter:
+            // Invalid configuration.
+        case .invalidActivationData:
+            // Unrecognized data format. You can log this event, clear data and retry SDK construction
+            try PowerAuthSDK.cleanupInstanceData(configuration: configuration)
+        case .upgradeSDK:
+            // Upgrade SDK in your application
+        default:
+            // other errors
+            break
+        }
+    }
 }
 ```
 
@@ -143,8 +158,7 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 The `PowerAuthConfiguration` has the following additional properties:
 
 - `algorithm` - Alters [algorithm](#algorithms-for-communication) used for the communication with the PowerAuth Server.
-- `offlineaAthenticationCodeComponentLength` - Alters the default component length for the [offline authentication code](#symmetric-offline-multi-factor-authentication-code). The values between 4 and 8 are allowed. The default value is 8.
-- `externalEncryptionKey` - See [External Encryption Key](#external-encryption-key) chapter for more details.
+- `offlineAuthenticationCodeComponentLength` - Alters the default component length for the [offline authentication code](#symmetric-offline-multi-factor-authentication-code). The values between 4 and 8 are allowed. The default value is 8.
 - `keychainKey_Biometry` - Specifies the 'key' used to store the `PowerAuthSDK` instance’s biometry-related key in the biometry keychain. If not set, the `instanceId` is applied. Do not alter this configuration unless you have a valid reason to do so.
 
 ### Biometric configuration
@@ -230,7 +244,7 @@ let configuration = PowerAuthConfiguration(
     algorithm: .EC_P384_ML_L5)
 
 // Create a PowerAuthSDK instance with the configuration
-let powerAuth = try PowerAuthSDK(configuration)
+let powerAuth = try PowerAuthSDK(configuration: configuration)
 ```
 
 The selected algorithm cannot be changed after a `PowerAuthSDK` instance is created, but it can be updated across the lifetime of your application. If the selected algorithm does not match the one used for the activation currently present on the device, the [authenticated protocol upgrade](#authenticated-protocol-upgrade) process must be performed to switch to the new algorithm.
@@ -503,11 +517,6 @@ if powerAuthSDK.hasValidActivation() {
             case .deadlock:
                 print("Activation is technically blocked")
                 powerAuthSDK.removeActivationLocal()
-            case .created:
-                // Activation is just created. This is the internal
-                // state on the server and therefore can be ignored
-                // on the mobile application.
-                fallthrough
             default:
                 print("Unknown state")
             }
@@ -519,6 +528,9 @@ if powerAuthSDK.hasValidActivation() {
 
             if let customObject = status.customObject {
                 // Custom object contains any proprietary server-specific data
+            }
+            if status.isProtocolUpgradeAvailable {
+                // Upgrade to new protocol version is available
             }
 
         } else {
@@ -534,10 +546,6 @@ if powerAuthSDK.hasValidActivation() {
 ### Activation states
 
 This chapter explains activation states in detail. To get more information about activation lifecycle, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
-
-#### `PowerAuthActivationState.created` 
-
-The activation record is created using an external channel, such as the Internet banking, but the key exchange between the client and server did not happen yet. This state is never reported to the mobile client.
 
 #### `PowerAuthActivationState.pendingCommit`
 
@@ -876,6 +884,44 @@ Explanation of `verifyJwsSignature` function parameters:
 The compact (JWT) format encodes only a single signature, so it is recommended to specify the exact key type (EC, ML-DSA, etc.) for verification. If a generic key identifier is provided (such as `.server`), the function may fail when the current algorithm results in multiple key selections. You can relax this behavior by setting the `strict` parameter to `false`, but this is generally not recommended. In non-strict mode, an attacker could potentially remove or replace a stronger PQC signature with a weaker one without detection.
 <!-- end box -->
 
+### Creating Certificate Signing Request
+
+The PowerAuth SDK can create a Certificate Signing Request (CSR) that can be used to request an X.509 certificate from a Public Key Infrastructure (PKI). The CSR contains a device public key generated by the SDK and is signed with the activation-bound private key.
+
+The created CSR is returned in PEM format, including the `-----BEGIN CERTIFICATE REQUEST-----` and `-----END CERTIFICATE REQUEST-----` lines and newline characters (`\n`).
+
+To create a CSR, use the following code:
+
+```swift
+let authentication = PowerAuthAuthentication.possessionWithPassword(password: "1234")
+let keyIdentifier = PowerAuthSignatureKeyId.device_ML_DSA
+
+powerAuthSDK.createCertificateSigningRequest(
+    authentication: authentication, // authentication object
+    distinguishedNames: [ // subject's distinguished names (DN)
+        "CN" : "wultra.com",
+        "O"  : "Wultra",
+        "C"  : "CZ"
+    ],
+    subjectAltNames: [ // subject's alternative names (SAN)
+        "IP: 192.168.1.10",
+        "email: admin@example.com"
+    ],
+    keyIdentifier: keyIdentifier // Key Identifier
+) { csr, error in
+    if let csr {
+        print("CSR: \(csr)")
+        // Use the CSR
+    } else {
+        // Handle error
+    }
+}
+```
+
+<!-- begin box info -->
+If the `PowerAuthSDK` instance is not configured for the legacy mode (that is, the algorithm is not `LEGACY_P256`), you can also use biometric authentication to create CSR.
+<!-- end -->
+
 ### Getting Device Public Keys
 
 Use the following code to retrieve device public keys associated with the activation:
@@ -1111,7 +1157,7 @@ You can use our [Passphrase meter](https://github.com/wultra/passphrase-meter) l
 
 ## Working with sensitive data
 
-The PowerAuth mobile SDK is using `PowerAuthCoreData` object for manage the cryptographically sensitive data, such as encryption keys. You can encounter this object in several public API functions, such as functions for managing an [external encryption key](#external-encryption-key). This chapter explains how to use the `PowerAuthCoreData` object properly.
+The PowerAuth mobile SDK is using `PowerAuthCoreData` object for manage the cryptographically sensitive data, such as encryption keys. You can encounter this object in several public API functions, such as functions for [Secure Vault](#secure-vault). This chapter explains how to use the `PowerAuthCoreData` object properly.
 
 ### Create instance of `PowerAuthCoreData`
 
@@ -1216,15 +1262,16 @@ The last check is fully under your control. By keeping the biometry settings fla
 
 ### Enable Biometry
 
-In case an activation does not yet have biometry-related factor data, and you would like to enable Touch or Face ID support, the device must first retrieve the original private key from the secure vault for the purpose of key derivation. As a result, you have to use a successful 2FA with a password to enable biometry support.
-
-Use the following code to enable biometric authentication:
+In case an activation does not yet have biometry-related factor data, and you would like to enable Touch or Face ID support, use the following code:
 
 ```swift
 // Establish biometric data using the provided password
 powerAuthSDK.addBiometryFactor(password: "1234") { error in
     if let error  {
         // Error occurred, report it to the user
+
+        // It's also recommended to fetch activation's status to synchronize biometric factor
+        // configuration with the server.
     } else {
         // Everything went OK, biometry is ready to be used
     }
@@ -1240,6 +1287,9 @@ To remove biometry-related factor data used by Touch or Face ID use the followin
 powerAuthSDK.removeBiometryFactor { error in
     if let error {
         // handle error
+
+        // It's recommended to fetch activation's status to synchronize biometric factor
+        // configuration with the server.
     }
 }
 ```
@@ -1277,7 +1327,7 @@ let biometricConfiguration = PowerAuthBiometricConfiguration()
 biometricConfiguration.invalidateBiometricFactorAfterChange = true
 
 // Init PowerAuthSDK instance
-let powerAuthSDK = PowerAuthSDK(configuration: configuration, biometricConfiguration: biometricConfiguration, clientConfiguration: nil)
+let powerAuthSDK = try PowerAuthSDK(configuration: configuration, biometricConfiguration: biometricConfiguration, clientConfiguration: nil)
 ```
 
 <!-- begin box warning -->
@@ -1299,7 +1349,7 @@ let biometricConfiguration = PowerAuthBiometricConfiguration()
 biometricConfiguration.allowFallbackToDevicePasscode = true
 
 // Init PowerAuthSDK instance
-let powerAuthSDK = PowerAuthSDK(configuration: configuration, biometricConfiguration: biometricConfiguration, clientConfiguration: nil)
+let powerAuthSDK = try PowerAuthSDK(configuration: configuration, biometricConfiguration: biometricConfiguration, clientConfiguration: nil)
 ``` 
 
 Once the configuration above is used, then the `invalidateBiometricFactorAfterChange` option does not affect the biometry factor-related key lifetime. 
@@ -1772,7 +1822,7 @@ powerAuthSDK.startProtocolUpgrade(password: "1234") { (result, error) in
             // Protocol upgrade is completed
         }
     } else {
-        // Error occured
+        // Error occurred
     }
 }
 ```
@@ -1780,7 +1830,7 @@ powerAuthSDK.startProtocolUpgrade(password: "1234") { (result, error) in
 If the call succeeds, the application must inspect the
 `activationStatusFetchRequired` field of the result object. If set to `true`,
 activation status fetch must be performed to complete the protocol upgrade. Only
-after successfull activation status fetch is the protocol upgrade considered
+after successful activation status fetch is the protocol upgrade considered
 completed. If the `activationStatusFetchRequired` field of the result object is
 set to `false`, the protocol upgrade is considered completed without any further
 action and the result object also contains new `activationFingerprint`. If an
@@ -1982,25 +2032,20 @@ if let token = tokenStore.localToken(withName: "MyToken") {
 
 ## External Encryption Key
 
-The `PowerAuthSDK` allows you to specify an external encryption key (called EEK in our terminology) that can additionally protect the knowledge and the biometry factor keys. This feature is typically used to create a chain of activations where one instance of `PowerAuthSDK` is primary and unlocks access to all secondary activations.
+<!-- begin box warning -->
+Support for the External Encryption Key (EEK) was discontinued in PowerAuth Mobile SDK version 2.0.
+<!-- end -->
 
-The external encryption key has to be set before the activation is created, or can be added later. The internal state of `PowerAuthSDK` contains information that the factor keys are protected with EEK, so EEK must be known at the time of PowerAuth authentication code is calculated. You have three options on how to configure the key:
+In earlier SDK versions, `PowerAuthSDK` allowed you to specify an external encryption key (EEK) to provide an additional layer of protection for the knowledge and biometry factor keys. This mechanism was primarily used to create a chain of activations, where one primary `PowerAuthSDK` instance unlocked access to one or more secondary activations.
 
-1. Assign EEK into `externalEncryptionKey` property of `PowerAuthConfiguration` at the time of `PowerAuthSDK` object creation.
-   - This is the most convenient way of using EEK, but the key must be known at the time of the `PowerAuthSDK` instantiation.
-   - Once the `PowerAuthSDK` instance creates a new activation, then the factor keys will be automatically protected with EEK.
-   
-2. Use `PowerAuthSDK.setExternalEncryptionKey()` to set EEK after the `PowerAuthSDK` instance is created.
-   - This is useful in case EEK is not known during the `PowerAuthSDK` instance creation.
-   - You can set the key in any `PowerAuthSDK` state, but be aware that the method will fail in case the instance has a valid activation that doesn't use EEK.
-   - It's safe to set the same EEK multiple times.
+If the activation in your application is still using EEK, please use the following code at your application’s startup to remove it:
 
-3. Use `PowerAuthSDK.addExternalEncryptionKey()` to add EEK and protect the factor keys in case `PowerAuthSDK` has already a valid activation.
-   - This method is useful in case `PowerAuthSDK` already has a valid activation, but it doesn't use EEK yet.
-   - The method automatically adds EEK into the internal configuration structure, but be aware, that all future `PowerAuthSDK` usages (e.g. after app restart) require setting EEK by configuration, or by the `setExternalEncryptionKey()` method.
-
-You can remove EEK from an existing activation if the key is no longer required. To do this, use the `PowerAuthSDK.removeExternalEncryptionKey()` method. Be aware, that EEK must be set by configuration, or by the `setExternalEncryptionKey()` method before you call the remove method. You can also use the `PowerAuthSDK.hasExternalEncryptionKey` property to test whether the key is already set and in use.
-
+```swift
+if powerAuthSDK.hasExternalEncryptionKey {
+    let eek = PowerAuthCoreData(withData: eekBytes)
+    try powerAuthSDK.removeExternalEncryptionKey(eek)
+}
+```
 
 ## Share Activation Data
 
@@ -2008,6 +2053,10 @@ This chapter explains how to share the `PowerAuthSDK` activation state between a
 
 <!-- begin box warning -->
 This feature is not supported on the macOS Catalyst platform.
+<!-- end -->
+
+<!-- begin box warning -->
+If you used this feature in an SDK version older than 2.0.0, please read the [Upgrade from older SDKs](#upgrade-from-older-sdks) chapter first.
 <!-- end -->
 
 ### Prepare Activation Data Sharing
@@ -2072,16 +2121,22 @@ configuration.sharingConfiguration = PowerAuthSharingConfiguration(
     keychainAccessGroup: keychainSharing)
 
 // Create a PowerAuthSDK instance
-let powerAuthSDK = PowerAuthSDK(configuration)
+let powerAuthSDK = try PowerAuthSDK(configuration: configuration)
 ```
 
 The `PowerAuthSharingConfiguration` object contains the following properties:
 
 - `appGroup` is the name of the app group shared between your applications. Be aware, that the length of app group encoded in UTF-8, should not exceed 26 characters. See [troubleshooting](#length-of-application-group) section for more details.
-- `appIdentifier` is an identifier unique across your all applications or extensions that are supposed to use the shared activation data. You can use your applications' bundle identifiers or any other identifier that can be then processed in all your applications. Due to technical limitations, the length of the identifier must not exceed 127 bytes, if represented in UTF-8.
+- `appIdentifier` is an identifier unique across all your applications or extensions that are supposed to use the shared activation data. You can use your applications' bundle identifiers or any other identifier that can be then identified in all your applications (such as `smartBank`, `smartBank.walletExt`, `investmentsApp`, etc.) Due to technical limitations, the length of the identifier must not exceed 127 bytes, if represented in UTF-8.
 - `keychainAccessGroup` is an access group for keychain sharing.
 
+<!-- begin box info -->
 Unlike the regular configuration the `instanceId` value in `PowerAuthConfiguration` should not be derived on the application's bundle identifier. This is because all applications and extensions that share PowerAuth data must use the same identifier. To ensure consistency, use a predefined constant string or an identifier based on the first application that integrated PowerAuth. This guarantees that all related components can access the same PowerAuth instance without conflicts.
+<!-- end -->
+
+<!-- begin box warning -->
+It is also strongly recommended not to use the same `appIdentifier` for more than one instance of `PowerAuthSDK` running in the same application or extension (i.e. do not share the data between multiple instances running in the same process).
+<!-- end -->
 
 ### External pending operations
 
@@ -2103,7 +2158,7 @@ powerAuthSDK.createActivation(activation) { (result, error) in
         }
     }
 }
-``` 
+```
 
 ## Synchronized Time
 
@@ -2185,7 +2240,7 @@ In other cases, you receive an error via an exception, like in this example:
 
 ```swift
 do {
-    try powerAuthSDK.removeExternalEncryptionKey()
+    let header = try powerAuthSDK.authenticationHeaderForRequestWithBody(with: auth, method: "POST", uriId: "/payment/create", body: requestBodyData)
 } catch let error as NSError {
     // Handle 'error' here
 }
@@ -2269,6 +2324,15 @@ if error == nil {
             
         case .timeSynchronization:
             print("Failed to synchronize time with the server.")
+
+        case .wrongSignature:
+            print("Digital or JWS signature is not valid.")
+
+        case .upgradeSDK:
+            print("Upgrade PowerAuth Mobile SDK in your application.")
+
+        case .other:
+            print("Unspecified error.")
             
         default:
             print("Unknown error")
@@ -2285,6 +2349,7 @@ Here's the list of important error codes, which the application should properly 
 - `PowerAuthErrorCode.biometryFallback` is reported when the user cancels the biometric authentication dialog with a fallback button
 - `PowerAuthErrorCode.pendingProtocolUpgrade` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The error code is typically reported in situations when SDK is performing protocol upgrade and the application wants to calculate the PowerAuth authentication code in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
 - `PowerAuthErrorCode.externalPendingOperation` is reported when the requested operation collides with the same operation type already started in the external application.
+- `PowerAuthErrorCode.upgradeSDK` is reported when the local activation data format is not understandable by this version of PowerAuth Mobile SDK.
 
 ### Working with Invalid SSL Certificates
 
@@ -2537,3 +2602,18 @@ private func migrateUserDefaults(appGroup: String) {
     }
 }
 ```
+
+### Upgrade from older SDKs
+
+PowerAuth Mobile SDK version `2.0.0` introduced a new internal activation data format that is incompatible with previous SDK versions. This change is particularly important if you are using the [Activation Data Sharing](#share-activation-data) feature to share activation data between multiple applications. In such a setup, you may encounter a situation where one of your applications is already upgraded to a newer SDK version and the modified data is not recognized by an application using an older SDK version. This situation may lead to unexpected removal of activation data.
+
+To prevent this, it is very important to carefully plan how you roll out application updates to your users. It is recommended to follow these steps to reliably upgrade your applications to PowerAuth SDK 2.0 (and later):
+
+1. First, upgrade all your applications to SDK 2.0+ and set the [algorithm](#algorithms-for-communication) to `LEGACY_P256`. In this setup, the activation data format remains fully compatible with older SDK versions.
+2. Wait until a significant portion of your users are using version `2.0+` across all your applications.
+3. Then switch the [algorithm](#algorithms-for-communication) to the one you intend to use going forward (for example, `EC_P384_ML_L3`).
+
+<!-- begin box info -->
+The procedure above is not required if you are using activation data sharing to share data between a single application and its extensions. This setup is safe because the extensions are part of the main application and are upgraded at the same time.
+<!-- end -->
+

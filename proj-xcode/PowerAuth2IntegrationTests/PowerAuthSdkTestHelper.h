@@ -66,7 +66,8 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
  Clone the existing test helper but with altered configuration.
  */
 + (PowerAuthSdkTestHelper*) clone:(PowerAuthSdkTestHelper*)testHelper
-                         withConfiguration:(PowerAuthConfiguration*)configuration;
+                withConfiguration:(PowerAuthConfiguration*)configuration
+                 removeActivation:(BOOL)removeActivation;
 
 @property (nonatomic, readonly, strong) PowerAuthSDK * sdk;
 @property (nonatomic, readonly, strong) PowerAuthTestServerAPI * testServerApi;

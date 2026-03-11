@@ -27,15 +27,6 @@ import io.getlime.security.powerauth.core.Password;
  */
 public class PowerAuthAuthenticationHelper {
     /**
-     * Enable or disable strict mode for PowerAuthAuthentication usage validation. See
-     * {@link PowerAuthAuthentication#setStrictValidateAuthenticationUsage(boolean)} for more details.
-     * @param strictMode Enable or disable strict mode.
-     */
-    public static void setStrictModeForUsageValidation(boolean strictMode) {
-        PowerAuthAuthentication.setStrictValidateAuthenticationUsage(strictMode);
-    }
-
-    /**
      * Extract plaintext password from PowerAuthAuthentication's password.
      * @param authentication Authentication that should contain password.
      * @return Extracted password.

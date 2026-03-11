@@ -78,6 +78,9 @@
             </BuildableReference>
             <SkippedTests>
                <Test
+                  Identifier = "BaseTestWithActivation">
+               </Test>
+               <Test
                   Identifier = "BaseTests_V3/testCustomOfflineSignature">
                </Test>
                <Test
@@ -99,6 +102,9 @@
                   Identifier = "PowerAuthSDKBaseTests">
                </Test>
                <Test
+                  Identifier = "PowerAuthSDKBaseTests/testActivationCodeSignature">
+               </Test>
+               <Test
                   Identifier = "PowerAuthSDKBaseTests/testActivationStatus">
                </Test>
                <Test
@@ -114,6 +120,15 @@
                   Identifier = "PowerAuthSDKBaseTests/testAddingBiometryFactor">
                </Test>
                <Test
+                  Identifier = "PowerAuthSDKBaseTests/testAlgorithmSetup">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testAuthentication">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testBasicTokenOperations">
+               </Test>
+               <Test
                   Identifier = "PowerAuthSDKBaseTests/testBiometrySignatureWhenNotConfigured">
                </Test>
                <Test
@@ -124,6 +139,12 @@
                </Test>
                <Test
                   Identifier = "PowerAuthSDKBaseTests/testChangePassword">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testChangePasswordDeprecated">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCleanupActivationData">
                </Test>
                <Test
                   Identifier = "PowerAuthSDKBaseTests/testCounterSync_ClientIsAhead">
@@ -144,6 +165,9 @@
                   Identifier = "PowerAuthSDKBaseTests/testCreateActivationWithBiometry">
                </Test>
                <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCreateActivationWithExternalBiometry">
+               </Test>
+               <Test
                   Identifier = "PowerAuthSDKBaseTests/testCreateActivationWithOtpAndSignature">
                </Test>
                <Test
@@ -153,10 +177,34 @@
                   Identifier = "PowerAuthSDKBaseTests/testCreateActivationWithoutSignature">
                </Test>
                <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCreateCSR">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCreateTokenWithDifferentAuth">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCustomOfflineAuthCode">
+               </Test>
+               <Test
                   Identifier = "PowerAuthSDKBaseTests/testCustomOfflineSignature">
                </Test>
                <Test
                   Identifier = "PowerAuthSDKBaseTests/testEncryptorCreation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testExportDevicePublicKey">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testExternalEncryptionKeyDiscontinue">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testFailedStatusFetch">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testGroupedCreateTokenRequests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testJwsSignDataWithDevicePrivateKey">
                </Test>
                <Test
                   Identifier = "PowerAuthSDKBaseTests/testJwtSignature">
@@ -168,19 +216,76 @@
                   Identifier = "PowerAuthSDKBaseTests/testPasswordCorrectWhenBlocked">
                </Test>
                <Test
+                  Identifier = "PowerAuthSDKBaseTests/testPersistActivationFailRecovery">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgradeWithBiometry">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_fetchStatusFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_newBiometryKekWithoutBiometryFactorSet">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_upgradeConfirmRequestAndStatusResponseFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_upgradeConfirmRequestFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_upgradeConfirmResponseFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_upgradeStartResponseFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_withRestarts">
+               </Test>
+               <Test
                   Identifier = "PowerAuthSDKBaseTests/testRemoveActivation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testRestoreSessionState">
                </Test>
                <Test
                   Identifier = "PowerAuthSDKBaseTests/testSignDataWithDevicePrivateKey">
                </Test>
                <Test
+                  Identifier = "PowerAuthSDKBaseTests/testSimulatedHttpResponseFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testSynchronizeBiometricFactorWithServer">
+               </Test>
+               <Test
                   Identifier = "PowerAuthSDKBaseTests/testTemporaryKeyExpiration">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testTokens_ConcurrentCreationAndRemove">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testUnsupportedDataHandling">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testUpgradeSDKDetection">
                </Test>
                <Test
                   Identifier = "PowerAuthSDKBaseTests/testUserInfo">
                </Test>
                <Test
                   Identifier = "PowerAuthSDKBaseTests/testValidateSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testVaultEncryptionKeys">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testVerifyJwsServerSignedData">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testVerifyOfflineServerSignedData">
                </Test>
                <Test
                   Identifier = "PowerAuthSDKBaseTests/testVerifyServerSignedData">
@@ -297,6 +402,9 @@
                   Identifier = "PowerAuthSDKSharedBaseTests/testConcurrentTokens">
                </Test>
                <Test
+                  Identifier = "PowerAuthSDKSharedBaseTests/testProtocolUpgrade_Concurrent">
+               </Test>
+               <Test
                   Identifier = "PowerAuthSDKSharedTests/testActivationStatus">
                </Test>
                <Test
@@ -408,295 +516,7 @@
                   Identifier = "PowerAuthTokenTests/testGroupedCreateTokenRequests">
                </Test>
                <Test
-                  Identifier = "SharedTests_V3">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V3/testConcurrentActivation">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V3/testConcurrentSignatureCalculations">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V3/testConcurrentTokens">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testActivationStatus">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testActivationStatusConcurrent">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testActivationStatusFailCounters">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testActivationStatusMaxFailAttempts">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testAddingBiometryFactor">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testAlgorithmSetup">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testAuthentication">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testBasicTokenOperations">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testBiometrySignatureWhenNotConfigured">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCallToCreateActivationInWrongState">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCancelEnqueuedHttpOperation">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testChangePassword">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testConcurrentActivation">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testConcurrentSignatureCalculations">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testConcurrentTokens">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCounterSync_ClientIsAhead">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCounterSync_ServerIsAhead">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationAndPersistWithCorePassword">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationAndPersistWithPassword">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWhenApplicationIsUnsupported">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWithBiometry">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWithExternalBiometry">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWithOtpAndSignature">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWithSignature">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCreateActivationWithoutSignature">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCreateTokenWithDifferentAuth">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testCustomOfflineAuthCode">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testEncryptorCreation">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testGroupedCreateTokenRequests">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testJwtSignature">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testPasswordCorrect">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testPasswordCorrectWhenBlocked">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testRemoveActivation">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testRestoreSessionState">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testSignDataWithDevicePrivateKey">
-               </Test>
-               <Test
                   Identifier = "SharedTests_V4_EC_P384/testTemporaryKeyExpiration">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testTokens_ConcurrentCreationAndRemove">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testUserInfo">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testVerifyServerSignedData">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384/testWithWrongLAContext">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L3">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L3/testConcurrentActivation">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L3/testConcurrentSignatureCalculations">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L3/testConcurrentTokens">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testActivationCodeSignature">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testActivationStatus">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testActivationStatusConcurrent">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testActivationStatusFailCounters">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testActivationStatusMaxFailAttempts">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testAddingBiometryFactor">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testAlgorithmSetup">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testAuthentication">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testBasicTokenOperations">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testBiometrySignatureWhenNotConfigured">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCallToCreateActivationInWrongState">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCancelEnqueuedHttpOperation">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testChangePassword">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testConcurrentActivation">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testConcurrentSignatureCalculations">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testConcurrentTokens">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCounterSync_ClientIsAhead">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCounterSync_ServerIsAhead">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCreateActivationAndPersistWithCorePassword">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCreateActivationAndPersistWithPassword">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCreateActivationWhenApplicationIsUnsupported">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCreateActivationWithBiometry">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCreateActivationWithExternalBiometry">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCreateActivationWithOtpAndSignature">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCreateActivationWithSignature">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCreateActivationWithoutSignature">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCreateTokenWithDifferentAuth">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testCustomOfflineAuthCode">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testEncryptorCreation">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testExportDevicePublicKey">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testFailedStatusFetch">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testGroupedCreateTokenRequests">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testJwsSignDataWithDevicePrivateKey">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testJwtSignature">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testPasswordCorrect">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testPasswordCorrectWhenBlocked">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testRemoveActivation">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testRestoreSessionState">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testSignDataWithDevicePrivateKey">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testSimulatedHttpResponseFailure">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testTokens_ConcurrentCreationAndRemove">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testUserInfo">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testVaultEncryptionKeys">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testVerifyJwsServerSignedData">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testVerifyOfflineServerSignedData">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testVerifyServerSignedData">
-               </Test>
-               <Test
-                  Identifier = "SharedTests_V4_EC_P384_ML_L5/testWithWrongLAContext">
                </Test>
             </SkippedTests>
          </TestableReference>

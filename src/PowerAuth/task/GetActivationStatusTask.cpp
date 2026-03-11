@@ -19,10 +19,9 @@
 
 namespace powerAuth {
 
-#define LOCK_GUARD() std::lock_guard<std::recursive_mutex> _lock_guard(*_mutex)
-
 GetActivationStatusTask::GetActivationStatusTask(const ContextPtr& context) :
     Task("GetActivationStatus", context),
+    _session_data(context->getSessionDataPtr()),
     _activation_service(context->getActivationServicePtr()),
     _authentication_service(context->getAuthenticationServicePtr())
 {
@@ -31,7 +30,7 @@ GetActivationStatusTask::GetActivationStatusTask(const ContextPtr& context) :
 void GetActivationStatusTask::onTaskStart()
 {
     Task::onTaskStart();
-    setNextRequest(_activation_service->fetchActivationStatus(), FETCH_STATUS, RF_PRIMARY);
+    fetchActivationStatus();
 }
 
 void GetActivationStatusTask::onRequestSuccess(const Request &request)
@@ -42,9 +41,14 @@ void GetActivationStatusTask::onRequestSuccess(const Request &request)
             break;
         case PROTOCOL_UPGRADE_CONFIRM:
             lockContext()->sessionData().persistentData().v4().flags.pendingProtocolUpgrade = 0;
+            setSessionStateSerializationRecommended();
             break;
         case SYNC_COUNTER:
             setCompleted();
+            break;
+        case REMOVE_BIOMETRIC_FACTOR:
+            // Fetch status again after biometric factor remove.
+            fetchActivationStatus();
             break;
         default:
             throw Exception(EC_InternalError, "Unknown request tag");
@@ -60,7 +64,7 @@ void GetActivationStatusTask::onRequestFailure(const Request &request)
     }
 }
 
-void GetActivationStatusTask::processActivationStatus(const ActivationStatus &status)
+void GetActivationStatusTask::processActivationStatus(ActivationStatus &status)
 {
     if (status.protocolVersion() == Version_V4) {
         if (status.isPendingUpgradeConfirm()) {
@@ -73,22 +77,48 @@ void GetActivationStatusTask::processActivationStatus(const ActivationStatus &st
         if (context->hasProtocolUpgradePending()) {
             // Protocol upgrade confirmed, but locally the flag is still set.
             context->sessionData().persistentData().v4().flags.pendingProtocolUpgrade = 0;
+            setSessionStateSerializationRecommended();
+        }
+        
+        // Handle biometric factor. This is allowed only when the activation is properly created.
+        if (status.biometricFactor() != ActivationStatus::BiometricFactor_NA &&
+            !status.isPendingActivationConfirm() &&
+            _session_data->hasPersistentData()) {
+            // Status of biometry on the server is different than the local status.
+            auto serverBioON = status.biometricFactor() == ActivationStatus::BiometricFactor_On;
+            auto localBioON = _session_data->persistentData().hasBiometricFactorKey();
+            if (serverBioON != localBioON) {
+                // Local and server's biometric state is different
+                if (serverBioON) {
+                    // remove biometric factor on the server. This operation also synchronizes the counters.
+                    removeBiometricFactor();
+                    return;
+                } else {
+                    // remove biometric factor locally
+                    _activation_service->cleanupBiometricFactorData();
+                    status.setRemoveBiometricKekRecommended();
+                    setSessionStateSerializationRecommended();
+                }
+            }
         }
     }
     
     if (status.isCounterSynchronizationRecommended()) {
         // Seems that local counter is too ahead against the server. It's recommended to calculate
         // dummy possession signature to allow server's counter to catch-up with the client.
-        auto request = _authentication_service->verifyCredentialsWithReason(Credentials::possession(), VerifyCredentialsReason::COUNTER_SYNCHRONIZATION);
-        setNextRequest(request, SYNC_COUNTER, RF_IGNORE_FAILURE);
+        synchronizeCounters();
     } else {
         setCompleted();
     }
 }
 
+void GetActivationStatusTask::fetchActivationStatus()
+{
+    setNextRequest(_activation_service->fetchActivationStatus(), FETCH_STATUS, RF_PRIMARY);
+}
+
 void GetActivationStatusTask::confirmProtocolUpgrade()
 {
-    LOCK_GUARD();
     auto context = lockContext();
     
     auto request = RequestBuilder(*context, v4::Endpoint_ProtocolUpgradeConfirm)
@@ -96,6 +126,21 @@ void GetActivationStatusTask::confirmProtocolUpgrade()
         .build();
     
     setNextRequest(request, PROTOCOL_UPGRADE_CONFIRM, RF_NONE);
+}
+
+void GetActivationStatusTask::removeBiometricFactor()
+{
+    auto request = _activation_service->removeBiometricFactor();
+    // If this request fails, then the whole operation fails. This basically instructs the application
+    // to retry the status fetch operation.
+    setNextRequest(request, REMOVE_BIOMETRIC_FACTOR, RF_NONE);
+}
+
+void GetActivationStatusTask::synchronizeCounters()
+{
+    auto request = _authentication_service->verifyCredentialsWithReason(Credentials::possession(), VerifyCredentialsReason::COUNTER_SYNCHRONIZATION);
+    // Failure is not important, we'll try later in the next getting status task.
+    setNextRequest(request, SYNC_COUNTER, RF_IGNORE_FAILURE);
 }
 
 } // namespace powerAuth

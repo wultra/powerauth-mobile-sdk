@@ -44,15 +44,12 @@
 
 @interface PowerAuthSDK : NSObject<PowerAuthSessionStatusProvider>
 
-/** Reference to object that provides the low-level PowerAuthCoreSession class.
+/** Reference to an object that provides the low-level PowerAuthCoreSession class.
  
  WARNING
  
- This property is exposed only for the purpose of giving developers full low-level control over the cryptographic algorithm and
- managed activation state. For example, you can call a direct password change method without prior check of the password correctness
- in cooperation with the server API. Be extremely careful when calling any methods of this instance directly. There are very few
- protective mechanisms for keeping the session state actually consistent in the functional (not low level) sense. As a result, you
- may break your activation state (for example, by changing password from incorrect value to some other value).
+ This property is exposed solely for SDK testing purposes. The API defined in the provider may change
+ without further notice and may not be mentioned in the release notes or migration guide.
  */
 @property (nonatomic, strong, nonnull, readonly) id<PowerAuthCoreSessionProvider> sessionProvider;
 
@@ -92,7 +89,7 @@
 @property (nonatomic, strong, nonnull, readonly) id<PowerAuthTokenStore> tokenStore;
 
 /**
- Object providing functions to sychronize time with the server. The time is automatically synchronized with the server
+ Object providing functions to synchronize time with the server. The time is automatically synchronized with the server
  */
 @property (nonatomic, strong, nonnull, readonly) id<PowerAuthTimeSynchronizationService> timeSynchronizationService;
 
@@ -145,6 +142,32 @@
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
                                           error:(NSError*_Nullable*_Nullable)error;
+
+/// Erases local data associated with the `PowerAuthSDK` instance identified by the provided configuration and keychain configuration.
+///
+/// Use this method when `PowerAuthSDK` initialization fails with an error indicating an unsupported local activation data format
+/// and the stored local activation data must be removed before retrying initialization.
+///
+/// @param configuration The configuration used to identify the instance data.
+/// @param keychainConfiguration The keychain configuration used to locate the instance data. If nil, the default configuration is applied.
+/// @param error Pointer where error is set in case of failure.
+/// @return true in case of success, false otherwise.
++ (BOOL) cleanupInstanceDataForConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                       keychainConfiguration:(nullable PowerAuthKeychainConfiguration*)keychainConfiguration
+                                       error:(NSError*_Nullable*_Nullable)error
+                            NS_SWIFT_NAME(cleanupInstanceData(configuration:keychainConfiguration:));
+
+/// Erases local data associated with the `PowerAuthSDK` instance identified by the provided configuration.
+///
+/// Use this method when `PowerAuthSDK` initialization fails with an error indicating an unsupported local activation data format
+/// and the stored local activation data must be removed before retrying initialization.
+///
+/// @param configuration The configuration used to identify the instance data.
+/// @param error Pointer where error is set in case of failure.
+/// @return true in case of success, false otherwise.
++ (BOOL) cleanupInstanceDataForConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                                       error:(NSError*_Nullable*_Nullable)error
+                            NS_SWIFT_NAME(cleanupInstanceData(configuration:));
 
 /** Creates an instance of SDK and initializes it with given configuration objects.
  
@@ -837,14 +860,8 @@
                                                      index:(UInt64)index
                                                   callback:(nonnull void(^)(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error))callback;
 
-/// Get a vault encryption key from the server.
-///
-/// Be careful how you use this method, because its functionality depends on the current protocol version. The function has the following limitations:
-///
-/// - If activation is still at protocol version 3.3:
-///   - Only `legacy` key is supported and the returned key has always derivation index set to `0`.
-/// - If activation is already at protocol version 4.0 and newer:
-///   - The `legacy` key is no longer supported.
+/// Get a vault encryption key from the server. This method is effective only if PowerAuthSDK is running
+/// at protocol version 4.0 and higher.
 ///
 /// @param authentication Authentication used for vault unlocking call.
 /// @param keyIdentifier Vault encryption key identifier.
@@ -945,6 +962,24 @@
                                                      callback:(nonnull void(^)(NSString * _Nullable jws, NSError * _Nullable error))callback
             NS_SWIFT_NAME(calculateJwsSignature(authentication:forData:dataType:compact:withKey:callback:));
 
+/// Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and optional Subject Alternative Names,
+/// embedded device public key and signed with the device private key.
+///
+/// - Parameters:
+///   - authentication: The authentication object used for vault unlocking.
+///   - distinguishedNames: Distinguished Names (DN) to be embedded in the CSR. The dictionary keys are DN types (like "CN", "O", etc.) and values are corresponding DN values.
+///   - subjectAltNames: Optional array of Subject Alternative Names (SAN)
+///   - keyIdentifier: The identifier of the key used for the signature calculation.
+///   - callback: The callback method with the CSR in PEM format.
+/// - Returns: A `PowerAuthOperationTask` associated with the running request,
+///            or `nil` if input validation fails.
+- (nullable id<PowerAuthOperationTask>) createCertificateSigningRequestWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                                       distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                                          subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                                                            keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                                                                                 callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback
+            NS_SWIFT_NAME(createCertificateSigningRequest(authentication:distinguishedNames:subjectAltNames:keyIdentifier:callback:));
+
 // Deprecated methods
 
 /**
@@ -989,6 +1024,21 @@
                       signature:(nonnull NSString*)signature
                       masterKey:(BOOL)masterKey
                         PA2_DEPRECATED(2.0.0);
+
+/** Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and optional Subject Alternative Names, embedded device public key and signed with the device private key.
+ 
+ @param authentication Authentication used for vault unlocking call.
+ @param distinguishedNames Distinguished Names (DN) to be embedded in the CSR. The dictionary keys are DN types (like "CN", "O", etc.) and values are corresponding DN values.
+ @param subjectAltNames Optional array of Subject Alternative Names (SAN)
+ @param callback The callback method with the CSR in PEM format with lines separated by `\n` (including `-----BEGIN CERTIFICATE REQUEST`----- and `-----END CERTIFICATE REQUEST-----` lines).
+ @return PowerAuthOperationTask associated with the running request.
+ @deprecated Use `createCertificateSigningRequest(with:distinguishedNames:subjectAltNames:keyIdentifier:callback:)` as replacement.
+ */
+- (nullable id<PowerAuthOperationTask>) createSignedCSRWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                       distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                          subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                                                 callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback
+                                                                    PA2_DEPRECATED(2.0.0);
 
 @end
 
@@ -1120,35 +1170,29 @@
 
 @interface PowerAuthSDK (EEK)
 
-/**
- Contains YES if EEK (external encryption key) is set.
- */
+/// Contains YES if factor keys in a legacy activation are still protected with EEK.
 @property (nonatomic, readonly) BOOL hasExternalEncryptionKey;
 
-/**
- Sets a known external encryption key to the internal configuration. This method
- is useful, when the activation is using EEK, but the key was not known during the PowerAuthSDK
- creation. You can restore the activation without the EEK and use it for a very limited set of
- operations, like the getting activation status. The data signing will also work correctly,
- but only for a possession factor, which is by design not protected with EEK.
- @param externalEncryptionKey EEK to be set to the internal configuration.
- */
-- (BOOL) setExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey
-                            error:(NSError * _Nullable * _Nullable)error;
+/// Remove EEK if factor keys are still protected with EEK. The method returns an error
+/// if activation is not present, or if factor keys are not protected with EEK.
+///
+/// - Parameters:
+///   - externalEncryptionKey: EEK previously used for the factor keys protection.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: YES in case of success, NO otherwise.
+- (BOOL) removeExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey
+                               error:(NSError * _Nullable * _Nullable)error;
 
-/**
- Add a new external encryption key permanently to the activated PowerAuthSDK and to the configuration object. The method
- is is useful for scenarios, when you need to add the EEK additionally, after the activation.
- @param externalEncryptionKey A new key to add. The data object must contain exactly 16 bytes.
- */
-- (BOOL) addExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey
-                            error:(NSError * _Nullable * _Nullable)error;
-
-/**
- Remove existing external encryption key from the activated PowerAuthSDK and from the configuration object. The valid
- activation must be present and EEK must be set at the time of call (e.g. 'hasExternalEncryptionKey' returns true).
- */
-- (BOOL) removeExternalEncryptionKey:(NSError * _Nullable * _Nullable)error;
+/// Add external encryption key for testing purposes. The method should not be used in the
+/// release build. The legacy activation must be present and the size of EEK must match the size
+/// of factor keys used in V3.3 protocol version (e.g. 16 bytes).
+///
+/// - Parameters:
+///   - eek: EEK to apply
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: YES in case of success, NO otherwise.
+- (BOOL) addExternalEncryptionKeyForTest:(nonnull PowerAuthCoreData *)externalEncryptionKey
+                                   error:(NSError * _Nullable * _Nullable)error;
 
 @end
 

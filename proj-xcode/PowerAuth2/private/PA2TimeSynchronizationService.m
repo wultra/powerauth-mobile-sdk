@@ -72,7 +72,7 @@
     id<PowerAuthOperationTask> task = [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * _Nonnull request, id  _Nullable response, NSError * _Nullable error) {
         PowerAuthServerStatus * serverStatus = nil;
         if (!error) {
-            serverStatus = [[PowerAuthServerStatus alloc] initWithJsonResponse:request.responseJson];
+            serverStatus = [[PowerAuthServerStatus alloc] initWithCoreServerStatus:request.responseObject];
             if (!serverStatus) {
                 error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Failed to create server status from response");
             }

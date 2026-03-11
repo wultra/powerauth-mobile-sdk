@@ -43,16 +43,14 @@ IServicePtr KeyProviderV4::asService()
 
 void KeyProviderV4::doServiceDestroy()
 {
-    clearSensitiveData();
+    Service::doServiceDestroy();
+    doClearSensitiveData();
 }
 
 void KeyProviderV4::clearSensitiveData()
 {
     Service::clearSensitiveData();
-    
-    _device_public_key = nullptr;
-    _server_public_key = nullptr;
-    _local_data_key.secureClear();
+    doClearSensitiveData();
 }
 
 void KeyProviderV4::restoreSensitiveData()
@@ -61,6 +59,19 @@ void KeyProviderV4::restoreSensitiveData()
     if (_session_data->hasPersistentData(Version_V4)) {
         updateKeyLocalData(nullptr);
     }
+}
+
+void KeyProviderV4::clearActivationData()
+{
+    Service::clearActivationData();
+    doClearSensitiveData();
+}
+
+void KeyProviderV4::doClearSensitiveData()
+{
+    _device_public_key = nullptr;
+    _server_public_key = nullptr;
+    _local_data_key.secureClear();
 }
 
 ProtocolVersion KeyProviderV4::protocolVersion() const noexcept
@@ -87,7 +98,7 @@ cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getDevicePublicKeyPtr()
     if (!_device_public_key) {
         if (_session_data->hasPersistentData()) {
             _device_public_key = decryptPublicKey(_session_data->persistentData().v4().cDevicePublicKey, KC_DEVICE_PUBLIC_KEY);
-        } else if (_session_data->hasRegistrationData()) {
+        } else if (_session_data->hasRegistrationData() && _session_data->registrationData().isKeyExchangeComplete()) {
             _device_public_key = _session_data->registrationData().v4().deviceKeyPair->getPublicKeyPtr();
         } else {
             throw Exception(EC_NotAllowed, "Device public key is not available");
@@ -102,7 +113,7 @@ cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getServerPublicKeyPtr()
     if (!_server_public_key) {
         if (_session_data->hasPersistentData()) {
             _server_public_key = decryptPublicKey(_session_data->persistentData().v4().cServerPublicKey, KC_SERVER_PUBLIC_KEY);
-        } else if (_session_data->hasRegistrationData()) {
+        } else if (_session_data->hasRegistrationData() && _session_data->registrationData().isKeyExchangeComplete()) {
             _server_public_key = _session_data->registrationData().v4().serverPublicKey;
         } else {
             throw Exception(EC_NotAllowed, "Server public key is not available");
@@ -273,6 +284,10 @@ std::unique_ptr<PersistentData> KeyProviderV4::fromRegistrationData(SecretKeysV4
     // auxiliary keys
     pd->cKdkUtility = secret_keys.ckdkUtility();
     pd->cKdkEncryption = secret_keys.ckdkEncryption();
+    
+    // vault keys
+    pd->cKdkAppVaultKnowledge = secret_keys.cKdkAppVaultKnowledge();
+    pd->cKdkAppVault2FA = secret_keys.cKdkAppVault2FA();
 
     // public and private keys
     updateKeyLocalData(&secret_keys);
@@ -306,6 +321,10 @@ std::unique_ptr<PersistentData> KeyProviderV4::fromUpgradeData(SecretKeysV4& sec
     // auxiliary keys
     pd->cKdkUtility = secret_keys.ckdkUtility();
     pd->cKdkEncryption = secret_keys.ckdkEncryption();
+    
+    // vault keys
+    pd->cKdkAppVaultKnowledge = secret_keys.cKdkAppVaultKnowledge();
+    pd->cKdkAppVault2FA = secret_keys.cKdkAppVault2FA();
 
     // public and private keys
     updateKeyLocalData(&secret_keys);

@@ -80,3 +80,5 @@
     #define POWERAUTH_EXTERN_C_BEGIN
     #define POWERAUTH_EXTERN_C_END
 #endif
+
+#define POWERAUTH_NO_EXPORT    __attribute__((visibility("hidden")))

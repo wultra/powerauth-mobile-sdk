@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.networking.response;
 import androidx.annotation.MainThread;
 
 import androidx.annotation.NonNull;
-import io.getlime.security.powerauth.core.ActivationStatus;
+import io.getlime.security.powerauth.sdk.PowerAuthActivationStatus;
 
 /**
  * Listener for activation status retrieval.
@@ -32,7 +32,7 @@ public interface IActivationStatusListener {
      * @param status retrieved activation status.
      */
     @MainThread
-    void onActivationStatusSucceed(ActivationStatus status);
+    void onActivationStatusSucceed(@NonNull PowerAuthActivationStatus status);
 
     /**
      * Called when activation status fails.

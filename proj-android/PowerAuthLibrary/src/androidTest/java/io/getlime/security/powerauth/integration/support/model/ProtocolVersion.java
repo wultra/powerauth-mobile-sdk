@@ -35,6 +35,10 @@ public enum ProtocolVersion {
         this.versionForHeader = versionForHeader;
     }
 
+    public boolean isV3() {
+        return version >= 30 && version <= 33;
+    }
+
     public static @NonNull ProtocolVersion versionFromInt(int version) {
         for (ProtocolVersion v : values()) {
             if (v.version == version) {

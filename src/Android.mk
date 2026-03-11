@@ -64,7 +64,8 @@ LOCAL_SRC_FILES += \
 	PowerAuth/ByteUtils.cpp \
 	PowerAuth/KeyProvider.cpp \
 	PowerAuth/OtpUtil.cpp \
-	PowerAuth/SharedSecret.cpp
+	PowerAuth/SharedSecret.cpp \
+	PowerAuth/ServerStatus.cpp
 
 # Multiplatform sources - PowerAuth/common
 LOCAL_SRC_FILES += \
@@ -81,6 +82,7 @@ LOCAL_SRC_FILES += \
 # Multiplatform sources - PowerAuth/task
 LOCAL_SRC_FILES += \
 	PowerAuth/task/ProtocolUpgradeTask.cpp \
+	PowerAuth/task/ConfirmActivationTask.cpp \
 	PowerAuth/task/GetActivationStatusTask.cpp
 
 # Multiplatform sources - PowerAuth/model
@@ -201,15 +203,28 @@ LOCAL_C_INCLUDES := \
 
 # JNI sources
 LOCAL_SRC_FILES := \
-	PowerAuthJni/SessionJNI.cpp \
+	PowerAuthJni/NativeHelper.cpp \
+	PowerAuthJni/ClassSpecs.cpp \
+	PowerAuthJni/NativeModuleJNI.cpp \
+	PowerAuthJni/NativeObjectJNI.cpp \
+	\
+	PowerAuthJni/CoreConfigJNI.cpp \
+	PowerAuthJni/CoreSessionJNI.cpp \
+	PowerAuthJni/CoreRequestJNI.cpp \
+	PowerAuthJni/CoreTaskJNI.cpp \
+	PowerAuthJni/CoreCredentialsJNI.cpp \
+	PowerAuthJni/CoreEncryptorJNI.cpp \
+	PowerAuthJni/CoreEncryptorFactoryJNI.cpp \
+	PowerAuthJni/CoreTimeServiceJNI.cpp \
+	\
 	PowerAuthJni/PasswordJNI.cpp \
+	PowerAuthJni/SecureDataJNI.cpp \
+	\
 	PowerAuthJni/ActivationCodeUtilJNI.cpp \
-	PowerAuthJni/TokenCalculatorJNI.cpp \
 	PowerAuthJni/CryptoUtilsJNI.cpp \
-	PowerAuthJni/ProtocolVersionJNI.cpp \
 	PowerAuthJni/EcPrivateKeyJNI.cpp \
-	PowerAuthJni/EcPublicKeyJNI.cpp \
-	PowerAuthJni/SecureDataJNI.cpp
+	PowerAuthJni/EcPublicKeyJNI.cpp
+
 
 include $(BUILD_SHARED_LIBRARY)
 

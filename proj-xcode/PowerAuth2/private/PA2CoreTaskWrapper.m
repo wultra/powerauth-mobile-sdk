@@ -17,6 +17,7 @@
 #import "PA2CoreTaskWrapper.h"
 #import "PA2PrivateMacros.h"
 #import "PA2CoreHttpClient.h"
+#import "PA2SessionInterface.h"
 
 @implementation PA2CoreTaskWrapper
 {
@@ -42,9 +43,11 @@
 - (nullable id<PowerAuthOperationTask>) processNext
 {
     NSError * localError = nil;
-    PowerAuthCoreRequest * request = [_task nextRequest:&localError];
+    PowerAuthCoreRequest * request = [_client.sessionInterface writeTaskWithSession:^PowerAuthCoreRequest* _Nullable(PowerAuthCoreSession * session, NSError ** error) {
+        return [_task nextRequest:error];
+    } error:&localError];
     if (localError) {
-        [self setFinished:nil error:PA2WrapError(localError, NULL)];
+        [self setFinished:nil error:localError];
         return nil;
     }
     if (request) {
@@ -85,7 +88,10 @@
     if (_task.isCanceled) {
         return;
     }
-    [_task cancel];
+    [_client.sessionInterface writeTaskWithSession:^id _Nullable(PowerAuthCoreSession * session, NSError ** error) {
+        [_task cancel];
+        return nil;
+    } error:nil];
     dispatch_async(dispatch_get_main_queue(), ^{
         [_current_async_operation cancel];
         _current_async_operation = nil;

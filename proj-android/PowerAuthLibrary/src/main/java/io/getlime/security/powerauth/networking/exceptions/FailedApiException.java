@@ -50,6 +50,7 @@ public class FailedApiException extends Exception {
      * @param responseJson JsonObject parsed from responseBody
      */
     public FailedApiException(int responseCode, @Nullable String responseBody, @Nullable JsonObject responseJson) {
+        super("Network error");
         this.responseCode = responseCode;
         this.responseBody = responseBody;
         this.responseJson = responseJson;

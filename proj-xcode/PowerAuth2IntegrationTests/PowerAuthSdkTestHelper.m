@@ -16,6 +16,13 @@
 
 #import "PowerAuthSdkTestHelper.h"
 
+// Expose some private PowerAuthSDK APIs for test purposes
+@interface PowerAuthSDK (PrivateHiddenAPI)
+/// Simulates object deallocation. This is necessary because the instance of PowerAuthSDK
+/// is not always released at controlled points during the tests.
+- (void) unsubscribeBeforeDestroy;
+@end
+
 @implementation PowerAuthSdkActivation
 
 - (id) initWithActivationData:(PATSInitActivationResponse*)activationData
@@ -183,6 +190,7 @@ static NSString * PA_Ver_Current = @"4.0";
 
 + (PowerAuthSdkTestHelper*) clone:(PowerAuthSdkTestHelper*)testHelper
                 withConfiguration:(PowerAuthConfiguration*)configuration
+                 removeActivation:(BOOL)removeActivation
 {
     [self setupLog];
     
@@ -190,7 +198,9 @@ static NSString * PA_Ver_Current = @"4.0";
     PowerAuthSDK *sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration error:&error];
     XCTAssertNotNil(sdk);
     XCTAssertNil(error);
-    [sdk removeActivationLocal];
+    if (removeActivation) {
+        [sdk removeActivationLocal];
+    }
     
     BOOL result = sdk != nil;
     result = result && [sdk hasPendingActivation] == NO;
@@ -488,7 +498,7 @@ static NSString * PA_Ver_Current = @"4.0";
 - (PowerAuthSDK*) prepareActivationForUpgradeTest:(PowerAuthAlgorithm)targetAlgorithm
                                         withFlags:(TestActivationFlags)flags
 {
-    /// Protocol upgrade not availbale before calling a fetch activation status.
+    /// Protocol upgrade not available before calling a fetch activation status.
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     
     /// Create activation
@@ -513,15 +523,19 @@ static NSString * PA_Ver_Current = @"4.0";
     PowerAuthActivationStatus * status = [self fetchActivationStatus];
     XCTAssertTrue(status.state == PowerAuthActivationState_Active);
     
+#if defined(PA2_BIOMETRY_SUPPORT)
     if (flags & (TestActivationFlags_PersistWithFakeBiometry | TestActivationFlags_PersistWithBiometry)) {
         XCTAssertTrue(_sdk.hasBiometryFactor);
     }
+#else
+    XCTAssertFalse(_sdk.hasBiometryFactor);
+#endif
     
     return _sdk;
 }
 
 - (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)customBiometryKek
-                                      shouldFinish:(BOOL)shouldFinish
+                                                                 shouldFinish:(BOOL)shouldFinish
 {
     PowerAuthProtocolUpgradeResult * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         // Start protocol upgrade task.
@@ -572,6 +586,7 @@ static NSString * PA_Ver_Current = @"4.0";
         clientConfiguration = [_sdk.clientConfiguration copy];
     }
     NSError * error = nil;
+    [_sdk unsubscribeBeforeDestroy];
     _sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
                                 biometricConfiguration:biometricConfiguration
                                    clientConfiguration:clientConfiguration
@@ -637,6 +652,10 @@ static NSString * PA_Ver_Current = @"4.0";
 {
     NSArray<NSString*> * veryCleverPasswords = [self veryStrongPasswords];
     NSString * newPassword = veryCleverPasswords[arc4random_uniform((uint32_t)veryCleverPasswords.count)];
+#if !defined(PA2_BIOMETRY_SUPPORT)
+    // Clear persist with biometry if biometry not supported on this platform.
+    flags &= ~(TestActivationFlags_PersistWithBiometry | TestActivationFlags_PersistWithFakeBiometry);
+#endif // !defined(PA2_BIOMETRY_SUPPORT)
 
     if (flags & TestActivationFlags_PersistWithBiometry) {
         return [PowerAuthAuthentication persistWithPasswordAndBiometry:newPassword];
@@ -645,7 +664,7 @@ static NSString * PA_Ver_Current = @"4.0";
         PowerAuthCoreData* biometryKek = [_sdk.sessionProvider readTaskWithSession:^PowerAuthCoreData* _Nullable(PowerAuthCoreSession * _Nonnull session, NSError * _Nonnull __autoreleasing * _Nullable error) {
             return [session generateFactorKek:error];
         } error:nil];
-        return [PowerAuthAuthentication persistWithPasswordAndBiometry:newPassword customBiometryKey:biometryKek customPossessionKey:nil];
+        return [PowerAuthAuthentication persistWithPasswordAndBiometry:newPassword customBiometryKey:biometryKek];
     }
     return [PowerAuthAuthentication persistWithPassword:newPassword];
 }
@@ -934,7 +953,7 @@ static NSString * PA_Ver_Current = @"4.0";
 - (PowerAuthAuthentication*) copyBiometryForSigning
 {
     if (self.customBiometryKey) {
-        return [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:self.customBiometryKey customPossessionKey:nil];
+        return [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:self.customBiometryKey];
     }
     if (self.useBiometry) {
         return [PowerAuthAuthentication possessionWithBiometryPrompt:@"Please authenticate with biometry"];

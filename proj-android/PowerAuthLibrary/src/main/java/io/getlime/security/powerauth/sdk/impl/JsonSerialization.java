@@ -1,0 +1,193 @@
+/*
+ * Copyright 2018 Wultra s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.getlime.security.powerauth.sdk.impl;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import android.util.Base64;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
+
+import java.nio.charset.Charset;
+
+import io.getlime.core.rest.model.base.request.ObjectRequest;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+
+/**
+ * The {@code JsonSerialization} class is helping with object to JSON serialization and
+ * with JSON to object deserialization.
+ */
+public class JsonSerialization {
+
+    /**
+     * Private instance of {@link Gson} object.
+     */
+    private Gson gson;
+
+    /**
+     * Constant representing an empty object, serialized to JSON (e.g. empty curly brackets, {@code {}})
+     */
+    private static final byte[] EMPTY_OBJECT_BYTES = { 0x7B, 0x7D };
+
+
+    public JsonSerialization() {
+    }
+
+    // Generic object
+
+    /**
+     * Serializes object as is, into sequence of bytes in JSON format. If object parameter is null,
+     * then empty curly brackets are returned.
+     *
+     * @param object object to serialize
+     * @param <TRequest> type of object, to serialize
+     * @return JSON representation of object
+     */
+    @NonNull
+    public <TRequest> byte[] serializeObject(@Nullable TRequest object) {
+        if (object != null) {
+            final String jsonString = getGson().toJson(object);
+            return jsonString.getBytes(Charset.defaultCharset());
+        }
+        return EMPTY_OBJECT_BYTES;
+    }
+
+
+    /**
+     * Deserialize object from from sequence of bytes in JSON format.
+     *
+     * @param data JSON data
+     * @param type {@link TypeToken} for object to be deserialized.
+     * @param <TResponse> type of object to be deserialized.
+     * @return deserialized object
+     */
+    @NonNull
+    public <TResponse> TResponse deserializeObject(@Nullable byte[] data, @NonNull TypeToken<TResponse> type) throws JsonParseException {
+        if (data != null) {
+            final String jsonString = new String(data, Charset.defaultCharset());
+            final TResponse object = getGson().fromJson(jsonString, type.getType());
+            if (object != null) {
+                return object;
+            }
+        }
+        final String message = (data == null) ? "Empty response received." : "Failed to deserialize object.";
+        throw new JsonParseException(message);
+    }
+
+
+    // Request object
+
+    /**
+     * Serializes object into sequence of bytes in JSON format. Unlike {@link #serializeObject(Object)},
+     * this method wraps the provided object into {@link ObjectRequest} request envelope,
+     * before the serialization.
+     *
+     * If object parameter is null, then empty curly brackets are returned.
+     *
+     * @param object object to serialize
+     * @param <TRequest> type of object, to serialize
+     * @return JSON representation of object
+     */
+    @NonNull
+    public <TRequest> byte[] serializeRequestObject(@Nullable TRequest object) {
+        if (object != null) {
+            ObjectRequest<TRequest> request = new ObjectRequest<>(object);
+            final String jsonString = getGson().toJson(request);
+            return jsonString.getBytes(Charset.defaultCharset());
+        }
+        return EMPTY_OBJECT_BYTES;
+    }
+
+
+    /**
+     * Parse bytes in JSON format.
+     *
+     * @param data bytes to parse
+     * @return {@link JsonObject} in case that provided JSON's root element is object.
+     * @throws JsonParseException if JSON is invalid
+     */
+    @NonNull
+    public JsonObject parseResponseObject(@Nullable byte[] data) throws JsonParseException {
+        if (data == null || data.length == 0) {
+            throw new JsonParseException("Empty response received.");
+        }
+        final String jsonString = new String(data, Charset.defaultCharset());
+        final JsonElement jsonRoot = JsonParser.parseString(jsonString);
+        if (!jsonRoot.isJsonObject()) {
+            throw new JsonParseException("Unexpected type of JSON data.");
+        }
+        return jsonRoot.getAsJsonObject();
+    }
+
+
+    // JWT
+
+    /**
+     * Serialize object into Base64Url encoded string.
+     * @param object Object to serialize.
+     * @return Object serialized into Base64Jwt encoded string.
+     * @param <TRequest> Type of object.
+     */
+    @NonNull
+    public <TRequest> String serializeJwtObject(@Nullable TRequest object) {
+        byte[] data = serializeObject(object);
+        return Base64.encodeToString(data, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING);
+    }
+
+    /**
+     * Deserialize object from Base64Url encoded string.
+     * @param data String with serialized object.
+     * @param type Type of object to deserialize.
+     * @return Deserialized object.
+     * @param <TResponse> Type of object.
+     * @throws PowerAuthErrorException In case that string doesn't contain JWT encoded data.
+     */
+    @NonNull
+    public <TResponse> TResponse deserializeJwtObject(@Nullable String data, @NonNull TypeToken<TResponse> type) throws PowerAuthErrorException {
+        if (data == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.NETWORK_ERROR, "Failed to deserialize JWT object.");
+        }
+        final byte[] objectBytes;
+        try {
+            objectBytes = Base64.decode(data, Base64.NO_WRAP| Base64.URL_SAFE | Base64.NO_PADDING);
+        } catch (IllegalArgumentException e) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.NETWORK_ERROR, "Failed to deserialize JWT object.", e);
+        }
+        return deserializeObject(objectBytes, type);
+    }
+
+    // Lazy initialized GSON & JsonParser
+
+    /**
+     * @return Lazy initialized instance of {@link Gson} object.
+     */
+    @NonNull
+    public Gson getGson() {
+        if (gson == null) {
+            gson = new GsonBuilder().create();
+        }
+        return gson;
+    }
+}

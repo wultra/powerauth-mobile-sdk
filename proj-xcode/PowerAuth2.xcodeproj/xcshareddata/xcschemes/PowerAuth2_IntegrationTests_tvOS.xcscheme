@@ -78,10 +78,202 @@
             </BuildableReference>
             <SkippedTests>
                <Test
+                  Identifier = "BaseTestWithActivation">
+               </Test>
+               <Test
                   Identifier = "PowerAuthConcurrencyTests">
                </Test>
                <Test
                   Identifier = "PowerAuthInvalidCurveTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testActivationCodeSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testActivationStatus">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testActivationStatusConcurrent">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testActivationStatusFailCounters">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testActivationStatusMaxFailAttempts">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testAlgorithmSetup">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testAuthentication">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testBasicTokenOperations">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testBiometrySignatureWhenNotConfigured">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCallToCreateActivationInWrongState">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCancelEnqueuedHttpOperation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testChangePassword">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testChangePasswordDeprecated">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCleanupActivationData">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCounterSync_ClientIsAhead">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCounterSync_ServerIsAhead">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCreateActivationAndPersistWithCorePassword">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCreateActivationAndPersistWithPassword">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCreateActivationWhenApplicationIsUnsupported">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCreateActivationWithOtpAndSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCreateActivationWithSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCreateActivationWithoutSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCreateCSR">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCreateTokenWithDifferentAuth">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testCustomOfflineAuthCode">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testEncryptorCreation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testExportDevicePublicKey">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testExternalEncryptionKeyDiscontinue">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testFailedStatusFetch">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testGroupedCreateTokenRequests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testJwsSignDataWithDevicePrivateKey">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testJwtSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testPasswordCorrect">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testPasswordCorrectWhenBlocked">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testPersistActivationFailRecovery">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgradeWithBiometry">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_fetchStatusFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_newBiometryKekWithoutBiometryFactorSet">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_upgradeConfirmRequestAndStatusResponseFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_upgradeConfirmRequestFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_upgradeConfirmResponseFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_upgradeStartResponseFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testProtocolUpgrade_withRestarts">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testRemoveActivation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testRestoreSessionState">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testSignDataWithDevicePrivateKey">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testSimulatedHttpResponseFailure">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testTokens_ConcurrentCreationAndRemove">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testUnsupportedDataHandling">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testUpgradeSDKDetection">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testUserInfo">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testVaultEncryptionKeys">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testVerifyJwsServerSignedData">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testVerifyOfflineServerSignedData">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKBaseTests/testVerifyServerSignedData">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedBaseTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedBaseTests/testConcurrentActivation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedBaseTests/testConcurrentSignatureCalculations">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedBaseTests/testConcurrentTokens">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedBaseTests/testProtocolUpgrade_Concurrent">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedBaseTests/testProtocolUpgrade_ConcurrentLegacyVsV4">
                </Test>
             </SkippedTests>
          </TestableReference>

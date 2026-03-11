@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cc7/ByteArray.h>
+#include <cc7/BaseObject.h>
 
 namespace powerAuth {
 
@@ -26,7 +27,7 @@ namespace powerAuth {
 /// Note that unlike the high level interfaces, this low level C++ implementation
 /// supports both mutable and immutable passwords. The immutability depends only
 /// on how the object was initialized for the last time.
-class Password
+class Password : public  cc7::BaseObject
 {
 public:
     
@@ -64,7 +65,7 @@ public:
     
     /// Returns `true` when both objects contains equal password.
     /// - Parameter p: Another password
-    /// - Returns: `true` if both passwords are requal.
+    /// - Returns: `true` if both passwords are equal.
     bool isEqualToPassword(const Password & p) const noexcept;
 
     /// Convert this object into ByteArray with plaintext password.

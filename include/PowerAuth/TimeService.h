@@ -19,6 +19,7 @@
 #include <PowerAuth/Types.h>
 #include <PowerAuth/Exception.h>
 #include <PowerAuth/Request.h>
+#include <PowerAuth/ServerStatus.h>
 #include <cc7/BaseObject.h>
 #include <cc7/Time.h>
 
@@ -30,11 +31,11 @@ class ITimeProvider : public cc7::BaseObject
 public:
     /// Function returns current time in seconds, elapsed since reference date 1.1.1970. The time
     /// is represented in floating point value.
-    virtual TimeInterval getCurrentTime() const = 0;
+    virtual TimeInterval getCurrentTime() const noexcept = 0;
     
     /// Function returns current time in milliseconds, elapsed since reference date 1.1.1970. The time
     /// is represented in 64 bit integer value.
-    virtual Timestamp getCurrentTimeMillis() const = 0;
+    virtual Timestamp getCurrentTimeMillis() const noexcept = 0;
 };
 
 CC7_SHARED_PTR(ITimeProvider)
@@ -50,40 +51,40 @@ public:
     /// reference date 1.1.1970 (e.g. unix timestamp.) If the local time is not synchronized, then returns
     /// the current local time (e.g. `gettimeofday()`.) You can test `isTimeSynchronized` property if
     /// this is not sufficient for your purposes.
-    Timestamp currentTimeMillis() const;
+    Timestamp currentTimeMillis() const noexcept;
     
     /// Return the current local time synchronized with the server. The returned value is in the seconds since the
     /// reference date 1.1.1970 (e.g. unix timestamp.) If the local time is not synchronized, then returns
     /// the current local time (e.g. `gettimeofday()`.) You can test `isTimeSynchronized` property if
     /// this is not sufficient for your purposes.
-    TimeInterval currentTime() const;
+    TimeInterval currentTime() const noexcept;
     
     /// Return information whether the service has its time synchronized with the server.
-    bool isTimeSynchronized() const;
+    bool isTimeSynchronized() const noexcept;
     
     /// Return calculated local time difference against the server. The value  is informational and is provided only
     /// for the testing or the debugging purposes.
-    TimeInterval localTimeAdjustment() const;
+    TimeInterval localTimeAdjustment() const noexcept;
     
     /// Return value representing a maximum absolute deviation of synchronized time against the actual time on the server.
     /// Depending on this value you can determine whether this deviation is within your expected margins. If the current
     /// synchronized time is out of your expectations, then try to synchronize the time again.
-    TimeInterval localTimeAdjustmentPrecision() const;
+    TimeInterval localTimeAdjustmentPrecision() const noexcept;
     
     /// Start the time synchronization task and return value representing such task. The same object must be later
     /// provided to `completeTimeSynchronizationTask()` method.
-    TaskId startTimeSynchronizationTask();
+    TaskId startTimeSynchronizationTask() noexcept;
 
     /// Complete the time synchronization task with time received from the server.
     /// - Parameters:
     ///   - task: Task object created in `startTimeSynchronizationTask` function.
     ///   - server_time: TimeInterval with seconds precision, received from the server.
     /// - Returns: YES if the server time has been processed and time is now synchronized.
-    bool completeTimeSynchronizationTask(TaskId task_id, TimeInterval server_time);
+    bool completeTimeSynchronizationTask(TaskId task_id, TimeInterval server_time) noexcept;
     
     /// Reset the time synchronization. The time must be synchronized again after this call.
     /// The method also resets any pending time synchronization request.
-    void resetTimeSynchronization();
+    void resetTimeSynchronization() noexcept;
     
     
     // Synchronize time with server
@@ -104,14 +105,14 @@ public:
     /// Construct service with the context object.
     /// - Parameters:
     ///   - context: Pointer to context object.
-    TimeService(const std::shared_ptr<Context>& context);
+    TimeService(const std::shared_ptr<Context>& context) noexcept;
     
     /// Construct service with optional TimeProvider and SharedMutex objects. This constructor
     /// is typically useful for the testing purposes.
     /// - Parameters:
     ///   - time_provider: Pointer to `TimeProvider` implementation. If `nullptr` is used, then the default implementation will be set.
     ///   - shared_lock: Pointer to `SharedMutex` object. If `nullptr` is used, then the service will create its own private mutex to achieve the thread safety.
-    TimeService(ITimeProviderPtr time_provider = nullptr, SharedMutexPtr shared_lock = nullptr);
+    TimeService(ITimeProviderPtr time_provider = nullptr, SharedMutexPtr shared_lock = nullptr) noexcept;
     
     /// Minimum time difference against the server accepted during the synchronization. If the difference
     /// is less, then we consider the local time as synchronized.
@@ -146,7 +147,7 @@ private:
     ResponseObjectPtr processTimeSynchronization(const cc7::json::JsonValue& response);
     
     /// Cancels pending time synchronization.
-    void cancelTimeSynchronization();
+    void cancelTimeSynchronization() noexcept;
 };
 
 CC7_SHARED_PTR(TimeService)

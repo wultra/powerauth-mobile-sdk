@@ -24,12 +24,20 @@ struct EndpointSpec
 {
     enum Flags
     {
+        /// If set, then the request must be processed in serialized queue.
         FL_SERIALIZED               = 1 << 0,
+        /// If set, then request is allowed while protocol upgrade is pending.
         FL_ALLOWED_IN_UPGRADE       = 1 << 1,
+        /// If set, then request require synchronized time.
         FL_SYNCHRONIZE_TIME         = 1 << 2,
+        /// If set, then the request and response objects are not wrapped in standard RESTFul API objects.
         FL_NOT_WRAPPED              = 1 << 3,
+        /// If set, then request is allowed while registration is pending.
         FL_PENDING_REGISTRATION     = 1 << 4,
-        FL_FORCE_ENCRYPTION_HEADER  = 1 << 5
+        /// If set, then encryption header is enforced in request.
+        FL_FORCE_ENCRYPTION_HEADER  = 1 << 5,
+        /// If set, then response JSON is marshaled to managed environments, such as Java or Objective-C.
+        FL_PUBLIC_RESPONSE_JSON     = 1 << 6
     };
     
     ProtocolVersion version;
@@ -62,6 +70,11 @@ struct EndpointSpec
     bool isAllowedInPendingRegistration() const noexcept
     {
         return (flags & FL_PENDING_REGISTRATION) == FL_PENDING_REGISTRATION;
+    }
+    
+    bool isPublicResponseJson() const noexcept
+    {
+        return (flags & FL_PUBLIC_RESPONSE_JSON) == FL_PUBLIC_RESPONSE_JSON;
     }
     
     bool requireSynchronizedTime() const noexcept

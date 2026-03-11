@@ -62,6 +62,12 @@ void AeadEncryptorFactory::doServiceDestroy()
     resetAllData();
 }
 
+void AeadEncryptorFactory::clearActivationData()
+{
+    Service::clearActivationData();
+    resetActivationData();
+}
+
 
 // MARK: - Public functions
 
@@ -123,7 +129,7 @@ IClientEncryptorPtr AeadEncryptorFactory::getClientEncryptor(EncryptorId encrypt
                                                           _configuration->applicationKey(),
                                                           _configuration->applicationSecret(),
                                                           ki.keyIdentifier,
-                                                          activationId());
+                                                          activationId(spec->scope));
     ByteArray e2ee_shared_info2_key;
     if (spec->isActivationScoped()) {
         e2ee_shared_info2_key = _key_provider->unlockSecretKeys()->keyE2EESharedInfo2();
@@ -176,7 +182,7 @@ cc7::json::JsonValue AeadEncryptorFactory::createTemporaryKeyRequest(EncryptorSc
     if (ki.hasPendingRequest()) {
         throw Exception(EC_NotAllowed, "There's already pending request for temporary key");
     }
-    auto activation_id = activationId();
+    auto activation_id = activationId(scope);
     if (act_scope && activation_id.empty()) {
         throw Exception(EC_MissingActivation, "Activation is required for activation scoped temporary key");
     }
@@ -265,9 +271,9 @@ void AeadEncryptorFactory::completeTemporaryKeyRequest(EncryptorScope scope, con
             ki.clear();
             throw Exception(EC_Cryptography, "Request and Response data doesn't match");
         }
-        if (act_scope && activationId() != response.activationId) {
+        if (act_scope && (activationId(scope) != response.activationId)) {
             ki.clear();
-            // This makes no sense, but it seems that
+            // This makes no sense, but it seems that activation ID changed between request and response.
             throw Exception(EC_InternalError, "ActivationID from response is no longer valid");
         }
         
@@ -324,10 +330,10 @@ AeadEncryptorFactory::GetTemporaryKeyResponse AeadEncryptorFactory::GetTemporary
 
 // MARK: - Private functions
 
-std::string AeadEncryptorFactory::activationId() const noexcept
+std::string AeadEncryptorFactory::activationId(EncryptorScope scope) const noexcept
 {
-    if (_session_data->hasPersistentData() && _session_data->getCurrentProtocolVersion() == Version_V4) {
-        return _session_data->persistentData().v4().activationId;
+    if (scope == EncryptorScope::ACTIVATION && _session_data->hasActivationId()) {
+        return _session_data->getActivationId();
     }
     return std::string();
 }
@@ -357,7 +363,7 @@ AeadEncryptorFactory::TemporaryKeyData& AeadEncryptorFactory::validKeyInfo(Encry
         ki.clear();
         throw Exception(EC_NotAllowed, "Temporary key is not valid or is expired");
     }
-    if (ki.keyScope == EncryptorScope::ACTIVATION && !_session_data->hasPersistentData()) {
+    if (ki.keyScope == EncryptorScope::ACTIVATION && !_session_data->hasActivationId()) {
         ki.clear();
         throw Exception(EC_MissingActivation, "Temporary key cannot be accessed due to missing activation");
     }

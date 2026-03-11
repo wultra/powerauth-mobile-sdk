@@ -70,6 +70,10 @@ typedef NS_ENUM(NSInteger, PowerAuthActivationState) {
  */
 @property (nonatomic, assign, readonly) UInt32 remainingAttempts;
 /**
+ Contains YES if upgrade to a newer protocol version is available.
+ */
+@property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
+/**
  Contains custom object returned from the server. The value is optional and PowerAuth Application Server
  must support this custom object.
  */

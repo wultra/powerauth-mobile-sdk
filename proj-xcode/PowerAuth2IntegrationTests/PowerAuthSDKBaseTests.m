@@ -46,8 +46,14 @@
 {
     CHECK_TEST_CONFIG();
     
-    PowerAuthSdkActivation * activation = [_helper createActivation:NO removeAfter:YES];
+    PowerAuthSdkActivation * activation = [_helper createActivation:NO removeAfter:NO];
     XCTAssertTrue(activation.success);
+    
+    if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+        NSArray * keys = [self fetchSecureVaultKeys:nil knowledge:nil];
+        _sdk = [_helper reCreateSdkInstance];
+        [self fetchSecureVaultKeys:keys[1] knowledge:keys[0]];
+    }
 }
 
 - (void) testCreateActivationWithOtpAndSignature
@@ -78,6 +84,97 @@
     XCTAssertTrue(activation.success);
 }
 
+/// Helper function that creates activation and expects failure at persist step.
+/// - Parameters:
+///   - shouldPass: If YES, then persist step should work.
+- (void) createActivationAndExpectPersistFailure:(BOOL)shouldPass
+{
+    PATSInitActivationResponse * response = [_helper prepareActivation:NO activationOtp:nil];
+    if (!response) {
+        XCTFail(@"Prepare failed");
+        return;
+    }
+    NSError * error = nil;
+    PowerAuthActivation * activation = [PowerAuthActivation activationWithActivationCode:response.activationCode error:&error];
+    if (!activation) {
+        XCTFail(@"activationWithActivationCode failed");
+        return;
+    }
+    PowerAuthActivationResult * activationResult = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk createActivation:activation callback:^(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error) {
+            [waiting reportCompletion:result];
+        }];
+    }];
+    if (!activationResult) {
+        XCTFail(@"createActivation failed");
+        return;
+    }
+    PowerAuthAuthentication * initialAuthentication = [_helper createPersistAuthenticationWithFlags:0];
+    error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk persistActivationWithAuthentication:initialAuthentication callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    if (error) {
+        NSLog(@"Confirm error: %@", [error description]);
+    }
+    if (shouldPass) {
+        XCTAssertNil(error);
+    } else {
+        XCTAssertNotNil(error);
+    }
+    if (!shouldPass && error) {
+        // retry the operation. It should work
+        [self clearAllSimulateFailures];
+        error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk persistActivationWithAuthentication:initialAuthentication callback:^(NSError * _Nullable error) {
+                [waiting reportCompletion:error];
+            }];
+        }];
+        XCTAssertNil(error);
+    }
+    [_helper assignCustomActivationData:response activationResult:activationResult credentials:initialAuthentication];
+    [_helper cleanup];
+    [self clearAllSimulateFailures];
+}
+
+- (void) testPersistActivationFailRecovery
+{
+    CHECK_TEST_CONFIG();
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        NSLog(@"Test not available for LEGACY_P256");
+        return;
+    }
+    NSString * confirmEndpoint = @"/activation/confirm";
+    NSString * statusEndpoint = @"/activation/status";
+    NSString * keystoreEndpoint = @"/keystore/create";
+    
+    // one failure at confirm send, no failure at status
+    [self simulateNetworkErrorOnSend:confirmEndpoint repeatCount:1];
+    [self createActivationAndExpectPersistFailure:YES];
+    
+    // one failure at confirm send, one failure at /keystore/create (prerequisite for status)
+    [self simulateNetworkErrorOnSend:confirmEndpoint repeatCount:1];
+    [self simulateNetworkErrorOnSend:keystoreEndpoint repeatCount:1];
+    [self createActivationAndExpectPersistFailure:NO];
+    
+    // 2 failures at confirm send, no failure at status. We should recovery from this.
+    [self simulateNetworkErrorOnSend:confirmEndpoint repeatCount:2];
+    [self createActivationAndExpectPersistFailure:YES];
+    
+    // 3 failures at confirm send, no failure at status. Out of recovery attempts
+    [self simulateNetworkErrorOnSend:confirmEndpoint repeatCount:3];
+    [self createActivationAndExpectPersistFailure:NO];
+    
+    // one failure at confirm, one failure at status. Cannot recovery here
+    [self simulateNetworkErrorOnSend:confirmEndpoint repeatCount:1];
+    [self simulateNetworkErrorOnSend:statusEndpoint repeatCount:1];
+    [self createActivationAndExpectPersistFailure:NO];
+
+    // failure at confirm receive, so the server processed the confirmation
+    [self simulateNetworkErrorOnReceive:confirmEndpoint];
+    [self createActivationAndExpectPersistFailure:YES];
+}
 
 - (void) testRemoveActivation
 {
@@ -304,14 +401,20 @@
     PowerAuthAuthentication * auth = activation.credentials;
     PowerAuthAuthentication * auth_possession = _helper.authPossession;
     PowerAuthAuthentication * auth_possession_knowledge = _helper.authPossessionWithKnowledge;
-    PowerAuthAuthentication * auth_possession_biometry = _helper.authPossessionWithBiometry;
+    PowerAuthAuthentication * auth_possession_biometry = self.hasBiometrySupport
+                                ? _helper.authPossessionWithBiometry
+                                : _helper.authPossessionWithKnowledge;
     
     //
     // Online & offline signatures (calculated as http auth header)
     //
-    for (int i = 1; i <= 2; i++)
+    for (int i = 1; i <= 4; i++)
     {
-        BOOL online_mode = i == 1;
+        if (i == 3) {
+            // re-create SDK to simulate app restart
+            _sdk = [_helper reCreateSdkInstanceWithConfiguration:nil biometricConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
+        }
+        BOOL online_mode = (i & 1) == 1;
         // Offline signature contains a
         NSData * data = online_mode
                             ? [@"hello online world" dataUsingEncoding:NSUTF8StringEncoding]
@@ -386,20 +489,22 @@
                                                                           componentLength:componentLength];
     XCTAssertTrue(response.signatureValid);
     
-    // possession + biometry
-    code = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk offlineAuthenticationCodeWithAuthentication:_helper.authPossessionWithBiometry uriId:@"/some/uriId" body:nil nonce:nonce callback:^(NSString * _Nullable authenticationCode, NSError * _Nullable error) {
-            [waiting reportCompletion:authenticationCode];
+    if (self.hasBiometrySupport) {
+        // possession + biometry
+        code = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk offlineAuthenticationCodeWithAuthentication:_helper.authPossessionWithBiometry uriId:@"/some/uriId" body:nil nonce:nonce callback:^(NSString * _Nullable authenticationCode, NSError * _Nullable error) {
+                [waiting reportCompletion:authenticationCode];
+            }];
         }];
-    }];
-    XCTAssertNotNil(code);
-    XCTAssertEqual(componentLength*2+1, code.length);
-    response = [_helper.testServerApi verifyOfflineAuthCode:activation.activationData.activationId
-                                                       data:normalized_data
-                                                   authCode:code
-                                              allowBiometry:YES
-                                            componentLength:componentLength];
-    XCTAssertTrue(response.signatureValid);
+        XCTAssertNotNil(code);
+        XCTAssertEqual(componentLength*2+1, code.length);
+        response = [_helper.testServerApi verifyOfflineAuthCode:activation.activationData.activationId
+                                                           data:normalized_data
+                                                       authCode:code
+                                                  allowBiometry:YES
+                                                componentLength:componentLength];
+        XCTAssertTrue(response.signatureValid);
+    }
 }
 
 - (void) testActivationStatus
@@ -630,7 +735,7 @@
         PowerAuthHttpHeader * header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:auth method:@"POST" uriId:@"/some/identifier" body:nil error:NULL];
         XCTAssertNotNil(header);
         if ((i % 4) == 0) {
-            // Every 4th signature calculation try to get the status
+            // Every 4th auth code calculation try to get the status
             status = [_helper fetchActivationStatus];
             XCTAssertNotNil(status);
             // Everything should be OK, because getting the status fires signature validation internally.
@@ -891,145 +996,117 @@
 }
 
 // MARK: - EEK
-// TODO: eek
-/*
-- (void) testExternalEncryptionKey
+
+- (void) testExternalEncryptionKeyDiscontinue
 {
     CHECK_TEST_CONFIG();
     
-    //
-    // This validates EEK usage.
-    //
+    NSError * error = nil;
+    BOOL result = NO;
     
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    PowerAuthCoreData * goodEEK = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V3 error:nil];
+    PowerAuthCoreData * badEEK = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V4 error:nil];
+    
+    // Before activation, EEK flag is always false.
+    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
+    
+    // Attempts to remove or add, should fail for all protocol versions
+    result = [_sdk removeExternalEncryptionKey:goodEEK error:&error];
+    XCTAssertFalse(result);
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+    
+    result = [_sdk addExternalEncryptionKeyForTest:goodEEK error:&error];
+    XCTAssertFalse(result);
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+    
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithFakeBiometry activationOtp:nil];
     if (!activation) {
         return;
     }
     
+    // By default, EEK is not set
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
     XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
+    if (self.hasBiometrySupport) {
+        // Check biometry
+        result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"data" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
+        XCTAssertTrue(result);
+    }
     
-    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
-    
-    NSError * error = nil;
-    BOOL result = [_sdk addExternalEncryptionKey:eek error:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    
-    XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-    
-    result = [_sdk removeExternalEncryptionKey:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-}
-
-- (void) testEEKFromConfiguration
-{
-    CHECK_TEST_CONFIG();
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        // V3 activations
         
-    //
-    // This validates EEK usage from the beginning.
-    //
-    
-    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
-    PowerAuthConfiguration * newConfig = [_sdk.configuration copy];
-    newConfig.externalEncryptionKey = eek;
-    _sdk = [_helper reCreateSdkInstanceWithConfiguration:newConfig biometricConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
-    XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-    if (!activation) {
-        return;
+        // Try to remove EEK first
+        result = [_sdk removeExternalEncryptionKey:goodEEK error:&error];
+        XCTAssertFalse(result);
+        XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, error.powerAuthErrorCode);
+        // Try to add wrong sized EEK
+        result = [_sdk addExternalEncryptionKeyForTest:badEEK error:&error];
+        XCTAssertFalse(result);
+        XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
+        // Try with good EEK
+        error = nil;
+        result = [_sdk addExternalEncryptionKeyForTest:goodEEK error:&error];
+        XCTAssertTrue(result);
+        XCTAssertNil(error);
+        
+        XCTAssertTrue(_sdk.hasExternalEncryptionKey);
+        error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk testCorePassword:activation.credentials.password callback:^(NSError * error) {
+                [waiting reportCompletion:error];
+            }];
+        }];
+        XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, error.powerAuthErrorCode);
+        
+        // simulate app restart
+        _sdk = [_helper reCreateSdkInstance];
+        
+        XCTAssertTrue(_sdk.hasExternalEncryptionKey);
+        // auth codes should not work
+        XCTAssertFalse([_helper checkForCorePassword:activation.credentials.password]);
+        if (self.hasBiometrySupport) {
+            // biometry
+            result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"B10" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
+            XCTAssertFalse(result);
+        }
+        // knowledge - offline
+        result = [_helper validateAuthentication:_helper.authPossessionWithKnowledge data:[@"0ffl1n3" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:NO cripple:0];
+        XCTAssertFalse(result);
+        
+        // Try to remove wrong sized EEK
+        result = [_sdk removeExternalEncryptionKey:badEEK error:&error];
+        XCTAssertFalse(result);
+        XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
+        XCTAssertTrue(_sdk.hasExternalEncryptionKey);
+        
+        // Try with good EEK
+        error = nil;
+        result = [_sdk removeExternalEncryptionKey:goodEEK error:&error];
+        XCTAssertTrue(result);
+        XCTAssertNil(error);
+        
+        XCTAssertFalse(_sdk.hasExternalEncryptionKey);
+        XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
+        if (self.hasBiometrySupport) {
+            // biometry
+            result = [_helper validateAuthentication:_helper.authPossessionWithBiometry data:[@"data" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:YES cripple:0];
+            XCTAssertTrue(result);
+        }
+        // knowledge - offline
+        result = [_helper validateAuthentication:_helper.authPossessionWithKnowledge data:[@"0ffl1n3" dataUsingEncoding:NSUTF8StringEncoding] method:@"POST" uriId:@"/hello/hacker" online:NO cripple:0];
+        XCTAssertTrue(result);
+
+    } else {
+        // V4 activations
+        // All EEK related methods should fail
+        result = [_sdk addExternalEncryptionKeyForTest:goodEEK error:&error];
+        XCTAssertFalse(result);
+        XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, error.powerAuthErrorCode);
+        result = [_sdk removeExternalEncryptionKey:goodEEK error:&error];
+        XCTAssertFalse(result);
+        XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, error.powerAuthErrorCode);
     }
-    
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-    
-    NSError * error = nil;
-    BOOL result = [_sdk removeExternalEncryptionKey:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
 }
-
-- (void) testSetEEKBeforeActivation
-{
-    CHECK_TEST_CONFIG();
-    
-    //
-    // This validates when EEK is set before activation is created.
-    //
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
-    NSError * error = nil;
-    BOOL result = [_sdk setExternalEncryptionKey:eek error:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-    if (!activation) {
-        return;
-    }
-    
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-    
-    result = [_sdk removeExternalEncryptionKey:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-}
-
-- (void) testSetEEKAfterActivation
-{
-    CHECK_TEST_CONFIG();
-    
-    //
-    // This validates when EEK is set after activation is created.
-    //
-    
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-    if (!activation) {
-        return;
-    }
-    
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-    
-    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
-    
-    NSError * error = nil;
-    BOOL result = [_sdk addExternalEncryptionKey:eek error:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    
-    XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-
-    // Now re-instantiate SDK and try to set EEK manually
-    PowerAuthConfiguration * newConfig = [_sdk.configuration copy];
-    newConfig.externalEncryptionKey = nil;
-    _sdk = [_helper reCreateSdkInstanceWithConfiguration:newConfig biometricConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
-    XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    // Activation status should work
-    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
-    XCTAssertEqual(PowerAuthActivationState_Active, status.state);
-    // Now set EEK
-    result = [_sdk setExternalEncryptionKey:eek error:&error];
-    XCTAssertTrue(result);
-    XCTAssertNil(error);
-    
-    XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
-}
-*/
 
 // MARK: - Request synchronization
 
@@ -1063,12 +1140,6 @@
 - (void) testBiometrySignatureWhenNotConfigured
 {
     CHECK_TEST_CONFIG();
-
-#if defined(PA2_BIOMETRY_SUPPORT)
-    BOOL supportsBiometry = YES;
-#else
-    BOOL supportsBiometry = NO;
-#endif
     
     //
     // This test validates that signing with biometry doesn't work when
@@ -1087,7 +1158,7 @@
     authentication = [PowerAuthAuthentication possessionWithBiometry];
     header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
     XCTAssertNil(header);
-    if (supportsBiometry) {
+    if (self.hasBiometrySupport) {
         XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
     } else {
         XCTAssertEqual(PowerAuthErrorCode_BiometryNotAvailable, error.powerAuthErrorCode);
@@ -1098,7 +1169,7 @@
     header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
     XCTAssertNil(header);
     
-    if (supportsBiometry) {
+    if (self.hasBiometrySupport) {
         XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
     } else {
         XCTAssertEqual(PowerAuthErrorCode_BiometryNotAvailable, error.powerAuthErrorCode);
@@ -1163,7 +1234,7 @@
     }
     XCTAssertFalse([_sdk hasBiometryFactor]);
     PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
-    PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+    PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:63] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         [_sdk addBiometryFactorWithCorePassword:activation.credentials.password customBiometryKek:newBiometryKek callback:^(NSError * _Nullable error) {
@@ -1201,7 +1272,7 @@
     XCTAssertFalse(result);
 
     newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
-    newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+    newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek];
     randomData = [[[PowerAuthCoreCryptoUtils randomBytes:63] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         [_sdk addBiometryFactorWithPassword:activation.credentials.password.extractedPassword customBiometryKek:newBiometryKek callback:^(NSError * _Nullable error) {
@@ -1219,6 +1290,76 @@
                                            online:YES
                                           cripple:0];
     XCTAssertTrue(result);
+}
+
+- (void) testSynchronizeBiometricFactorWithServer
+{
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        NSLog(@"This test is ineffective for V3 protocol");
+        return;
+    }
+    
+    // Tests whether biometric factor is synchronized with the server
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithBiometry activationOtp:nil];
+    if (!activation) {
+        return;
+    }
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+    XCTAssertTrue([_sdk hasBiometryFactor]);
+    
+    // Try to remove biometric factor, but the response is never received from the server.
+    // The situation is that server has biometric factor removed, but client still has biometry turned ON
+    
+    NSError * error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [self simulateNetworkErrorOnReceive:@"/pa/v4/biometry/remove"];
+        [_sdk removeBiometryFactorWithCallback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    // error is received
+    XCTAssertNotNil(error);
+    // outcome is that biometric factor is still ON
+    XCTAssertTrue([_sdk hasBiometryFactor]);
+    
+    // Now try to fetch activation status. The operation silently remove the factor from local data and the keychain
+    status = [_helper fetchActivationStatus];
+    XCTAssertFalse([_sdk hasBiometryFactor]);
+    
+    // Now try to add biometric factor. If response from the server is never received, then the server thinks the factor is ON, but local data
+    // has no factor set.
+    error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [self simulateNetworkErrorOnReceive:@"/pa/v4/biometry/add"];
+        [_sdk addBiometryFactorWithCorePassword:_helper.authPossessionWithKnowledge.password callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    // error is received
+    XCTAssertNotNil(error);
+
+    // Now server thinks the biometry is ON, but the local data has no factor key set. We have
+    // no option to test this flag via server API, so the only viable way how to test the feature,
+    // is to try fetch the status and automatic biometry synchronization will trigger
+    // "/pa/v4/biometry/remove" request. So, simulate the request to test whether the biometry
+    // is really turned ON on the server.
+    XCTAssertFalse([_sdk hasBiometryFactor]);
+    error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [self simulateNetworkErrorOnSend:@"/pa/v4/biometry/remove"];
+        [_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * _Nullable status, NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    // error is received. If not, then "/pa/v4/biometry/remove" was not used.
+    XCTAssertNotNil(error);
+    // In the next attempt, everything should work and the biometric factor should be removed from the server.
+    status = [_helper fetchActivationStatus];
+    XCTAssertNotNil(status);
+    XCTAssertFalse([_sdk hasBiometryFactor]);
+    
+    // In next attempt, remove is not called.
+    [self simulateNetworkErrorOnSend:@"/pa/v4/biometry/remove"];
+    status = [_helper fetchActivationStatus];
+    [self clearAllSimulateFailures];
+    XCTAssertNotNil(status);
 }
 
 - (void) testWithWrongLAContext
@@ -1450,18 +1591,34 @@
     // This test checks whether SDK can verify data signed by server's master key
     //
     BOOL result;
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-    if (!activation) {
-        return;
-    }
-    PowerAuthAuthentication * auth = activation.credentials;
-    
     NSError *error = nil;
     PATSOfflineSignaturePayload *payload;
     {
         // Verify data signed with master key (non-personalized)
         NSString * dataForSigning = @"All your money are belong to us!";
-        payload = [_helper.testServerApi createNonPersonalizedOfflineSignaturePayload:activation.activationData.applicationId data:dataForSigning];
+        payload = [_helper.testServerApi createNonPersonalizedOfflineSignaturePayload:_helper.testServerApi.appDetail.applicationId data:dataForSigning];
+        XCTAssertNotNil(payload);
+        XCTAssertTrue([payload.parsedData isEqualToString:dataForSigning]);
+        XCTAssertTrue([payload.parsedSigningKey isEqualToString:@"0"]);
+        
+        NSData * signedData = [payload.parsedSignedData dataUsingEncoding:NSUTF8StringEncoding];
+        result = [_sdk verifyDigitalSignature:[[NSData alloc] initWithBase64EncodedString:payload.parsedSignature options:0]
+                                   signedData:signedData
+                                keyIdentifier:PowerAuthSignatureKeyId_Master_EC
+                                        error:&error];
+        XCTAssertTrue(result);
+        XCTAssertNil(error);
+    }
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    PowerAuthAuthentication * auth = activation.credentials;
+    {
+        // Retry after activation creation
+        // Verify data signed with master key (non-personalized)
+        NSString * dataForSigning = @"All your money are belong to us!";
+        payload = [_helper.testServerApi createNonPersonalizedOfflineSignaturePayload:_helper.testServerApi.appDetail.applicationId data:dataForSigning];
         XCTAssertNotNil(payload);
         XCTAssertTrue([payload.parsedData isEqualToString:dataForSigning]);
         XCTAssertTrue([payload.parsedSigningKey isEqualToString:@"0"]);
@@ -1908,6 +2065,72 @@
     XCTAssertTrue(result);
 }
 
+- (void) validateCSR:(PowerAuthAuthentication*)authentication
+               keyId:(PowerAuthSignatureKeyId)keyId
+             dnItems:(NSDictionary<NSString*, NSString*>*)dnItems
+            sanItems:(NSArray<NSString*>*)sanItems
+          shouldPass:(BOOL)shouldPass
+{
+    NSString * csr = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk createCertificateSigningRequestWithAuthentication:authentication
+                                             distinguishedNames:dnItems
+                                                subjectAltNames:sanItems
+                                                  keyIdentifier:keyId
+                                                       callback:^(NSString * _Nullable csr, NSError * _Nullable error) {
+            [waiting reportCompletion:csr];
+        }];
+    }];
+    if (shouldPass) {
+        XCTAssertNotNil(csr);
+        XCTAssertTrue([csr hasPrefix:@"-----BEGIN CERTIFICATE REQUEST-----"]);
+        XCTAssertTrue([csr hasSuffix:@"-----END CERTIFICATE REQUEST-----\n"]);
+    } else {
+        XCTAssertNil(csr);
+    }
+}
+
+
+- (void) testCreateCSR
+{
+    CHECK_TEST_CONFIG();
+    PowerAuthSdkActivation * activation = [_helper createActivation:NO];
+    if (!activation) {
+        return;
+    }
+    NSDictionary<NSString*,NSString*>* dnItems = @{
+        @"C" : @"CZ",
+        @"O" : @"Example",
+        @"CN" : @"example.com"
+    };
+    NSArray<NSString*>* sanItems = @[
+        @"DNS:example.com",
+        @"DNS:www.example.com"
+    ];
+    switch (self.powerAuthAlgorithm) {
+        case PowerAuthAlgorithm_EC_P384_ML_L3:
+        case PowerAuthAlgorithm_EC_P384_ML_L5:
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_EC dnItems:dnItems sanItems:sanItems shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_EC dnItems:dnItems sanItems:nil shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_ML_DSA dnItems:dnItems sanItems:sanItems shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_ML_DSA dnItems:dnItems sanItems:nil shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device dnItems:dnItems sanItems:sanItems shouldPass:NO];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device dnItems:dnItems sanItems:nil shouldPass:NO];
+            break;
+        case PowerAuthAlgorithm_EC_P384:
+        case PowerAuthAlgorithm_LEGACY_P256:
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_EC dnItems:dnItems sanItems:sanItems shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_EC dnItems:dnItems sanItems:nil shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_ML_DSA dnItems:dnItems sanItems:sanItems shouldPass:NO];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device_ML_DSA dnItems:dnItems sanItems:nil shouldPass:NO];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device dnItems:dnItems sanItems:sanItems shouldPass:YES];
+            [self validateCSR:_helper.authPossessionWithKnowledge keyId:PowerAuthSignatureKeyId_Device dnItems:dnItems sanItems:nil shouldPass:YES];
+            break;
+        default:
+            XCTFail(@"Unsupported algorithm");
+            break;
+    }
+}
+
 #pragma mark - End-2-End Encryption
 
 - (void) testEncryptorCreation
@@ -2002,8 +2225,10 @@
         any2fa = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:YES];
         otherKDK = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:YES];
         XCTAssertEqualObjects(any2fa, otherKDK);
-        otherKDK = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.biometryCredentials shouldPass:YES];
-        XCTAssertEqualObjects(any2fa, otherKDK);
+        if (self.hasBiometrySupport) {
+            otherKDK = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.biometryCredentials shouldPass:YES];
+            XCTAssertEqualObjects(any2fa, otherKDK);
+        }
 
         knowledge = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_Knowledge credentials:activation.credentials shouldPass:YES];
         XCTAssertNotEqualObjects(any2fa, knowledge);
@@ -2050,6 +2275,33 @@
         [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:NO];
         [self fetchLegacyVaultKey:activation.biometryCredentials derivationIndex:0 shouldPass:NO];
     }
+}
+
+- (NSArray<PowerAuthSecureVaultKey*>*) fetchSecureVaultKeys:(PowerAuthSecureVaultKey*)knowledgeOrBiometry
+                                                  knowledge:(PowerAuthSecureVaultKey*)knowledge
+{
+    if (self.powerAuthAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+        PowerAuthSecureVaultKey * key1 = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk fetchSecureVaultKey:_helper.authPossessionWithKnowledge keyIdentifier:PowerAuthSecureVaultKeyId_Knowledge callback:^(PowerAuthSecureVaultKey * _Nullable vaultKey, NSError * _Nullable error) {
+                [waiting reportCompletion:vaultKey];
+            }];
+        }];
+        XCTAssertNotNil(key1);
+        if (knowledge) {
+            XCTAssertTrue([knowledge isEqualToVaultEncryptionKey:key1]);
+        }
+        PowerAuthSecureVaultKey * key2 = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk fetchSecureVaultKey:_helper.authPossessionWithKnowledge keyIdentifier:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry callback:^(PowerAuthSecureVaultKey * _Nullable vaultKey, NSError * _Nullable error) {
+                [waiting reportCompletion:vaultKey];
+            }];
+        }];
+        XCTAssertNotNil(key2);
+        if (knowledgeOrBiometry) {
+            XCTAssertTrue([knowledgeOrBiometry isEqualToVaultEncryptionKey:key2]);
+        }
+        return @[key1, key2];
+    }
+    return nil;
 }
 
 // TODO: Temporary key expiration
@@ -2140,6 +2392,7 @@
         }];
         XCTAssertNotNil(operation);
     }];
+    XCTAssertNotNil(header);
     result = [_helper validateTokenHeader:header activationId:activationData.activationId expectedResult:YES];
     
     // Now ask for the same token
@@ -2367,6 +2620,30 @@
     XCTAssertFalse(_sdk.tokenStore.canRequestForAccessToken);
 }
 
+- (void) createTokenAndValidateTokenHeader:(NSString*)tokenName createToken:(BOOL)createToken
+{
+    if (createToken) {
+        [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk.tokenStore requestAccessTokenWithName:tokenName authentication:_helper.authPossession completion:^(PowerAuthToken * _Nullable token, NSError * _Nullable error) {
+                XCTAssertNotNil(token);
+                [waiting reportCompletion:@(token != nil)];
+            }];
+        }];
+    } else {
+        BOOL exists = [_sdk.tokenStore hasLocalTokenWithName:tokenName];
+        XCTAssertTrue(exists);
+    }
+    // Calculate header with asynchronous method
+    PowerAuthHttpHeader * header = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id operation = [_sdk.tokenStore generateAuthenticationHeaderWithName:tokenName completion:^(PowerAuthHttpHeader * _Nullable header, NSError * _Nullable error) {
+            [waiting reportCompletion:header];
+        }];
+        XCTAssertNotNil(operation);
+    }];
+    XCTAssertNotNil(header);
+    BOOL validateHeaderResult = [_helper validateTokenHeader:header activationId:_sdk.activationIdentifier expectedResult:YES];
+    XCTAssertTrue(validateHeaderResult);
+}
 
 #pragma mark - Other tests
 
@@ -2543,6 +2820,10 @@
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
     
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+    
+    [self createTokenAndValidateTokenHeader:@"TestToken" createToken:YES];
+        
     PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:nil shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
     
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
@@ -2555,12 +2836,23 @@
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     
+    [self createTokenAndValidateTokenHeader:@"TestToken" createToken:NO];
+    if (targetAlgorithm != PowerAuthAlgorithm_LEGACY_P256) {
+        NSArray * keys = [self fetchSecureVaultKeys:nil knowledge:nil];
+        _sdk = [_helper reCreateSdkInstance];
+        [self fetchSecureVaultKeys:keys[1] knowledge:keys[0]];
+    }
+        
     [_helper cleanup];
 }
 
 - (void) testProtocolUpgradeWithBiometry
 {
     CHECK_TEST_CONFIG();
+    if (!self.hasBiometrySupport) {
+        NSLog(@"Test skipped, device has no biometry support.");
+        return;
+    }
     
     //
     // Test successful upgrade from V3 to V4 protocol.
@@ -2585,7 +2877,7 @@
     if (self.powerAuthAlgorithm > PowerAuthAlgorithm_LEGACY_P256) {
         XCTAssertFalse(result.activationStatusFetchRequired);
         XCTAssertNotNil(result.activationFingerprint);
-        biometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+        biometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek];
     } else {
         biometryAuth = _helper.currentActivation.biometryCredentials;
     }
@@ -2631,7 +2923,10 @@
     XCTAssertEqual(_sdk.hasProtocolUpgradeAvailable, targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256);
     
     // Assert the old biometry factor key still works.
-    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
+    // If biometry not supported, then use knowledge factor.
+    PowerAuthAuthentication * oldBiometryAuth = self.hasBiometrySupport
+                ? _helper.currentActivation.biometryCredentials
+                : _helper.currentActivation.credentials;
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
                                                           data:randomData
@@ -2671,7 +2966,11 @@
     XCTAssertEqual(_sdk.hasProtocolUpgradeAvailable, targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256);
     
     // Assert the old biometry factor key still works.
-    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
+    // If biometry not supported, then use knowledge factor.
+    PowerAuthAuthentication * oldBiometryAuth = self.hasBiometrySupport
+                    ? _helper.currentActivation.biometryCredentials
+                    : _helper.currentActivation.credentials;
+    
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
                                                           data:randomData
@@ -2730,24 +3029,26 @@
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     
-    // Check that the old biometry factor does not work anymore.
-    PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
-    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
-    BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
-                                                          data:randomData
-                                                        method:@"POST"
-                                                         uriId:@"/hello/there"
-                                                        online:YES
-                                                       cripple:0];
-    XCTAssertFalse(authenticationValid);
+    if (self.hasBiometrySupport) {
+        // Check that the old biometry factor does not work anymore.
+        PowerAuthAuthentication * oldBiometryAuth = _helper.currentActivation.biometryCredentials;
+        NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+        BOOL authenticationValid = [_helper validateAuthentication:oldBiometryAuth
+                                                              data:randomData
+                                                            method:@"POST"
+                                                             uriId:@"/hello/there"
+                                                            online:YES
+                                                           cripple:0];
+        XCTAssertFalse(authenticationValid);
+    }
 
     [_helper cleanup];
 }
 
+
 - (void) testProtocolUpgrade_upgradeConfirmRequestFailure
 {
     CHECK_TEST_CONFIG();
-    CHECK_BIOMETRY();
     
     //
     // Test successful upgrade from V3 to V4 protocol. In this case
@@ -2758,7 +3059,7 @@
     // required to confirm the protocol upgrade in the background.
     //
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
-    PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:32];
+    PowerAuthCoreData * newBiometryKek = self.hasBiometrySupport ? [PowerAuthCoreCryptoUtils randomCoreData:32] : nil;
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithBiometry];
     
     // Set 3 failures in a row, as there are 3 confirm attempts in the task.
@@ -2776,22 +3077,26 @@
     XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
     
     // Simulate application restart before testing authentication.
+    XCTAssertNil(_sdk.externalPendingOperation);
     _sdk = [_helper reCreateSdkInstance];
+    XCTAssertNil(_sdk.externalPendingOperation);
     
     // Check biometry factor not possible during upgrade.
-    PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+    PowerAuthAuthentication * newAuth = self.hasBiometrySupport
+            ? [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek]
+            : [_helper.authPossessionWithKnowledge copy];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     
     // Authentication header calculation not allowed when protocol upgrade pending.
     NSError * authCalcError;
-    [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:newBiometryAuth method:@"POST" uriId:@"/hello/there" body:randomData error:&authCalcError];
+    [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:newAuth method:@"POST" uriId:@"/hello/there" body:randomData error:&authCalcError];
     XCTAssertEqual(PowerAuthErrorCode_PendingProtocolUpgrade, authCalcError.powerAuthErrorCode);
     // Same applies to offline.
-    [_sdk offlineAuthenticationCodeWithAuthentication:newBiometryAuth uriId:@"/hello/there" body:randomData nonce:@"trustmeitisarandomstring" callback:^(NSString * authenticationCode, NSError * error){
+    [_sdk offlineAuthenticationCodeWithAuthentication:newAuth uriId:@"/hello/there" body:randomData nonce:@"trustmeitisarandomstring" callback:^(NSString * authenticationCode, NSError * error){
         XCTAssertEqual(PowerAuthErrorCode_PendingProtocolUpgrade, error.powerAuthErrorCode);
     }];
     
-    BOOL authenticationValid = [_helper validateAuthentication:newBiometryAuth
+    BOOL authenticationValid = [_helper validateAuthentication:newAuth
                                                           data:randomData
                                                         method:@"POST"
                                                          uriId:@"/hello/there"
@@ -2822,7 +3127,7 @@
     
     // Simulate application restart before testing authentication.
     _sdk = [_helper reCreateSdkInstance];
-    authenticationValid = [_helper validateAuthentication:newBiometryAuth
+    authenticationValid = [_helper validateAuthentication:newAuth
                                                      data:randomData
                                                    method:@"POST"
                                                     uriId:@"/hello/there"
@@ -2830,7 +3135,6 @@
                                                   cripple:0];
     XCTAssertTrue(authenticationValid);
     
-
     [_helper cleanup];
 }
 
@@ -2905,7 +3209,7 @@
     
     // Check biometry factor not set.
     XCTAssertFalse(_sdk.hasBiometryFactor);
-    PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek customPossessionKey:nil];
+    PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     BOOL authenticationValid = [_helper validateAuthentication:newBiometryAuth
                                                           data:randomData
@@ -2999,7 +3303,7 @@
     XCTAssertTrue(_sdk.hasPendingProtocolUpgrade);
     XCTAssertFalse(_sdk.hasProtocolUpgradeAvailable);
     
-    /// Activation status fetch is now success. After application restart
+    /// Activation status fetch now succeeds. After application restart
     /// the protocol upgrade should be already confirmed.
     [_helper fetchActivationStatus];
     _sdk = [_helper reCreateSdkInstance];
@@ -3013,6 +3317,138 @@
     XCTAssertFalse(_sdk.hasPendingProtocolUpgrade);
     
     [_helper cleanup];
+}
+
+// Forward data compatibility
+
+- (PowerAuthKeychain*) instanceKeychain
+{
+    NSString * keychainId = _sdk.keychainConfiguration.keychainInstanceName_Status;
+    NSString * accessGroup = _sdk.configuration.sharingConfiguration.appGroup;
+    return [[PowerAuthKeychain alloc] initWithIdentifier:keychainId accessGroup:accessGroup];
+}
+
+- (void) insertInstanceActivationData:(NSData*)data instanceId:(NSString*)instanceId
+{
+    PowerAuthKeychain * keychain = [self instanceKeychain];
+    
+    if ([keychain containsDataForKey:instanceId]) {
+        [keychain updateValue:data forKey:instanceId];
+    } else {
+        [keychain addValue:data forKey:instanceId];
+    }
+}
+
+- (NSData*) getInstanceActivationData:(NSString*)instanceId
+{
+    PowerAuthKeychain * keychain = [self instanceKeychain];
+    NSData * data = [keychain dataForKey:instanceId status:NULL];
+    return data;
+}
+
+- (void) testCleanupActivationData
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    XCTAssertTrue(_sdk.hasValidActivation);
+    NSError * error = nil;
+    BOOL result = [PowerAuthSDK cleanupInstanceDataForConfiguration:_sdk.configuration error:&error];
+    XCTAssertTrue(result);
+    XCTAssertNil(error);
+    
+    // re-instantiate SDK object
+    _sdk = [_helper reCreateSdkInstance];
+    
+    // Activation should be gone
+    XCTAssertFalse(_sdk.hasValidActivation);
+}
+
+
+- (void) testUnsupportedDataHandling
+{
+    NSData * unsupportedData = [@"HELLO" dataUsingEncoding:NSASCIIStringEncoding];
+    
+    NSString * instanceId = _sdk.configuration.instanceId;
+    PowerAuthConfiguration * configuration = [_sdk.configuration copy];
+    PowerAuthKeychainConfiguration * keychainConfiguration = [_sdk.keychainConfiguration copy];
+        
+    // Insert unsupported data
+    [self insertInstanceActivationData:unsupportedData instanceId:instanceId];
+        
+    NSError * error = nil;
+    _sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
+                                biometricConfiguration:nil
+                                   clientConfiguration:nil
+                                 keychainConfiguration:keychainConfiguration
+                                                 error:&error];
+    XCTAssertNil(_sdk);
+    XCTAssertEqual(PowerAuthErrorCode_InvalidActivationData, error.powerAuthErrorCode);
+    
+    // Check whether keychain is not modified after initialization
+    XCTAssertEqualObjects(unsupportedData, [self getInstanceActivationData:instanceId]);
+    
+    error = nil;
+    BOOL result = [PowerAuthSDK cleanupInstanceDataForConfiguration:configuration
+                                              keychainConfiguration:keychainConfiguration
+                                                              error:&error];
+    XCTAssertTrue(result);
+    XCTAssertNil(error);
+    
+    _sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
+                                biometricConfiguration:nil
+                                   clientConfiguration:nil
+                                 keychainConfiguration:keychainConfiguration
+                                                 error:&error];
+
+    XCTAssertNotNil(_sdk);
+    XCTAssertNil(error);
+    XCTAssertFalse(_sdk.hasValidActivation);
+}
+
+- (void) testUpgradeSDKDetection
+{
+    // Session's data blob begins with sequence 'P' 'A' (data version) and status flag.
+    NSData * unsupportedData = [@"PX0" dataUsingEncoding:NSASCIIStringEncoding];
+    
+    NSString * instanceId = _sdk.configuration.instanceId;
+    PowerAuthConfiguration * configuration = [_sdk.configuration copy];
+    PowerAuthKeychainConfiguration * keychainConfiguration = [_sdk.keychainConfiguration copy];
+        
+    // Insert unsupported data
+    [self insertInstanceActivationData:unsupportedData instanceId:instanceId];
+        
+    NSError * error = nil;
+    _sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
+                                biometricConfiguration:nil
+                                   clientConfiguration:nil
+                                 keychainConfiguration:keychainConfiguration
+                                                 error:&error];
+    XCTAssertNil(_sdk);
+    XCTAssertEqual(PowerAuthErrorCode_UpgradeSDK, error.powerAuthErrorCode);
+    
+    // Check whether keychain is not modified after initialization
+    XCTAssertEqualObjects(unsupportedData, [self getInstanceActivationData:instanceId]);
+    
+    error = nil;
+    BOOL result = [PowerAuthSDK cleanupInstanceDataForConfiguration:configuration
+                                              keychainConfiguration:keychainConfiguration
+                                                              error:&error];
+    XCTAssertTrue(result);
+    XCTAssertNil(error);
+    
+    _sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
+                                biometricConfiguration:nil
+                                   clientConfiguration:nil
+                                 keychainConfiguration:keychainConfiguration
+                                                 error:&error];
+
+    XCTAssertNotNil(_sdk);
+    XCTAssertNil(error);
+    XCTAssertFalse(_sdk.hasValidActivation);
 }
 
 @end

@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 /**
  * Listener for password change.
  */
+@Deprecated(since = "2.0.0")
 public interface IChangePasswordListener {
 
     /**

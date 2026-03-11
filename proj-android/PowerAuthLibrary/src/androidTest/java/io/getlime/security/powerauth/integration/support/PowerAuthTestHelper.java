@@ -17,7 +17,6 @@
 package io.getlime.security.powerauth.integration.support;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,7 +29,13 @@ import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
 import io.getlime.security.powerauth.networking.ssl.HttpClientSslNoValidationStrategy;
-import io.getlime.security.powerauth.sdk.*;
+import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
+import io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper;
+import io.getlime.security.powerauth.sdk.PowerAuthBiometricConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
@@ -40,6 +45,9 @@ import io.getlime.security.powerauth.system.PowerAuthSystem;
  */
 public class PowerAuthTestHelper {
 
+    public static final String PA_VERSION3_HEADER = "3.3";
+    public static final String PA_VERSION4_HEADER = "4.0";
+
     private final @NonNull Context context;
     private final @NonNull PowerAuthTestConfig testConfig;
     private final @NonNull PowerAuthServerApi serverApi;
@@ -48,10 +56,10 @@ public class PowerAuthTestHelper {
     private final @Nullable Fragment testFragment;
 
     private @NonNull PowerAuthSDK sharedSdk;
-    private final @NonNull PowerAuthConfiguration sharedConfiguration;
-    private final @NonNull PowerAuthBiometricConfiguration sharedBiometricConfiguration;
-    private final @NonNull PowerAuthKeychainConfiguration sharedKeychainConfiguration;
-    private final @NonNull PowerAuthClientConfiguration sharedClientConfiguration;
+    private @NonNull PowerAuthConfiguration sharedConfiguration;
+    private @NonNull PowerAuthBiometricConfiguration sharedBiometricConfiguration;
+    private @NonNull PowerAuthKeychainConfiguration sharedKeychainConfiguration;
+    private @NonNull PowerAuthClientConfiguration sharedClientConfiguration;
 
     private final @NonNull ApplicationDetail sharedApplication;
     private final @NonNull ApplicationVersion sharedApplicationVersion;
@@ -106,7 +114,7 @@ public class PowerAuthTestHelper {
         private ApplicationDetail sharedApplication;
         private ApplicationVersion sharedApplicationVersion;
 
-        private boolean authenticationUsageStrictMode = true;
+        private @PowerAuthAlgorithm int powerAuthAlgorithm = PowerAuthAlgorithm.DEFAULT;
 
         /**
          * Creates a new default builder. Note that the method does a synchronous communication
@@ -142,13 +150,28 @@ public class PowerAuthTestHelper {
             return this;
         }
 
+
         /**
-         * Assign custom {@link PowerAuthConfiguration} for the future helper.
+         * Assign custom {@link PowerAuthAlgorithm} for the future helper.
+         * @param algorithm Custom algorithm.
+         * @return Instance of this builder.
+         */
+        public @NonNull Builder powerAuthAlgorithm(@PowerAuthAlgorithm int algorithm) {
+            this.powerAuthAlgorithm = algorithm;
+            return this;
+        }
+
+        /**
+         * Assign custom {@link PowerAuthConfiguration} for the future helper. This method also affects
+         * {@link PowerAuthAlgorithm }applied to future SDK helper. The algorithm is get from the
+         * provided configuration.
+         *
          * @param configuration Custom configuration.
          * @return Instance of this builder.
          */
         public @NonNull Builder sharedConfiguration(@NonNull PowerAuthConfiguration configuration) {
             this.sharedConfiguration = configuration;
+            this.powerAuthAlgorithm = configuration.getAlgorithm();
             return this;
         }
 
@@ -179,17 +202,6 @@ public class PowerAuthTestHelper {
          */
         public @NonNull Builder sharedClientConfiguration(@NonNull PowerAuthClientConfiguration clientConfiguration) {
             this.sharedClientConfiguration = clientConfiguration;
-            return this;
-        }
-
-        /**
-         * Enable or disable strict mode for PowerAuthAuthentication usage. The default value is that
-         * strict mode is enabled. See {@link io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper#setStrictModeForUsageValidation(boolean)}.
-         * @param strictMode Enable or disable strict mode.
-         * @return Instance of this builder.
-         */
-        public @NonNull Builder powerAuthAuthenticationUsageValidationMode(boolean strictMode) {
-            this.authenticationUsageStrictMode = strictMode;
             return this;
         }
 
@@ -224,8 +236,6 @@ public class PowerAuthTestHelper {
             // Prepare logger
             PowerAuthLog.setEnabled(true);
             PowerAuthLog.setVerbose(true);
-            // Prepare authentication validation mode
-            PowerAuthAuthenticationHelper.setStrictModeForUsageValidation(authenticationUsageStrictMode);
             // Prepare PowerAuthSDK configurations.
             final PowerAuthConfiguration configuration = prepareConfiguration();
             final PowerAuthBiometricConfiguration biometricConfiguration = prepareBiometricConfiguration();
@@ -247,6 +257,9 @@ public class PowerAuthTestHelper {
                     Logger.e("Shared PowerAuthSDK doesn't have a valid activation at test initialization.");
                 }
             }
+            // Apply client API to server API
+            serverApi.setClientAlgorithm(sdk.getCurrentAlgorithm());
+            // Build helper
             return new PowerAuthTestHelper(
                     context,
                     testConfig,
@@ -356,12 +369,12 @@ public class PowerAuthTestHelper {
                     null,
                     testConfig.getRestApiUrl(),
                     sharedApplicationVersion.getMobileSdkConfig());
+            builder.algorithm(powerAuthAlgorithm);
             if (configurationObserver != null) {
                 configurationObserver.adjustPowerAuthConfiguration(builder);
             }
             return builder.build();
         }
-
     }
 
     private PowerAuthTestHelper(
@@ -542,6 +555,7 @@ public class PowerAuthTestHelper {
     /**
      * Re-create a new instance of shared {@link PowerAuthSDK} with provided configurations.
      * @param configuration If null, then shared configuration will be used.
+     * @param biometricConfiguration  If null, then shared biometric configuration will be used.
      * @param clientConfiguration If null, then shared client configuration will be used.
      * @param keychainConfiguration If null, then shared keychain configuration will be used.
      * @return New instance of {@link PowerAuthSDK} that will be also used as new shared instance.
@@ -549,16 +563,23 @@ public class PowerAuthTestHelper {
      */
     public @NonNull PowerAuthSDK reCreateSdk(
             @Nullable PowerAuthConfiguration configuration,
+            @Nullable PowerAuthBiometricConfiguration biometricConfiguration,
             @Nullable PowerAuthClientConfiguration clientConfiguration,
             @Nullable PowerAuthKeychainConfiguration keychainConfiguration) throws Exception {
         final PowerAuthConfiguration newConfiguration = configuration != null ? configuration : getSharedPowerAuthConfiguration();
+        final PowerAuthBiometricConfiguration newBiometricConfiguration = biometricConfiguration != null ? biometricConfiguration : getSharedBiometricConfiguration();
         final PowerAuthClientConfiguration newClientConfiguration = clientConfiguration != null ? clientConfiguration : getSharedPowerAuthClientConfiguration();
         final PowerAuthKeychainConfiguration newKeychainConfiguration = keychainConfiguration != null ? keychainConfiguration : getSharedPowerAuthKeychainConfiguration();
         final PowerAuthSDK sdk = new PowerAuthSDK.Builder(newConfiguration)
                 .clientConfiguration(newClientConfiguration)
+                .biometricConfiguration(newBiometricConfiguration)
                 .keychainConfiguration(newKeychainConfiguration)
                 .build(getContext());
         sharedSdk = sdk;
+        sharedConfiguration = newConfiguration;
+        sharedBiometricConfiguration = newBiometricConfiguration;
+        sharedClientConfiguration = newClientConfiguration;
+        sharedKeychainConfiguration = newKeychainConfiguration;
         return sdk;
     }
 
@@ -566,6 +587,25 @@ public class PowerAuthTestHelper {
      * @return Expected protocol version for HTTP headers.
      */
     public @NonNull String getProtocolVersionForHeader() {
-        return testConfig.getServerVersion().maxProtocolVersion.versionForHeader;
+        if (sharedSdk.getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256) {
+            return PA_VERSION3_HEADER;
+        }
+        return PA_VERSION4_HEADER;
+    }
+
+    /**
+     * Convert PowerAuth Algorithm name into numeric constant.
+     * @param algorithmName Algorithm name.
+     * @return {@link PowerAuthAlgorithm} constant.
+     */
+    @PowerAuthAlgorithm
+    public static int getAlgorithmForName(String algorithmName) {
+        switch (algorithmName) {
+            case "EC_P384": return PowerAuthAlgorithm.EC_P384;
+            case "EC_P384_ML_L3": return PowerAuthAlgorithm.EC_P384_ML_L3;
+            case "EC_P384_ML_L5": return PowerAuthAlgorithm.EC_P384_ML_L5;
+            case "LEGACY_P256": return PowerAuthAlgorithm.LEGACY_P256;
+            default: throw new IllegalArgumentException("Unsupported algorithm name " + algorithmName);
+        }
     }
 }

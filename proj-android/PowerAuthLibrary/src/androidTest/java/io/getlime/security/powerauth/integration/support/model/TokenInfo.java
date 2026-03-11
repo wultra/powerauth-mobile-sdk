@@ -23,7 +23,7 @@ public class TokenInfo {
     private String activationId;
     private String applicationId;
     private String userId;
-    private SignatureType signatureType;
+    private AuthCodeType authenticationCodeType;
     private List<String> applicationRoles;
     private boolean tokenValid;
 
@@ -51,12 +51,12 @@ public class TokenInfo {
         this.userId = userId;
     }
 
-    public SignatureType getSignatureType() {
-        return signatureType;
+    public AuthCodeType getAuthenticationCodeType() {
+        return authenticationCodeType;
     }
 
-    public void setSignatureType(SignatureType signatureType) {
-        this.signatureType = signatureType;
+    public void setAuthenticationCodeType(AuthCodeType authenticationCodeType) {
+        this.authenticationCodeType = authenticationCodeType;
     }
 
     public List<String> getApplicationRoles() {

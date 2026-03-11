@@ -135,15 +135,15 @@ PersistentDataPtr PersistentData::deserialize(cc7::utils::DataReader& reader)
 {
     auto result = reader.openVersion(PD_TAG, PD_VERSION_V2);
     if (!result) {
-        throw Exception(EC_InvalidData, "Unknown persistent data format");
+        throw Exception(EC_InvalidActivationData, "Unknown persistent data format");
     }
     auto data_version = reader.currentVersion();
     if (data_version < PD_VERSION_V5) {
         // We don't support upgrade from SDK older than 1.3.x (December 2019)
-        throw Exception(EC_InvalidData, "Persistent data format is too old");
+        throw Exception(EC_InvalidActivationData, "Persistent data format is too old");
     } else if (data_version > PD_VERSION_V6) {
         // Seems that newer version of SDK serialized its data. We cannot understand this format.
-        throw Exception(EC_InvalidData, "Persistent data format is too new");
+        throw Exception(EC_UpgradeSDK, "Persistent data created in newer SDK version");
     }
     
     // Build data depending on serialized version
@@ -151,7 +151,7 @@ PersistentDataPtr PersistentData::deserialize(cc7::utils::DataReader& reader)
         // V3 Legacy data
         auto data = std::make_unique<V3>();
         if (!deserializeV3(reader, *data)) {
-            throw Exception(EC_InvalidData, "Failed to deserialize legacy persistent data");
+            throw Exception(EC_InvalidActivationData, "Failed to deserialize legacy persistent data");
         }
         return std::unique_ptr<PersistentData>(new PersistentData(data, false));
         //
@@ -159,7 +159,7 @@ PersistentDataPtr PersistentData::deserialize(cc7::utils::DataReader& reader)
         // V4 data
         auto data = std::make_unique<V4>();
         if (!deserializeV4(reader, *data)) {
-            throw Exception(EC_InvalidData, "Failed to deserialize persistent data");
+            throw Exception(EC_InvalidActivationData, "Failed to deserialize persistent data");
         }
         return std::unique_ptr<PersistentData>(new PersistentData(data, false));
         //
@@ -208,6 +208,10 @@ void PersistentData::serializeV4(cc7::utils::DataWriter& writer, const V4& v4) c
     writer.writeData    (v4.cKdkUtility);
     writer.writeData    (v4.cKdkEncryption);
     
+    // vault keys
+    writer.writeData    (v4.cKdkAppVaultKnowledge);
+    writer.writeData    (v4.cKdkAppVault2FA);
+    
     // public and private keys
     writer.writeData    (v4.cServerPublicKey);
     writer.writeData    (v4.cDevicePublicKey);
@@ -239,6 +243,10 @@ bool PersistentData::deserializeV4(cc7::utils::DataReader &reader, V4 &v4)
     // auxiliary keys
     result = result && reader.readData      (v4.cKdkUtility);
     result = result && reader.readData      (v4.cKdkEncryption);
+    
+    // vault keys
+    result = result && reader.readData      (v4.cKdkAppVaultKnowledge);
+    result = result && reader.readData      (v4.cKdkAppVault2FA);
     
     // public and private keys
     result = result && reader.readData      (v4.cServerPublicKey);
@@ -282,6 +290,9 @@ bool PersistentData::validateV4(const V4 &v4)
         // auxiliary keys
         _IsSet(v4.cKdkUtility, v4::AEAD_PROTECTED_KEY_SIZE) &&
         _IsSet(v4.cKdkEncryption, v4::AEAD_PROTECTED_KEY_SIZE) &&
+        // vault keys
+        _IsSet(v4.cKdkAppVaultKnowledge, v4::UKE_PROTECTED_KEY_SIZE) &&
+        _IsSet(v4.cKdkAppVault2FA, v4::UKE_PROTECTED_KEY_SIZE) &&
         // public & private keys
         _IsSet(v4.cDevicePublicKey) &&
         _IsSet(v4.cServerPublicKey) &&

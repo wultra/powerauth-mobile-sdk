@@ -27,12 +27,12 @@ namespace powerAuth {
 class DefaultTimeProvider : public ITimeProvider
 {
 public:
-    TimeInterval getCurrentTime() const override
+    TimeInterval getCurrentTime() const noexcept override
     {
         return cc7::GetCurrentTime();
     }
     
-    Timestamp getCurrentTimeMillis() const override
+    Timestamp getCurrentTimeMillis() const noexcept override
     {
         return cc7::GetCurrentTimeMillis();
     }
@@ -47,7 +47,7 @@ const double TimeService::MIN_ACCEPTED_TIME_DIFFERENCE = 2.0;
 const double TimeService::MIN_TIME_DIFFERENCE_DELTA = 10.0;
 const double TimeService::MAX_ACCEPTED_ELAPSED_TIME = 16.0;
 
-TimeService::TimeService(const ContextPtr& context) :
+TimeService::TimeService(const ContextPtr& context) noexcept :
     _weak_context(context),
     _time_provider(std::make_shared<DefaultTimeProvider>()),
     _lock(context->getSharedMutexPtr()),
@@ -58,7 +58,7 @@ TimeService::TimeService(const ContextPtr& context) :
 {
 }
 
-TimeService::TimeService(ITimeProviderPtr time_provider, SharedMutexPtr shared_lock) :
+TimeService::TimeService(ITimeProviderPtr time_provider, SharedMutexPtr shared_lock) noexcept :
     _time_provider(time_provider != nullptr ? time_provider : std::make_shared<DefaultTimeProvider>()),
     _lock(shared_lock != nullptr ? shared_lock : std::make_shared<SharedMutex>()),
     _is_synchronized(false),
@@ -68,43 +68,43 @@ TimeService::TimeService(ITimeProviderPtr time_provider, SharedMutexPtr shared_l
 {
 }
 
-Timestamp TimeService::currentTimeMillis() const
+Timestamp TimeService::currentTimeMillis() const noexcept
 {
     return TimeIntervalToTimestamp(currentTime());
 }
 
-TimeInterval TimeService::currentTime() const
+TimeInterval TimeService::currentTime() const noexcept
 {
     LOCK_GUARD();
     return _time_provider->getCurrentTime() + _local_time_adjustment;
 }
 
-bool TimeService::isTimeSynchronized() const
+bool TimeService::isTimeSynchronized() const noexcept
 {
     LOCK_GUARD();
     return _is_synchronized;
 }
 
-TimeInterval TimeService::localTimeAdjustment() const
+TimeInterval TimeService::localTimeAdjustment() const noexcept
 {
     LOCK_GUARD();
     return _local_time_adjustment;
 }
 
-TimeInterval TimeService::localTimeAdjustmentPrecision() const
+TimeInterval TimeService::localTimeAdjustmentPrecision() const noexcept
 {
     LOCK_GUARD();
     return _local_time_adjustment_precision;
 }
 
-TimeService::TaskId TimeService::startTimeSynchronizationTask()
+TimeService::TaskId TimeService::startTimeSynchronizationTask() noexcept
 {
     auto task = _time_provider->getCurrentTime();
     //CC7_LOG("TimeService: Sync task %f started", task);
     return task;
 }
 
-bool TimeService::completeTimeSynchronizationTask(TaskId task_id, TimeInterval server_time)
+bool TimeService::completeTimeSynchronizationTask(TaskId task_id, TimeInterval server_time) noexcept
 {
     LOCK_GUARD();
     auto now = _time_provider->getCurrentTime();
@@ -147,7 +147,7 @@ bool TimeService::completeTimeSynchronizationTask(TaskId task_id, TimeInterval s
     return true;
 }
 
-void TimeService::resetTimeSynchronization()
+void TimeService::resetTimeSynchronization() noexcept
 {
     LOCK_GUARD();
     _is_synchronized = false;
@@ -193,14 +193,15 @@ ResponseObjectPtr TimeService::processTimeSynchronization(const cc7::json::JsonV
     
     auto task = _current_sync_task;
     _current_sync_task = -1;
-    auto time = response["serverTime"].asInteger();
-
-    completeTimeSynchronizationTask(task, TimestampToTimeInterval(time));
     
-    return nullptr;
+    auto result = std::make_shared<ServerStatus>(response);
+
+    completeTimeSynchronizationTask(task, TimestampToTimeInterval(result->serverTime()));
+    
+    return result;
 }
 
-void TimeService::cancelTimeSynchronization()
+void TimeService::cancelTimeSynchronization() noexcept
 {
     LOCK_GUARD();
     if (_current_sync_task > 0.0) {

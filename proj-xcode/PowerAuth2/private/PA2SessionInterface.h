@@ -29,6 +29,16 @@
 @protocol PA2SessionInterface <PowerAuthCoreSessionProvider, PowerAuthCoreSessionDelegate, PA2TokenDataLock>
 @required
 
+/// Load initial session state and optionally clear unsupported data.
+///
+/// @param clearUnsupportedData If YES, then unsupported data will be erased.
+/// @param error Pointer where error is set in case of failure.
+- (BOOL) loadInitialState:(BOOL)clearUnsupportedData
+                    error:(NSError*_Nullable*_Nullable)error;
+
+/// Release acquired resources before the instance is destroyed
+- (void) releaseResourcesBeforeDestroy;
+
 /**
  Contains instance to `PowerAuthExternalPendingOperation` in case that other application is doing the critical
  operation right now.

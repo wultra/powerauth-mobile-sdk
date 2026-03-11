@@ -48,7 +48,7 @@
 #pragma mark - Constants
 
 /** In case a config is missing, exception with this identifier is thrown. */
-NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingConfig";
+NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingConfig"; // PA2_DEPRECATED(2.0.0)
 
 #pragma mark - PowerAuth SDK implementation
 
@@ -114,12 +114,14 @@ static NSData * _BuildDeviceSpecificData(void)
 ///   - biometricConfiguration: Optional biometric configuration.
 ///   - clientConfiguration: Optional client configuration.
 ///   - keychainConfiguration: Optional keychain configuration.
+///   - clearUnsupportedData: If true, then unsupported session data will be erased.
 ///   - error: Pointer to store error.
 /// - Returns: YES in case of success, NO otherwise.
 - (BOOL) initializeWithConfiguration:(PowerAuthConfiguration*)configuration
               biometricConfiguration:(PowerAuthBiometricConfiguration*)biometricConfiguration
                  clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration
                keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
+                clearUnsupportedData:(BOOL)clearUnsupportedData
                                error:(NSError**)error
 {
     NSError * localError = nil;
@@ -260,6 +262,13 @@ static NSData * _BuildDeviceSpecificData(void)
     // Link core session and session interface together
     coreSession.delegate = _sessionInterface;
     
+    // Load initial session's state
+    if (![_sessionInterface loadInitialState:clearUnsupportedData error:&localError]) {
+        PowerAuthCoreLog(@"ERROR: Failed to load initial session state");
+        PA2WrapError(localError, error);
+        return NO;
+    }
+    
     // Create and setup a new HTTP client
     _client = [[PA2CoreHttpClient alloc] initWithConfiguration:_clientConfiguration
                                               sessionInterface:_sessionInterface
@@ -295,12 +304,21 @@ static NSData * _BuildDeviceSpecificData(void)
 
 - (void) dealloc
 {
+    [self unsubscribeBeforeDestroy];
+}
+
+/// The private method unregisters this instance from all external subscribers.
+/// Be aware that the method is exposed for the integration tests, allowing us to simulate
+/// the application restart.
+- (void) unsubscribeBeforeDestroy
+{
     [(PA2TimeSynchronizationService*)_timeSynchronizationService unsubscribeForSystemNotifications];
 #if defined(PA2_WATCH_SUPPORT)
     // Unregister this instance for processing packets...
     [[PowerAuthWCSessionManager sharedInstance] unregisterDataHandler:self];
 #endif
     [self cancelAllPendingTasks];
+    [_sessionInterface releaseResourcesBeforeDestroy];
 }
 
 - (id<PowerAuthTokenStore>) tokenStore
@@ -418,7 +436,7 @@ static NSData * _BuildDeviceSpecificData(void)
         }
         // If localError variable is set, then we need to report an error.
         if (localError) {
-            if (error) { *error = localError; }
+            PA2SetExistingError(error, localError);
             return nil;
         }
         // No error generated, so create a fake biometry key to fail on the server.
@@ -453,7 +471,11 @@ static NSData * _BuildDeviceSpecificData(void)
                                                              error:(NSError **)error
 {
     // Validate authentication object usage
-    [authentication validateUsage:NO];
+    NSError * localError = [authentication validateUsage:NO];
+    if (localError) {
+        PA2SetExistingError(error, localError);
+        return nil;
+    }
     
     if (authentication.password) {
         // possession + knowledge
@@ -495,6 +517,7 @@ static NSData * _BuildDeviceSpecificData(void)
                         biometricConfiguration:biometricConfiguration
                            clientConfiguration:clientConfiguration
                          keychainConfiguration:keychainConfiguration
+                          clearUnsupportedData:NO
                                          error:error]) {
             return nil;
         }
@@ -522,6 +545,45 @@ static NSData * _BuildDeviceSpecificData(void)
                    clientConfiguration:nil
                  keychainConfiguration:nil
                                  error:error];
+}
+
+// Private init function
+
+- (instancetype) initForCleanupWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                           keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
+                                           error:(NSError **)error
+{
+    self = [super init];
+    if (self) {
+        if (![self initializeWithConfiguration:configuration
+                        biometricConfiguration:nil
+                           clientConfiguration:nil
+                         keychainConfiguration:keychainConfiguration
+                          clearUnsupportedData:YES
+                                         error:error]) {
+            return nil;
+        }
+    }
+    return self;
+}
+
+
++ (BOOL) cleanupInstanceDataForConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                       keychainConfiguration:(nullable PowerAuthKeychainConfiguration*)keychainConfiguration
+                                       error:(NSError*_Nullable*_Nullable)error
+{
+    PowerAuthSDK * temporary = [[PowerAuthSDK alloc] initForCleanupWithConfiguration:configuration
+                                                               keychainConfiguration:keychainConfiguration error:error];
+    if (temporary) {
+        [temporary removeActivationLocal];
+    }
+    return temporary != nil;
+}
+
++ (BOOL) cleanupInstanceDataForConfiguration:(nonnull PowerAuthConfiguration*)configuration
+                                       error:(NSError*_Nullable*_Nullable)error
+{
+    return [self cleanupInstanceDataForConfiguration:configuration keychainConfiguration:nil error:error];
 }
 
 static void _ThrowDeprecatedInitException(NSError * error)
@@ -650,15 +712,14 @@ static PowerAuthSDK * s_inst;
     PA2DictionarySafeSet(L2data, @"activationOtp", activation.additionalActivationOtp);
     PA2DictionarySafeSet(L2data, @"platform", [PowerAuthSystem platform]);
     PA2DictionarySafeSet(L2data, @"deviceInfo", [PowerAuthSystem deviceInfo]);
-    
-    // Notify other applications about pending activation
-    if (![_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation error:&error]) {
-        callback(nil, error);
-        return nil;
-    }
-    
+        
     // Start an activation
     PowerAuthCoreRequest * request = [_sessionInterface writeTaskWithSession:^PowerAuthCoreRequest*(PowerAuthCoreSession * session, NSError ** error) {
+        // Notify other applications about pending activation
+        if (![_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation error:error]) {
+            return nil;
+        }
+        // Create activation in session
         return [session createActivation:L1data withL2Data:L2data error:error];
     } error:&error];
     
@@ -719,15 +780,15 @@ static PowerAuthSDK * s_inst;
                                                           callback:(void(^)(NSError * error))callback
 {
     NSError * localError = nil;
-    PowerAuthCoreRequest * request = [self persistActivationInSession:authentication error:&localError];
-    if (!request) {
+    PowerAuthCoreTask * task = [self persistActivationInSession:authentication error:&localError];
+    if (!task) {
         // If activation is V3, then it's OK to exit immediately, because there's no additional asynchronous
         // operation required. So, we can end here for both, successful and failure scenarios.
         callback(localError);
         return nil;
     }
     // Otherwise execute the core request
-    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest* request, id response, NSError* error) {
+    return [_client postCoreTask:task completion:^(PowerAuthCoreTask* request, id response, NSError* error) {
         // TODO: recovery from failure
         callback(error);
     }];
@@ -770,14 +831,14 @@ static PowerAuthSDK * s_inst;
                                        error:(NSError**)error
 {
     NSError * localError = nil;
-    PowerAuthCoreRequest * request = [self persistActivationInSession:authentication error:&localError];
+    PowerAuthCoreTask * task = [self persistActivationInSession:authentication error:&localError];
     if (localError) {
-        if (error) *error = localError;
+        PA2SetExistingError(error, localError);
         return NO;
     }
-    if (request) {
+    if (task) {
         // Persist is asynchronous and this deprecated function is synchronous. Cancel the request and report error.
-        [request cancel];
+        [task cancel];
         PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"Synchronous persist is not supported at this protocol version");
         return NO;
     }
@@ -797,12 +858,16 @@ static PowerAuthSDK * s_inst;
 }
 
 
-- (PowerAuthCoreRequest*) persistActivationInSession:(PowerAuthAuthentication*)authentication error:(NSError**)error
+- (PowerAuthCoreTask*) persistActivationInSession:(PowerAuthAuthentication*)authentication error:(NSError**)error
 {
     // Validate authentication object usage
-    [authentication validateUsage:YES];
+    NSError * localError = [authentication validateUsage:YES];
+    if (localError) {
+        PA2SetExistingError(error, localError);
+        return nil;
+    }
     
-    return [_sessionInterface writeTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError** error) {
+    return [_sessionInterface writeTaskWithSession:^PowerAuthCoreTask* (PowerAuthCoreSession * session, NSError** error) {
         
         NSError * localError = nil;
         
@@ -811,13 +876,13 @@ static PowerAuthSDK * s_inst;
         PowerAuthCoreData *biometryKek = authentication.customBiometryKey;
         if (authentication.useBiometry && !biometryKek) {
             if (!(biometryKek = [session generateFactorKek:&localError])) {
-                if (error) *error = localError;
+                PA2SetExistingError(error, localError);
                 return nil;
             }
         }
-        PowerAuthCoreRequest * request = [session confirmActivationWithPassword:password withBiometryKek:biometryKek error:&localError];
+        PowerAuthCoreTask * task = [session confirmActivationWithPassword:password withBiometryKek:biometryKek error:&localError];
         if (localError) {
-            if (error) *error = localError;
+            PA2SetExistingError(error, localError);
             return nil;
         }
         
@@ -828,7 +893,7 @@ static PowerAuthSDK * s_inst;
         }
         // Clear TokenStore
         [_tokenStore removeAllLocalTokens];
-        return request;
+        return task;
         
     } error:error];
 }
@@ -860,8 +925,7 @@ static PowerAuthSDK * s_inst;
         _getActivationStatusTask = [[PA2GetActivationStatusTask alloc] initWithHttpClient:_client
                                                                           sessionProvider:_sessionInterface
                                                                                  delegate:self
-                                                                               sharedLock:_lock
-                                                                           disableUpgrade:_configuration.disableAutomaticProtocolUpgrade];
+                                                                               sharedLock:_lock];
         task = [_getActivationStatusTask createChildTask:callback];
     }
     //
@@ -886,6 +950,15 @@ static PowerAuthSDK * s_inst;
             [self getActivationStatusTask:task didFinishedWithStatus:nil error:nil];
         }];
     }
+}
+
+- (void) getActivationStatusTaskNeedRemoveBiometricFactorKek:(PA2GetActivationStatusTask *)task
+{
+    [_lock lock];
+    if (_getActivationStatusTask == task) {
+        [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+    }
+    [_lock unlock];
 }
 
 - (PowerAuthActivationStatus*) lastFetchedActivationStatus
@@ -914,9 +987,7 @@ static PowerAuthSDK * s_inst;
         if (customBiometryKek) {
             biometryKek = customBiometryKek;
         } else {
-            biometryKek = [_sessionInterface readTaskWithSession:^PowerAuthCoreData* _Nullable(PowerAuthCoreSession* session, NSError** error) {
-                return [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V4 error:error];
-            } error:&localError];
+            biometryKek = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V4 error:&localError];
         }
     }
     if (localError) {
@@ -925,9 +996,14 @@ static PowerAuthSDK * s_inst;
     }
     
     id<PowerAuthOperationTask> task = [_sessionInterface writeTaskWithSession:^PowerAuthCoreTask*(PowerAuthCoreSession * session, NSError ** error) {
-            return [session startProtocolUpgradeWithPassword:password
-                                             withBiometryKek:biometryKek
-                                                       error:error];
+        // Notify other applications about pending upgrade
+        if (![_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_ProtocolUpgrade error:error]) {
+            return nil;
+        }
+        // Start upgrade in session
+        return [session startProtocolUpgradeWithPassword:password
+                                         withBiometryKek:biometryKek
+                                                   error:error];
     } error:&localError];
     if (localError) {
         callback(nil, localError);
@@ -1522,8 +1598,7 @@ static PowerAuthSDK * s_inst;
             if (biometryKey) {
                 // The biometry key is available, so create a new PowerAuthAuthentication object preconfigured
                 // with possession+biometry factors.
-                authentication = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:biometryKey
-                                                                                  customPossessionKey:nil];
+                authentication = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:biometryKey];
                 error = nil;
             } else {
                 // Otherwise report an error depending on whether the operation was canceled by the user.
@@ -1539,8 +1614,7 @@ static PowerAuthSDK * s_inst;
                     case LAErrorAuthenticationFailed:   // User failed to provide valid credentials.
                     case LAErrorBiometryLockout:        // Too many failed attempts, biometry is now locked out.
                         // Authentication failed, now it's time to generate the fake key
-                        authentication = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:[self generateInvalidBiometricKey]
-                                                                                          customPossessionKey:nil];
+                        authentication = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:[self generateInvalidBiometricKey]];
                         error = nil;
                         break;
                         
@@ -1777,6 +1851,34 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
+- (nullable id<PowerAuthOperationTask>) createCertificateSigningRequestWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                                       distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                                          subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                                                            keyIdentifier:(PowerAuthSignatureKeyId)keyIdentifier
+                                                                                 callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback
+{
+    NSError* localError = nil;
+    PowerAuthCoreCredentials * credentials = [self resolveCredentialsWithAuthentication:authentication error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError** error) {
+        return [session createCertificateSigningRequest:credentials
+                                                dnItems:distinguishedNames
+                                               sanItems:subjectAltNames
+                                                  keyId:(PowerAuthCoreSignatureKeyId)keyIdentifier
+                                                  error:error];
+    } error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, NSString* response, NSError * error) {
+        callback(response, error);
+    }];
+}
+
 #pragma clang diagnostic push   // PA2_DEPRECATED(2.0.0)
 #pragma clang diagnostic ignored "-Wdeprecated-implementations"
 
@@ -1810,6 +1912,18 @@ static PowerAuthSDK * s_inst;
                              signedData:data
                           keyIdentifier:masterKey ? PowerAuthSignatureKeyId_Master_EC : PowerAuthSignatureKeyId_Server_EC
                                   error:nil];
+}
+
+- (nullable id<PowerAuthOperationTask>) createSignedCSRWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                       distinguishedNames:(nonnull NSDictionary<NSString*, NSString*>*)distinguishedNames
+                                                          subjectAltNames:(nullable NSArray<NSString*>*)subjectAltNames
+                                                                 callback:(nonnull void(^)(NSString * _Nullable csr, NSError * _Nullable error))callback
+{
+    return [self createCertificateSigningRequestWithAuthentication:authentication
+                                                distinguishedNames:distinguishedNames
+                                                   subjectAltNames:subjectAltNames
+                                                     keyIdentifier:PowerAuthSignatureKeyId_Device_EC
+                                                          callback:callback];
 }
 #pragma clang diagnostic pop // PA2_DEPRECATED(2.0.0)
 @end
@@ -1891,92 +2005,31 @@ static PowerAuthSDK * s_inst;
 
 - (BOOL) hasExternalEncryptionKey
 {
-//    return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session) {
-//        return [session hasExternalEncryptionKey];
-//    }];
-    // TODO: eek
-    return NO;
+    return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+        return [session hasExternalEncryptionKey];
+    } error:nil];
 }
 
-- (BOOL) setExternalEncryptionKey:(PowerAuthCoreData *)externalEncryptionKey error:(NSError **)error
+- (BOOL) removeExternalEncryptionKey:(PowerAuthCoreData *)externalEncryptionKey
+                               error:(NSError * _Nullable __autoreleasing *)error
 {
-//    NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
-//        PowerAuthCoreErrorCode ec = [session setExternalEncryptionKey:externalEncryptionKey];
-//        switch (ec) {
-//            case PowerAuthCoreErrorCode_Ok:
-//                _configuration.externalEncryptionKey = externalEncryptionKey;
-//                return nil;
-//            case PowerAuthCoreErrorCode_WrongParam:
-//                return PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Invalid key size");
-//            case PowerAuthCoreErrorCode_WrongState:
-//                return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"Activation is not using EEK");
-//            default:
-//                return PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to set EEK");
-//        }
-//    }];
-//    if (failure && error) {
-//        *error = failure;
-//    }
-//    return !failure;
-    // TODO: eek
-    return NO;
+    return [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+        return [session removeExternalEncryptionKey:externalEncryptionKey error:error];
+    } error:error];
 }
 
-- (BOOL) addExternalEncryptionKey:(PowerAuthCoreData *)externalEncryptionKey error:(NSError **)error
+- (BOOL) addExternalEncryptionKeyForTest:(PowerAuthCoreData *)externalEncryptionKey
+                                   error:(NSError * _Nullable __autoreleasing *)error
 {
-//    NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
-//        PowerAuthCoreErrorCode ec = [session addExternalEncryptionKey:externalEncryptionKey];
-//        switch (ec) {
-//            case PowerAuthCoreErrorCode_Ok:
-//                _configuration.externalEncryptionKey = externalEncryptionKey;
-//                return nil;
-//            case PowerAuthCoreErrorCode_WrongParam:
-//                return PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Invalid key size");
-//            case PowerAuthCoreErrorCode_WrongState:
-//                if (session.hasExternalEncryptionKey) {
-//                    return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"EEK is already set");
-//                } else {
-//                    return PA2MakeError(session.hasValidActivation ? PowerAuthErrorCode_InvalidActivationState : PowerAuthErrorCode_MissingActivation, nil);
-//                }
-//            default:
-//                return PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to add EEK");
-//        }
-//    }];
-//    if (failure && error) {
-//        *error = failure;
-//    }
-//    return !failure;
-    // TODO: eek
+#if DEBUG
+    return [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError ** error) {
+        return [session addExternalEncryptionKeyForTest:externalEncryptionKey error:error];
+    } error:error];
+#else
+    PA2SetError(error, PowerAuthErrorCode_Other, @"Function is not available in release SDK build");
     return NO;
+#endif
 }
-
-- (BOOL) removeExternalEncryptionKey:(NSError **)error
-{
-//    NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
-//        PowerAuthCoreErrorCode ec = [session removeExternalEncryptionKey];
-//        switch (ec) {
-//            case PowerAuthCoreErrorCode_Ok:
-//                _configuration.externalEncryptionKey = nil;
-//                return nil;
-//            case PowerAuthCoreErrorCode_WrongState:
-//                if (!session.hasExternalEncryptionKey) {
-//                    return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"EEK is not set");
-//                } else {
-//                    return PA2MakeError(session.hasValidActivation ? PowerAuthErrorCode_InvalidActivationState : PowerAuthErrorCode_MissingActivation, nil);
-//                }
-//            default:
-//                // [session removeExternalEncryptionKey] never return WrongParam, so the default case is OK here.
-//                return PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to remove EEK");
-//        }
-//    }];
-//    if (failure && error) {
-//        *error = failure;
-//    }
-//    return !failure;
-    // TODO: eek
-    return NO;
-}
-
 @end
 
 #pragma mark - User Info

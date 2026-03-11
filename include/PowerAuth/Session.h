@@ -31,6 +31,7 @@
 #include <PowerAuth/Encryptor.h>
 #include <PowerAuth/ActivationResult.h>
 #include <PowerAuth/ActivationStatus.h>
+#include <PowerAuth/ProtocolUpgradeResult.h>
 
 #include <PowerAuth/PowerAuthSpec.h>
 #include <PowerAuth/Algorithms.h>
@@ -125,11 +126,11 @@ public:
     
     /// Confirm PowerAuth activation with initial credentials.
     /// - Parameter credentials: Initial credentials.
-    /// - Returns: Request data for confirm activation endpoint. If returned pointer is `nullptr`
+    /// - Returns: Task object for confirm activation endpoint. If returned pointer is `nullptr`
     ///            then the protocol doesn't support activation confirmation.
     /// - Throws:
     ///   - `Exception` in case that activation cannot be confirmed.
-    RequestPtr confirmActivation(InitialCredentialsPtr credentials);
+    TaskPtr confirmActivation(const InitialCredentialsPtr& credentials);
 
     /// Get information whether the session has pending create activation task.
     /// To complete activation, call `confirmActivation()`.
@@ -405,11 +406,91 @@ public:
                            SignatureKeyId key_to_use,
                            bool use_compact_form) const;
     
+    /// Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and
+    /// optional Subject Alternative Names, embedded device public key and signed with the device
+    /// private key.
+    /// - Parameters:
+    ///   - credentials: Credentials to use to unlock the device private key.
+    ///   - dn_items: Map with distinguished names.
+    ///   - san_items: Optional subject alternative names.
+    ///   - key_to_use: Key used for signature verification. The key must support
+    ///                 signature calculation.
+    /// - Returns: HTTP request object with the vault unlock operation.
+    RequestPtr createCertificateSigningRequest(const CredentialsPtr& credentials,
+                                               const std::map<std::string, std::string>& dn_items,
+                                               const std::vector<std::string>& san_items,
+                                               SignatureKeyId key_to_use) const;
+    
+public:
+    // --------------------------------------------------------------------------------------------
+    // External Encryption Key (EEK)
+    //
+    // This feature has been discontinued in SDK 2.0, so the following functions provides just a
+    // minimum functionality required for the feature removal.
+    // --------------------------------------------------------------------------------------------
+    
+    /// Get information whether EEK is still present in V3 persistent data.
+    /// - Returns: `true` if V3 persistent data still contains factor keys protected with EEK.
+    bool hasExternalEncryptionKey() const noexcept;
+    
+    /// Remove EEK if factor keys are still protected with EEK. The method throws an exception
+    /// if activation is not present, or if factor keys are not protected with EEK.
+    ///
+    /// - Parameter eek: EEK previously used for the factor keys protection.
+    void removeExternalEncryptionKey(const cc7::ByteRange& eek);
+    
+    /// Add external encryption key for testing purposes. The method should not be used in the
+    /// release build. The legacy activation must be present and the size of EEK must match the size
+    /// of factor keys used in V3.3 protocol version (e.g. 16 bytes).
+    /// - Parameter eek: EEK to apply.
+    void addExternalEncryptionKeyForTest(const cc7::ByteRange& eek);
+
+public:
+    // --------------------------------------------------------------------------------------------
+    // Utilities
+    // --------------------------------------------------------------------------------------------
+
+    /// Generate new factor KEK. The size of KEK depends on the current protocol version.
+    /// - Returns: New factor KEK.
+    cc7::ByteArray generateFactorKek() const;
+    
+    /// Generates a factor KEK from the provided input data. This method is typically used to derive
+    /// a KEK for a biometric factor.
+    ///
+    /// If the activation is still using protocol V3, the method is compatible with the normalization
+    /// used in SDK 1.9.x and older (`Session.normalizeSignatureUnlockKeyFromData()`).
+    /// - Parameter data: Input data.
+    /// - Returns: KEK calculated from input data.
+    cc7::ByteArray generateFactorKekFromData(const cc7::ByteRange& data) const;
+    
+    /// Generates a factor KEK from the provided input data. This method is typically used to derive
+    /// a KEK for a biometric factor for a specific protocol version.
+    ///
+    /// If KEK is derived for protocol V3, the method is compatible with the normalization
+    /// used in SDK 1.9.x and older (`Session.normalizeSignatureUnlockKeyFromData()`).
+    /// - Parameters:
+    ///   - data: Input data.
+    ///   - version: Protocol version for which the KEK will be used.
+    /// - Returns: KEK calculated from input data for specified protocol version.
+    static cc7::ByteArray generateFactorKekFromData(const cc7::ByteRange& data, ProtocolVersion version);
+    
+    /// Generate new factor KEK for selected protocol version.
+    /// - Parameter version: Protocol version.
+    /// - Returns: New factor KEK for the selected protocol version.
+    static cc7::ByteArray generateFactorKekForProtocol(ProtocolVersion version);
+    
+    /// Remove biometric factor from the persistent data.
+    ///
+    /// Warning: This method is not supported for protocol V3.
+    ///
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    void cleanupBiometricFactorData();
+    
 public:
     // --------------------------------------------------------------------------------------------
     // Services
     // --------------------------------------------------------------------------------------------
-    
     
     /// Get smart pointer with the `TimeService` object, providing time synchronization tasks.
     const TimeServicePtr& getTimeService() const noexcept;

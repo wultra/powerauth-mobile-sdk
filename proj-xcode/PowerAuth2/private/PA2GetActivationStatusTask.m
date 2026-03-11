@@ -32,11 +32,9 @@
     PA2CoreHttpClient * _client;
     id<PowerAuthCoreSessionProvider> _sessionProvider;
     __weak id<PA2GetActivationStatusTaskDelegate> _delegate;
-    BOOL _disableUpgrade;
     
     // Runtime variables
     NSInteger _upgradeAttempts;
-    BOOL _disableAutoCancel;
     PowerAuthActivationStatus * _receivedStatus;
 }
 
@@ -44,17 +42,14 @@
           sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
                  delegate:(id<PA2GetActivationStatusTaskDelegate>)delegate
                sharedLock:(id<NSLocking>)sharedLock
-           disableUpgrade:(BOOL)disableUpgrade
 {
     self = [super initWithSharedLock:sharedLock taskName:@"GetActivationStatus"];
     if (self) {
         _client = httpClient;
         _sessionProvider = sessionProvider;
         _delegate = delegate;
-        _disableUpgrade = disableUpgrade;
         
         _upgradeAttempts = 3;
-        _disableAutoCancel = NO;
     }
     return self;
 }
@@ -72,7 +67,6 @@
 {
     [super onTaskRestart];
     _upgradeAttempts = 3;
-    _disableAutoCancel = NO;
     _receivedStatus = nil;
 }
 
@@ -80,11 +74,6 @@
 {
     [super onTaskCompleteWithResult:result error:error];
     [_delegate getActivationStatusTask:self didFinishedWithStatus:result error:error];
-}
-
-- (BOOL) shouldCancelWhenNoChildOperationIsSet
-{
-    return _disableAutoCancel == NO;
 }
 
 #pragma mark - Activation status fetcher
@@ -117,6 +106,9 @@
     id<PowerAuthOperationTask> fetchStatusTask = [_client postCoreTask:task completion:^(PowerAuthCoreTask * task, PowerAuthCoreActivationStatus * response, NSError * error) {
         PowerAuthActivationStatus * status;
         if (response) {
+            if (response.isRemoveBiometricKekRecommended) {
+                [_delegate getActivationStatusTaskNeedRemoveBiometricFactorKek:self];
+            }
             status = [[PowerAuthActivationStatus alloc] initWithCoreStatus:response];
         } else {
             status = nil;

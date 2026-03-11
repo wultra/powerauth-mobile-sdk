@@ -97,6 +97,13 @@ public:
     /// Contains state of biometric factor on the server.
     BiometricFactor biometricFactor() const noexcept;
 
+    /// Contains information whether the server expects activation confirmation.
+    bool isPendingActivationConfirm() const noexcept;
+    
+    /// Contains information whether the server no longer supports the current algorithm
+    /// used in activation.
+    bool isUnsupportedAlgorithm() const noexcept;
+    
     /// Contains information whether the protocol upgrade is available for activation.
     bool isProtocolUpgradeAvailable() const noexcept;
     
@@ -118,6 +125,13 @@ public:
     /// Contains information that session's state has been changed during activation status
     /// processing and should be saved to the persistent storage.
     bool isSessionStateSerializationRecommended() const noexcept;
+    
+    /// Contains information that biometric KEK should be removed from an external storage,
+    /// such as iOS Keychain or Android Keystore.
+    bool isRemoveBiometricKekRecommended() const noexcept;
+    
+    /// Set information that biometric KEK should be removed from an external storage.
+    void setRemoveBiometricKekRecommended() noexcept;
     
     /// Contains custom object returned from the server.
     const cc7::json::JsonValue& customObject() const noexcept;
@@ -194,8 +208,10 @@ private:
     cc7::byte _max_fail_count;
     cc7::byte _upgrade_version;
     bool _is_pending_activation_confirm;
+    bool _is_unsupported_algorithm;
     bool _is_pending_upgrade_confirm;
     bool _is_protocol_upgrade_available;
+    bool _is_remove_biometric_kek_recommended;
     
     cc7::json::JsonValue _custom_object;
 };

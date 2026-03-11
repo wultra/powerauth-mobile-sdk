@@ -23,7 +23,9 @@ import androidx.annotation.NonNull;
  * Listener for data signature.
  *
  * @author Petr Dvorak, petr@wultra.com
+ * @deprecated Use methods using new {@link IDigitalSignatureListener} callback.
  */
+@Deprecated // 2.0.0
 public interface IDataSignatureListener {
 
     /**

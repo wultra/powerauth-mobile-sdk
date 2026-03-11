@@ -127,7 +127,7 @@
 @property (nonatomic, assign, readonly) BOOL hasValidActivationData;
 /**
  Checks if there's a valid activation that requires a protocol upgrade. Contains `false` once the upgrade
- process is started. The application should fetch the activation's status to do the upgrade.
+ process is started.
  
  This property access the session's state, so read access must be guaranteed.
  */
@@ -200,7 +200,7 @@
 @property (nonatomic, strong, readonly, nullable) NSString * activationIdentifier;
 
 /// If the session has valid activation, then returns decimalized fingerprint, calculated
-/// from device's public key. Otherwise returns nil.
+/// from the device and public public keys. Otherwise returns nil.
 ///
 /// This property access the session's state, so read access must be guaranteed.
 @property (nonatomic, strong, readonly, nullable) NSString * activationFingerprint;
@@ -223,7 +223,8 @@
 ///
 /// This function doesn't change the session's state, so read access must be guaranteed.
 ///
-/// - Parameter error: Pointer where error is stored in case of failure.
+/// - Parameters:
+///   - error: Pointer where error is stored in case of failure.
 /// - Returns: Core task for getting activation status.
 - (nullable PowerAuthCoreTask*) fetchActivationStatus:(NSError*_Nullable*_Nullable)error;
 
@@ -240,7 +241,7 @@
                                                  withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
                                                error: (NSError*_Nullable*_Nullable)error;
 
-/// Confirm activation and complete the activation process with user's password.
+/// Confirm activation and complete the activation process with user's password and optional biometry KEK.
 ///
 /// This function changes the session's state, so write access must be guaranteed.
 ///
@@ -248,10 +249,10 @@
 ///   - password: User's password.
 ///   - biometryKek: Optional biometric factor KEK. If `nil` then this session will not have biometry configured.
 ///   - error: Pointer where error is stored in case of failure.
-/// - Returns: Core request object containing all required information for activation confirmation.
-- (nullable PowerAuthCoreRequest*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
-                                                 withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
-                                                           error:(NSError*_Nullable*_Nullable)error;
+/// - Returns: Core task for activation confirmation.
+- (nullable PowerAuthCoreTask*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
+                                              withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
+                                                        error:(NSError*_Nullable*_Nullable)error;
 
 /// Remove activation from the server.
 ///
@@ -359,6 +360,7 @@
 ///   - uriIdentifier: URI identifier.
 ///   - offlineNonce: Offline nonce.
 ///   - codeLength: Length of calculated code.
+///   - data: Data for authentication.
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: Human readable authentication code if succeeds.
 - (nullable NSString*) calculateOfflineAuthenticationCode:(nonnull PowerAuthCoreCredentials*)credentials
@@ -373,7 +375,7 @@
 /// This function doesn't use session's state, so it doesn't require any granted access.
 ///
 /// - Parameters:
-///   - parameters: Dictionary with get parameters.
+///   - parameters: Dictionary with GET parameters.
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: Normalized data.
 - (nullable NSData*) normalizeGetRequestParameters:(nonnull NSDictionary<NSString*, NSString*>*)parameters
@@ -450,6 +452,9 @@
 #pragma mark - Digital signatures
 
 /// Export device public key into the specified format.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
 /// - Parameters:
 ///   - format: Required format of the output public key data.
 ///   - error: Pointer where error is set in case of failure.
@@ -458,6 +463,9 @@
                                                                                   error:(NSError *_Nullable*_Nullable)error;
 
 /// Verify a digital signature over the given data.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
 /// - Parameters:
 ///   - signature: Signature calculated from signed data.
 ///   - data: Signed data.
@@ -466,11 +474,13 @@
 /// - Returns: `true` if signature is valid, otherwise `false`. If failure is caused by invalid signature,
 ///            then error with `PowerAuthCoreError_WrongSignature` is returned.
 - (BOOL) verifySignature:(nonnull NSData*)signature
-                    data:(nonnull NSData*)data
+                    data:(nullable NSData*)data
                    keyId:(PowerAuthCoreSignatureKeyId)keyId
                    error:(NSError *_Nullable*_Nullable)error;
 
 /// Verify server-signed data in JWS or JWT form.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
 ///
 /// - Parameters:
 ///   - signedData: JWS or JWT signed data.
@@ -491,6 +501,8 @@
 /// Create a digital signature over the given data. If the request succeeds, the
 /// response contains a `NSData` with the calculated signature.
 ///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
 /// - Parameters:
 ///   - data: Data to sign.
 ///   - credentials: Credentials used for unlocking the device private key.
@@ -505,7 +517,9 @@
 
 /// Create a JWS (or compact JWT) over the given data. If the request succeeds, the
 /// response contains a `NSString` with the calculated JWS or JWT.
-
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
 /// - Parameters:
 ///   - data: Data to sign and embed into JWS.
 ///   - dataType: Data type set to JOSE header. Use `"JWT"` or `nil` if no type is set.
@@ -523,14 +537,60 @@
                                          keyId:(PowerAuthCoreSignatureKeyId)keyId
                                          error:(NSError *_Nullable*_Nullable)error;
 
+
+/// Creates X.509 CSR (Certificate Signing Request) with given Distinguished Names and
+/// optional Subject Alternative Names, embedded device public key and signed with the device
+/// private key. If the request succeeds, the response contains a `NSString` with
+/// the CSR in PEM format.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+/// 
+/// - Parameters:
+///   - credentials: Credentials to use to unlock the device private key.
+///   - dnItems: Map with distinguished names.
+///   - sanItems: Optional subject alternative names.
+///   - keyId: Key used for signature calculation. The key must support sign operation.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: Core request object containing all required information for unlocking device private key
+///            or `nil` in case of failure.
+- (nullable PowerAuthCoreRequest*) createCertificateSigningRequest:(nonnull PowerAuthCoreCredentials*)credentials
+                                                           dnItems:(nonnull NSDictionary<NSString*, NSString*>*)dnItems
+                                                          sanItems:(nullable NSArray<NSString*>*)sanItems
+                                                             keyId:(PowerAuthCoreSignatureKeyId)keyId
+                                                             error:(NSError *_Nullable*_Nullable)error;
+
 #pragma mark - External Encryption Key
 
-/**
- Returns true if EEK (external encryption key) is set.
- 
- This function access the session's state, so read access must be guaranteed.
- */
+/// Contains YES if EEK (external encryption key) is set.
+///
+/// This function access the session's state, so read access must be guaranteed.
 @property (nonatomic, assign, readonly) BOOL hasExternalEncryptionKey;
+
+
+/// Remove EEK if factor keys are still protected with EEK. The method throws an exception
+/// if activation is not present, or if factor keys are not protected with EEK.
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - eek: EEK previously used for the factor keys protection.
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: YES in case of success, NO otherwise.
+- (BOOL) removeExternalEncryptionKey:(nonnull PowerAuthCoreData*)eek
+                               error:(NSError *_Nullable*_Nullable)error;
+
+/// Add external encryption key for testing purposes. The method should not be used in the
+/// release build. The legacy activation must be present and the size of EEK must match the size
+/// of factor keys used in V3.3 protocol version (e.g. 16 bytes).
+///
+/// This function changes the session's state, so write access must be guaranteed.
+///
+/// - Parameters:
+///   - eek: EEK to apply
+///   - error: Pointer where error is set in case of failure.
+/// - Returns: YES in case of success, NO otherwise.
+- (BOOL) addExternalEncryptionKeyForTest:(nonnull PowerAuthCoreData*)eek
+                                   error:(NSError *_Nullable*_Nullable)error;
 
 #pragma mark - Services
 

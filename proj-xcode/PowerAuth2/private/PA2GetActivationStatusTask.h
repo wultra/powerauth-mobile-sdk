@@ -33,6 +33,10 @@
  Called when the get activation task complete its execution.
  */
 - (void) getActivationStatusTask:(PA2GetActivationStatusTask*)task didFinishedWithStatus:(PowerAuthActivationStatus*)status error:(NSError*)error;
+/**
+ Called when the get activation task indicate that KEK for biometric factor should be removed from keychain.
+ */
+- (void) getActivationStatusTaskNeedRemoveBiometricFactorKek:(PA2GetActivationStatusTask *)task;
 
 @end
 
@@ -48,14 +52,12 @@
  @param sessionProvider PowerAuthCoreSession provider.
  @param delegate Delegate to be called once the task is finished. The weak reference is used internally.
  @param sharedLock Shared lock with recursive locking capability.
- @param disableUpgrade Set to true whether the protocol upgrade should be disabled.
  @return initialized object
  */
 - (id) initWithHttpClient:(PA2CoreHttpClient*)httpClient
           sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
                  delegate:(id<PA2GetActivationStatusTaskDelegate>)delegate
-               sharedLock:(id<NSLocking>)sharedLock
-           disableUpgrade:(BOOL)disableUpgrade;
+               sharedLock:(id<NSLocking>)sharedLock;
 
 
 @end

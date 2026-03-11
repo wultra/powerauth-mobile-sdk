@@ -37,7 +37,6 @@ public:
     std::string calculateActivationFingerprint() override;
     
     void resetState() override;
-    void clearActivationData() override;
     RequestPtr fetchActivationStatus() override;
     RequestPtr removeActivation(const CredentialsPtr& credentials) override;
     

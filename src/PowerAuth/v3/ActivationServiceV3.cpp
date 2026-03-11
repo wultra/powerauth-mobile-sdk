@@ -182,11 +182,7 @@ void ActivationServiceV3::resetState()
 {
     LOCK_GUARD();
     _session_data->resetSessionData();
-}
-
-void ActivationServiceV3::clearActivationData()
-{
-    resetState();
+    _activation_fingerprint.clear();
 }
 
 RequestPtr ActivationServiceV3::fetchActivationStatus()

@@ -26,6 +26,9 @@ xcuserdata
 *.xcuserstate
 *.xcscmblueprint
 
+## AI
+.claude
+
 ## VSCode
 .vscode
 

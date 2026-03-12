@@ -1355,16 +1355,40 @@ You have to check for Biometric Authentication on three levels:
 
 PowerAuth SDK for Android provides code for the first and second of these checks.
 
-To check if you can use the biometric authentication, use our helper class:
+#### Overall status
+
+To get information on whether biometric authentication is fully available, you can use the following code:
 
 ```kotlin
-// This method is equivalent to `BiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS`.
-// Use it to check if the biometric authentication can be used at the moment.
-val isBiometricAuthAvailable = BiometricAuthentication.isBiometricAuthenticationAvailable(context)
+if (powerAuthSDK.isAuthenticationWithBiometricsAvailable(context)) {
+    // Biometric authentication is available, you can construct PowerAuthAuthentication with biometry 
+} else {
+    // Fallback to PIN
+}
+```
 
-// For more fine-grained control about the actual biometric authentication status,
-// you may use the following code:
-when (BiometricAuthentication.canAuthenticate(context)) {
+The function returns `true` only if activation has biometry factor-related data available and the device has a biometric sensor available and biometrics are enrolled in the system.
+
+<!-- begin box info -->
+Note that this doesn't reflect state when the sensor is temporarily or permanently locked out. Such information is available only after you attempt to authenticate with biometrics.
+<!-- end -->
+
+To get more detailed information, use the following code:
+
+```kotlin
+val biometricStatus = powerAuthSDK.getBiometricStatus(context)
+```
+
+The next chapters explain in more detail the usage of the returned `PowerAuthBiometricStatus` object.
+
+#### System Availability
+
+To check, whether the biometrics is available at the system level, use the following code:
+
+```kotlin
+// Get biometric status
+val biometricStatus = powerAuthSDK.getBiometricStatus(context)
+when (biometricStatus.systemStatus) {
     BiometricStatus.OK ->
         print("Everything is OK")
     BiometricStatus.NOT_SUPPORTED ->
@@ -1378,7 +1402,7 @@ when (BiometricAuthentication.canAuthenticate(context)) {
 // If you want to adjust localized strings or icons presented to the user,
 // you can use the following code to determine the type of biometry available
 // on the system:
-when (BiometricAuthentication.getBiometryType(context)) {
+when (biometricStatus.biometryType) {
     BiometryType.NONE ->
         print("Biometry is not supported on the system.")
     BiometryType.GENERIC ->
@@ -1386,8 +1410,8 @@ when (BiometricAuthentication.getBiometryType(context)) {
         // This occurs on Android 10+ systems when the device supports
         // more than one type of biometric authentication. In this case,
         // you should use generic terms in your UI, such as "Authenticate with biometry".
-        // This issue can also arise on devices that support a new type of biometry
-        // sensor, or on older, malfunctioning devices that fail to declare 
+        // This issue can also arise on devices that support a new type of biometric
+        // sensor, or on older malfunctioning devices that fail to declare 
         // support for FEATURE_FINGERPRINT.
         print("Biometry type is GENERIC")
     BiometryType.FINGERPRINT ->
@@ -1399,14 +1423,29 @@ when (BiometricAuthentication.getBiometryType(context)) {
 }
 ```
 
-To check if a given activation has biometry factor-related data available, use the following code:
+#### Activation Availability
+
+To check whether activation is configured for authentication with biometrics, use the following code:
 
 ```kotlin
-// Does activation have biometric factor-related data in place?
-val hasBiometryFactor = powerAuthSDK.hasBiometryFactor(context)
+// Get biometric status
+val biometricStatus = powerAuthSDK.getBiometricStatus(context)
+// Determine overall availability
+if (biometricStatus.isAuthenticationWithBiometricsAvailable) {
+    // Equal to call:
+    //   powerAuthSDK.isAuthenticationWithBiometricsAvailable(context)
+}
+// Determine whether local activation has biometric factor configured.
+if (biometricStatus.isBiometricFactorConfigured) {
+    // Equal to call
+    //   powerAuthSDK.hasBiometryFactor(context)
+}
 ```
 
-The last check is fully under your control. By keeping the biometric settings flag, for example, a `BOOL` in `SharedPreferences`, you can show the user an expected biometric authentication status (in a disabled state, though) even in the case biometric authentication is not enabled or when no fingers are enrolled on the device.
+#### Application Availability
+
+The last check is fully under your control. By keeping the biometric settings flag, for example, a `boolean` in `SharedPreferences`, you can show the user an expected biometric authentication status (in a disabled state, though) even in the case biometric authentication is not enabled or when no fingers are enrolled on the device.
+
 
 ### Enable Biometric Authentication
 

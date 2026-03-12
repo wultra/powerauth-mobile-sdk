@@ -23,6 +23,7 @@
 #import <PowerAuth2/PowerAuthClientConfiguration.h>
 #import <PowerAuth2/PowerAuthBiometricConfiguration.h>
 #import <PowerAuth2/PowerAuthKeychainConfiguration.h>
+#import <PowerAuth2/PowerAuthBiometricStatus.h>
 #import <PowerAuth2/PowerAuthToken.h>
 #import <PowerAuth2/PowerAuthToken+WatchSupport.h>
 #import <PowerAuth2/PowerAuthHttpHeader.h>
@@ -714,6 +715,13 @@
                             PA2_DEPRECATED(2.0.0);
 
 // Biometry key management
+
+/// If `true`, biometric authentication is fully available and you can call methods
+/// that accept a `PowerAuthAuthentication` object configured for biometrics.
+@property (nonatomic, readonly) BOOL isAuthenticationWithBiometricsAvailable;
+
+/// Contains information about the current state of the biometry.
+@property (nonatomic, strong, readonly, nonnull) PowerAuthBiometricStatus * biometricStatus;
 
 /** Regenerate a biometry related factor key.
  

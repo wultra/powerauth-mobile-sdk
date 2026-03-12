@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.integration.tests;
 
+import io.getlime.security.powerauth.biometry.BiometricAuthentication;
 import io.getlime.security.powerauth.biometry.IAddBiometryFactorListener;
 import io.getlime.security.powerauth.biometry.IRemoveBiometryFactorListener;
 import io.getlime.security.powerauth.core.CryptoUtils;
@@ -33,6 +34,7 @@ import androidx.annotation.NonNull;
 
 import static org.junit.Assert.*;
 
+import android.content.Context;
 import android.util.Base64;
 
 import java.nio.charset.StandardCharsets;
@@ -332,7 +334,7 @@ public class BiometricTest extends FragmentActivityBaseTest {
             // data and the keystore
             status = activationHelper.fetchActivationStatus();
             assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
-            assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+            assertFalse(powerAuthSDK.isAuthenticationWithBiometricsAvailable(testHelper.getContext()));
 
             // Now try to add biometric factor. If response from the server is never received, then
             // the server thinks the factor is ON, but local data has no factor set.
@@ -360,7 +362,7 @@ public class BiometricTest extends FragmentActivityBaseTest {
             // "/pa/v4/biometry/remove" request. So, simulate the request to test whether the biometry
             // is really turned ON on the server.
 
-            assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+            assertFalse(powerAuthSDK.isAuthenticationWithBiometricsAvailable(testHelper.getContext()));
             error = AsyncHelper.await(resultCatcher -> {
                 simulateNetworkErrorOnSend("/pa/v4/biometry/remove");
                 powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
@@ -384,13 +386,58 @@ public class BiometricTest extends FragmentActivityBaseTest {
             status = activationHelper.fetchActivationStatus();
 
             assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
-            assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+            assertFalse(powerAuthSDK.isAuthenticationWithBiometricsAvailable(testHelper.getContext()));
 
             // Simulate biometry remove. If fetch fail, then something's wrong.
             simulateNetworkErrorOnSend("/pa/v4/biometry/remove");
             status = activationHelper.fetchActivationStatus();
             assertNotNull(status);
             clearAllSimulateFailures();
+        });
+    }
+
+    @Test
+    public void testBiometricStatus() throws Exception {
+        runWithFragmentActivity(() -> {
+            final Context context = testHelper.getContext();
+
+            PowerAuthBiometricStatus biometricStatus = powerAuthSDK.getBiometricStatus(context);
+            assertEquals(BiometricAuthentication.canAuthenticate(context), biometricStatus.getSystemStatus());
+            assertEquals(BiometricAuthentication.getBiometryType(context), biometricStatus.getBiometryType());
+            assertFalse(biometricStatus.isAuthenticationWithBiometricsAvailable());
+            assertFalse(biometricStatus.isBiometricFactorConfigured());
+            assertFalse(powerAuthSDK.isAuthenticationWithBiometricsAvailable(context));
+
+            activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY, null);
+
+            biometricStatus = powerAuthSDK.getBiometricStatus(context);
+            assertEquals(BiometricAuthentication.canAuthenticate(context), biometricStatus.getSystemStatus());
+            assertEquals(BiometricAuthentication.getBiometryType(context), biometricStatus.getBiometryType());
+            assertTrue(biometricStatus.isAuthenticationWithBiometricsAvailable());
+            assertTrue(biometricStatus.isBiometricFactorConfigured());
+            assertTrue(powerAuthSDK.isAuthenticationWithBiometricsAvailable(context));
+
+            boolean success = AsyncHelper.await(resultCatcher -> {
+                powerAuthSDK.removeBiometryFactor(context, new IRemoveBiometryFactorListener() {
+                    @Override
+                    public void onRemoveBiometryFactorSucceed() {
+                        resultCatcher.completeWithResult(true);
+                    }
+
+                    @Override
+                    public void onRemoveBiometryFactorFailed(@NonNull Throwable throwable) {
+                        resultCatcher.completeWithResult(false);
+                    }
+                });
+            });
+            assertTrue(success);
+
+            biometricStatus = powerAuthSDK.getBiometricStatus(context);
+            assertEquals(BiometricAuthentication.canAuthenticate(context), biometricStatus.getSystemStatus());
+            assertEquals(BiometricAuthentication.getBiometryType(context), biometricStatus.getBiometryType());
+            assertFalse(biometricStatus.isAuthenticationWithBiometricsAvailable());
+            assertFalse(biometricStatus.isBiometricFactorConfigured());
+            assertFalse(powerAuthSDK.isAuthenticationWithBiometricsAvailable(context));
         });
     }
 

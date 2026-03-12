@@ -1213,52 +1213,81 @@ PowerAuth SDK for iOS provides an abstraction on top of the base Touch and Face 
 
 You have to check for biometry on three levels:
 
-- **System Availability**:
-  - If Touch ID is present on the system and if an iOS version is 9+
-  - If Face ID is present on the system and if an iOS version is 11+
+- **System Availability**: If Touch ID or Face ID is present on the system.
 - **Activation Availability**: If biometry factor data are available for given activation.
 - **Application Availability**: If the user decides to use Touch ID for a given app. _(optional)_
 
 PowerAuth SDK for iOS provides code for the first two of these checks.
 
-To check if you can use biometry on the system, use the following code from the `PowerAuthKeychain` class:
+#### Overall Status
+
+To get information on whether biometric authentication is fully available, you can use the following code:
 
 ```swift
-// Is biometry available and is enrolled in the system?
-let canUseBiometry = PowerAuthKeychain.canUseBiometricAuthentication
-
-// Or alternative, to get supported biometry type
-let supportedBiometry = PowerAuthKeychain.supportedBiometricAuthentication
-switch supportedBiometry {
-    case .touchID: print("You can use Touch ID")
-    case .faceID: print("You can use Face ID")
-    case .none: print("Biometry is not supported or not enrolled")
+if powerAuthSDK.isAuthenticationWithBiometricsAvailable {
+    // Biometric authentication is available, you can construct PowerAuthAuthentication with biometry 
+} else {
+    // Fallback to PIN
 }
+```
 
-// Or more complex, with full information about the type and current status
-let biometryInfo = PowerAuthKeychain.biometricAuthenticationInfo
-switch biometryInfo.biometryType {
-    case .touchID: print("Touch ID is available on device.")
-    case .faceID: print("Face ID is available on device.")
-    case .none: print("Biometry is not supported.")
-}
-switch biometryInfo.currentStatus {
+The function returns `true` only if activation has biometry factor-related data available and the device has a biometric sensor available and biometrics are enrolled in the system.
+
+To get more detailed information, use the following code:
+
+```swift
+let biometricStatus = powerAuthSDK.biometricStatus
+```
+
+The next chapters explain in more detail the usage of the returned `PowerAuthBiometricStatus` object.
+
+#### System Availability
+
+To check whether the biometrics is available at the system level, use the following code:
+
+```swift
+// Get biometric status
+let biometricStatus = powerAuthSDK.biometricStatus
+switch biometricStatus.systemStatus {
     case .notSupported: print("Biometry is not supported.")
     case .notAvailable: print("Biometry is not available at this moment.")
     case .notEnrolled: print("Biometry is supported, but not enrolled.")
     case .lockout: print("Biometry is supported, but it has been locked out.")
     case .available: print("Biometry is available right now.")
 }
+// If you want to adjust localized strings or icons presented to the user,
+// you can use the following code to determine the type of biometry available
+// on the system:
+switch biometricStatus.biometryType {
+    case .touchID: print("You can use Touch ID")
+    case .faceID: print("You can use Face ID")
+    case .none: print("Biometry is not supported or not enrolled")
+}
 ```
 
-To check if a given activation has biometry factor-related data available, use the following code:
+#### Activation Availability
+
+To check whether activation is configured for authentication with biometrics, use the following code:
 
 ```swift
-// Does activation have biometric factor-related data in place?
-let hasBiometryFactor = powerAuthSDK.hasBiometryFactor()
+// Get biometric status
+let biometricStatus = powerAuthSDK.biometricStatus
+// Determine overall availability
+if biometricStatus.isAuthenticationWithBiometricsAvailable {
+    // Equal to call:
+    //   powerAuthSDK.isAuthenticationWithBiometricsAvailable
+}
+// Determine whether local activation has biometric factor configured.
+if biometricStatus.isBiometricFactorConfigured {
+    // Equal to call
+    //   powerAuthSDK.hasBiometryFactor()
+}
 ```
 
-The last check is fully under your control. By keeping the biometry settings flag, for example, a `BOOL` in `NSUserDefaults`, you are able to show expected user Touch or Face ID status (in a disabled state, though) even in the case biometry is not enabled or when no finger or face is enrolled on the device.
+#### Application Availability
+
+The last check is fully under your control. By keeping the biometry settings flag, for example, a `bool` in `UserDefaults`, you are able to show expected user Touch or Face ID status (in a disabled state, though) even in the case biometry is not enabled or when no finger or face is enrolled on the device.
+
 
 ### Enable Biometry
 

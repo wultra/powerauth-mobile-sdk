@@ -234,12 +234,12 @@ void Configuration::Builder::loadFromSdkConfig(const std::string &sdk_config)
                 _mldsa87_master_server_public_key = key_data;
             }
         }
-        validatePublicKeysPresence();
     } while (false);
     
     if (!error_message.empty()) {
         throw Exception(EC_InvalidData, error_message);
     }
+    validatePublicKeysPresence();
 }
 
 void Configuration::Builder::validatePublicKeysPresence() const

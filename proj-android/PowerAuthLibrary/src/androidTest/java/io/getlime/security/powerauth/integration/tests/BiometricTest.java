@@ -398,6 +398,7 @@ public class BiometricTest extends FragmentActivityBaseTest {
 
     @Test
     public void testBiometricStatus() throws Exception {
+        assertBiometryEnrolled();
         runWithFragmentActivity(() -> {
             final Context context = testHelper.getContext();
 

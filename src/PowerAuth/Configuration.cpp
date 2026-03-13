@@ -153,9 +153,7 @@ Configuration::Builder::Builder(const std::string &sdk_config, PowerAuthSpec::Al
     _algorithm(algorithm),
     _instance_id("default")
 {
-    if (!loadFromSdkConfig(sdk_config)) {
-        throw Exception(EC_InvalidData, "Invalid SDK configuration string");
-    }
+    loadFromSdkConfig(sdk_config);
 }
 
 Configuration::Builder& Configuration::Builder::withInstanceId(const std::string& instance_id)
@@ -195,64 +193,100 @@ ConfigurationPtr Configuration::Builder::build() const
 
 static const cc7::byte CONFIG_VER  = 0x01;
 
-bool Configuration::Builder::loadFromSdkConfig(const std::string &sdk_config) noexcept
+void Configuration::Builder::loadFromSdkConfig(const std::string &sdk_config)
 {
-    auto reader = cc7::utils::DataReader(cc7::Base64::decode(sdk_config), true);
-    cc7::byte data_version;
-    if (!reader.readByte(data_version)) {
-        return false;
-    }
-    if (data_version != CONFIG_VER) {
-        return false;
-    }
-    if (!reader.readData(_application_key, common::APPLICATION_KEY_SIZE) ||
-        !reader.readData(_application_secret, common::APPLICATION_SECRET_SIZE)) {
-        return false;
-    }
-    size_t keys_count;
-    if (!reader.readCount(keys_count)) {
-        return false;
-    }
-    while (keys_count-- > 0) {
-        cc7::byte key_id;
-        cc7::ByteRange key_data;
-        if (!reader.readByte(key_id) || !reader.readRange(key_data)) {
-            return false;
+    std::string error_message;
+    do {
+        auto reader = cc7::utils::DataReader(cc7::Base64::decode(sdk_config), true);
+        cc7::byte data_version;
+        if (!reader.readByte(data_version)) {
+            error_message = "Invalid SDK configuration string";
+            break;
         }
-        if (key_id == PowerAuthSpec::KEY_ID_P256) {
-            _p256_master_server_public_key = key_data;
-        } else if (key_id == PowerAuthSpec::KEY_ID_P384) {
-            _p384_master_server_public_key = key_data;
-        } else if (key_id == PowerAuthSpec::KEY_ID_MLDSA65) {
-            _mldsa65_master_server_public_key = key_data;
-        } else if (key_id == PowerAuthSpec::KEY_ID_MLDSA87) {
-            _mldsa87_master_server_public_key = key_data;
+        if (data_version != CONFIG_VER) {
+            error_message = "Unsupported configuration version";
+            break;
         }
+        if (!reader.readData(_application_key, common::APPLICATION_KEY_SIZE) ||
+            !reader.readData(_application_secret, common::APPLICATION_SECRET_SIZE)) {
+            error_message = "Invalid SDK configuration string";
+            break;
+        }
+        size_t keys_count;
+        if (!reader.readCount(keys_count)) {
+            error_message = "Invalid SDK configuration string";
+            break;
+        }
+        while (keys_count-- > 0) {
+            cc7::byte key_id;
+            cc7::ByteRange key_data;
+            if (!reader.readByte(key_id) || !reader.readRange(key_data)) {
+                error_message = "Invalid SDK configuration string";
+                break;
+            }
+            if (key_id == PowerAuthSpec::KEY_ID_P256) {
+                _p256_master_server_public_key = key_data;
+            } else if (key_id == PowerAuthSpec::KEY_ID_P384) {
+                _p384_master_server_public_key = key_data;
+            } else if (key_id == PowerAuthSpec::KEY_ID_MLDSA65) {
+                _mldsa65_master_server_public_key = key_data;
+            } else if (key_id == PowerAuthSpec::KEY_ID_MLDSA87) {
+                _mldsa87_master_server_public_key = key_data;
+            }
+        }
+        validatePublicKeysPresence();
+    } while (false);
+    
+    if (!error_message.empty()) {
+        throw Exception(EC_InvalidData, error_message);
     }
-    return validatePublicKeysPresence();
 }
 
-bool Configuration::Builder::validatePublicKeysPresence() const noexcept
+void Configuration::Builder::validatePublicKeysPresence() const
 {
-    auto p256    = !_p256_master_server_public_key.empty();
-    auto p384    = !_p384_master_server_public_key.empty();
-    auto mldsa65 = !_mldsa65_master_server_public_key.empty();
-    auto mldsa87 = !_mldsa87_master_server_public_key.empty();
+    auto req_p256 = false;
+    auto req_p384 = false;
+    auto req_mldsa65 = false;
+    auto req_mldsa87 = false;
     switch (_algorithm) {
         case PowerAuthSpec::LEGACY_P256:
-            return p256;
+            req_p256 = true;
+            break;
         case PowerAuthSpec::EC_P384:
-            return p256 && p384;
+            req_p256 = req_p384 = true;
+            break;
         case PowerAuthSpec::EC_P384_ML_L3:
-            return p256 && p384 && mldsa65;
+            req_p256 = req_p384 = req_mldsa65 = true;
+            break;
         case PowerAuthSpec::EC_P384_ML_L5:
-            return p256 && p384 && mldsa87;
+            req_p256 = req_p384 = req_mldsa87 = true;
+            break;
         case PowerAuthSpec::ML_L3:
-            return p256 && mldsa65;
+            req_p256 = req_mldsa65 = true;
+            break;
         case PowerAuthSpec::ML_L5:
-            return p256 && mldsa87;
+            req_p256 = req_mldsa87 = true;
+            break;
         default:
-            return false;
+            throw Exception(EC_InternalError, "Algorithm not supported in configuration");
+    }
+    std::string missing_key;
+    if (req_p256 && _p256_master_server_public_key.empty()) {
+        missing_key = "KEY_MASTER_P256_PUBLIC";
+    } else if (req_p384 && _p384_master_server_public_key.empty()) {
+        missing_key = "KEY_MASTER_ECDSA_P384_PUBLIC";
+    } else if (req_mldsa65 && _mldsa65_master_server_public_key.empty()) {
+        missing_key = "KEY_MASTER_MLDSA65_PUBLIC";
+    } else if (req_mldsa87 && _mldsa87_master_server_public_key.empty()) {
+        missing_key = "KEY_MASTER_MLDSA87_PUBLIC";
+    }
+    if (!missing_key.empty()) {
+        auto& algorithm_name = PowerAuthSpec::specForAlgorithm(_algorithm)->algorithmName();
+        // Example error message:
+        // Configuration doesn't contain KEY_MASTER_ECDSA_P384_PUBLIC key which is required for EC_P384 algorithm
+        throw Exception(EC_InvalidData, "Configuration doesn't contain " + missing_key +
+                                        " key which is required for " + algorithm_name +
+                                        " algorithm");
     }
 }
 

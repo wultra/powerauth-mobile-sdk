@@ -226,7 +226,7 @@
                                                                         baseEndpointUrl:@"https://test.server.org/powerauth"
                                                                           configuration:sdkConfiguration
                                                                               algorithm:algorithm];
-    // Assert bool validation metod
+    // Assert bool validation method
     XCTAssertEqual(config.validateConfiguration, errorMessage == nil, @"Test for algorithm=%ld", (long)algorithm);
     
     // Assert detailed result

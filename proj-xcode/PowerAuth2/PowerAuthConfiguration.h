@@ -18,6 +18,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
 #import <PowerAuth2/PowerAuthSharingConfiguration.h>
+#import <PowerAuth2/PowerAuthValidationResult.h>
 
 /// The `PowerAuthAlgorithm` enumeration defines algorithms available for PowerAuth
 /// initialization. The algorithm specifies also the protocol version used for communication
@@ -124,9 +125,18 @@ typedef NS_ENUM(NSInteger, PowerAuthAlgorithm) {
  */
 @property (nonatomic, strong, nullable) PowerAuthSharingConfiguration * sharingConfiguration;
 
-/** Validate that the configuration is properly set (all required values were filled in).
+/**
+ Validate that the configuration is properly set (all required values were filled in).
  */
 - (BOOL) validateConfiguration
             NS_SWIFT_NAME(validate());
+
+/**
+ Validate that the configuration is properly set (all required values were filled in).
+ - Returns A result object indicating whether the configuration is valid.
+          If validation fails, the object also contains reason of the failure.
+ */
+- (nonnull PowerAuthValidationResult*) validateConfigurationWithDetail
+            NS_SWIFT_NAME(validateWithDetail());
 
 @end

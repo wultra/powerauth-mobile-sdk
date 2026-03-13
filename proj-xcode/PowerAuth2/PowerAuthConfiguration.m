@@ -56,17 +56,31 @@
 
 - (BOOL) validateConfiguration
 {
-    BOOL result = YES;
-    result = result && (_instanceId.length > 0);
-    result = result && (_baseEndpointUrl.length > 0);
-    result = result && (_offlineAuthenticationCodeComponentLength >= MIN_OFFLINE_AUTH_CODE_COMPONENT_LEN &&
-                        _offlineAuthenticationCodeComponentLength <= MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN);
-    if (_sharingConfiguration) {
-        result = result && [_sharingConfiguration validateConfiguration];
+    return [self validateConfigurationWithDetail].isValid;
+}
+
+- (PowerAuthValidationResult*) validateConfigurationWithDetail
+{
+    if (_instanceId.length == 0) {
+        return [[PowerAuthValidationResult alloc] initWithValid:NO reason:@"InstanceId is missing"];
     }
-    result = result && [PowerAuthCoreConfig validateConfiguration:_configuration
-                                                        algorithm:(PowerAuthCoreAlgorithm)_algorithm];
-    return result;
+    
+    if (_baseEndpointUrl.length == 0) {
+        return [[PowerAuthValidationResult alloc] initWithValid:NO reason:@"BaseEndpointUrl is missing"];
+    }
+    
+    if (_offlineAuthenticationCodeComponentLength < MIN_OFFLINE_AUTH_CODE_COMPONENT_LEN ||
+        _offlineAuthenticationCodeComponentLength > MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN) {
+        return [[PowerAuthValidationResult alloc] initWithValid:NO reason:@"OfflineAuthenticationCodeComponentLength is out of range"];
+    }
+    
+    if (_sharingConfiguration && ![_sharingConfiguration validateConfiguration]) {
+        return [[PowerAuthValidationResult alloc] initWithValid:NO reason:@"SharingConfiguration is invalid"];
+    }
+    
+    NSString* sdkConfigError = [PowerAuthCoreConfig validateConfiguration:_configuration
+                                                                algorithm:(PowerAuthCoreAlgorithm)_algorithm];
+    return [[PowerAuthValidationResult alloc] initWithValid:(sdkConfigError == nil) reason:sdkConfigError];
 }
 
 - (id)copyWithZone:(NSZone *)zone

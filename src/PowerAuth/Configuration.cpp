@@ -124,13 +124,13 @@ void Configuration::validatePublicKeys() const
     }
 }
 
-bool Configuration::validateSdkConfig(const std::string& sdk_config, PowerAuthSpec::Algorithm algorithm) noexcept
+std::string Configuration::validateSdkConfig(const std::string& sdk_config, PowerAuthSpec::Algorithm algorithm) noexcept
 {
     try {
         auto foo = Builder(sdk_config, algorithm);
-        return true;
+        return {};
     } catch (Exception & e) {
-        return false;
+        return e.message();
     }
 }
 
@@ -153,8 +153,8 @@ Configuration::Builder::Builder(const std::string &sdk_config, PowerAuthSpec::Al
     _algorithm(algorithm),
     _instance_id("default")
 {
-    if (!loadFromSdkConfig(sdk_config)) {
-        throw Exception(EC_InvalidData, "Invalid SDK configuration string");
+    if (auto error = loadFromSdkConfig(sdk_config)) {
+        throw Exception(EC_InvalidData, error.value());
     }
 }
 
@@ -195,29 +195,29 @@ ConfigurationPtr Configuration::Builder::build() const
 
 static const cc7::byte CONFIG_VER  = 0x01;
 
-bool Configuration::Builder::loadFromSdkConfig(const std::string &sdk_config) noexcept
+std::optional<std::string> Configuration::Builder::loadFromSdkConfig(const std::string &sdk_config) noexcept
 {
     auto reader = cc7::utils::DataReader(cc7::Base64::decode(sdk_config), true);
     cc7::byte data_version;
     if (!reader.readByte(data_version)) {
-        return false;
+        return "Failed to read data version from SDK config";
     }
     if (data_version != CONFIG_VER) {
-        return false;
+        return "Unsupported version of SDK config";
     }
     if (!reader.readData(_application_key, common::APPLICATION_KEY_SIZE) ||
         !reader.readData(_application_secret, common::APPLICATION_SECRET_SIZE)) {
-        return false;
+        return "Failed to read application key or secret from SDK config";
     }
     size_t keys_count;
     if (!reader.readCount(keys_count)) {
-        return false;
+        return "Failed to read public keys count from SDK config";
     }
     while (keys_count-- > 0) {
         cc7::byte key_id;
         cc7::ByteRange key_data;
         if (!reader.readByte(key_id) || !reader.readRange(key_data)) {
-            return false;
+            return "Failed to read public key data from SDK config";
         }
         if (key_id == PowerAuthSpec::KEY_ID_P256) {
             _p256_master_server_public_key = key_data;
@@ -232,27 +232,45 @@ bool Configuration::Builder::loadFromSdkConfig(const std::string &sdk_config) no
     return validatePublicKeysPresence();
 }
 
-bool Configuration::Builder::validatePublicKeysPresence() const noexcept
+std::optional<std::string> Configuration::Builder::validatePublicKeysPresence() const noexcept
 {
     auto p256    = !_p256_master_server_public_key.empty();
     auto p384    = !_p384_master_server_public_key.empty();
     auto mldsa65 = !_mldsa65_master_server_public_key.empty();
     auto mldsa87 = !_mldsa87_master_server_public_key.empty();
+    
+    auto missing = [](std::string key_name) {
+        return "SDK config is missing required " + key_name + " master server public key";
+    };
+    
     switch (_algorithm) {
         case PowerAuthSpec::LEGACY_P256:
-            return p256;
+            if (!p256) return missing("ECDSA_P256");
+            return {};
         case PowerAuthSpec::EC_P384:
-            return p256 && p384;
+            if (!p256) return missing("ECDSA_P256");
+            if (!p384) return missing("ECDSA_P384");
+            return {};
         case PowerAuthSpec::EC_P384_ML_L3:
-            return p256 && p384 && mldsa65;
+            if (!p256)    return missing("ECDSA_P256");
+            if (!p384)    return missing("ECDSA_P384");
+            if (!mldsa65) return missing("MLDSA_65");
+            return {};
         case PowerAuthSpec::EC_P384_ML_L5:
-            return p256 && p384 && mldsa87;
+            if (!p256)    return missing("ECDSA_P256");
+            if (!p384)    return missing("ECDSA_P384");
+            if (!mldsa87) return missing("MLDSA_87");
+            return {};
         case PowerAuthSpec::ML_L3:
-            return p256 && mldsa65;
+            if (!p256)    return missing("ECDSA_P256");
+            if (!mldsa65) return missing("MLDSA_65");
+            return {};
         case PowerAuthSpec::ML_L5:
-            return p256 && mldsa87;
+            if (!p256)    return missing("ECDSA_P256");
+            if (!mldsa87) return missing("MLDSA_87");
+            return {};
         default:
-            return false;
+            return "Unsupported algorithm";
     }
 }
 

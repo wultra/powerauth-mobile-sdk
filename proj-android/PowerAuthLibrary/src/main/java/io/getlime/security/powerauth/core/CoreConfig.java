@@ -37,9 +37,9 @@ public class CoreConfig extends NativeObject {
      * Validate SDK configuration string.
      * @param configuration SDK configuration string to validate.
      * @param algorithm Algorithm to use in the PowerAuth instance.
-     * @return {@code true} if configuration string is valid.
+     * @return {@code null} if the configuration is valid, a string describing an error otherwise.
      */
-    public static native boolean validateConfiguration(@NonNull String configuration, @CoreAlgorithm int algorithm);
+    public static native String validateConfiguration(@NonNull String configuration, @CoreAlgorithm int algorithm);
 
     /**
      * Create instance of {@code CoreConfig} object from the provided parameters.

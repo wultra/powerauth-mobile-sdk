@@ -25,16 +25,17 @@ import static org.junit.Assert.*;
 @RunWith(AndroidJUnit4.class)
 public class SessionSetupTest {
     @Test
-    public void testValidV3Configuration() throws Exception {
-        boolean result = CoreConfig.validateConfiguration("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", CoreAlgorithm.LEGACY_P256);
-        assertTrue(result);
+    public void testValidV3Configuration() {
+        final String errorMessage = CoreConfig.validateConfiguration("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", CoreAlgorithm.LEGACY_P256);
+        assertNull(errorMessage);
     }
 
     @Test
-    public void testEmptyConfiguration() throws Exception {
-        assertFalse(CoreConfig.validateConfiguration("", CoreAlgorithm.LEGACY_P256));
-        assertFalse(CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384));
-        assertFalse(CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384_ML_L3));
-        assertFalse(CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384_ML_L5));
+    public void testEmptyConfiguration() {
+        final String expectedErrorMessage = "Failed to read data version from SDK config";
+        assertEquals(expectedErrorMessage, CoreConfig.validateConfiguration("", CoreAlgorithm.LEGACY_P256));
+        assertEquals(expectedErrorMessage, CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384));
+        assertEquals(expectedErrorMessage, CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384_ML_L3));
+        assertEquals(expectedErrorMessage, CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384_ML_L5));
     }
 }

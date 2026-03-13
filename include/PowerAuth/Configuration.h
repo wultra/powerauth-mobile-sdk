@@ -108,10 +108,12 @@ public:
         
         /// Load configuration string into internal properties.
         /// - Parameter sdk_config: SDK configuration string.
-        /// - Returns: `true` if load succeeded, `false` otherwise.
-        bool loadFromSdkConfig(const std::string& sdk_config) noexcept;
+        /// - Returns: If the configuration is invalid, then reason is returned. No value is returned otherwise.
+        std::optional<std::string> loadFromSdkConfig(const std::string& sdk_config) noexcept;
         
-        bool validatePublicKeysPresence() const noexcept;
+        /// Validate if current configuration contains all expected public keys.
+        /// - Returns: If expected key is missing, then appropriate error message is returned. No value is returned otherwise.
+        std::optional<std::string> validatePublicKeysPresence() const noexcept;
         
         const PowerAuthSpec::Algorithm _algorithm;
         std::string _instance_id;
@@ -131,8 +133,8 @@ public:
     ///
     /// - Parameter sdk_config: SDK configuration string to validate.
     /// - Parameter algorithm: Algorithm to use.
-    /// - Returns: `true` if SDK configuration is correct.
-    static bool validateSdkConfig(const std::string& sdk_config, PowerAuthSpec::Algorithm algorithm) noexcept;
+    /// - Returns: If the configuration is invalid, then reason is returned. Empty string is returned otherwise.
+    static std::string validateSdkConfig(const std::string& sdk_config, PowerAuthSpec::Algorithm algorithm) noexcept;
     
 private:
     

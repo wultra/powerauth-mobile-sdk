@@ -30,14 +30,15 @@ CC7_JNI_MODULE_CLASS_BEGIN()
 
 #define THIS_OBJ()  jni.fromJava<CC7_JNI_CPP_CLASS>(NH_SPECS().coreConfig, thiz)
 
-CC7_JNI_STATIC_METHOD_PARAMS(jboolean, validateConfiguration, jstring configuration, jint algorithm)
+CC7_JNI_STATIC_METHOD_PARAMS(jstring, validateConfiguration, jstring configuration, jint algorithm)
 {
     NH_TRY
     {
-        return Configuration::validateSdkConfig(jni.fromJava(configuration),
+        auto error_message = Configuration::validateSdkConfig(jni.fromJava(configuration),
                                                 jni.fromJava<PowerAuthSpec::Algorithm>(NH_SPECS().coreAlgorithm, algorithm));
+        return jni.toJavaNullable(error_message);
     }
-    NH_NO_THROW(false)
+    NH_NO_THROW(jni.toJava("Invalid SDK configuration"))
 }
 
 CC7_JNI_STATIC_METHOD_PARAMS(jobject, build, jstring configuration, jbyteArray deviceSpecificData, jstring instanceId, jint algorithm)

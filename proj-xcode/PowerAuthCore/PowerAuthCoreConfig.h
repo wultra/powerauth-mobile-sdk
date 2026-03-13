@@ -65,8 +65,8 @@ typedef NS_ENUM(int, PowerAuthCoreAlgorithm) {
 /// Validate SDK configuration string.
 /// - Parameter configuration: SDK configuration string to validate.
 /// - Parameter algorithm: Algorithm to use in the PowerAuth instance.
-/// - Returns: YES if configuration string is valid.
-+ (BOOL) validateConfiguration:(nonnull NSString*)configuration
-                     algorithm:(PowerAuthCoreAlgorithm)algorithm;
+/// - Returns: `nil` if the configuration is valid, a string describing the error otherwise.
++ (nullable NSString*) validateConfiguration:(nonnull NSString*)configuration
+                                   algorithm:(PowerAuthCoreAlgorithm)algorithm;
 
 @end

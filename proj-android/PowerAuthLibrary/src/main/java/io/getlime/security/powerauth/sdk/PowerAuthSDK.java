@@ -2537,6 +2537,31 @@ public class PowerAuthSDK {
     }
 
     /**
+     * Get information whether biometric authentication is fully available and you can call methods
+     * that accept a {@link PowerAuthAuthentication} object configured for biometrics. Note that
+     * this doesn't reflect state when the sensor is temporarily or permanently locked out. Such
+     * information is available only after you attempt to authenticate with biometrics.
+     * @param context Android context.
+     * @return {@code true} if biometric authentication is fully available, {@code false} otherwise.
+     */
+    public boolean isAuthenticationWithBiometricsAvailable(@NonNull Context context) {
+        return getBiometricStatus(context).isAuthenticationWithBiometricsAvailable();
+    }
+
+    /**
+     * Get information about the current state of the biometry.
+     * @param context Android context.
+     * @return {@link PowerAuthBiometricStatus} containing information about the current state of biometry.
+     */
+    @NonNull
+    public PowerAuthBiometricStatus getBiometricStatus(@NonNull Context context) {
+        return new PowerAuthBiometricStatus(
+                hasBiometryFactor(context),
+                BiometricAuthentication.getBiometryType(context),
+                BiometricAuthentication.canAuthenticate(context));
+    }
+
+    /**
      * Check if the current PowerAuth instance has biometry factor in place.
      *
      * @param context Android context object

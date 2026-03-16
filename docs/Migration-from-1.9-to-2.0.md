@@ -7,6 +7,7 @@ PowerAuth Mobile SDK in version `2.0.0` provides the following improvements:
 - You can select a level of security that suits your business needs. See the `PowerAuthConfiguration` documentation for more details.
 - PowerAuth Mobile SDK can optionally operate in a mode fully compatible with legacy PowerAuth protocol version 3.3.
 - A new `PowerAuthBiometricConfiguration` class simplifies biometric configuration of the `PowerAuthSDK` class.
+- A new `PowerAuthBiometricStatus` class simplifies getting overall state of biometry in the system and `PowerAuthSDK` instance.
 - A new `PowerAuthSecureVaultKey` class provides better flexibility for Secure Vault operations.
 - PowerAuth Mobile SDK now ensures sensitive keys are not retained in memory.
 - Activation using a recovery code is no longer supported.

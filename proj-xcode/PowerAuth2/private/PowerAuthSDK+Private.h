@@ -80,3 +80,8 @@
 @interface PowerAuthDevicePublicKeyData (Private)
 - (instancetype) initWithCoreDevicePublicKeyData:(PowerAuthCoreDevicePublicKeyData*)keyData;
 @end
+
+@interface PowerAuthBiometricStatus (Private)
+- (instancetype) initWithBiometricInfo:(PowerAuthBiometricAuthenticationInfo)biometricInfo
+                             factorSet:(BOOL)factorSet;
+@end

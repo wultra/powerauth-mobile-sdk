@@ -1305,7 +1305,7 @@
         return;
     }
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
-    XCTAssertTrue([_sdk hasBiometryFactor]);
+    XCTAssertTrue(_sdk.isAuthenticationWithBiometricsAvailable);
     
     // Try to remove biometric factor, but the response is never received from the server.
     // The situation is that server has biometric factor removed, but client still has biometry turned ON
@@ -1319,11 +1319,11 @@
     // error is received
     XCTAssertNotNil(error);
     // outcome is that biometric factor is still ON
-    XCTAssertTrue([_sdk hasBiometryFactor]);
+    XCTAssertTrue(_sdk.isAuthenticationWithBiometricsAvailable);
     
     // Now try to fetch activation status. The operation silently remove the factor from local data and the keychain
     status = [_helper fetchActivationStatus];
-    XCTAssertFalse([_sdk hasBiometryFactor]);
+    XCTAssertFalse(_sdk.isAuthenticationWithBiometricsAvailable);
     
     // Now try to add biometric factor. If response from the server is never received, then the server thinks the factor is ON, but local data
     // has no factor set.
@@ -1353,7 +1353,7 @@
     // In the next attempt, everything should work and the biometric factor should be removed from the server.
     status = [_helper fetchActivationStatus];
     XCTAssertNotNil(status);
-    XCTAssertFalse([_sdk hasBiometryFactor]);
+    XCTAssertFalse(_sdk.isAuthenticationWithBiometricsAvailable);
     
     // In next attempt, remove is not called.
     [self simulateNetworkErrorOnSend:@"/pa/v4/biometry/remove"];
@@ -1387,6 +1387,45 @@
     PowerAuthHttpHeader * header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
     XCTAssertNil(header);
     XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
+}
+
+- (void) testBiometricStatus
+{
+    CHECK_TEST_CONFIG();
+    CHECK_BIOMETRY();
+    
+    PowerAuthBiometricStatus * biometricStatus = _sdk.biometricStatus;
+    XCTAssertEqual(PowerAuthKeychain.biometricAuthenticationInfo.currentStatus, biometricStatus.systemStatus);
+    XCTAssertEqual(PowerAuthKeychain.biometricAuthenticationInfo.biometryType, biometricStatus.biometryType);
+    XCTAssertFalse(biometricStatus.isAuthenticationWithBiometricsAvailable);
+    XCTAssertFalse(biometricStatus.isBiometricFactorConfigured);
+    XCTAssertFalse(_sdk.isAuthenticationWithBiometricsAvailable);
+    
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithBiometry activationOtp:nil];
+    if (!activation) {
+        return;
+    }
+    
+    biometricStatus = _sdk.biometricStatus;
+    XCTAssertEqual(PowerAuthKeychain.biometricAuthenticationInfo.currentStatus, biometricStatus.systemStatus);
+    XCTAssertEqual(PowerAuthKeychain.biometricAuthenticationInfo.biometryType, biometricStatus.biometryType);
+    XCTAssertTrue(biometricStatus.isAuthenticationWithBiometricsAvailable);
+    XCTAssertTrue(biometricStatus.isBiometricFactorConfigured);
+    XCTAssertTrue(_sdk.isAuthenticationWithBiometricsAvailable);
+    
+    NSError * failure = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk removeBiometryFactorWithCallback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    XCTAssertNil(failure);
+    
+    biometricStatus = _sdk.biometricStatus;
+    XCTAssertEqual(PowerAuthKeychain.biometricAuthenticationInfo.currentStatus, biometricStatus.systemStatus);
+    XCTAssertEqual(PowerAuthKeychain.biometricAuthenticationInfo.biometryType, biometricStatus.biometryType);
+    XCTAssertFalse(biometricStatus.isAuthenticationWithBiometricsAvailable);
+    XCTAssertFalse(biometricStatus.isBiometricFactorConfigured);
+    XCTAssertFalse(_sdk.isAuthenticationWithBiometricsAvailable);
 }
 
 #endif // PA2_BIOMETRY_SUPPORT

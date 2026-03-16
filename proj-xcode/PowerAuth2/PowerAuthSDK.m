@@ -1404,6 +1404,17 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark - Biometry
 
+- (BOOL) isAuthenticationWithBiometricsAvailable
+{
+    return self.biometricStatus.isAuthenticationWithBiometricsAvailable;
+}
+
+- (PowerAuthBiometricStatus*) biometricStatus
+{
+    PowerAuthBiometricAuthenticationInfo info = [PowerAuthKeychain biometricAuthenticationInfo];
+    return [[PowerAuthBiometricStatus alloc] initWithBiometricInfo:info factorSet:self.hasBiometryFactor];
+}
+
 - (id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(PowerAuthCorePassword*)password
                                                         callback:(void(^)(NSError *error))callback
 {

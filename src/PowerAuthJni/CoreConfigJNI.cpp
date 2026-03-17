@@ -34,6 +34,7 @@ CC7_JNI_STATIC_METHOD_PARAMS(void, validateConfiguration, jstring configuration,
 {
     NH_TRY
     {
+        [[maybe_unused]]
         auto foo = Configuration::Builder(jni.fromJava(configuration),
                                           jni.fromJava<PowerAuthSpec::Algorithm>(NH_SPECS().coreAlgorithm, algorithm));
     }

@@ -273,9 +273,9 @@ void Configuration::Builder::validatePublicKeysPresence() const
     if (!missing_key.empty()) {
         auto& algorithm_name = PowerAuthSpec::specForAlgorithm(_algorithm)->algorithmName();
         // Example error message:
-        // Configuration doesn't contain KEY_MASTER_ECDSA_P384_PUBLIC key which is required for EC_P384 algorithm
-        throw Exception(EC_InvalidData, "Configuration doesn't contain " + missing_key +
-                                        " key which is required for " + algorithm_name +
+        // Configuration is missing KEY_MASTER_ECDSA_P384_PUBLIC key required for EC_P384 algorithm
+        throw Exception(EC_InvalidData, "Configuration is missing " + missing_key +
+                                        " key required for " + algorithm_name +
                                         " algorithm");
     }
 }

@@ -95,6 +95,8 @@ public:
             
     void testGeneratedVectors()
     {
+        // To regenerate the following file, uncomment CC7_REGISTER_TEST_METHOD(testVectorsForFE)
+        // in the test class constructor.
         auto root = JSON_ParseFile(g_pa2Files, "pa2/session-setup-v4.json");
         auto&& data = root.arrayAtPath("data");
         for (const auto& item : data) {

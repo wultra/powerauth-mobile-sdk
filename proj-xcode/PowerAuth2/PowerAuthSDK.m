@@ -132,8 +132,9 @@ static NSData * _BuildDeviceSpecificData(void)
     }
     
     // Validate that the configuration was set up correctly
-    if (![configuration validateConfiguration]) {
-        PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer.");
+    if (![configuration validateConfiguration:&localError]) {
+        NSString * message = [NSString stringWithFormat:@"Invalid PowerAuthSDK configuration: %@", localError.localizedDescription];
+        PA2SetError(error, PowerAuthErrorCode_WrongParameter, message);
         return NO;
     }
     

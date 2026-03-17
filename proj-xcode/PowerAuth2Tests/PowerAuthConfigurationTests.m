@@ -124,13 +124,13 @@
     PowerAuthConfiguration * config = [[PowerAuthConfiguration alloc] initWithInstanceId:@"default"
                                                                          baseEndpointUrl:@"https://test.server.org/powerauth"
                                                                            configuration:self.goodSdkConfiguration];
-    XCTAssertTrue([config validateConfiguration]);
+    XCTAssertTrue([config validateConfiguration:nil]);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     config.externalEncryptionKey = _goodEEK;
-    XCTAssertTrue([config validateConfiguration]);
+    XCTAssertTrue([config validateConfiguration:nil]);
     config.externalEncryptionKey = _badEEK;
-    XCTAssertTrue([config validateConfiguration]);
+    XCTAssertTrue([config validateConfiguration:nil]);
 #pragma clang diagnostic pop
 }
 

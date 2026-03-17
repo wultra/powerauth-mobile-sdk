@@ -124,9 +124,19 @@ typedef NS_ENUM(NSInteger, PowerAuthAlgorithm) {
  */
 @property (nonatomic, strong, nullable) PowerAuthSharingConfiguration * sharingConfiguration;
 
-/** Validate that the configuration is properly set (all required values were filled in).
+/**
+ Validate that the configuration is properly set (all required values were filled in).
+ 
+ Method is deprecated and replaced by throwing `validateConfiguration()` method.
  */
 - (BOOL) validateConfiguration
-            NS_SWIFT_NAME(validate());
+            NS_SWIFT_NAME(validate())
+            PA2_DEPRECATED(2.0.0);
+
+/**
+ Validate that the configuration is properly set (all required values were filled in).
+ */
+- (BOOL) validateConfiguration:(NSError*_Nullable*_Nullable)error
+            NS_SWIFT_NAME(validateConfiguration());
 
 @end

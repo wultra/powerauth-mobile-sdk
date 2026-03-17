@@ -19,10 +19,8 @@
 
 #import <PowerAuth2/PowerAuthSharingConfiguration.h>
 #import "PA2PrivateConstants.h"
-
-#if PA2_HAS_CORE_MODULE
 #import "PA2AppGroupContainer.h"
-#endif
+#import "PA2PrivateMacros.h"
 
 @implementation PowerAuthSharingConfiguration
 
@@ -50,17 +48,30 @@
     return self;
 }
 
-- (BOOL) validateConfiguration
+- (BOOL) validateConfiguration:(NSError**)error
 {
-    BOOL result = _appGroup.length > 0;
-    result = result && (_appIdentifier.length > 0);
-    result = result && ([_appIdentifier dataUsingEncoding:NSUTF8StringEncoding].length <= PADef_PowerAuthSharing_AppIdentifierMaxSize);
-#if PA2_HAS_CORE_MODULE
-    if (_sharedMemoryIdentifier) {
-        result = result && [PA2AppGroupContainer validateShortSharedMemoryIdentifier:_sharedMemoryIdentifier];
+    if (!_appGroup.length) {
+        PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"PowerAuthSharingConfiguration.appGroup is empty");
+        return NO;
     }
-#endif
-    return result;
+    if (!_appIdentifier.length) {
+        PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"PowerAuthSharingConfiguration.appIdentifier is empty");
+        return NO;
+    }
+    if ([_appIdentifier dataUsingEncoding:NSUTF8StringEncoding].length > PADef_PowerAuthSharing_AppIdentifierMaxSize) {
+        PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"PowerAuthSharingConfiguration.appIdentifier is too long");
+        return NO;
+    }
+    if (_sharedMemoryIdentifier && ![PA2AppGroupContainer validateShortSharedMemoryIdentifier:_sharedMemoryIdentifier]) {
+        PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"PowerAuthSharingConfiguration.sharedMemoryIdentifier is not valid");
+        return NO;
+    }
+    return YES;
+}
+
+- (BOOL) validateConfiguration // PA2_DEPRECATED(2.0.0)
+{
+    return [self validateConfiguration:nil];
 }
 
 - (id) copyWithZone:(NSZone *)zone

@@ -157,18 +157,36 @@ static NSString * PA_Ver_Current = @"4.0";
     if (configurator) {
         configurator(&config, &biometricConfig, &keychainConfig, &clientConfig);
     }
-    result = [config validateConfiguration];
-    XCTAssertTrue(result, @"Constructed configuration is not valid.");
+    NSError * error = nil;
+    result = [config validateConfiguration:&error];
+    XCTAssertNil(error, @"Constructed configuration is not valid.");
     if (!result) {
         return nil;
     }
     
-    NSError * error = nil;
-    PowerAuthSDK *sdk = [[PowerAuthSDK alloc] initWithConfiguration:config
-                                             biometricConfiguration:biometricConfig
-                                                clientConfiguration:clientConfig
-                                              keychainConfiguration:keychainConfig
-                                                              error:&error];
+    PowerAuthSDK *sdk;
+    BOOL repeat_sdk_create = NO;
+    do {
+        error = nil;
+        sdk = [[PowerAuthSDK alloc] initWithConfiguration:config
+                                   biometricConfiguration:biometricConfig
+                                      clientConfiguration:clientConfig
+                                    keychainConfiguration:keychainConfig
+                                                    error:&error];
+        if (!sdk && error.powerAuthErrorCode == PowerAuthErrorCode_UpgradeSDK) {
+            if (repeat_sdk_create) {
+                NSLog(@"PowerAuthSdkTestHelper: Repeated SDK construction failed.");
+                break;
+            }
+            NSLog(@"PowerAuthSdkTestHelper: New SDK data format detected. Trying to recover from this state.");
+            repeat_sdk_create = [PowerAuthSDK cleanupInstanceDataForConfiguration:config keychainConfiguration:keychainConfig error:&error];
+            if (!repeat_sdk_create) {
+                NSLog(@"PowerAuthSdkTestHelper: SDK data cleanup failed");
+            }
+        } else {
+            repeat_sdk_create = NO;
+        }
+    } while (repeat_sdk_create);
     XCTAssertNotNil(sdk);
     XCTAssertNil(error);
     if (error) {

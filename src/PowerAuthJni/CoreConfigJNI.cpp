@@ -30,14 +30,14 @@ CC7_JNI_MODULE_CLASS_BEGIN()
 
 #define THIS_OBJ()  jni.fromJava<CC7_JNI_CPP_CLASS>(NH_SPECS().coreConfig, thiz)
 
-CC7_JNI_STATIC_METHOD_PARAMS(jboolean, validateConfiguration, jstring configuration, jint algorithm)
+CC7_JNI_STATIC_METHOD_PARAMS(void, validateConfiguration, jstring configuration, jint algorithm)
 {
     NH_TRY
     {
-        return Configuration::validateSdkConfig(jni.fromJava(configuration),
-                                                jni.fromJava<PowerAuthSpec::Algorithm>(NH_SPECS().coreAlgorithm, algorithm));
+        auto foo = Configuration::Builder(jni.fromJava(configuration),
+                                          jni.fromJava<PowerAuthSpec::Algorithm>(NH_SPECS().coreAlgorithm, algorithm));
     }
-    NH_NO_THROW(false)
+    NH_CATCH()
 }
 
 CC7_JNI_STATIC_METHOD_PARAMS(jobject, build, jstring configuration, jbyteArray deviceSpecificData, jstring instanceId, jint algorithm)

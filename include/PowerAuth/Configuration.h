@@ -128,16 +128,6 @@ public:
         cc7::ByteArray _mldsa87_master_server_public_key;
     };
     
-    /// Function validates whether the provided SDK configuration string is correct.
-    ///
-    /// Be aware that this method doesn't validate whether public keys are valid. The validation must be
-    /// performed afterwards by calling `validatePublicKeys()` on created instance of configuration.
-    ///
-    /// - Parameter sdk_config: SDK configuration string to validate.
-    /// - Parameter algorithm: Algorithm to use.
-    /// - Returns: `true` if SDK configuration is correct.
-    static bool validateSdkConfig(const std::string& sdk_config, PowerAuthSpec::Algorithm algorithm) noexcept;
-    
 private:
     
     Configuration(PowerAuthSpec::Algorithm algorithm,

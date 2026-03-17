@@ -26,15 +26,14 @@ import static org.junit.Assert.*;
 public class SessionSetupTest {
     @Test
     public void testValidV3Configuration() throws Exception {
-        boolean result = CoreConfig.validateConfiguration("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", CoreAlgorithm.LEGACY_P256);
-        assertTrue(result);
+        CoreConfig.validateConfiguration("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", CoreAlgorithm.LEGACY_P256);
     }
 
     @Test
     public void testEmptyConfiguration() throws Exception {
-        assertFalse(CoreConfig.validateConfiguration("", CoreAlgorithm.LEGACY_P256));
-        assertFalse(CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384));
-        assertFalse(CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384_ML_L3));
-        assertFalse(CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384_ML_L5));
+        assertThrows(CoreException.class, () -> CoreConfig.validateConfiguration("", CoreAlgorithm.LEGACY_P256));
+        assertThrows(CoreException.class, () -> CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384));
+        assertThrows(CoreException.class, () -> CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384_ML_L3));
+        assertThrows(CoreException.class, () -> CoreConfig.validateConfiguration("", CoreAlgorithm.EC_P384_ML_L5));
     }
 }

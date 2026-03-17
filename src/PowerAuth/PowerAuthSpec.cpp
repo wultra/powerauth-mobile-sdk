@@ -23,7 +23,7 @@ namespace powerAuth {
 const PowerAuthSpec PowerAuthSpec::spec_LEGACY_P256 {
     PowerAuthSpec::LEGACY_P256,
     Version_V3,
-    "LEGACY",
+    "LEGACY_P256",
     { { KEY_ID_P256, cc7::crypto::KEY_FORMAT_X963 }, { KEY_ID_NONE, cc7::crypto::KEY_FORMAT_DEFAULT } },
     { "ECDSA-SHA-256", "" },
     { "ES256", "" },

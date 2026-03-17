@@ -19,6 +19,7 @@
 
 #import <PowerAuth2/PowerAuthConfiguration.h>
 #import <PowerAuth2/PowerAuthLog.h>
+#import "PA2PrivateMacros.h"
 @import PowerAuthCore;
 
 @implementation PowerAuthConfiguration
@@ -54,19 +55,42 @@
     return [self initWithInstanceId:instanceId baseEndpointUrl:baseEndpointUrl configuration:configuration algorithm:PowerAuthAlgorithm_DEFAULT];
 }
 
-- (BOOL) validateConfiguration
+- (BOOL) validateConfiguration // PA2_DEPRECATED(2.0.0)
 {
-    BOOL result = YES;
-    result = result && (_instanceId.length > 0);
-    result = result && (_baseEndpointUrl.length > 0);
-    result = result && (_offlineAuthenticationCodeComponentLength >= MIN_OFFLINE_AUTH_CODE_COMPONENT_LEN &&
-                        _offlineAuthenticationCodeComponentLength <= MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN);
-    if (_sharingConfiguration) {
-        result = result && [_sharingConfiguration validateConfiguration];
+    return [self validateConfiguration:nil];
+}
+
+- (BOOL) validateConfiguration:(NSError**)error
+{
+    if (!_instanceId.length) {
+        PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"PowerAuthConfiguration.instanceId property is empty");
+        return NO;
     }
-    result = result && [PowerAuthCoreConfig validateConfiguration:_configuration
-                                                        algorithm:(PowerAuthCoreAlgorithm)_algorithm];
-    return result;
+    if (!_baseEndpointUrl.length) {
+        PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"PowerAuthConfiguration.baseEndpointUrl property is empty");
+        return NO;
+    }
+    if (![NSURL URLWithString:_baseEndpointUrl]) {
+        PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"PowerAuthConfiguration.baseEndpointUrl is not valid URL");
+        return NO;
+    }
+    if (_offlineAuthenticationCodeComponentLength < MIN_OFFLINE_AUTH_CODE_COMPONENT_LEN ||
+        _offlineAuthenticationCodeComponentLength > MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN) {
+        PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"PowerAuthConfiguration.offlineAuthenticationCodeComponentLength property is out of range");
+        return NO;
+    }
+    if (_sharingConfiguration && ![_sharingConfiguration validateConfiguration:error]) {
+        return NO;
+    }
+    NSError * localError = nil;
+    [PowerAuthCoreConfig validateConfiguration:_configuration
+                                     algorithm:(PowerAuthCoreAlgorithm)_algorithm
+                                         error:&localError];
+    if (localError) {
+        PA2WrapError(localError, error);
+        return NO;
+    }
+    return YES;
 }
 
 - (id)copyWithZone:(NSZone *)zone

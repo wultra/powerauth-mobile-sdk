@@ -250,8 +250,10 @@ public class PowerAuthConfiguration {
          * @throws PowerAuthErrorException With {@link PowerAuthErrorCodes#WRONG_PARAMETER} in case the wrong parameter is used in the configuration.
          */
         public @NonNull PowerAuthConfiguration build() throws PowerAuthErrorException {
-            if (!CoreConfig.validateConfiguration(configuration, algorithm)) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid SDK configuration");
+            try {
+                CoreConfig.validateConfiguration(configuration, algorithm);
+            } catch (CoreException exception) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid SDK configuration", exception);
             }
             if (offlineAuthenticationCodeComponentLength < MIN_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH ||
                 offlineAuthenticationCodeComponentLength > MAX_OFFLINE_AUTHENTICATION_CODE_COMPONENT_LENGTH) {

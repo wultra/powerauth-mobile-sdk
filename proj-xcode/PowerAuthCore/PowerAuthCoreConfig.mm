@@ -56,8 +56,19 @@
 
 + (BOOL) validateConfiguration:(nonnull NSString*)configuration
                      algorithm:(PowerAuthCoreAlgorithm)algorithm
+                         error:(NSError*_Nullable*_Nullable)error
 {
-    return powerAuth::Configuration::validateSdkConfig(cc7::objc::CopyFromNSString(configuration), static_cast<powerAuth::PowerAuthSpec::Algorithm>(algorithm));
+    try {
+        [[maybe_unused]]
+        auto foo = powerAuth::Configuration::Builder(cc7::objc::CopyFromNSString(configuration),
+                                                     static_cast<powerAuth::PowerAuthSpec::Algorithm>(algorithm));
+        return YES;
+    } catch (...) {
+        if (error) {
+            *error = powerAuth::BuildNSErrorFromException();
+        }
+        return NO;
+    }
 }
 
 + (nullable PowerAuthCoreConfig*) buildWithConfiguration:(nonnull NSString*)configuration

@@ -124,14 +124,125 @@
     PowerAuthConfiguration * config = [[PowerAuthConfiguration alloc] initWithInstanceId:@"default"
                                                                          baseEndpointUrl:@"https://test.server.org/powerauth"
                                                                            configuration:self.goodSdkConfiguration];
-    XCTAssertTrue([config validateConfiguration]);
+    XCTAssertTrue([config validateConfiguration:nil]);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     config.externalEncryptionKey = _goodEEK;
-    XCTAssertTrue([config validateConfiguration]);
+    XCTAssertTrue([config validateConfiguration:nil]);
     config.externalEncryptionKey = _badEEK;
-    XCTAssertTrue([config validateConfiguration]);
+    XCTAssertTrue([config validateConfiguration:nil]);
 #pragma clang diagnostic pop
+}
+
+static NSString * GetPowerAuthAlgorithmName(PowerAuthAlgorithm algorithm)
+{
+    switch (algorithm) {
+        case PowerAuthAlgorithm_LEGACY_P256: return @"LEGACY_P256";
+        case PowerAuthAlgorithm_EC_P384: return @"EC_P384";
+        case PowerAuthAlgorithm_EC_P384_ML_L3: return @"EC_P384_ML_L3";
+        case PowerAuthAlgorithm_EC_P384_ML_L5: return @"EC_P384_ML_L5";
+        default:
+            return @"<< UNKNOWN >>";
+    }
+}
+
+- (void) testSdkConfigurationValidation
+{
+    for (int algorithm = PowerAuthAlgorithm_LEGACY_P256; algorithm <= PowerAuthAlgorithm_EC_P384_ML_L5; ++algorithm) {
+        NSString * algorithmName = GetPowerAuthAlgorithmName(algorithm);
+        NSString* sdkConfig = @"";
+        NSString* expectedErrorMessage = @"powerAuth::PowerAuthException: Invalid SDK configuration string";
+        [self assertSdkConfiguration:sdkConfig expectedErrorMessage:expectedErrorMessage algorithm:algorithm];
+        
+        // SDK config without keys
+        sdkConfig = @"ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwA";
+        expectedErrorMessage = [NSString stringWithFormat:@"powerAuth::PowerAuthException: Configuration is missing KEY_MASTER_P256_PUBLIC key required for %@ algorithm", algorithmName];
+        [self assertSdkConfiguration:sdkConfig expectedErrorMessage:expectedErrorMessage algorithm:algorithm];
+        
+        // SDK config with LEGACY_P256 master server public key
+        sdkConfig = @"ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4"
+                    @"oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==";
+        expectedErrorMessage = algorithm > PowerAuthAlgorithm_LEGACY_P256
+                                ? [NSString stringWithFormat:@"powerAuth::PowerAuthException: Configuration is missing KEY_MASTER_ECDSA_P384_PUBLIC key required for %@ algorithm", algorithmName]
+                                : nil;
+        [self assertSdkConfiguration:sdkConfig expectedErrorMessage:expectedErrorMessage algorithm:algorithm];
+        
+        // SDK config with LEGACY_P256 + EC_P384 master server public key
+        sdkConfig = @"ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwCAUEEQQ7CWNKAi0EgCfOvd/srfqz4"
+                    @"oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbAJhBCkhOMEqwc7S"
+                    @"Zu1TmIt8iKf8tnU+ERNynIa8tZliWwyWgirOngqprNEDKig0Ch3D0HWqeIaKsLNiDS3mrJCiZFBd"
+                    @"nRQf3t4qGazxNcW7cPq6ye0OGHPGHh0/Ph9FH6Lrmw==";
+        if (algorithm == PowerAuthAlgorithm_EC_P384_ML_L3) {
+            expectedErrorMessage = [NSString stringWithFormat:@"powerAuth::PowerAuthException: Configuration is missing KEY_MASTER_MLDSA65_PUBLIC key required for %@ algorithm", algorithmName];
+        } else if (algorithm == PowerAuthAlgorithm_EC_P384_ML_L5) {
+            expectedErrorMessage = [NSString stringWithFormat:@"powerAuth::PowerAuthException: Configuration is missing KEY_MASTER_MLDSA87_PUBLIC key required for %@ algorithm", algorithmName];
+        } else {
+            expectedErrorMessage = nil;
+        }
+        [self assertSdkConfiguration:sdkConfig expectedErrorMessage:expectedErrorMessage algorithm:algorithm];
+
+        // SDK config with LEGACY_P256 + EC_P384 + ML_L3 master server public key
+        sdkConfig = @"ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwDAUEEQQ7CWNKAi0EgCfOvd/srfqz4"
+                    @"oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbAJhBCkhOMEqwc7S"
+                    @"Zu1TmIt8iKf8tnU+ERNynIa8tZliWwyWgirOngqprNEDKig0Ch3D0HWqeIaKsLNiDS3mrJCiZFBd"
+                    @"nRQf3t4qGazxNcW7cPq6ye0OGHPGHh0/Ph9FH6LrmwOHtjCCB7IwCwYJYIZIAWUDBAMSA4IHoQB/"
+                    @"mMDSaZfMk6/vGSYrRByEmbZ3A2QwTzxI4uFjnw0KeNg4pvePvqkkGmCIHEbDzWJcxGDrWFQr14WG"
+                    @"axXjogWfUy6U/x/lYqefxJawh24kNCTDkQreaqt8v2AKiU8w8yfIXP5221xfWjTJq/EOnj+b7V38"
+                    @"sqv8GGEIsh9zSWhShEut3zOGA7fqY6qcewIuYmVmGl9RfEVVzvI7mUXZ/lbjpMcHzKZNTbUvCsvS"
+                    @"80RoN1bEieIxiCOyhEgfrFU63SdcHqf2Di0o1gevGZSqQPviISoGQAXui32gqiwTxLs0i1ae81lE"
+                    @"x8UC/Hrnouvo8iZpqS9+Rf7xenjO3bHP5l3UCOeiJ27jIZmnoUxQcNHEmsJE9wAbTowHqnC2PK95"
+                    @"LCxHsW2WlZM3aXf6u6xdbYJP8ldmOh6EKUgCIgIIxScfl7tMc8Va8DvktVzZ5/OoZAy9SI3dObLZ"
+                    @"fM4P1VyME0lingi7idxG2Our2tPEl5VlzM/Xn/6KufF+0BBI7fYJ3Kom5IM45kUrE8tZ9ayyQtvS"
+                    @"22MHPGQMJOOUNl4LmiVPl/BmtVUL9wjBZhqUlskPaFm/XuYgYCELuDXwNvNuhKNth+HBcOxQbEun"
+                    @"kKS82qIwwagpKAdPWxKRGlHLcIKtcJBwocxM4DNkwCIHQQaNmxkCMmL3sWnO0R+kqBWtIBVYSnip"
+                    @"RF0uQGkduAxNnZvBXC/h8yG5dMxuNIAa8+o7EFRoBAcnJQY/Apr69x1k3Csx3hgGfmS2f7a8bIA6"
+                    @"/jfQbGrWXQox5FriqmacSyu6CzwgPzk2iMZn3jQkcfi7slF7HmjcN0+nV7+1tESAg4OVTUo2Tws0"
+                    @"odg4jC8WG3Ky1kWRVjozuM/8cFATkTcwGMrBtRXWJ22wceXDP/IyyWJAYV/MYBv/1ne/TSIQCDH6"
+                    @"he8ZDnwRhS6hSVVghv8sxujn10W0ZtfYfb/LrZpVS+6w/MEQZbQZ8nhY9nStlzwn0PXvGLfHSSgS"
+                    @"WLniYKKyg9NPHoKD+V+s9pY3Jb3sxAdo8uLkgLj9WjYWs3A/hoA88w+4lvsC+Bcgkjv1JjDjXDXB"
+                    @"sWS8bHK40deKY9WxSdm6D95MFDMrRn6/66RaVZtsYevhTOWwd4MZ8ZNPGS69rNvXtdC/DvBo0YF3"
+                    @"g69xMwOX7F2FIEgxnMqbp6yIzhl7QqqZSA4qWHqLFqBQfbSvPRr8QUu13q8NT4EuHtB8b252749D"
+                    @"u8DAPMKmA6+McdAdLR1LEvABg+m/f/JVGxOKvd94RTGIJDevFs0j0timaAUM3VzufkeI264I/6/C"
+                    @"FO46nRvs0QF4Ng8RZJKU3Je1QwZxekVkn8yPJ8OmHmyRxIJ3naVihk72jSTEMllijh3tk1+egmN+"
+                    @"NLYBomYJcquFhjOsDBj7NoLLWuMP8QUHZKZFTeBgW6hfPnM1QXeP0zFGFWa3KwLFKMfyM1F792NL"
+                    @"EPo8CJ/tJdfOIEYuc8XWjZXNNSEcv7LeM5VLDXV82HOiuWpKkkidG4xozTR/QwsGbu7caALaz7iw"
+                    @"JZCK2AUuOIKJwzRaY2mu8GFt3lycX9MrGg1xuyHcdkJZPUpUVtEBlCQgpPjOKCXhqBrfDzeoFvgZ"
+                    @"8GGPa8EjDVB560Gxp4nKIADhyCs3Ze1BCT2RjewB4BOGCc5gAG0l3ot+fUw1j/kDs9z1xIQkCU/m"
+                    @"jsJVaRFauR0gn6jYG5QMJ1FWeY0Dh5jHpScuylt8F20LZnHXZsxfEyeK89NZAJBeL9GaNNZNITeg"
+                    @"Mirh77vqWb6yJwoawx8SpEipC3iro0vSuIiCUnjjqVPP4JMxExEICqHh67aXnUhiKnnl1bDAcFoQ"
+                    @"qxf8sXo3X/cB3YNqGPFDJs+aWRHm+qYPmqCJwT5t3Oe50iK3Y56wiRcPDTYHvATg+3TVHmeFYdZY"
+                    @"oe8gSxFgwUBVnu06XkV5QAR4qUtE1ydRGR9u9qWiSQcR20lvEWkNbwVcUc87UejCzXblD6hIKGUr"
+                    @"C+9k8KHsxDfLAomAE3bDOk5zCJaM1S9kcgrc+32J9IKudH3eUYUYXFbC7+Ok/GODxTfJdU2IwTTJ"
+                    @"AbKg83fFlmefZBc5uNV7HpIHiTWulofwd8rmwQIAWlNPLJdIKmV46Je5f+2V9OrJ5EKSeugRJONy"
+                    @"fIp8MgFssNoSMeFMbULaswbPxnsBbEokoi1aJM0YHYMhWAnpSY8WIoQouZQJU4G4KuoMtbr5yOrT"
+                    @"TToU98yuum+mOekgsUk97W3gLOfwqs6Yx8glC2sOBfER1ws4IMkOdOMWjBDCoPgbEEmvvctflJif"
+                    @"yAkqj9oY7UbSt95NCUGv6O666jX6KprADb+KFOQqkuGlofPSSvUG1tcHK3uBLYF1iLEKbb81HoaW"
+                    @"GvKJnAF0kzBZVaPRiF2adxcezaIsrg1KsF8ndbq05NXKhbtUQJvD5LotYdLMFsY30icZWftSUXUH"
+                    @"S3AhKJOQO5i8SARRwih4Y7oEdM+gyJfX9Z1nBdIrupc0meOUpy4peG9RMEzoU6o9D/ySci6MMMPD"
+                    @"HUHT+srPpzN2Nll81O11WH3n27VtT7FESVYqDjBdajFTuECPMU5C3/GoWhC2V1Bp/WaGMjJj1XtM"
+                    @"WSFtbALuBxtGb9vBdw==";
+        expectedErrorMessage = algorithm < PowerAuthAlgorithm_EC_P384_ML_L5
+                                ? nil
+                                : [NSString stringWithFormat:@"powerAuth::PowerAuthException: Configuration is missing KEY_MASTER_MLDSA87_PUBLIC key required for %@ algorithm", algorithmName];
+        [self assertSdkConfiguration:sdkConfig expectedErrorMessage:expectedErrorMessage algorithm:algorithm];
+        
+        // This SDK configuration contains all keys
+        [self assertSdkConfiguration:_goodSdkConfiguration expectedErrorMessage:nil algorithm:algorithm];
+    }
+}
+
+- (void) assertSdkConfiguration:(nonnull NSString*)sdkConfiguration
+            expectedErrorMessage:(nullable NSString*)errorMessage
+                       algorithm:(PowerAuthAlgorithm)algorithm
+{
+    PowerAuthConfiguration* config = [[PowerAuthConfiguration alloc] initWithInstanceId:@"default"
+                                                                        baseEndpointUrl:@"https://test.server.org/powerauth"
+                                                                          configuration:sdkConfiguration
+                                                                              algorithm:algorithm];
+    NSError * localError = nil;
+    BOOL result = [config validateConfiguration:&localError];
+    XCTAssertEqual(result, errorMessage == nil, @"Test for algorithm=%ld", (long)algorithm);
+    XCTAssertEqualObjects(errorMessage, localError.localizedDescription, @"Test for algorithm=%ld", (long)algorithm);
 }
 
 @end

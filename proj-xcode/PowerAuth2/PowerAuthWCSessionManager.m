@@ -30,18 +30,6 @@
 #import "PA2WCSessionPacket.h"
 #import "PA2WeakArray.h"
 
-// Unguarded availability warning
-//
-// PA2WCSessionManager is correctly handling existence of WCSession on the system,
-// but it's difficult to wrap all parts of the code to silent the warning.
-// Currently, 'sendImpl' is the most problematic part of the code, so check
-// that method for details (there's comment at the beginning of the method)
-//
-// For future, we need to increase minimum supported version to iOS9.0
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunguarded-availability"
-
 @implementation PowerAuthWCSessionManager
 {
     dispatch_semaphore_t _lock;
@@ -128,8 +116,10 @@ static void _synchronizedVoid(PowerAuthWCSessionManager  * obj, void(^block)(voi
 
 #pragma mark - Helper functions
 
-static const unsigned char  _HeaderMagic[] = { 'P', 'A', 'w', 'c', '1' };
-#define _HeaderSize sizeof(_HeaderMagic)
+static const char  _HeaderMagic[] = { 'P', 'A', 'w', 'c' };
+static const char  _HeaderVersion = '2';
+#define _MagicSize   sizeof(_HeaderMagic)
+#define _HeaderSize  (_MagicSize + 1)
 
 static PA2WCSessionPacket * _DeserializePacket(NSData * data, Class payloadClass, BOOL *unknownData)
 {
@@ -139,9 +129,19 @@ static PA2WCSessionPacket * _DeserializePacket(NSData * data, Class payloadClass
         return nil;
     }
     // ... and the magic constant at the beginning
-    if (memcmp(data.bytes, _HeaderMagic, _HeaderSize)) {
+    const char * dataBytes = data.bytes;
+    if (memcmp(dataBytes, _HeaderMagic, _MagicSize)) {
         *unknownData = YES;
         return nil;
+    }
+    
+    // Compare versions
+    if (dataBytes[_MagicSize] != _HeaderVersion) {
+        // Reply with a special packet with identical version as we received. This guarantees that another side is able to process this error.
+        NSString * message = @"PA2WCSessionManager: PowerAuth Mobile SDK and Watch SDK are not compatible.";
+        PA2WCSessionPacket * packet = [PA2WCSessionPacket packetWithError:PA2MakeError(PowerAuthErrorCode_WatchConnectivity, message)];
+        packet.customPacketVersion = dataBytes[_MagicSize];
+        return packet;
     }
     
     // ... and if the rest of data contains valid JSON
@@ -182,8 +182,14 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
         PowerAuthLog(@"PA2WCSessionManager: Cannon serialize packet to JSON.");
         return nil;
     }
+    // Prepare the packet version. If not set, then use the default version.
+    char packetVersion = packet.customPacketVersion;
+    if (!packetVersion) {
+        packetVersion = _HeaderVersion;
+    }
     NSMutableData * data = [NSMutableData dataWithCapacity:_HeaderSize + JSONData.length];
-    [data appendBytes:_HeaderMagic length:_HeaderSize];
+    [data appendBytes:_HeaderMagic length:_MagicSize];
+    [data appendBytes:&packetVersion length:1];
     [data appendData:JSONData];
     return data;
 }
@@ -212,7 +218,7 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
         //
         NSString * target = packet.target;
         if ([target isEqualToString:PA2WCSessionPacket_RESPONSE_TARGET]) {
-            errorMessage = @"PA2WCSessionManager: Requests with reponse target are not allowed.";
+            errorMessage = @"PA2WCSessionManager: Requests with response target are not allowed.";
             break;
         }
         // Look for handler
@@ -491,8 +497,6 @@ static WCSession * _ValidateSession(WCSession * session)
 }
 
 #endif // !defined(PA2_WATCH_SDK)
-
-#pragma clang diagnostic pop    // pop "-Wunguarded-availability"
 
 // -----------------------------------------------------------------------
 #endif // defined(PA2_WATCH_SUPPORT)

@@ -37,5 +37,15 @@
  In this case, presence of activationId determining whether the session is activated or not.
  */
 @property (nonatomic, strong) NSString * activationId;
+/**
+ Optional and has meaning only when activationId is also present. The value contains the current
+ PowerAuth algorithm in the string representation (e.g. `"EC_P384_ML_L3"`).
+ */
+@property (nonatomic, strong) NSString * algorithm;
+/**
+ Optional and has meaning only when activationId is also present. The value contains the current
+ protocol version in string representation (e.g. `"3.3"`, `"4.0"`, etc.)
+ */
+@property (nonatomic, strong) NSString * protocolVersion;
 
 @end

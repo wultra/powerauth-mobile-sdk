@@ -29,6 +29,12 @@
     if (_activationId) {
         dictionary[PA2WCSessionPacket_KEY_ACTIVATION_ID] = _activationId;
     }
+    if (_algorithm) {
+        dictionary[PA2WCSessionPacket_KEY_ALGORITHM_ID] = _algorithm;
+    }
+    if (_protocolVersion) {
+        dictionary[PA2WCSessionPacket_KEY_PROTO_VERSION] = _protocolVersion;
+    }
 }
 
 - (id) initWithDictionary:(NSDictionary *)dictionary
@@ -37,6 +43,8 @@
     if (self) {
         _command = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_ACTIVATION_CMD], NSString);
         _activationId = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_ACTIVATION_ID], NSString);
+        _algorithm = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_ALGORITHM_ID], NSString);
+        _protocolVersion = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_PROTO_VERSION], NSString);
     }
     return self;
 }

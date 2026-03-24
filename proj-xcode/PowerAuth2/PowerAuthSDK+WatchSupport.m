@@ -32,13 +32,73 @@
 
 @implementation PowerAuthSDK (WatchSupport)
 
+/// Convert `PowerAuthCoreAlgorithm` enumeration value into string representation.
+/// - Parameter algorithm: Algorithm to convert to the string representation.
+/// - Returns: String representation of selected algorithm, or `nil` in case the algorithm is not supported.
+static NSString * _AlgorithmToString(PowerAuthCoreAlgorithm algorithm)
+{
+    switch (algorithm) {
+        case PowerAuthCoreAlgorithm_EC_P384:
+            return @"EC_P384";
+        case PowerAuthCoreAlgorithm_EC_P384_ML_L3:
+            return @"EC_P384_ML_L3";
+        case PowerAuthCoreAlgorithm_EC_P384_ML_L5:
+            return @"EC_P384_ML_L5";
+        case PowerAuthCoreAlgorithm_LEGACY_P256:
+            return @"LEGACY_P256";
+        default:
+            return nil;
+    }
+}
+
+/// Convert `PowerAuthCoreAlgorithm` enumeration into the current string representation
+/// of the protocol version.
+/// - Parameter algorithm: Algorithm to convert to the protocol version.
+/// - Returns: Protocol version or `nil` in case the algorithm is not supported.
+static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
+{
+    switch (algorithm) {
+        case PowerAuthCoreAlgorithm_EC_P384_ML_L3:
+        case PowerAuthCoreAlgorithm_EC_P384_ML_L5:
+        case PowerAuthCoreAlgorithm_EC_P384:
+            return [PowerAuthCoreSession maxSupportedHttpProtocolVersion:PowerAuthCoreProtocolVersion_V4];
+        case PowerAuthCoreAlgorithm_LEGACY_P256:
+            return [PowerAuthCoreSession maxSupportedHttpProtocolVersion:PowerAuthCoreProtocolVersion_V3];
+        default:
+            return nil;
+    }
+}
+
 - (PA2WCSessionPacket*) prepareActivationStatusPacket
 {
-    NSString * activationIdentifier = self.sessionProvider.activationIdentifier;
     NSString * instanceIdentifier   = self.privateInstanceId;
-    
     if (!instanceIdentifier) {
         PowerAuthLog(@"PowerAuthSDK instance is not properly configured. PowerAuthConfiguration has no instanceId.");
+        return nil;
+    }
+    
+    // Extract both activation ID and the current algorithm in one locked block.
+    NSArray * sessionInfo = [self.sessionProvider readTaskWithSession:^NSArray* (PowerAuthCoreSession * session, NSError ** error) {
+        NSString * activationId = session.activationIdentifier;
+        NSNumber * algorithm = @(session.currentAlgorithm);
+        return activationId
+                ? @[ algorithm, activationId ]
+                : @[ algorithm ];
+    } error:nil];
+    if (!sessionInfo) {
+        // Lock failed
+        PowerAuthLog(@"PowerAuthSDK WatchConnectivity failed to acquire state of activation");
+        return nil;
+    }
+    
+    PowerAuthCoreAlgorithm algorithm = [sessionInfo[0] intValue];
+    BOOL hasActivation = sessionInfo.count > 1;
+    NSString * activationIdentifier = hasActivation ? sessionInfo[1] : nil;
+    NSString * powerAuthAlgorithm   = hasActivation ? _AlgorithmToString(algorithm) : nil;
+    NSString * powerAuthProtocol    = hasActivation ? _AlgorithmToProtocolVersion(algorithm) : nil;
+    
+    if (hasActivation && (!powerAuthAlgorithm || !powerAuthProtocol)) {
+        PowerAuthLog(@"PowerAuthSDK WatchConnectivity doesn't support PowerAuth algorithm %@", @(algorithm));
         return nil;
     }
     
@@ -46,6 +106,8 @@
 
     PA2WCSessionPacket_ActivationStatus * statusData = [[PA2WCSessionPacket_ActivationStatus alloc] init];
     statusData.activationId = activationIdentifier;
+    statusData.algorithm = powerAuthAlgorithm;
+    statusData.protocolVersion = powerAuthProtocol;
     statusData.command = PA2WCSessionPacket_CMD_SESSION_PUT;
     return [PA2WCSessionPacket packetWithData:statusData target:target];
 }

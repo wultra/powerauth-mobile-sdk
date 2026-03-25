@@ -121,26 +121,26 @@ static const char  _HeaderVersion = '2';
 #define _MagicSize   sizeof(_HeaderMagic)
 #define _HeaderSize  (_MagicSize + 1)
 
-static PA2WCSessionPacket * _DeserializePacket(NSData * data, Class payloadClass, BOOL *unknownData)
+static PA2WCSessionPacket * _DeserializePacket(NSData * data, Class payloadClass, BOOL* failure)
 {
     // Validate minimal length of data
     if (data.length < _HeaderSize + 12) {
-        *unknownData = YES;
+        *failure = NO;
         return nil;
     }
     // ... and the magic constant at the beginning
     const char * dataBytes = data.bytes;
     if (memcmp(dataBytes, _HeaderMagic, _MagicSize)) {
-        *unknownData = YES;
+        *failure = NO;
         return nil;
     }
     
     // We can process the response after this point.
-    *unknownData = NO;
     
     // Compare versions
     if (dataBytes[_MagicSize] != _HeaderVersion) {
         // Reply with a special packet with identical version as we received. This guarantees that another side is able to process this error.
+        *failure = YES;
         NSString * message = @"PA2WCSessionManager: PowerAuth Mobile SDK and Watch SDK are not compatible.";
         PA2WCSessionPacket * packet = [PA2WCSessionPacket packetWithError:PA2MakeError(PowerAuthErrorCode_WatchConnectivity, message)];
         packet.customPacketVersion = dataBytes[_MagicSize];
@@ -152,6 +152,7 @@ static PA2WCSessionPacket * _DeserializePacket(NSData * data, Class payloadClass
     NSError * error = nil;
     NSDictionary * root = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error], NSDictionary);
     if (!root) {
+        *failure = YES;
         return [PA2WCSessionPacket packetWithError:PA2MakeError(PowerAuthErrorCode_WatchConnectivity, @"PA2WCSessionManager: Invalid payload. Failed to deserialize JSON.")];
     }
     // Construct packet to further investigation
@@ -174,7 +175,12 @@ static PA2WCSessionPacket * _DeserializePacket(NSData * data, Class payloadClass
     } else {
         error = PA2MakeError(PowerAuthErrorCode_WatchConnectivity, @"PA2WCSessionManager: Invalid packet received.");
     }
-    return !error ? packet : [PA2WCSessionPacket packetWithError:error];
+    if (error) {
+        *failure = YES;
+        return [PA2WCSessionPacket packetWithError:error];
+    }
+    *failure = NO;
+    return packet;
 }
 
 static NSData * _SerializePacket(PA2WCSessionPacket * packet)
@@ -210,16 +216,16 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
     PA2WCSessionPacket * response = nil;
     NSString * errorMessage = nil;
     do {
-        BOOL unknownData;
-        PA2WCSessionPacket * packet = _DeserializePacket(data, Nil, &unknownData);
+        BOOL failure;
+        PA2WCSessionPacket * packet = _DeserializePacket(data, Nil, &failure);
         if (!packet) {
-            if (unknownData) {
-                // Quick return, we don't understand this data
-                return NO;
-            }
-            // Data looks targetting us, but cannot be decoded.
-            // Check whether PowerAuth2 & PowerAuth2ForWatch versions match.
-            errorMessage = @"PA2WCSessionManager: Wrong packet received.";
+            // Quick return, we don't understand this data
+            return NO;
+        }
+        if (failure) {
+            // Incoming packet processing raised an error. This is already the response.
+            response = packet;
+            errorMessage = response.error.localizedDescription;
             break;
         }
         //
@@ -334,15 +340,6 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
     [self sendImpl:packet withResponse:YES responseClass:responseClass completion:completion];
 }
 
-
-// Unguarded availability warning
-//
-// We're targetting SDK to 8.0+, so it's expected that compiler will scream about
-// usage of WCSession, which is available sice 9.0. The problematic part of code
-// begins when we acquire WCSession from self.validSession but we can ignore that,
-// because that property already checks whether the session is available on the
-// current system.
-
 - (void) sendImpl:(PA2WCSessionPacket*)request
      withResponse:(BOOL)withResponse
     responseClass:(Class)responseClass
@@ -389,15 +386,11 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
         if (sessionIsReachable) {
             [session sendMessageData:requestData replyHandler:^(NSData * replyMessageData) {
                 //
-                BOOL unknownData = YES;
-                PA2WCSessionPacket * responsePacket = _DeserializePacket(replyMessageData, responseClass, &unknownData);
+                BOOL failure;
+                PA2WCSessionPacket * responsePacket = _DeserializePacket(replyMessageData, responseClass, &failure);
                 NSError * responseError = responsePacket.error;
                 if (!responsePacket) {
-                    if (unknownData) {
-                        responseError = PA2MakeError(PowerAuthErrorCode_WatchConnectivity, @"PA2WCSessionManager: Received response is in unknown data format.");
-                    } else {
-                        responseError = PA2MakeError(PowerAuthErrorCode_WatchConnectivity, @"PA2WCSessionManager: Cannot process received response.");
-                    }
+                    responseError = PA2MakeError(PowerAuthErrorCode_WatchConnectivity, @"PA2WCSessionManager: Received response is in unknown data format.");
                 }
                 if (responseError) {
                     responsePacket = nil;

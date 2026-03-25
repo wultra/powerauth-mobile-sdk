@@ -956,7 +956,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
 }
 
-+ (NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
++ (nullable NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
 {
     try {
         return cc7::objc::CopyToNSString(ProtocolVersion_GetHttpHeaderVersion(static_cast<ProtocolVersion>(protocolVersion)));

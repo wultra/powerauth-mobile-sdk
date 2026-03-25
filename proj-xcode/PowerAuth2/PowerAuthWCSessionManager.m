@@ -75,7 +75,7 @@ static WCSession * _ValidateSession(WCSession * session);
 #pragma mark - Thread safety
 
 /**
- Prepares runtime data required by this class. We're initializing that objects only
+ Prepares runtime data required by this class. We're initializing those objects only
  on demand, when the first token is being accessed.
  */
 static void _prepareInstance(PowerAuthWCSessionManager * obj)
@@ -147,7 +147,7 @@ static PA2WCSessionPacket * _DeserializePacket(NSData * data, Class payloadClass
         return packet;
     }
     
-    // ... the rest of data should contains valid JSON
+    // ... the rest of data should contain valid JSON
     NSData * jsonData = [data subdataWithRange:NSMakeRange(_HeaderSize, data.length - _HeaderSize)];
     NSError * error = nil;
     NSDictionary * root = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error], NSDictionary);
@@ -155,7 +155,7 @@ static PA2WCSessionPacket * _DeserializePacket(NSData * data, Class payloadClass
         *failure = YES;
         return [PA2WCSessionPacket packetWithError:PA2MakeError(PowerAuthErrorCode_WatchConnectivity, @"PA2WCSessionManager: Invalid payload. Failed to deserialize JSON.")];
     }
-    // Construct packet to further investigation
+    // Construct packet for further investigation
     PA2WCSessionPacket * packet = [[PA2WCSessionPacket alloc] initWithDictionary:root];
     if (packet) {
         if (payloadClass != Nil && !packet.error) {
@@ -187,12 +187,12 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 {
     NSDictionary * dict = [packet toDictionary];
     if (!dict) {
-        PowerAuthLog(@"PA2WCSessionManager: Cannon serialize packet to dictionary.");
+        PowerAuthLog(@"PA2WCSessionManager: Cannot serialize packet to dictionary.");
         return nil;
     }
     NSData * JSONData = [NSJSONSerialization dataWithJSONObject:dict options:0 error:NULL];
     if (!JSONData) {
-        PowerAuthLog(@"PA2WCSessionManager: Cannon serialize packet to JSON.");
+        PowerAuthLog(@"PA2WCSessionManager: Cannot serialize packet to JSON.");
         return nil;
     }
     // Prepare the packet version. If not set, then use the default version.
@@ -370,7 +370,7 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
     // Get a valid session
     WCSession * session = self.validSession;
     if (!session) {
-        // On IOS, switch to debug build and check log what's the reason of unavailability.
+        // On iOS, switch to debug build and check the log for the reason of unavailability.
         // On watchOS, the session is typically not activated
         PowerAuthLog(@"PA2WCSessionManager: WCSession is currently not available for messaging.");
         if (completion) {
@@ -444,7 +444,7 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 
 static WCSession * _PrepareSession(void)
 {
-    // On watcOS, we can always return defaultSession.
+    // On watchOS, we can always return defaultSession.
     return [WCSession defaultSession];
 }
 

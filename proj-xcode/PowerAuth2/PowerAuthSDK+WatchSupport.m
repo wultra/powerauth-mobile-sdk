@@ -69,25 +69,22 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
     }
 }
 
-- (PA2WCSessionPacket*) prepareActivationStatusPacket
+- (PA2WCSessionPacket*) prepareActivationStatusPacket:(NSError**)error
 {
+    // Get instance identifier. It's always non-empty, due to validations in PowerAuthSDK object construction.
     NSString * instanceIdentifier   = self.privateInstanceId;
-    if (!instanceIdentifier) {
-        PowerAuthLog(@"PowerAuthSDK instance is not properly configured. PowerAuthConfiguration has no instanceId.");
-        return nil;
-    }
     
     // Extract both activation ID and the current algorithm in one locked block.
+    NSError * localError = nil;
     NSArray * sessionInfo = [self.sessionProvider readTaskWithSession:^NSArray* (PowerAuthCoreSession * session, NSError ** error) {
         NSString * activationId = session.activationIdentifier;
         NSNumber * algorithm = @(session.currentAlgorithm);
         return activationId
                 ? @[ algorithm, activationId ]
                 : @[ algorithm ];
-    } error:nil];
-    if (!sessionInfo) {
-        // Lock failed
-        PowerAuthLog(@"PowerAuthSDK WatchConnectivity failed to acquire state of activation");
+    } error:&localError];
+    if (localError) {
+        PA2SetErrorWithReason(error, PowerAuthErrorCode_WatchConnectivity, @"Failed to acquire lock to access the session data", localError);
         return nil;
     }
     
@@ -98,7 +95,9 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
     NSString * powerAuthProtocol    = hasActivation ? _AlgorithmToProtocolVersion(algorithm) : nil;
     
     if (hasActivation && (!powerAuthAlgorithm || !powerAuthProtocol)) {
-        PowerAuthLog(@"PowerAuthSDK WatchConnectivity doesn't support PowerAuth algorithm %@", @(algorithm));
+        // Internal error, please update enum conversion routines.
+        NSString * message = [NSString stringWithFormat:@"PowerAuthSDK WatchConnectivity doesn't support PowerAuth algorithm %@", @(algorithm)];
+        PA2SetError(error, PowerAuthErrorCode_Other, message);
         return nil;
     }
     
@@ -119,8 +118,10 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
     if (manager.validSession == nil) {
         return NO;
     }
-    PA2WCSessionPacket * packet = [self prepareActivationStatusPacket];
+    NSError * localError = nil;
+    PA2WCSessionPacket * packet = [self prepareActivationStatusPacket:&localError];
     if (!packet) {
+        PowerAuthLog(@"PowerAuthSDK WatchConnectivity failed to prepare packet: %@", localError);
         return NO;
     }
     [manager sendPacket:packet];
@@ -130,7 +131,8 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
 
 - (void) sendActivationStatusToWatchWithCompletion:(void(^ _Nonnull)(NSError * _Nullable error))completion
 {
-    PA2WCSessionPacket * packet = [self prepareActivationStatusPacket];
+    NSError * localError = nil;
+    PA2WCSessionPacket * packet = [self prepareActivationStatusPacket:&localError];
     if (packet) {
         [[PowerAuthWCSessionManager sharedInstance] sendPacketWithResponse:packet responseClass:[PA2WCSessionPacket_Success class] completion:^(PA2WCSessionPacket *response, NSError *error) {
             if (completion) {
@@ -142,7 +144,7 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
     } else {
         if (completion) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                completion(PA2MakeError(PowerAuthErrorCode_WatchConnectivity,  @"PowerAuthSDK instance is not properly configured. PowerAuthConfiguration has no instanceId."));
+                completion(localError);
             });
         }
     }
@@ -199,7 +201,7 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
 
 - (PA2WCSessionPacket*) processStatusResponse:(PA2WCSessionPacket*)packet
 {
-    NSString * errorMessage = nil;
+    NSError * localError = nil;
     PA2WCSessionPacket * response = nil;
     do {
         // Deserialize payload & instanceId
@@ -209,28 +211,32 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
             NSString * command = status.command;
             if ([command isEqualToString:PA2WCSessionPacket_CMD_SESSION_GET]) {
                 // watch App requesting status of this object.
-                response = [self prepareActivationStatusPacket];
-                if (!packet.requestWithoutReplyHandler) {
-                    // Reply handler is present. The target should be modified.
-                    response.target = PA2WCSessionPacket_RESPONSE_TARGET;
-                } else {
-                    // Getting status without response handler. The target is already
-                    // valid from 'prepareActivationStatusPacket' method, so just send
-                    // that response back to watch.
-                    response.sendLazyResponseIfPossible = YES;
+                response = [self prepareActivationStatusPacket:&localError];
+                if (response) {
+                    if (!packet.requestWithoutReplyHandler) {
+                        // Reply handler is present. The target should be modified.
+                        response.target = PA2WCSessionPacket_RESPONSE_TARGET;
+                    } else {
+                        // Getting status without response handler. The target is already
+                        // valid from 'prepareActivationStatusPacket' method, so just send
+                        // that response back to watch.
+                        response.sendLazyResponseIfPossible = YES;
+                    }
                 }
                 //
             } else {
-                errorMessage = [NSString stringWithFormat:@"PowerAuthSDK+WatchSupport: Unsupported command '%@'. Target: %@", command, packet.target];
+                NSString * message = [NSString stringWithFormat:@"PowerAuthSDK+WatchSupport: Unsupported command '%@'. Target: %@", command, packet.target];
+                localError = PA2MakeError(PowerAuthErrorCode_WatchConnectivity, message);
             }
         } else {
-            errorMessage = [NSString stringWithFormat:@"PowerAuthSDK+WatchSupport: Received packet has invalid data. Target: %@", packet.target];
+            NSString * message = [NSString stringWithFormat:@"PowerAuthSDK+WatchSupport: Received packet has invalid data. Target: %@", packet.target];
+            localError = PA2MakeError(PowerAuthErrorCode_WatchConnectivity, message);
         }
     } while (false);
     
-    if (errorMessage) {
+    if (localError) {
         // Reply packet with error.
-        response = [PA2WCSessionPacket packetWithError:PA2MakeError(PowerAuthErrorCode_WatchConnectivity, errorMessage)];
+        response = [PA2WCSessionPacket packetWithError:localError];
     }
     return response;
 }

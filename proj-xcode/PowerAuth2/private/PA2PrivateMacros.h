@@ -61,6 +61,8 @@ PA2_EXTERN_C id PA2CastToProtoImpl(id object, Protocol * desiredProtocol);
 PA2_EXTERN_C NSError * PA2WrapError(NSError * error, NSError** out_error);
 /// Returns NSError with PA2ErrorDomain with given errorCode & message.
 PA2_EXTERN_C NSError * PA2MakeError(PowerAuthErrorCode errorCode, NSString * message);
+/// Returns NSError with PA2ErrorDomain with given errorCode & message and underlying reason of failure.
+PA2_EXTERN_C NSError * PA2MakeErrorWithReason(PowerAuthErrorCode errorCode, NSString * message, NSError * reason);
 /// Returns NSError with PA2ErrorDomain with given errorCode, message and additional info.
 PA2_EXTERN_C NSError * PA2MakeErrorInfo(NSInteger errorCode, NSString * message, NSDictionary * info);
 /// Returns the default textual representation for given error code.
@@ -74,6 +76,12 @@ PA2_EXTERN_C void PA2DictionarySafeSet(NSMutableDictionary * dict, NSString * ke
 #define PA2SetError(errorPtr, errorCode, message)       \
     if (errorPtr) {                                     \
         *errorPtr = PA2MakeError(errorCode, message);   \
+    }
+
+/// Create NSError with using PA2MakeErrorWithReason function and set it to optional errorPtr, which is type of `NSError**`.
+#define PA2SetErrorWithReason(errorPtr, errorCode, message, reason)     \
+    if (errorPtr) {                                                     \
+        *errorPtr = PA2MakeErrorWithReason(errorCode, message, reason); \
     }
 
 /// Set existing NSError into optional errorPtr, which is type of `NSError**`.

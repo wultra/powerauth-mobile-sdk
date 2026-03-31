@@ -619,6 +619,7 @@
 
 /// Returns textual representation for given protocol version. For example, for `PowerAuthCoreProtocolVersion_V3`
 /// returns "3.3". You can use `PowerAuthCoreProtocolVersion_NA` to get the value for the latest supported version.
-+ (nonnull NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion;
+/// If `nil` is returned, then protocol version is not supported.
++ (nullable NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion;
 
 @end

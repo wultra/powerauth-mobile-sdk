@@ -18,7 +18,7 @@
 
 #import "PA2WCSessionPacket_Constants.h"
 
-PA2_NO_EXPORT NSString * const PA2WCSessionPacket_USER_INFO_KEY       = @"io.getlime.PowerAuth.PA2WCSessionPacket";
+PA2_NO_EXPORT NSString * const PA2WCSessionPacket_USER_INFO_KEY       = @"com.wultra.PowerAuth.PA2WCSessionPacket";
 
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_RESPONSE_TARGET     = @"*";
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_SESSION_TARGET      = @"session:";
@@ -31,6 +31,8 @@ PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_ERROR_MSG       = @"errorM
 
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_ACTIVATION_CMD  = @"activationCmd";
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_ACTIVATION_ID   = @"activationId";
+PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_ALGORITHM_ID    = @"activationAlg";
+PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_PROTO_VERSION   = @"activationProto";
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_CMD_SESSION_GET     = @"get_session";
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_CMD_SESSION_PUT     = @"put_session";
 

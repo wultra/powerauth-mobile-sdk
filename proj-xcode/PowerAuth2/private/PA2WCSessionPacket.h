@@ -86,6 +86,12 @@
  */
 @property (nonatomic, assign) BOOL sendLazyResponseIfPossible;
 
+/**
+ Contains `'\0'` by default and if set, then this is a packet response for unsupported
+ protocol version.
+ */
+@property (nonatomic, assign) char customPacketVersion;
+
 // Easy accessors
 
 /**

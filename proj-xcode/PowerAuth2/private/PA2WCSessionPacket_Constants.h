@@ -38,6 +38,8 @@ PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_KEY_ERROR_MSG;
 // Constants for serializing activation status
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_KEY_ACTIVATION_CMD;
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_KEY_ACTIVATION_ID;
+PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_KEY_ALGORITHM_ID;
+PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_KEY_PROTO_VERSION;
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_CMD_SESSION_GET;
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_CMD_SESSION_PUT;
 

@@ -24,6 +24,7 @@
 #import "PowerAuthWCSessionManager+Private.h"
 #import "PA2WCSessionPacket_ActivationStatus.h"
 #import "PA2WCSessionPacket_TokenData.h"
+#import "PA2WCSessionPacket_TimeSync.h"
 #import "PA2WCSessionPacket_Success.h"
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateMacros.h"
@@ -174,10 +175,14 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
     if ([target isEqualToString:tokenTarget]) {
         return YES;
     }
+    NSString * timeSyncTarget = [PA2WCSessionPacket_TIME_SERVICE_TARGET stringByAppendingString:instanceId];
+    if ([target isEqualToString:timeSyncTarget]) {
+        return YES;
+    }
     return NO;
 }
 
-- (PA2WCSessionPacket*) sessionManager:(PowerAuthWCSessionManager*)manager responseForPacket:(PA2WCSessionPacket*)packet
+- (PA2WCSessionDataHandlerResponse*) sessionManager:(PowerAuthWCSessionManager*)manager responseForPacket:(PA2WCSessionPacket*)packet
 {
     // Handle packet received from iPhone
     NSString * target = packet.target;
@@ -191,15 +196,18 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
     if ([target isEqualToString:tokenTarget]) {
         return [self processTokenResponse:packet];
     }
-    
+    NSString * timeSyncTarget = [PA2WCSessionPacket_TIME_SERVICE_TARGET stringByAppendingString:instanceId];
+    if ([target isEqualToString:timeSyncTarget]) {
+        return [self processTimeServiceResponse:packet];
+    }
     // Internal error. We should always process packets delivered to this method.
     NSError * error = PA2MakeError(PowerAuthErrorCode_WatchConnectivity, @"PA2WatchStatusService: Internal error: Packet cannot be processed here.");
-    return [PA2WCSessionPacket packetWithError:error];
+    return [PA2WCSessionDataHandlerResponse responseWithError:error];
 }
 
 #pragma mark -
 
-- (PA2WCSessionPacket*) processStatusResponse:(PA2WCSessionPacket*)packet
+- (PA2WCSessionDataHandlerResponse*) processStatusResponse:(PA2WCSessionPacket*)packet
 {
     NSError * localError = nil;
     PA2WCSessionPacket * response = nil;
@@ -238,12 +246,12 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
         // Reply packet with error.
         response = [PA2WCSessionPacket packetWithError:localError];
     }
-    return response;
+    return [PA2WCSessionDataHandlerResponse responseWithPacket:response];
 }
 
 
 
-- (PA2WCSessionPacket*) processTokenResponse:(PA2WCSessionPacket*)packet
+- (PA2WCSessionDataHandlerResponse*) processTokenResponse:(PA2WCSessionPacket*)packet
 {
     NSString * errorMessage = nil;
     PA2WCSessionPacket * response = nil;
@@ -287,7 +295,48 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
         // Reply packet with error.
         response = [PA2WCSessionPacket packetWithError:PA2MakeError(PowerAuthErrorCode_WatchConnectivity, errorMessage)];
     }
-    return response;
+    return [PA2WCSessionDataHandlerResponse responseWithPacket:response];
+}
+
+- (PA2WCSessionDataHandlerResponse*) processTimeServiceResponse:(PA2WCSessionPacket*)packet
+{
+    PA2WCSessionPacket_TimeSync * data = [[PA2WCSessionPacket_TimeSync alloc] initWithDictionary:packet.sourceData];
+    if (![data validatePacketData]) {
+        return [PA2WCSessionDataHandlerResponse responseWithErrorMessage:
+                [NSString stringWithFormat:@"PowerAuthSDK+WatchSupport: Received packet has invalid data. Target: %@", packet.target]];
+    }
+    if (![data.command isEqualToString:PA2WCSessionPacket_CMD_TIME_SERVICE_GET]) {
+        return [PA2WCSessionDataHandlerResponse responseWithErrorMessage:
+                [NSString stringWithFormat:@"PowerAuthSDK+WatchSupport: Unsupported command '%@'. Target: %@", data.command, packet.target]];
+    }
+    // Seems this is legit request and we can synchronize time or send the time delta back to the watchOS
+    id<PowerAuthTimeSynchronizationService> timeService = self.timeSynchronizationService;
+    if (timeService.isTimeSynchronized) {
+        // Time is synchronized, send data back to watchOS immediately
+        return [PA2WCSessionDataHandlerResponse responseWithPacket:[self prepareTimeServiceResponse:timeService]];
+    } else {
+        // Time is not synchronized, this has to be processed asynchronously.
+        PA2WCSessionDataHandlerResponse * response = [PA2WCSessionDataHandlerResponse asyncResponse];
+        [timeService synchronizeTimeWithCallback:^(NSError * _Nullable error) {
+            if (error) {
+                [response completeWithError:error];
+            } else {
+                [response completeWithResponsePacket:[self prepareTimeServiceResponse:self.timeSynchronizationService]];
+            }
+        } callbackQueue:nil];
+        return response;
+    }
+}
+
+- (PA2WCSessionPacket*) prepareTimeServiceResponse:(id<PowerAuthTimeSynchronizationService>)timeService
+{
+    PA2WCSessionPacket_TimeSync * data = [[PA2WCSessionPacket_TimeSync alloc] init];
+    data.command = PA2WCSessionPacket_CMD_TIME_SERVICE_PUT;
+    data.localTime = timeService.currentTime;
+    data.localTimeAdjustment = timeService.localTimeAdjustment;
+    data.localTimeAdjustmentPrecision = timeService.localTimeAdjustmentPrecision;
+    return [PA2WCSessionPacket packetWithData:data
+                                       target:PA2WCSessionPacket_TIME_SERVICE_TARGET];
 }
 
 @end

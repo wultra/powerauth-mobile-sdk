@@ -23,6 +23,8 @@ PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_USER_INFO_KEY;
 
 // value for "target" property, when response is transmitted.
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_RESPONSE_TARGET;
+// Prefix for all time service related messages.
+PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_TIME_SERVICE_TARGET;
 // Prefix for all session related messages
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_SESSION_TARGET;
 // Prefix for all token related messages
@@ -51,6 +53,15 @@ PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_KEY_TOKEN_NA;
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_CMD_TOKEN_GET;
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_CMD_TOKEN_PUT;
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_CMD_TOKEN_REMOVE;
+
+// Constants for serializing service related data
+PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_KEY_TIME_SERVICE_CMD;
+PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_KEY_TIME_SERVICE_LOCAL;
+PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_KEY_TIME_SERVICE_DELTA;
+PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_KEY_TIME_SERVICE_PRECISION;
+PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_CMD_TIME_SERVICE_GET;
+PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_CMD_TIME_SERVICE_PUT;
+
 
 // Generic success
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_KEY_SUCCESS;

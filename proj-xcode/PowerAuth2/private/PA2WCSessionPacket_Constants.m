@@ -23,6 +23,9 @@ PA2_NO_EXPORT NSString * const PA2WCSessionPacket_USER_INFO_KEY       = @"com.wu
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_RESPONSE_TARGET     = @"*";
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_SESSION_TARGET      = @"session:";
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_TOKEN_TARGET        = @"token:";
+PA2_NO_EXPORT NSString * const PA2WCSessionPacket_TIME_SERVICE_TARGET = @"time:";
+
+PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_SUCCESS         = @"successCode";
 
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_TARGET          = @"target";
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_ERROR_CODE      = @"errorCode";
@@ -44,4 +47,9 @@ PA2_NO_EXPORT NSString * const PA2WCSessionPacket_CMD_TOKEN_GET       = @"get_to
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_CMD_TOKEN_PUT       = @"put_token";
 PA2_NO_EXPORT NSString * const PA2WCSessionPacket_CMD_TOKEN_REMOVE    = @"remove_token";
 
-PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_SUCCESS         = @"successCode";
+PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_TIME_SERVICE_CMD       = @"timeCmd";
+PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_TIME_SERVICE_LOCAL     = @"timeLocal";
+PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_TIME_SERVICE_DELTA     = @"timeDelta";
+PA2_NO_EXPORT NSString * const PA2WCSessionPacket_KEY_TIME_SERVICE_PRECISION = @"timePrecision";
+PA2_NO_EXPORT NSString * const PA2WCSessionPacket_CMD_TIME_SERVICE_GET       = @"get_time";
+PA2_NO_EXPORT NSString * const PA2WCSessionPacket_CMD_TIME_SERVICE_PUT       = @"put_time";

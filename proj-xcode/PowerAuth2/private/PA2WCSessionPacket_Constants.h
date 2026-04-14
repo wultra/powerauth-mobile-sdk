@@ -18,7 +18,7 @@
 
 #import <PowerAuth2/PowerAuthMacros.h>
 
-// Key used in userInfo, transmitted over the
+// Key used in userInfo, transmitted over the WatchConnectivity.
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_USER_INFO_KEY;
 
 // value for "target" property, when response is transmitted.

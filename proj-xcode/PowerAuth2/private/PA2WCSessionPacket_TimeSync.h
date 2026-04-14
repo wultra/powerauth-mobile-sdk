@@ -23,7 +23,7 @@
 /// Supported commands:
 /// - PA2WCSessionPacket_CMD_TIME_SERVICE_GET - when watchOS is asking for synchronized time.
 ///   - response is PA2WCSessionPacket_CMD_TIME_SERVICE_PUT
-/// - PA2WCSessionPacket_CMD_TIME_SERVICE_PUT - when IOS wants to send information about synchronized time to watchOS.
+/// - PA2WCSessionPacket_CMD_TIME_SERVICE_PUT - when iOS wants to send information about synchronized time to watchOS.
 ///   - response is "Success" packet
 @property (nonatomic, strong) NSString * command;
 

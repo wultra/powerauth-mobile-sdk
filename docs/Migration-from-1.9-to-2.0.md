@@ -91,7 +91,7 @@ Notable changes on Android:
     - `Builder.enableFallbackToSharedBiometryKey()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
 
   - `PowerAuthToken` class:
-    - `generateHeader()` - use `generateTokenHeader()` as a replacement. Note that you should use `PowerAuthTokenStore.generateAuthenticationHeader()` to make sure the PowerAuth SDK synchronize the time with the server properly.
+    - `generateHeader()` - is not recommended to use. You should migrate your code to use `PowerAuthTokenStore.generateAuthenticationHeader()` to make sure the PowerAuth SDK synchronize the time with the server properly.
 
   - `PowerAuthAuthorizationHttpHeader` is deprecated, use functions that provide `PowerAuthHttpHeader` instead.
 
@@ -276,15 +276,35 @@ Notable changes on iOS:
 
 If you're using [Activation Data Sharing](PowerAuth-SDK-for-iOS.md#share-activation-data) feature, then please refer to the [Upgrade from older SDKs](PowerAuth-SDK-for-iOS.md#upgrade-from-older-sdks) section for more information.
 
+## watchOS
+
+Notable changes on watchOS:
+
+- The library now contains statically linked OpenSSL crypto library and therefore the final module is significantly bigger.
+
+### API changes
+
+- The following methods or properties are now deprecated or changed:
+  - `PowerAuthWatchSDK` class
+     - Class constructor now throws error in case of initialization failure.
+
+  - `PowerAuthConfiguration` class
+     - Class constructor taking `baseEndpointUrl` and `configuration` parameters is now deprecated. Use constructor taking only `instanceId`.
+     - `baseEndpointUrl` property is now deprecated.
+     - `configuration` property is now deprecated.
+
+  - `PowerAuthAuthorizationHttpHeader` is deprecated and replaced by `PowerAuthHttpHeader` class
+
+  - `PowerAuthSharingConfiguration` was removed from the library (unused).
+
+  - `PowerAuthAuthentication` object now supports only a possession factor.
+
+  - `PowerAuthToken` class:
+    - `generateHeader()` - is not recommended to use. You migrate your code to use `PowerAuthTokenStore.generateAuthenticationHeader()` to make sure the PowerAuth SDK for watchOS synchronize the time with the server properly.
+
+
+  
+
 ## iOS & tvOS App Extensions
 
 - The `PowerAuth2ForExtensions` library is now deprecated and no longer supported and maintained. You can use full feature PowerAuth mobile SDK as a replacement in your app extension.
-
-## Known Bugs
-
-The PowerAuth SDKs for watchOS, do not use time synchronized with the server for token-based authentication. To avoid any compatibility issues with the server, the authentication headers generated in your App Extension or on watchOS still use the older protocol version 3.1. This issue will be fixed in a future SDK update.
-
-You can watch the following related issues:
-
-- [wultra/powerauth-mobile-sdk#551](https://github.com/wultra/powerauth-mobile-sdk/issues/551)
-- [wultra/powerauth-mobile-watch-sdk#7](https://github.com/wultra/powerauth-mobile-watch-sdk/issues/7)

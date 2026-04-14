@@ -57,25 +57,39 @@
 
 - (void) setCompletionCallback:(void (^)(PA2WCSessionPacket *))completionCallback
 {
-    if (_delayedCompletion && !_completionCallback) {
-        if (_responsePacket) {
-            // Response is already known
-            completionCallback(_responsePacket);
-        } else {
-            // Otherwise keep callback for later
-            _completionCallback = completionCallback;
+    PA2WCSessionPacket * packetToReport = nil;
+    @synchronized (self) {
+        if (_delayedCompletion && !_completionCallback) {
+            if (_responsePacket) {
+                // Response is already known
+                packetToReport = packetToReport;
+            } else {
+                // Otherwise keep callback for later
+                _completionCallback = completionCallback;
+            }
         }
+    }
+    // Complete outside of locked section.
+    if (packetToReport && completionCallback) {
+        completionCallback(packetToReport);
     }
 }
 
 - (void) completeWithResponsePacket:(PA2WCSessionPacket *)responsePacket
 {
-    if (_delayedCompletion && !_responsePacket) {
-        _responsePacket = responsePacket;
-        if (_completionCallback) {
-            _completionCallback(responsePacket);
-            _completionCallback = nil;
+    void(^completionCallback)(PA2WCSessionPacket * response) = nil;
+    @synchronized (self) {
+        if (_delayedCompletion && !_responsePacket) {
+            _responsePacket = responsePacket;
+            if (_completionCallback) {
+                completionCallback = _completionCallback;
+                _completionCallback = nil;
+            }
         }
+    }
+    // Complete outside of locked section.
+    if (completionCallback) {
+        completionCallback(responsePacket);
     }
 }
 

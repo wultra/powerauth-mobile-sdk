@@ -246,6 +246,7 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
             response = [PA2WCSessionDataHandlerResponse responseWithErrorMessage:
                             [NSString stringWithFormat:@"PA2WCSessionManager: Failed to create response for target '%@'.", target]];
         }
+        
     } while (false);
     
     // Send response back, if packet is already present
@@ -266,8 +267,10 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 {
     if (replyHandler) {
         replyHandler(_SerializePacket(responsePacket));
-    } else {
+    } else if (responsePacket.sendLazyResponseIfPossible) {
         [self sendPacket:responsePacket];
+    } else {
+        PowerAuthLog(@"PowerAuthWCSessionManager: Dropping response for fire-and-forget request because no reply handler is available.");
     }
 }
 

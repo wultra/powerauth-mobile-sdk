@@ -29,10 +29,10 @@ static inline NSTimeInterval _ValueToInterval(id value)
 
 static inline BOOL _IsValidInterval(NSTimeInterval interval, BOOL allow_negative)
 {
-    if (isnan(interval)) {
-        return NO;
+    if (isfinite(interval)) {
+        return allow_negative || interval >= 0.0;
     }
-    return allow_negative || interval >= 0.0;
+    return NO;
 }
 
 - (id) initWithDictionary:(NSDictionary *)dictionary

@@ -336,7 +336,7 @@ static NSString * _AlgorithmToProtocolVersion(PowerAuthCoreAlgorithm algorithm)
     data.localTimeAdjustment = timeService.localTimeAdjustment;
     data.localTimeAdjustmentPrecision = timeService.localTimeAdjustmentPrecision;
     return [PA2WCSessionPacket packetWithData:data
-                                       target:PA2WCSessionPacket_TIME_SERVICE_TARGET];
+                                       target:PA2WCSessionPacket_RESPONSE_TARGET];
 }
 
 @end

@@ -58,16 +58,24 @@
 - (void) setCompletionCallback:(void (^)(PA2WCSessionPacket *))completionCallback
 {
     if (_delayedCompletion && !_completionCallback) {
-        _completionCallback = completionCallback;
+        if (_responsePacket) {
+            // Response is already known
+            completionCallback(_responsePacket);
+        } else {
+            // Otherwise keep callback for later
+            _completionCallback = completionCallback;
+        }
     }
 }
 
 - (void) completeWithResponsePacket:(PA2WCSessionPacket *)responsePacket
 {
-    if (_delayedCompletion && _completionCallback) {
+    if (_delayedCompletion && !_responsePacket) {
         _responsePacket = responsePacket;
-        _completionCallback(responsePacket);
-        _completionCallback = nil;
+        if (_completionCallback) {
+            _completionCallback(responsePacket);
+            _completionCallback = nil;
+        }
     }
 }
 

@@ -143,27 +143,27 @@ public:
         ccstAssertTrue(result);
         ccstAssertEqual(p1.length(), 10);
         ccstAssertEqual(p1.passwordData().size(), 11);
-        ccstAssertTrue(p1.passwordData() == cc7::MakeRange(u8"ΗelloWorld"));
+        ccstAssertTrue(p1.passwordData() == cc7::MakeRange("ΗelloWorld"));
         
         result = p1.removeCharacter(0);
         ccstAssertTrue(result);
-        ccstAssertTrue(p1.passwordData() == cc7::MakeRange(u8"elloWorld"));
+        ccstAssertTrue(p1.passwordData() == cc7::MakeRange("elloWorld"));
         ccstAssertEqual(p1.length(), 9);
         result = p1.removeLastCharacter();
         ccstAssertTrue(result);
-        ccstAssertTrue(p1.passwordData() == cc7::MakeRange(u8"elloWorl"));
+        ccstAssertTrue(p1.passwordData() == cc7::MakeRange("elloWorl"));
         ccstAssertEqual(p1.length(), 8);
         result = p1.insertCharacter(0x206, 1);
         ccstAssertTrue(result);
-        ccstAssertTrue(p1.passwordData() == cc7::MakeRange(u8"eȆlloWorl"));
+        ccstAssertTrue(p1.passwordData() == cc7::MakeRange("eȆlloWorl"));
         ccstAssertEqual(p1.length(), 9);
         result = p1.removeCharacter(5);
         ccstAssertTrue(result);
-        ccstAssertTrue(p1.passwordData() == cc7::MakeRange(u8"eȆlloorl"));
+        ccstAssertTrue(p1.passwordData() == cc7::MakeRange("eȆlloorl"));
         ccstAssertEqual(p1.length(), 8);
         result = p1.removeCharacter(1);
         ccstAssertTrue(result);
-        ccstAssertTrue(p1.passwordData() == cc7::MakeRange(u8"elloorl"));
+        ccstAssertTrue(p1.passwordData() == cc7::MakeRange("elloorl"));
         ccstAssertEqual(p1.length(), 7);
     }
     

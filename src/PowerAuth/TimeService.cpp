@@ -16,6 +16,7 @@
 
 #include <PowerAuth/TimeService.h>
 #include <cc7/Time.h>
+#include <math.h>
 
 #include "request/RequestBuilder.h"
 #include "Context.h"

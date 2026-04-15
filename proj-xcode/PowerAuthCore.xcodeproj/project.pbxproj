@@ -366,6 +366,27 @@
 			remoteGlobalIDString = BF6ADD6724C84C0C001B3E5E;
 			remoteInfo = "PowerAuthCoreLib-tvos";
 		};
+		BF6414862F8FB6C2000C6512 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BFB42C8B2F6A9F8C00AB063D;
+			remoteInfo = "cc7-watchos";
+		};
+		BF6414882F8FB6C2000C6512 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BFB42CB92F6AA15300AB063D;
+			remoteInfo = "cc7tests-watchos";
+		};
+		BF64148A2F8FB6C2000C6512 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BFB42CC92F6AA50900AB063D;
+			remoteInfo = "CC7TestsWrapper-watchos";
+		};
 		BF734A842485250D001F46BA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
@@ -1239,12 +1260,15 @@
 				BFB47D4520753444008A6A52 /* libcc7-ios.a */,
 				BF734A852485250D001F46BA /* libcc7-tvos.a */,
 				BF31606D27E88D7400EDA287 /* libcc7-macos.a */,
+				BF6414872F8FB6C2000C6512 /* libcc7-watchos.a */,
 				BFB47D4720753444008A6A52 /* libcc7tests-ios.a */,
 				BF734A892485250D001F46BA /* libcc7tests-tvos.a */,
 				BF31606F27E88D7400EDA287 /* libcc7tests-macos.a */,
+				BF6414892F8FB6C2000C6512 /* libcc7tests-watchos.a */,
 				BFB47D4920753444008A6A52 /* CC7TestsWrapper-ios.xctest */,
 				BF734A8D2485250D001F46BA /* CC7TestsWrapper-tvos.xctest */,
 				BF31607127E88D7400EDA287 /* CC7TestsWrapper-macos.xctest */,
+				BF64148B2F8FB6C2000C6512 /* CC7TestsWrapper-watchos.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1488,7 +1512,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2630;
+				LastUpgradeCheck = 2640;
 				ORGANIZATIONNAME = "Wultra s.r.o.";
 				TargetAttributes = {
 					BF3ACC842073DBA500B8107E = {
@@ -1556,6 +1580,27 @@
 			fileType = wrapper.cfbundle;
 			path = "CC7TestsWrapper-macos.xctest";
 			remoteRef = BF31607027E88D7400EDA287 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BF6414872F8FB6C2000C6512 /* libcc7-watchos.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcc7-watchos.a";
+			remoteRef = BF6414862F8FB6C2000C6512 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BF6414892F8FB6C2000C6512 /* libcc7tests-watchos.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcc7tests-watchos.a";
+			remoteRef = BF6414882F8FB6C2000C6512 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BF64148B2F8FB6C2000C6512 /* CC7TestsWrapper-watchos.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "CC7TestsWrapper-watchos.xctest";
+			remoteRef = BF64148A2F8FB6C2000C6512 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		BF734A852485250D001F46BA /* libcc7-tvos.a */ = {
@@ -1989,7 +2034,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++23";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -2021,7 +2066,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = c17;
+				GCC_C_LANGUAGE_STANDARD = c23;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -2060,7 +2105,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++23";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -2092,7 +2137,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = c17;
+				GCC_C_LANGUAGE_STANDARD = c23;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;

@@ -20,6 +20,7 @@
 #include <cc7/BaseObject.h>
 #include <cc7/json/Json.h>
 #include <PowerAuth/Exception.h>
+#include <mutex>
 
 namespace powerAuth {
 

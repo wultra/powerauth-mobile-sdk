@@ -16,6 +16,7 @@
 
 #include <PowerAuth/AuthenticationService.h>
 #include <cc7/utils/URLEncoding.h>
+#include <algorithm>
 
 namespace powerAuth {
 

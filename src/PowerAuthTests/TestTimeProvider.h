@@ -17,6 +17,7 @@
 #pragma once
 
 #include <PowerAuth/TimeService.h>
+#include <math.h>
 
 namespace powerAuthTests {
 

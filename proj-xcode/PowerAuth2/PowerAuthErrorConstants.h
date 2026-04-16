@@ -20,6 +20,7 @@
 #import <PowerAuth2/PowerAuthMacros.h>
 
 @class PowerAuthExternalPendingOperation;
+@class PowerAuthRestApiErrorResponse;
 
 #pragma mark - Error codes
 
@@ -174,6 +175,11 @@ typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
  has different domain, then property contains `PowerAuthErrorCode_NA`.
  */
 @property (nonatomic, readonly) PowerAuthErrorCode powerAuthErrorCode;
+/**
+ Contains `PowerAuthRestApiErrorResponse` in case that error response has been received from the server. If error
+ object has different domain or no such response is included, then contain `nil`.
+ */
+@property (nonatomic, strong, nullable, readonly) PowerAuthRestApiErrorResponse * powerAuthRestApiErrorResponse;
 /**
  Contains `PowerAuthExternalPendingOperation` object in case that NSError object has `PowerAuthErrorDomain`
  and error code is `PowerAuthErrorCode_ExternalPendingOperation`.

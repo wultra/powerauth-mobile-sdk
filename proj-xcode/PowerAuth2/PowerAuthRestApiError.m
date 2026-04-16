@@ -19,7 +19,6 @@
 
 @implementation PowerAuthRestApiError
 
-#ifdef DEBUG
 - (NSString*) description
 {
     NSString * info = _additionalInfo ? [@", info=" stringByAppendingString:[_additionalInfo description]] : @"";
@@ -27,7 +26,6 @@
     NSString * message = _message ? _message : @"<null>";
     return [NSString stringWithFormat:@"<PowerAuthRestApiError code=%@, message=%@%@>", code, message, info];
 }
-#endif
 
 @end
 
@@ -44,16 +42,6 @@
         _additionalInfo = info;
     }
     return self;
-}
-
-@end
-
-@implementation PowerAuthRestApiError (RecoveryCode)
-
-- (NSInteger) currentRecoveryPukIndex
-{
-    NSNumber * value = PA2ObjectAs(_additionalInfo[@"currentRecoveryPukIndex"], NSNumber);
-    return value ? [value integerValue] : -1;
 }
 
 @end

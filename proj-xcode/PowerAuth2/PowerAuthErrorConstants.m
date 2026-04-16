@@ -18,7 +18,9 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
 #import <PowerAuth2/PowerAuthErrorConstants.h>
+#import <PowerAuth2/PowerAuthRestApiErrorResponse.h>
 #import "PA2PrivateConstants.h"
+#import "PA2PrivateMacros.h"
 
 @import PowerAuthCore;
 
@@ -158,6 +160,14 @@ NSError * PA2MakeErrorInfo(NSInteger errorCode, NSString * message, NSDictionary
         return (PowerAuthErrorCode)self.code;
     }
     return PowerAuthErrorCode_NA;
+}
+
+- (PowerAuthRestApiErrorResponse*) powerAuthRestApiErrorResponse
+{
+    if ([self.domain isEqualToString:PowerAuthErrorDomain]) {
+        return self.userInfo[PowerAuthErrorDomain];
+    }
+    return nil;
 }
 
 - (PowerAuthExternalPendingOperation*) powerAuthExternalPendingOperation

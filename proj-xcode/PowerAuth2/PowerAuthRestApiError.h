@@ -23,28 +23,15 @@
 
 /** Error code
  */
-@property (nonatomic, strong) NSString *code;
+@property (nonatomic, strong, nullable) NSString *code;
 
 /** Error message
  */
-@property (nonatomic, strong) NSString *message;
+@property (nonatomic, strong, nullable) NSString *message;
 
 /**
  Contains additional information received together with error.
  */
-@property (nonatomic, strong) NSDictionary *additionalInfo;
-
-@end
-
-
-@interface PowerAuthRestApiError (RecoveryCode)
-
-/**
- Contains an index of valid PUK in case that recovery activation did fail and
- there's still some recovery PUK available.
- 
- The property contains -1 if the information is not available in the error response.
- */
-@property (nonatomic, readonly, assign) NSInteger currentRecoveryPukIndex;
+@property (nonatomic, strong, nullable) NSDictionary *additionalInfo;
 
 @end

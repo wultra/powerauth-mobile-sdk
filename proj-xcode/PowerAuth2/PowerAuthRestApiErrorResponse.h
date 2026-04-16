@@ -31,6 +31,6 @@ typedef NS_ENUM(NSInteger, PowerAuthRestApiResponseStatus) {
 
 @property (nonatomic, assign) PowerAuthRestApiResponseStatus status;
 @property (nonatomic, assign) NSUInteger httpStatusCode;
-@property (nonatomic, strong) PowerAuthRestApiError* responseObject;
+@property (nonatomic, strong, nullable) PowerAuthRestApiError* responseObject;
 
 @end

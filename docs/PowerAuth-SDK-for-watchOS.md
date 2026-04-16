@@ -66,7 +66,7 @@ Check [troubleshooting section](#cocoapods-integration-fails) of this document w
 
 ## Configuration
 
-The Watch SDK shares several source codes and configuration principles with the main iOS SDK. So, you can prepare the same set of constants as you're already using in your IOS application. The SDK provides just a limited functionality for the watch app (for example, you cannot create an activation or calculate a full PowerAuth authentication code from a watch application) and to do that it requires that your application's code will participate in data synchronization.
+The Watch SDK shares several source codes and configuration principles with the main iOS SDK. So, you can prepare similar set of constants as you're already using in your main iOS application. The SDK provides just a limited functionality for the watch app (for example, you cannot create an activation or calculate a full PowerAuth authentication code from a watch application) and to do that it requires that your application's code will participate in data synchronization.
 
 ### Prepare Watch Connectivity
 
@@ -150,7 +150,7 @@ class InterfaceController: WKInterfaceController {
     }()
 
     private static func setupPowerAuth() -> PowerAuthWatchSDK {
-        let config = PowerAuthConfiguration(instanceId: Bundle.main.bundleIdentifier!)
+        let config = PowerAuthConfiguration(instanceId: "your.ios.app.instanceId")
         return PowerAuthWatchSDK(configuration: config)!
     }
 
@@ -159,7 +159,7 @@ class InterfaceController: WKInterfaceController {
 ```
 
 <!-- begin box warning -->
-**IMPORTANT:** The configuration used above must match the configuration used in the IOS application otherwise `PowerAuthWatchSDK` instance will never be synchronized with its iOS counterpart. Take special care of the `instanceId` property, which **has to match with the value from iPhone**. By default, PowerAuth for iOS is using the application's bundle ID, so don't make a mistake and don't use the watchOS application's bundle identifier.
+**IMPORTANT:** The configuration used above must match the configuration used in the iOS application otherwise `PowerAuthWatchSDK` instance will never be synchronized with its iOS counterpart. Take special care of the `instanceId` property, which **has to match with the value from iPhone**. By default, PowerAuth for iOS is using the application's bundle ID, so don't make a mistake and don't use the watchOS application's bundle identifier.
 <!-- end -->
 
 The Watch SDK doesn't provide a shared instance for the `PowerAuthWatchSDK` class and therefore you have to manage that instance on your own. The example above shows the beginning of the controller implementing a simple WatchKit scene. For all other code examples, we're going to use `powerAuthWatch` as a properly initialized instance of the `PowerAuthWatchSDK` object.
@@ -295,7 +295,7 @@ let timeService = powerAuthWatch.timeSynchronizationService
 
 The time is synchronized automatically in the following situations:
 
-- When token header is being calculated with asynchronous method.
+- When a token header is being calculated using the asynchronous API.
 
 ### Manually Synchronize Time
 
@@ -337,7 +337,7 @@ if timeService.isTimeSynchronized {
 }
 ```
 
-The precision value represents a maximum absolute deviation of synchronized time against the actual time on the server. For example, a value `0.5` means that the time provided by the `currentTime()` method maybe 0.5 seconds ahead or behind the actual time on the server. If the precision is not sufficient for your purpose, for example, if you need to display a real-time countdown in your application, then try to synchronize the time manually. The precision basically depends on how quickly is the synchronization response received and processed from the server. A faster response results in higher precision.
+The precision value represents a maximum absolute deviation of synchronized time against the actual time on the server. For example, a value `0.5` means that the time provided by the `currentTime()` method may be 0.5 seconds ahead or behind the actual time on the server. If the precision is not sufficient for your purpose, for example, if you need to display a real-time countdown in your application, then try to synchronize the time manually. The precision basically depends on how quickly is the synchronization response received and processed from the server. A faster response results in higher precision.
 
 
 ## Common SDK Tasks

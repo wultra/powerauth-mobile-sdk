@@ -91,7 +91,7 @@ Notable changes on Android:
     - `Builder.enableFallbackToSharedBiometryKey()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
 
   - `PowerAuthToken` class:
-    - `generateHeader()` - is not recommended to use. You should migrate your code to use `PowerAuthTokenStore.generateAuthenticationHeader()` to make sure the PowerAuth SDK synchronize the time with the server properly.
+    - `generateHeader()` - is not recommended to use. You should migrate your code to use `PowerAuthTokenStore.generateAuthenticationHeader()` to make sure the PowerAuth SDK synchronizes the time with the server properly.
 
   - `PowerAuthAuthorizationHttpHeader` is deprecated, use functions that provide `PowerAuthHttpHeader` instead.
 
@@ -300,7 +300,7 @@ Notable changes on watchOS:
   - `PowerAuthAuthentication` object now supports only a possession factor.
 
   - `PowerAuthToken` class:
-    - `generateHeader()` - is not recommended to use. You migrate your code to use `PowerAuthTokenStore.generateAuthenticationHeader()` to make sure the PowerAuth SDK for watchOS synchronize the time with the server properly.
+    - `generateHeader()` - is not recommended to use. You should migrate your code to use `PowerAuthTokenStore.generateAuthenticationHeader()` to make sure the PowerAuth SDK for watchOS synchronizes the time with the server properly.
 
 
   

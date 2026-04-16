@@ -31,12 +31,10 @@
     return self;
 }
 
-#if DEBUG
 - (NSString*) description
 {
     NSString * keyType = _keyType == PowerAuthSignatureKeyType_EC ? @"EC" : @"ML-DSA";
     return [NSString stringWithFormat:@"<PowerAuthDevicePublicKeyData type=\"%@\", algorithm=\"%@\">", keyType, _keyAlgorithm];
 }
-#endif
 
 @end

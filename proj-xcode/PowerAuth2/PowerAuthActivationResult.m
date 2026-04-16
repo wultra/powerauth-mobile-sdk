@@ -31,13 +31,11 @@
     return self;
 }
 
-#ifdef DEBUG
 - (NSString*) description
 {
     NSString * fingerprint = _activationFingerprint ? _activationFingerprint : @"<null>";
     NSString * attrs = _customAttributes ? [@", attributes=" stringByAppendingString:[_customAttributes description]] : @"";
     return [NSString stringWithFormat:@"<PowerAuthActivationResult fingerprint=%@%@>", fingerprint, attrs];
 }
-#endif
 
 @end

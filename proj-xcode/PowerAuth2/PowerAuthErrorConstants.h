@@ -177,7 +177,7 @@ typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
 @property (nonatomic, readonly) PowerAuthErrorCode powerAuthErrorCode;
 /**
  Contains `PowerAuthRestApiErrorResponse` in case that error response has been received from the server. If error
- object has different domain or no such response is included, then contain `nil`.
+ object has different domain or no such response is included, then contains `nil`.
  */
 @property (nonatomic, strong, nullable, readonly) PowerAuthRestApiErrorResponse * powerAuthRestApiErrorResponse;
 /**

@@ -213,6 +213,7 @@ Notable changes on iOS:
     - `responseObject` property is now nullable instead of IUO (Implicitly Unwrapped Optional) in Swift.
   - `PowerAuthRestApiError` class:
     - All properties in the class are now nullable, instead IUO (Implicitly Unwrapped Optional) in Swift.
+    - The `currentRecoveryPukIndex` property was removed together with the recovery code support.
 
 - All static methods for accessing a various shared instances are now deprecated:
   - `PowerAuthSDK.initSharedInstance(...)` and `PowerAuthSDK.sharedInstance()` - To ensure better control and flexibility, manage the global instances within your application code.

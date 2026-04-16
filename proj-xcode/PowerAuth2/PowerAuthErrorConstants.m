@@ -20,7 +20,6 @@
 #import <PowerAuth2/PowerAuthErrorConstants.h>
 #import <PowerAuth2/PowerAuthRestApiErrorResponse.h>
 #import "PA2PrivateConstants.h"
-#import "PA2PrivateMacros.h"
 
 @import PowerAuthCore;
 

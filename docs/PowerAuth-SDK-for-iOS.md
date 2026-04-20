@@ -431,30 +431,7 @@ The mobile SDK provides a couple of functions in the `PowerAuthActivationCodeUti
 
 #### Validating Scanned QR Code
 
-To validate an activation code scanned from the QR code, you can use the `PowerAuthActivationCodeUtil.parse(fromActivationCode:)` function. You have to provide the code with or without the signature part. For example:
-
-```swift
-let scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA"
-guard let otp = PowerAuthActivationCodeUtil.parse(fromActivationCode: scannedCode) else {
-    // Invalid code
-    return
-}
-guard let signature = otp.activationSignature else {
-    // QR code should contain a signature
-    return
-}
-```
-
-Note that the signature is only formally validated in the function above. The actual signature verification is performed in the activation process, or you can do it on your own:
-
-```swift
-let scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA"
-guard let otp = PowerAuthActivationCodeUtil.parse(fromActivationCode: scannedCode) else { return }
-guard let signature = otp.activationSignature else { return }
-if !powerAuthSDK.verifyServerSignedData(otp.activationCode.data(using: .utf8)!, signature: signature, masterKey: true) {
-    // Invalid signature
-}
-```
+The previous versions of PowerAuth Mobile SDK (older than 2.0) allowed you to verify a scanned QR code with an activation code. This is no longer possible due to the fact that PQC signatures are too big to be embedded in a QR code. If the activation code with a signature is used in the activation process, then the signature part is ignored. You can still use `PowerAuthActivationCodeUtil` class to parse the scanned code and strip the signature part from it.
 
 #### Validating Entered Activation Code
 
@@ -828,9 +805,9 @@ This task is useful when you receive arbitrary data from the server and need to 
 
 ```swift
 do {
-    try powertAuthSDK.verifyDigitalSignature(signature: signature, forData: signedData, withKey: .server_ML_DSA)
+    try powerAuthSDK.verifyDigitalSignature(signature: signature, forData: signedData, withKey: .server_ML_DSA)
     print("Signature is valid")
-} catch let error as NSError where error.domain == NSURLErrorDomain {
+} catch let error as NSError where error.domain == PowerAuthErrorDomain {
     if error.powerAuthErrorCode == .wrongSignature {
         print("Signature is invalid")
     } else {
@@ -845,9 +822,9 @@ In cases where you need to verify the authenticity of a QR code created on the s
 
 ```swift
 do {
-    try powertAuthSDK.verifyDigitalSignature(signature: signature, forData: signedData, withKey: .macPersonalized)
+    try powerAuthSDK.verifyDigitalSignature(signature: signature, forData: signedData, withKey: .macPersonalized)
     print("MAC is valid")
-} catch let error as NSError where error.domain == NSURLErrorDomain {
+} catch let error as NSError where error.domain == PowerAuthErrorDomain {
     if error.powerAuthErrorCode == .wrongSignature {
         print("MAC is invalid")
     } else {
@@ -864,7 +841,7 @@ To verify a JSON Web Signature (JWS) created on the server, use the following co
 ```swift
 do {
     try sdk.verifyJwsSignature(signature: jws, compact: false, strict: true, withKey: .server)
-} catch let error as NSError where error.domain == NSURLErrorDomain {
+} catch let error as NSError where error.domain == PowerAuthErrorDomain {
     if error.powerAuthErrorCode == .wrongSignature {
         // signature is not valid
     } else {

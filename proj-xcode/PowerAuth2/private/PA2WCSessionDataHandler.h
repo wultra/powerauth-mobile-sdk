@@ -32,37 +32,37 @@
 @property (nonatomic, readonly) BOOL delayedCompletion;
 
 /// Contains response packet or `nil` if response is not available yet.
-@property (nonatomic, readonly, strong) PA2WCSessionPacket * responsePacket;
+@property (nonatomic, readonly, strong, nullable) PA2WCSessionPacket * responsePacket;
 
 /// Create instance of response object for asynchronous reply. The response
 /// packet will be provided later, after the asynchronous operation is finished.
-+ (instancetype) asyncResponse;
++ (nonnull instancetype) asyncResponse;
 
 /// Create instance of response object with the response packet.
 /// - Parameter responsePacket: Packet for response.
-+ (instancetype) responseWithPacket:(PA2WCSessionPacket*)responsePacket;
++ (nonnull instancetype) responseWithPacket:(nonnull PA2WCSessionPacket*)responsePacket;
 
 /// Create instance of response object with the error.
 /// - Parameter error: Error to send as response.
-+ (instancetype) responseWithError:(NSError*)error;
++ (nonnull instancetype) responseWithError:(nonnull NSError*)error;
 
 /// Create instance of response object with the error message. The error code
 /// is set to `PowerAuthErrorCode_WatchConnectivity`.
 /// - Parameter errorMessage: Error message to send as response.
-+ (instancetype) responseWithErrorMessage:(NSString*)errorMessage;
++ (nonnull instancetype) responseWithErrorMessage:(nonnull NSString*)errorMessage;
 
 /// Set completion callback for asynchronous reply. The callback is called immediately
 /// when the response is completed with packet or with error.
 /// - Parameter completionCallback: Completion callback.
-- (void) setCompletionCallback:(void(^)(PA2WCSessionPacket * response))completionCallback;
+- (void) setCompletionCallback:(void(^_Nonnull)(PA2WCSessionPacket * _Nonnull response))completionCallback;
 
 /// Complete asynchronous response with response packet.
 /// - Parameter responsePacket: Response packet to use for reply.
-- (void) completeWithResponsePacket:(PA2WCSessionPacket*)responsePacket;
+- (void) completeWithResponsePacket:(nonnull PA2WCSessionPacket*)responsePacket;
 
 /// Complete asynchronous response with error.
 /// - Parameter error: Error to use for reply.
-- (void) completeWithError:(NSError*)error;
+- (void) completeWithError:(nonnull NSError*)error;
 
 @end
 
@@ -76,14 +76,14 @@
 /**
  Implementation must return YES, if packet can be processed in this handler.
  */
-- (BOOL) canProcessPacket:(PA2WCSessionPacket*)packet;
+- (BOOL) canProcessPacket:(nonnull PA2WCSessionPacket*)packet;
 
 /**
  Implementation must always return response for given packet. The PA2WCSessionManager is calling
  this method only for handler which can process the packet (e.g. canProcessPacket was called before
  and method returned YES)
  */
-- (PA2WCSessionDataHandlerResponse*) sessionManager:(PowerAuthWCSessionManager*)manager responseForPacket:(PA2WCSessionPacket*)packet;
+- (nonnull PA2WCSessionDataHandlerResponse*) sessionManager:(nonnull PowerAuthWCSessionManager*)manager responseForPacket:(nonnull PA2WCSessionPacket*)packet;
 
 @end
 

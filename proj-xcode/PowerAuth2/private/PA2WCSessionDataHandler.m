@@ -62,7 +62,7 @@
         if (_delayedCompletion && !_completionCallback) {
             if (_responsePacket) {
                 // Response is already known
-                packetToReport = packetToReport;
+                packetToReport = _responsePacket;
             } else {
                 // Otherwise keep callback for later
                 _completionCallback = completionCallback;

@@ -95,7 +95,7 @@ Notable changes on Android:
 
   - `PowerAuthAuthorizationHttpHeader` is deprecated, use functions that provide `PowerAuthHttpHeader` instead.
 
-  - `PowerAuthMissingConfigException` is removed. The configuration is validated in `PowerAuthConfiguration.Builder.build()` method.
+  - `PowerAuthMissingConfigException` is deprecated and no longer used in PowerAuth Mobile SDK. The configuration is validated in `PowerAuthConfiguration.Builder.build()` method.
   
   - `PowerAuthErrorCodes` interface now contains the following new error codes:
     - `.UPGRADE_SDK` is reported when local activation data format was created in newer SDK version.

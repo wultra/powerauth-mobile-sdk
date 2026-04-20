@@ -12,7 +12,7 @@
 - [Token-Based Authentication](#token-based-authentication)
    - [Getting Token](#getting-token)
    - [Getting Token From iPhone](#getting-token-from-iphone)
-   - [Generating Authorization Header](#generating-authorization-header)
+   - [Generating Authentication Header](#generating-authentication-header)
    - [Removing Token Locally](#removing-token-locally)
    - [Removing Token From iPhone](#removing-tokenf-from-iphone)
 - [Common SDK Tasks](#common-sdk-tasks)
@@ -66,7 +66,7 @@ Check [troubleshooting section](#cocoapods-integration-fails) of this document w
 
 ## Configuration
 
-The Watch SDK shares several source codes and configuration principles with the main iOS SDK. So, you can prepare the same set of constants as you're already using in your IOS application. The SDK provides just a limited functionality for the watch app (for example, you cannot create an activation or calculate a full PowerAuth authorization code from a watch application) and to do that it requires that your application's code will participate in data synchronization.
+The Watch SDK shares several source codes and configuration principles with the main iOS SDK. So, you can prepare similar set of constants as you're already using in your main iOS application. The SDK provides just a limited functionality for the watch app (for example, you cannot create an activation or calculate a full PowerAuth authentication code from a watch application) and to do that it requires that your application's code will participate in data synchronization.
 
 ### Prepare Watch Connectivity
 
@@ -150,11 +150,7 @@ class InterfaceController: WKInterfaceController {
     }()
 
     private static func setupPowerAuth() -> PowerAuthWatchSDK {
-        let config = PowerAuthConfiguration(
-            instanceId: Bundle.main.bundleIdentifier!,
-            baseEndpointUrl: "https://<your-domain>/enrollment-server",
-            configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
-
+        let config = PowerAuthConfiguration(instanceId: "your.ios.app.instanceId")
         return PowerAuthWatchSDK(configuration: config)!
     }
 
@@ -163,10 +159,10 @@ class InterfaceController: WKInterfaceController {
 ```
 
 <!-- begin box warning -->
-**IMPORTANT:** The configuration used above must match the configuration used in the IOS application otherwise `PowerAuthWatchSDK` instance will never be synchronized with its iOS counterpart. Take special care of the `instanceId` property, which **has to match with the value from iPhone**. By default, PowerAuth for iOS is using the application's bundle ID, so don't make a mistake and don't use the watchOS application's bundle identifier.
+**IMPORTANT:** The configuration used above must match the configuration used in the iOS application otherwise `PowerAuthWatchSDK` instance will never be synchronized with its iOS counterpart. Take special care of the `instanceId` property, which **has to match with the value from iPhone**. By default, PowerAuth for iOS is using the application's bundle ID, so don't make a mistake and don't use the watchOS application's bundle identifier.
 <!-- end -->
 
-The Watch SDK doesn't provide a shared instance for the `PowerAuthWatchSDK` class and therefore you have to manage that instance on your own. The example above shows the beginning of the controller implementing a simple WatchKit scene. For all other code examples, we're going to use `self.powerAuthWatch` as a properly initialized instance of the `PowerAuthWatchSDK` object.
+The Watch SDK doesn't provide a shared instance for the `PowerAuthWatchSDK` class and therefore you have to manage that instance on your own. The example above shows the beginning of the controller implementing a simple WatchKit scene. For all other code examples, we're going to use `powerAuthWatch` as a properly initialized instance of the `PowerAuthWatchSDK` object.
 
 
 ## Getting Device Activation Status
@@ -174,7 +170,7 @@ The Watch SDK doesn't provide a shared instance for the `PowerAuthWatchSDK` clas
 Unlike the iOS SDK, the Watch SDK provides only limited information about activation status. You can actually check only whether there's locally stored activation on iPhone, or not:
 
 ```swift
-if self.powerAuthWatch.hasValidActivation() {
+if powerAuthWatch.hasValidActivation() {
     // main application has a valid activation locally stored
 }
 ```
@@ -184,7 +180,7 @@ The `hasValidActivation()` method is synchronous and reflects only the actual st
 ```swift
 // Lazy version
 
-if !self.powerAuthWatch.updateActivationStatus() {
+if !powerAuthWatch.updateActivationStatus() {
     // message has not been issued, WCSession is probably not available / active
 } else {
     // message has been issued and it's guaranteed that it will be delivered to iPhone
@@ -193,7 +189,7 @@ if !self.powerAuthWatch.updateActivationStatus() {
 
 // Or asynchronous version...
 
-self.powerAuthWatch.updateActivationStatus { (activationId, error) in
+powerAuthWatch.updateActivationStatus { (activationId, error) in
     let hasActivation = activationId != nil
     if error == nil {
         print("PowerAuth activation is: \(hasActivation ? "VALID" : "EMPTY") on iPhone")
@@ -216,8 +212,8 @@ The basic principles for working with tokens on watchOS are the same as for iOS 
 To get an access token already stored on the watch device, you can use the following code:
 
 ```swift
-if let token = self.powerAuthWatch.tokenStore.localToken(withName: "MyToken") {
-    // you have a token that can generate authorization headers
+if let token = powerAuthWatch.tokenStore.localToken(withName: "MyToken") {
+    // you have a token that can generate authentication headers
 }
 ```
 
@@ -226,7 +222,7 @@ if let token = self.powerAuthWatch.tokenStore.localToken(withName: "MyToken") {
 To get an access token already stored on the iPhone, you can use the following code:
 
 ```swift
-self.powerAuthWatch.tokenStore.requestAccessToken(withName: "MyToken") { (token, error) in
+powerAuthWatch.tokenStore.requestAccessToken(withName: "MyToken") { (token, error) in
     if let token = token {
         // the access token is valid
     } else {
@@ -235,9 +231,23 @@ self.powerAuthWatch.tokenStore.requestAccessToken(withName: "MyToken") { (token,
 }
 ```
 
-### Generating Authorization Header
+### Generating Authentication Header
 
-Once you have a `PowerAuthToken` object, use the following code to generate an authorization header:
+Use the following code to generate an authentication header:
+
+```swift
+let task = powerAuthWatch.tokenStore.generateAuthenticationHeader(withName: "MyToken") { header, error in
+    if let header = header {
+        let httpHeader = [ header.key : header.value ]
+        // now you can attach that httpHeader to your HTTP request
+    } else {
+        // failure, the token is no longer valid, or failed to synchronize time
+        // with the server.
+    }
+}
+```
+
+Once you have a `PowerAuthToken` object, then you can use also a synchronous code to generate an authentication header:
 
 ```swift
 if let header = token.generateHeader() {
@@ -248,12 +258,17 @@ if let header = token.generateHeader() {
 }
 ```
 
+<!-- begin box warning -->
+The synchronous example above is safe to use only if you're sure that the time is already [synchronized with the server](#synchronized-time).
+<!-- end -->
+
+
 ### Removing Token Locally
 
 To remove the token locally, you can simply use the following code:
 
 ```swift
-let tokenStore = self.powerAuthWatch.tokenStore
+let tokenStore = powerAuthWatch.tokenStore
 // Remove just one token
 tokenStore.removeLocalToken(withName: "MyToken")
 // Remove all local tokens
@@ -265,6 +280,65 @@ Note that removing tokens locally on a watch device does not affect the same tok
 ### Removing Token From iPhone
 
 The token store available on watchOS exposes the `removeAccessToken()` method, but the implementation always returns the `PowerAuthErrorCode.invalidToken` error. This kind of operation is not supported.
+
+## Synchronized Time
+
+The PowerAuth mobile SDK internally uses time synchronized with the PowerAuth Server for its cryptographic functions, such as [Generating Authentication Header](#generating-authentication-header). The synchronized time can also be beneficial for your application. For example, if you want to display a time-sensitive message or countdown to your users, you can take advantage of this service.
+
+Use the following code to get the service responsible for the time synchronization: 
+
+```swift
+let timeService = powerAuthWatch.timeSynchronizationService
+```
+
+### Automatic Time Synchronization
+
+The time is synchronized automatically in the following situations:
+
+- When a token header is being calculated using the asynchronous API.
+
+### Manually Synchronize Time
+
+Use the following code to synchronize the time manually:
+
+```swift
+let task = timeService.synchronizeTime(callback: { error in
+    if error == nil {
+        // Success, time has been properly synchronized
+    } else {
+        // Failed to synchronize the time
+    }
+}, callbackQueue: .main)
+```
+
+### Get Synchronized Time
+
+To get the synchronized time, use the following code:
+
+```swift
+if timeService.isTimeSynchronized {
+    // Get synchronized timestamp
+    let timestamp = timeService.currentTime()
+    // If a date object is required, then use the following snippet
+    let date = Date(timeIntervalSince1970: timestamp)
+} else {
+    // Time is not synchronized yet. If you call currentTime() then 
+    // the returned timestamp is similar to Date().timeIntervalSince1970
+    let timestamp = timeService.currentTime()
+}
+```
+
+The time service provides additional information about time, such as how precisely the time is synchronized with the server:
+
+```swift
+if timeService.isTimeSynchronized {
+    let precision = timeService.localTimeAdjustmentPrecision
+    print("Time is synchronized with precision \(precision)")
+}
+```
+
+The precision value represents a maximum absolute deviation of synchronized time against the actual time on the server. For example, a value `0.5` means that the time provided by the `currentTime()` method may be 0.5 seconds ahead or behind the actual time on the server. If the precision is not sufficient for your purpose, for example, if you need to display a real-time countdown in your application, then try to synchronize the time manually. The precision basically depends on how quickly is the synchronization response received and processed from the server. A faster response results in higher precision.
+
 
 ## Common SDK Tasks
 

@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cc7/crypto/NonceGenerator.h>
+#include <mutex>
 
 namespace powerAuth {
 namespace common {

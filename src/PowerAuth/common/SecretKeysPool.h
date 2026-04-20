@@ -18,6 +18,7 @@
 
 #include <PowerAuth/Types.h>
 #include <PowerAuth/Algorithms.h>
+#include <functional>
 
 namespace powerAuth {
 namespace common {

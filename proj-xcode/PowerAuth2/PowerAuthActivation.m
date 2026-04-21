@@ -177,7 +177,6 @@
 
 #pragma mark - Debug
 
-#if DEBUG
 - (NSString*) description
 {
     NSMutableString * optional = [NSMutableString string];
@@ -197,6 +196,5 @@
     }
     return [NSString stringWithFormat:@"<PowerAuthActivation type=\"%@\", identity=%@%@>", _activationType, _identityAttributes, optional];
 }
-#endif
 
 @end

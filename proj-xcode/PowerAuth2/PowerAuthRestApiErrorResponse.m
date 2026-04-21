@@ -19,7 +19,6 @@
 
 @implementation PowerAuthRestApiErrorResponse
 
-#ifdef DEBUG
 - (NSString*) description
 {
     NSString * status_str = _status == PowerAuthRestApiResponseStatus_OK ? @"OK" : @"ERROR";
@@ -27,7 +26,6 @@
     NSString * ro = _responseObject ? [_responseObject description] : @"<null>";
     return [NSString stringWithFormat:@"<PowerAuthRestApiErrorResponse status=%@, httpStatusCode=%@, responseObject=%@>", status_str, code_str, ro];
 }
-#endif
 
 @end
 

@@ -83,7 +83,6 @@
     return nil;
 }
 
-#if DEBUG
 - (NSString*) description
 {
     NSString * usage_str;
@@ -121,7 +120,6 @@
     NSString * info_str = info.count == 0 ? @"" : [@", " stringByAppendingString:[info componentsJoinedByString:@" "]];
     return [NSString stringWithFormat:@"<PowerAuthAuthentication %@: %@%@>", usage_str, factors_str, info_str];
 }
-#endif
 
 @end
 

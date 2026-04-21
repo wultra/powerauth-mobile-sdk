@@ -176,6 +176,7 @@ Notable changes on Android:
 Notable changes on iOS:
 
 - Added the `PowerAuthCoreData` object to `PowerAuthCore` module to enhance in-memory management of sensitive data.
+- Added `powerAuthRestApiErrorResponse` property to `NSError` to simplify access to the reason of the failure, received from the server.
 
 ### API changes
 
@@ -208,6 +209,11 @@ Notable changes on iOS:
     - `overridenPossessionKey` property is now deprecated with no replacement.
     - All construction methods that take a custom possession key are now deprecated. If you use such a method and provide a custom possession key, the created object will not pass validation when used in `PowerAuthSDK`. Please contact our support team for more details if this is important to you.
   - `PowerAuthAuthorizationHttpHeader` is deprecated and replaced with `PowerAuthHttpHeader`
+  - `PowerAuthRestApiErrorResponse` class:
+    - `responseObject` property is now nullable instead of IUO (Implicitly Unwrapped Optional) in Swift.
+  - `PowerAuthRestApiError` class:
+    - All properties in the class are now nullable, instead IUO (Implicitly Unwrapped Optional) in Swift.
+    - The `currentRecoveryPukIndex` property was removed together with the recovery code support.
 
 - All static methods for accessing a various shared instances are now deprecated:
   - `PowerAuthSDK.initSharedInstance(...)` and `PowerAuthSDK.sharedInstance()` - To ensure better control and flexibility, manage the global instances within your application code.

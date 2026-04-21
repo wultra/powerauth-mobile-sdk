@@ -109,7 +109,6 @@
 
 #pragma mark - Debug
 
-#if defined(DEBUG)
 - (NSString*) description
 {
     return [NSString stringWithFormat:@"<PowerAuthToken name='%@' identifier='%@' canGenerateHeader=%@>",
@@ -117,6 +116,5 @@
             self.tokenIdentifier,
             @(self.canGenerateHeader)];
 }
-#endif // DEBUG
 
 @end

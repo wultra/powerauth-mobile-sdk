@@ -2283,6 +2283,14 @@ if error == nil {
             
         case .networkError:
             print("Error code for error with network connectivity or download")
+            if let errorResponse = error.powerAuthRestApiErrorResponse {
+                // Error response is available only if actual response was received from the server.
+                let httpStatusCode = errorResponse.httpStatusCode
+                // Error code & message received from the server. If server is down and returns 500, then values
+                // may not be available.
+                let errorCode = errorResponse.responseObject?.code
+                let errorMessage = errorResponse.responseObject?.message
+            }
 
         case .signatureError:
             print("Error code for error in signature calculation")

@@ -1122,7 +1122,7 @@ The situation that the user's password stays in memory for days may be critical 
 
 ### Special password object usage
 
-PowerAuth mobile SDK allows you to use both strings and special password objects at input, so it's up to you which way fits best for your purposes. For simplicity, this documentation uses strings for the passwords, but all code examples can be changed to utilize the `Password` object as well. For example, this is the modified code for [Password Change](#password-change):
+PowerAuth mobile SDK allows you to use both strings and special password objects at input, so it's up to you which way fits best for your purposes. For simplicity, this documentation uses strings for the passwords, but all code examples can be changed to utilize the `Password` object as well. For example, this is the modified code for the first step of [Password Change](#password-change):
 
 ```kotlin
 val oldPass = Password("oldPassword")

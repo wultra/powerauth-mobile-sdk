@@ -536,28 +536,18 @@ The mobile SDK provides a couple of functions in `ActivationCodeUtil` class, hel
 To validate an activation code scanned from QR code, you can use `ActivationCodeUtil.parseFromActivationCode()` function. You have to provide the code with or without the signature part. For example:
 
 ```kotlin
-val scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8.....gd29ybGQ="
-val code = ActivationCodeUtil.parseFromActivationCode(scannedCode);
-if (code?.activationCode == null) {
-    // Invalid code, QR code should contain a signature
+val scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#MEYCIQD4cqcWloM9PFcdgKemMH4fvXvZhYtm0HU2VI/pCFII8AIhAKGAC3YKjtS0aH99A71JBv27BR7p7gJf+EFsmsGlX5qm"
+val parsed = ActivationCodeUtil.parseFromActivationCode(scannedCode);
+if (parsed == null || parsed?.activationCode == null) {
+    // Invalid code
     return;
 }
+// Extract activation code
+val activationCode = parsed.activationCode
 ```
 
-Note that the signature is only formally validated in the function above. The actual signature verification is done in the activation process, or you can do it on your own:
+The previous versions of PowerAuth Mobile SDK (older than 2.0) allowed you to verify the signature part extracted from a scanned QR code. This is no longer possible due to the fact that PQC signatures are too big to be embedded in a QR code. If the activation code with a signature is used in the activation process, then the signature part is ignored. You can still use `ActivationCodeUtil` class to parse the scanned code and strip the signature part from it as the example above shows.
 
-```kotlin
-val scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8......gd29ybGQ="
-val code = ActivationCodeUtil.parseFromActivationCode(scannedCode)
-if (code?.activationCode == null) {
-    return
-}
-val codeBytes = code.activationCode.toByteArray()
-val signatureBytes = Base64.decode(code.activationSignature, Base64.NO_WRAP)
-if (!powerAuthSDK.verifyServerSignedData(codeBytes, signatureBytes, true)) {
-    // Invalid signature
-}
-```
 
 #### Validating Entered Activation Code
 
@@ -1132,19 +1122,17 @@ The situation that the user's password stays in memory for days may be critical 
 
 ### Special password object usage
 
-PowerAuth mobile SDK allows you to use both strings and special password objects at input, so it's up to you which way fits best for your purposes. For simplicity, this documentation uses strings for the passwords, but all code examples can be changed to utilize the `Password` object as well. For example, this is the modified code for [Password Change](#password-change):
+PowerAuth mobile SDK allows you to use both strings and special password objects at input, so it's up to you which way fits best for your purposes. For simplicity, this documentation uses strings for the passwords, but all code examples can be changed to utilize the `Password` object as well. For example, this is the modified code for the first step of [Password Change](#password-change):
 
 ```kotlin
-// Change password from "oldPassword" to "newPassword".
 val oldPass = Password("oldPassword")
-val newPass = Password("newPassword")
-powerAuthSDK.changePassword(context, oldPass, newPass, object: IChangePasswordListener {
-    override fun onPasswordChangeSucceed() {
-        // Password was changed
+powerAuthSDK.beginPasswordChange(context, oldPass, object: IBeginPasswordChangeListener {
+    override fun onBeginPasswordChangeSucceed(changeData: PowerAuthPasswordChangeData) {
+        // success
     }
 
-    override fun onPasswordChangeFailed(t: Throwable) {
-        // Error occurred
+    override fun onBeginPasswordChangeFailed(t: Throwable) {
+        // Error occurred.
     }
 })
 ```
@@ -2209,7 +2197,6 @@ The precision value represents a maximum absolute deviation of synchronized time
 
 The PowerAuth SDK uses the following types of exceptions:
 
-- `PowerAuthMissingConfigException` - is typically thrown immediately when the `PowerAuthSDK` instance is initialized with an invalid configuration.
 - `FailedApiException` - is typically returned to callbacks when an asynchronous HTTP request ends on error.
 - `ErrorResponseApiException` - is typically returned to callbacks when an asynchronous HTTP request ends on an error and the error model object is present in the response.
 - `PowerAuthErrorException` - typically covers all other erroneous situations. You can investigate a detailed reason for failure by getting the integer, from the set of `PowerAuthErrorCodes` constants.

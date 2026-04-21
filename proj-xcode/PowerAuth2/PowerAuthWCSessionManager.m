@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -211,10 +211,9 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 #pragma mark - Message processing
 
 - (BOOL) processReceivedMessageData:(nonnull NSData *)data
-                       replyHandler:(void (^ _Nullable)(NSData * _Nonnull reply))replyHandler
+                       replyHandler:(void (^_Nullable)(NSData * _Nonnull reply))replyHandler
 {
-    PA2WCSessionPacket * response = nil;
-    NSString * errorMessage = nil;
+    PA2WCSessionDataHandlerResponse * response = nil;
     do {
         BOOL failure;
         PA2WCSessionPacket * packet = _DeserializePacket(data, Nil, &failure);
@@ -224,49 +223,56 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
         }
         if (failure) {
             // Incoming packet processing raised an error. This is already the response.
-            response = packet;
-            errorMessage = response.error.localizedDescription;
+            response = [PA2WCSessionDataHandlerResponse responseWithPacket:packet];
             break;
         }
         //
         NSString * target = packet.target;
         if ([target isEqualToString:PA2WCSessionPacket_RESPONSE_TARGET]) {
-            errorMessage = @"PA2WCSessionManager: Requests with response target are not allowed.";
+            response = [PA2WCSessionDataHandlerResponse responseWithErrorMessage:@"PA2WCSessionManager: Requests with response target are not allowed."];
             break;
         }
         // Look for handler
         id<PA2WCSessionDataHandler> handler = [self handlerForPacket:packet];
         if (!handler) {
-            errorMessage = [NSString stringWithFormat:@"PA2WCSessionManager: Unable to handle request for target '%@'.", target];
+            response = [PA2WCSessionDataHandlerResponse responseWithErrorMessage:
+                            [NSString stringWithFormat:@"PA2WCSessionManager: Unable to handle request for target '%@'.", target]];
             break;
         }
         // ...and finally get the response
         packet.requestWithoutReplyHandler = replyHandler == nil;
         response = [handler sessionManager:self responseForPacket:packet];
+        if (!response) {
+            response = [PA2WCSessionDataHandlerResponse responseWithErrorMessage:
+                            [NSString stringWithFormat:@"PA2WCSessionManager: Failed to create response for target '%@'.", target]];
+        }
         
     } while (false);
     
-    // Send back response, if replyHandler is valid
-    if (replyHandler != nil) {
-        if (!response) {
-            if (!errorMessage) {
-                errorMessage = @"PA2WCSessionManager: Cannot create response packet.";
-            }
-            PowerAuthLog(@"%@", errorMessage);
-            NSError * error = PA2MakeError(PowerAuthErrorCode_WatchConnectivity, errorMessage);
-            response = [PA2WCSessionPacket packetWithError:error];
-        }
-        replyHandler(_SerializePacket(response));
+    // Send response back, if packet is already present
+    PA2WCSessionPacket * responsePacket = response.responsePacket;
+    if (!responsePacket) {
+        // Delayed completion
+        [response setCompletionCallback:^(PA2WCSessionPacket *responsePacket) {
+            [self sendResponsePacket:responsePacket replyHandler:replyHandler];
+        }];
     } else {
-        if (errorMessage) {
-            PowerAuthLog(@"%@", errorMessage);
-        } else if (response.sendLazyResponseIfPossible) {
-            [self sendPacket:response];
-        }
+        [self sendResponsePacket:responsePacket replyHandler:replyHandler];
     }
     return YES;
 }
 
+- (void) sendResponsePacket:(nonnull PA2WCSessionPacket *)responsePacket
+               replyHandler:(void (^_Nullable)(NSData * _Nonnull reply))replyHandler
+{
+    if (replyHandler) {
+        replyHandler(_SerializePacket(responsePacket));
+    } else if (responsePacket.sendLazyResponseIfPossible) {
+        [self sendPacket:responsePacket];
+    } else {
+        PowerAuthLog(@"PowerAuthWCSessionManager: Dropping response for fire-and-forget request because no reply handler is available.");
+    }
+}
 
 - (BOOL) processReceivedUserInfo:(NSDictionary<NSString *,id> *)userInfo
 {

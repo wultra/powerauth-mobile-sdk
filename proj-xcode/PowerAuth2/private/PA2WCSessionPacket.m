@@ -94,16 +94,4 @@
     return self;
 }
 
-- (BOOL) deserializePayloadForClass:(Class)aClass
-{
-    if (!_error && _sourceData) {
-        id instance = [[aClass alloc] initWithDictionary:_sourceData];
-        if ([instance conformsToProtocol:@protocol(PA2WCSessionPacketData)]) {
-            _payload = instance;
-            return YES;
-        }
-    }
-    return NO;
-}
-
 @end

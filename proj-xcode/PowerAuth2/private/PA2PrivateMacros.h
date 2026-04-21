@@ -73,22 +73,28 @@ PA2_EXTERN_C NSString * PA2MakeDefaultErrorDescription(PowerAuthErrorCode errorC
 PA2_EXTERN_C void PA2DictionarySafeSet(NSMutableDictionary * dict, NSString * key, id value);
 
 /// Create NSError with using PA2MakeError function and set it to optional errorPtr, which is type of `NSError**`.
-#define PA2SetError(errorPtr, errorCode, message)       \
-    if (errorPtr) {                                     \
-        *errorPtr = PA2MakeError(errorCode, message);   \
-    }
+#define PA2SetError(errorPtr, errorCode, message)           \
+    do {                                                    \
+        if (errorPtr) {                                     \
+            *errorPtr = PA2MakeError(errorCode, message);   \
+        }                                                   \
+    } while (false);
 
 /// Create NSError with using PA2MakeErrorWithReason function and set it to optional errorPtr, which is type of `NSError**`.
-#define PA2SetErrorWithReason(errorPtr, errorCode, message, reason)     \
-    if (errorPtr) {                                                     \
-        *errorPtr = PA2MakeErrorWithReason(errorCode, message, reason); \
-    }
+#define PA2SetErrorWithReason(errorPtr, errorCode, message, reason)         \
+    do {                                                                    \
+        if (errorPtr) {                                                     \
+            *errorPtr = PA2MakeErrorWithReason(errorCode, message, reason); \
+        }                                                                   \
+    } while (false);
 
 /// Set existing NSError into optional errorPtr, which is type of `NSError**`.
-#define PA2SetExistingError(errorPtr, localError)       \
-    if (errorPtr) {                                     \
-        *errorPtr = localError;                         \
-    }
+#define PA2SetExistingError(errorPtr, localError)           \
+    do {                                                    \
+        if (errorPtr) {                                     \
+            *errorPtr = localError;                         \
+        }                                                   \
+    } while (false);
 
 #if DEBUG
 /// Print error based on errno constant. Function is implemented only for DEBUG builds.

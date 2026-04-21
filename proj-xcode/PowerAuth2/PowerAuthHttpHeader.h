@@ -24,6 +24,9 @@
 /// Class representing HTTP header generated in PowerAuth mobile SDK.
 @interface PowerAuthHttpHeader : NSObject
 
+/// Not available
+- (nonnull instancetype) init NS_UNAVAILABLE;
+
 /// HTTP header's name
 @property (nonatomic, strong, readonly, nonnull) NSString *key;
 

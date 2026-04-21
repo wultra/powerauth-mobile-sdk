@@ -431,7 +431,19 @@ The mobile SDK provides a couple of functions in the `PowerAuthActivationCodeUti
 
 #### Validating Scanned QR Code
 
-The previous versions of PowerAuth Mobile SDK (older than 2.0) allowed you to verify a scanned QR code with an activation code. This is no longer possible due to the fact that PQC signatures are too big to be embedded in a QR code. If the activation code with a signature is used in the activation process, then the signature part is ignored. You can still use `PowerAuthActivationCodeUtil` class to parse the scanned code and strip the signature part from it.
+To validate an activation code scanned from the QR code, you can use the `PowerAuthActivationCodeUtil.parse(fromActivationCode:)` function. You have to provide the code with or without the signature part. For example:
+
+```swift
+let scannedCode = scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#MEYCIQD4cqcWloM9PFcdgKemMH4fvXvZhYtm0HU2VI/pCFII8AIhAKGAC3YKjtS0aH99A71JBv27BR7p7gJf+EFsmsGlX5qm"
+guard let parsed = PowerAuthActivationCodeUtil.parse(fromActivationCode: scannedCode) else {
+    // Invalid code
+    return
+}
+// Extract activation code
+let activationCode = parsed.activationCode
+```
+
+The previous versions of PowerAuth Mobile SDK (older than 2.0) allowed you to verify the signature part extracted from a scanned QR code. This is no longer possible due to the fact that PQC signatures are too big to be embedded in a QR code. If the activation code with a signature is used in the activation process, then the signature part is ignored. You can still use `PowerAuthActivationCodeUtil` class to parse the scanned code and strip the signature part from it as the example above shows.
 
 #### Validating Entered Activation Code
 
@@ -981,19 +993,17 @@ The situation that the user's password stays in memory for days may be critical 
 
 ### Special password object usage
 
-PowerAuth mobile SDK allows you to use both strings and special password objects at input, so it's up to you which way fits best for your purposes. For simplicity, this documentation uses strings for the passwords, but all code examples can be changed to utilize the `PowerAuthCorePassword` object as well. For example, this is the modified code for [Password Change](#password-change):
+PowerAuth mobile SDK allows you to use both strings and special password objects at input, so it's up to you which way fits best for your purposes. For simplicity, this documentation uses strings for the passwords, but all code examples can be changed to utilize the `PowerAuthCorePassword` object as well. For example, this is the modified code for the first step of [Password Change](#password-change):
 
 ```swift
 import PowerAuthCore
 
-// Change password from "oldPassword" to "newPassword".
 let oldPass = PowerAuthCorePassword(string: "oldPassword")
-let newPass = PowerAuthCorePassword(string: "newPassword")
-powerAuthSDK.changePassword(from: oldPass, to: newPass) { (error) in
-    if error == nil {
-        // Password was changed
+powerAuthSDK.beginPasswordChange(oldPassword: oldPass) { changeData, error in
+    if let changeData {
+        // Success
     } else {
-        // Error occurred
+        // Process error.
     }
 }
 ```

@@ -531,6 +531,24 @@ The mobile SDK provides a couple of functions in `ActivationCodeUtil` class, hel
 - Validate a whole code at once
 - Auto-correct characters typed on the fly
 
+#### Validating Scanned QR Code
+
+To validate an activation code scanned from QR code, you can use `ActivationCodeUtil.parseFromActivationCode()` function. You have to provide the code with or without the signature part. For example:
+
+```kotlin
+val scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#MEYCIQD4cqcWloM9PFcdgKemMH4fvXvZhYtm0HU2VI/pCFII8AIhAKGAC3YKjtS0aH99A71JBv27BR7p7gJf+EFsmsGlX5qm"
+val parsed = ActivationCodeUtil.parseFromActivationCode(scannedCode);
+if (parsed == null || parsed?.activationCode == null) {
+    // Invalid code
+    return;
+}
+// Extract activation code
+val activationCode = parsed.activationCode
+```
+
+The previous versions of PowerAuth Mobile SDK (older than 2.0) allowed you to verify the signature part extracted from a scanned QR code. This is no longer possible due to the fact that PQC signatures are too big to be embedded in a QR code. If the activation code with a signature is used in the activation process, then the signature part is ignored. You can still use `ActivationCodeUtil` class to parse the scanned code and strip the signature part from it as the example above shows.
+
+
 #### Validating Entered Activation Code
 
 To validate an activation code at once, you can call `ActivationCodeUtil.validateActivationCode()` function. You have to provide the code without the signature part. For example:

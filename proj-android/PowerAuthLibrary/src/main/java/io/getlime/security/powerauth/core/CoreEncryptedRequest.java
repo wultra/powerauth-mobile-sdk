@@ -39,7 +39,7 @@ public class CoreEncryptedRequest {
      * @return Request body.
      */
     @NonNull
-    byte[] getRequestBody() {
+    public byte[] getRequestBody() {
         return requestBody;
     }
 
@@ -47,7 +47,7 @@ public class CoreEncryptedRequest {
      * @return Request headers.
      */
     @NonNull
-    CoreHttpHeader[] getRequestHeaders() {
+    public CoreHttpHeader[] getRequestHeaders() {
         return requestHeaders;
     }
 }

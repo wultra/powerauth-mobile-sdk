@@ -29,7 +29,7 @@
 #endif
 
 #if PA2_HAS_CORE_MODULE
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 #endif
 
 @implementation PowerAuthKeychain {

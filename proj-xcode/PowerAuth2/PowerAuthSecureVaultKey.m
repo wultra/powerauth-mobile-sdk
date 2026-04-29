@@ -17,7 +17,7 @@
 #import <PowerAuth2/PowerAuthSecureVaultKey.h>
 #import "PA2PrivateMacros.h"
 
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @implementation PowerAuthSecureVaultKey
 {

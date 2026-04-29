@@ -19,8 +19,8 @@
 
 #import <PowerAuth2/PowerAuthConfiguration.h>
 #import <PowerAuth2/PowerAuthLog.h>
+#import <PowerAuthCore/PowerAuthCore.h>
 #import "PA2PrivateMacros.h"
-@import PowerAuthCore;
 
 @implementation PowerAuthConfiguration
 

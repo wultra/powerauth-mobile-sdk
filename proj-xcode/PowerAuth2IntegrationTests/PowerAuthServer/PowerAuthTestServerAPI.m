@@ -17,7 +17,7 @@
 #import "PowerAuthTestServerAPI.h"
 #import "RestHelper.h"
 
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @implementation PowerAuthTestServerAPI
 {

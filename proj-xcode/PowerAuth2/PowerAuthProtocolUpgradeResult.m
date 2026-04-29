@@ -16,7 +16,7 @@
 
 #import "PowerAuthProtocolUpgradeResult+Private.h"
 
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @implementation PowerAuthProtocolUpgradeResult
 

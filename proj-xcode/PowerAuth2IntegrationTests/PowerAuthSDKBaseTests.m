@@ -15,7 +15,6 @@
  */
 
 #import "PowerAuthSDKBaseTests.h"
-#import "PA2ObjectSerialization.h"
 
 @implementation PowerAuthSDKBaseTests
 

@@ -20,7 +20,7 @@
 #import "PowerAuthLog.h"
 
 #if PA2_HAS_CORE_MODULE
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 #else
 #define PowerAuthCoreLogSetEnabled(x)
 #endif

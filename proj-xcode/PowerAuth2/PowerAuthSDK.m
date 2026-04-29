@@ -41,7 +41,7 @@
 #import "PowerAuthWCSessionManager+Private.h"
 #endif
 
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 
 #import <UIKit/UIKit.h>
 

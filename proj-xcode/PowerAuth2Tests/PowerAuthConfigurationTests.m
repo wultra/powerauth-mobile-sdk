@@ -15,8 +15,8 @@
  */
 
 #import <XCTest/XCTest.h>
-@import PowerAuth2;
-@import PowerAuthCore;
+#import <PowerAuth2/PowerAuth2.h>
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @interface PowerAuthConfigurationTests : XCTestCase
 @property (nonatomic, strong) NSString * goodSdkConfiguration;

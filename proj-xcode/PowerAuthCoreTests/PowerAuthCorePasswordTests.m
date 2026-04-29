@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include <XCTest/XCTest.h>
+#import <XCTest/XCTest.h>
 
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @interface PowerAuthCorePasswordTests : XCTestCase
 @end

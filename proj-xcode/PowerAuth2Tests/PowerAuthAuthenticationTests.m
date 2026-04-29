@@ -15,11 +15,12 @@
  */
 
 #import <XCTest/XCTest.h>
-@import PowerAuth2;
+#import <PowerAuth2/PowerAuth2.h>
 
 #import "PowerAuthAuthentication+Private.h"
 #import "PowerAuthMacros.h"
-#import "PowerAuthCorePasswordHelper.h"
+
+#import <PowerAuth2TestsBase/PowerAuthCorePasswordHelper.h>
 
 @interface PowerAuthAuthenticationTests : XCTestCase
 @property (nonatomic, strong) PowerAuthCoreData * customBiometryKey;

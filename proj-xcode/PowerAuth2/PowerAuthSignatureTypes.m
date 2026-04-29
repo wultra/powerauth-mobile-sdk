@@ -16,7 +16,7 @@
 
 #import <PowerAuth2/PowerAuthSignatureTypes.h>
 
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @implementation PowerAuthDevicePublicKeyData
 

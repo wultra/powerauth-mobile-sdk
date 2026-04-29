@@ -20,8 +20,8 @@
 #import "PowerAuthCorePasswordHelper.h"
 #import "AsyncHelper.h"
 
-@import PowerAuth2;
-@import PowerAuthCore;
+#import <PowerAuth2/PowerAuth2.h>
+#import <PowerAuthCore/PowerAuthCore.h>
 
 #import <PowerAuth2/PowerAuthMacros.h> // Expose SDK macros, to allow platform specific #if-defs
 

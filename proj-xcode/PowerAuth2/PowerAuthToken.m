@@ -24,7 +24,7 @@
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateTokenData.h"
 
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @implementation PowerAuthToken
 {

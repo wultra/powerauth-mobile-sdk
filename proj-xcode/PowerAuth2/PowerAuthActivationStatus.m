@@ -17,7 +17,7 @@
 #import <PowerAuth2/PowerAuthActivationStatus.h>
 #import "PowerAuthActivationStatus+Private.h"
 
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @implementation PowerAuthActivationStatus
 {

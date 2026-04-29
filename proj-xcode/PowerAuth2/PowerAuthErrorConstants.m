@@ -21,7 +21,7 @@
 #import <PowerAuth2/PowerAuthRestApiErrorResponse.h>
 #import "PA2PrivateConstants.h"
 
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 
 #pragma mark - Error codes
 

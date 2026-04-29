@@ -17,7 +17,7 @@
 #import <XCTest/XCTest.h>
 #import <PowerAuth2/PowerAuth2.h>
 #import "PA2GroupedTask.h"
-#import "AsyncHelper.h"
+#import <PowerAuth2TestsBase/AsyncHelper.h>
 
 // MARK: - Helper classes
 

@@ -17,7 +17,7 @@
 #import "PowerAuthServerStatus.h"
 #import "PA2PrivateMacros.h"
 
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @implementation PowerAuthServerStatus
 

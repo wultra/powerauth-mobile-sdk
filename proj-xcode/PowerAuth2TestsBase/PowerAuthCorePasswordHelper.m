@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Wultra s.r.o.
+ * Copyright 2022 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,19 @@
  * limitations under the License.
  */
 
-#import "PowerAuthPasswordChangeData+Private.h"
-
+#import "PowerAuthCorePasswordHelper.h"
 #import <PowerAuthCore/PowerAuthCore.h>
 
-@implementation PowerAuthPasswordChangeData
-{
-    PowerAuthCorePassword * _oldPassword;
-}
+@implementation PowerAuthCorePassword (PowerAuthCorePasswordHelper)
 
-- (instancetype) initWithCorePassword:(PowerAuthCorePassword*)password
+- (NSString*) extractedPassword
 {
-    self = [super init];
-    if (self) {
-        _oldPassword = password;
-    }
-    return self;
-}
-
-- (PowerAuthCorePassword*) oldPassword
-{
-    return _oldPassword;
-}
-
-- (void) secureClear
-{
-    [_oldPassword secureClear];
-    _oldPassword = nil;
+    __block NSString * password = nil;
+    [self validatePasswordComplexity:^NSInteger(const char * passphrase, NSInteger length) {
+        password = [[NSString alloc] initWithBytes:passphrase length:length encoding:NSUTF8StringEncoding];
+        return 0;
+    }];
+    return password;
 }
 
 @end

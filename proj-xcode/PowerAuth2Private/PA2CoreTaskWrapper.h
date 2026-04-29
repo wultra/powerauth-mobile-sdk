@@ -14,33 +14,19 @@
  * limitations under the License.
  */
 
-#import "PowerAuthPasswordChangeData+Private.h"
+#import <PowerAuth2/PowerAuthOperationTask.h>
 
 #import <PowerAuthCore/PowerAuthCore.h>
 
-@implementation PowerAuthPasswordChangeData
-{
-    PowerAuthCorePassword * _oldPassword;
-}
 
-- (instancetype) initWithCorePassword:(PowerAuthCorePassword*)password
-{
-    self = [super init];
-    if (self) {
-        _oldPassword = password;
-    }
-    return self;
-}
+@class PA2CoreHttpClient;
 
-- (PowerAuthCorePassword*) oldPassword
-{
-    return _oldPassword;
-}
+@interface PA2CoreTaskWrapper : NSObject<PowerAuthOperationTask>
 
-- (void) secureClear
-{
-    [_oldPassword secureClear];
-    _oldPassword = nil;
-}
+- (nonnull id) initWithCoreTask:(nonnull PowerAuthCoreTask*)task
+                     httpClient:(nonnull PA2CoreHttpClient*)client
+                     completion:(void(^_Nonnull)(PowerAuthCoreTask * _Nonnull task, id _Nullable response, NSError * _Nullable error))completion;
+
+- (nullable id<PowerAuthOperationTask>) processNext;
 
 @end

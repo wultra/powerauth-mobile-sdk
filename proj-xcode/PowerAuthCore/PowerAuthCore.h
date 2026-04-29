@@ -38,6 +38,6 @@ FOUNDATION_EXPORT const unsigned char PowerAuthCoreVersionString[];
 #import <PowerAuthCore/PowerAuthCoreSession.h>
 #import <PowerAuthCore/PowerAuthCoreActivationResult.h>
 #import <PowerAuthCore/PowerAuthCoreActivationStatus.h>
+#import <PowerAuthCore/PowerAuthCoreServerStatus.h>
 #import <PowerAuthCore/PowerAuthCoreTokenData.h>
-#import <PowerAuthCore/PowerAuthCoreDeprecated.h>
 #import <PowerAuthCore/PowerAuthCoreProtocolUpgradeResult.h>

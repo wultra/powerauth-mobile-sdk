@@ -16,7 +16,7 @@
 
 #import <XCTest/XCTest.h>
 #import <PowerAuth2/PowerAuth2.h>
-#import "AsyncHelper.h"
+#import <PowerAuth2TestsBase/AsyncHelper.h>
 
 #import "PA2AsyncOperation.h"
 #import <libkern/OSAtomic.h>

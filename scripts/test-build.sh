@@ -99,12 +99,6 @@ LOG_LINE
 LOG "Testing SDK for supported platforms..."
 LOG "  - macOS $(sw_vers -productVersion) ($(uname -m))"
 LOG "  - Xcode $(GET_XCODE_VERSION --full)"
-LOG_LINE
-LOG "Validating shared sources on Apple platform..."
-LOG_LINE
-
-# "${SRC_ROOT}/proj-xcode/copy-shared-sources.sh" --test
-WARNING "'proj-xcode/copy-shared-sources.sh --test' is disabled (see bug #482)"
 
 if [ x$DO_SCRIPT == x1 ]; then       
     LOG_LINE -a

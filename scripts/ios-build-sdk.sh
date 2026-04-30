@@ -217,32 +217,16 @@ function COPY_SOURCE_FILES
     local SRC="$1"
     local DST="$2"
     
-    # Prepare dirs in output directory
-    DST="`( cd \"$DST\" && pwd )`"
+    # Prepare output directory
     $MD "${DST}"
-    $MD "${DST}/Private"
+    DST=$(realpath "$DST")
     
     # Copy public / private SDK folders
     PUSH_DIR "$SRC"
     ####
-    local FILES=(`grep -R -null --include "*.h" --include "*.m" "" .`)
-    # Do for each file we found...
-    for ix in ${!FILES[*]}
-    do
-        local FILE="${FILES[$ix]}"
-        local DEST_DIR="$DST"
-        case "$FILE" in 
-          ./private/*)
-            DEST_DIR="$DST/Private"
-            ;;
-        esac
-        $CP "${FILE}" "${DEST_DIR}"
-    done
+    $CP *.m *.h "${DST}"
     ####
     POP_DIR
-    
-    # Remove umbrella header, because CocoaPods generates its own.
-    $RM "${DST}/PowerAuth2.h"
 }
 
 # -----------------------------------------------------------------------------
@@ -418,6 +402,11 @@ function COPY_SDK_SOURCES
     
     # Copy source files...
     COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}"
+    # Copy private source files...
+    COPY_SOURCE_FILES "${SOURCE_FILES}Private" "${OUT_DIR}/Private"
+        
+    # Remove umbrella header, because CocoaPods generates its own.
+    $RM "${OUT_DIR}/PowerAuth2.h"
 }
 
 # -----------------------------------------------------------------------------

@@ -1,0 +1,85 @@
+/**
+ * Copyright 2021 Wultra s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#import "PA2Response.h"
+
+/**
+ The `PA2ObjectSerialization` class provides several static methods
+ for network object to JSON serialization, and vice versa.
+ */
+@interface PA2ObjectSerialization : NSObject
+
+/**
+ Serializes PA2NetworkObject into JSON data. If the object is nil, then
+ data with an empty brackets is returned (e.g. "{}")
+ */
++ (NSData*) serializeObject:(id<PA2Encodable>)object;
+
+/**
+ Deserializes PA2NetworkObject from JSON Data. You must specify an object's class to
+ proper deserialization.
+ */
++ (id<PA2Decodable>) deserializeObject:(NSData*)data forClass:(Class)aClass error:(NSError**)error;
+
+@end
+
+
+@interface PA2ObjectSerialization (RequestResponse)
+
+/**
+ Serializes PA2NetworkObject into JSON data. The object is embedded into PA2Response
+ before the serialization. If the object is nil, then data with an empty brackets
+ is returned (e.g. "{}")
+ */
++ (NSData*) serializeRequestObject:(id<PA2Encodable>)object;
+
+/**
+ Deserializes PA2Response from JSON data. You must specify an embedded object's class
+ to proper deserialization.
+ */
++ (PA2Response*) deserializeResponseObject:(NSData*)data forClass:(Class)aClass error:(NSError**)error;
+
+@end
+
+
+@interface PA2ObjectSerialization (JWT)
+
+/**
+ Serialize object into Base64Url encoded string.
+ */
++ (NSString*) serializeJwtObject:(id<PA2Encodable>)object;
+
+/**
+ Deserialize object from Base64Url encoded string.
+ */
++ (id<PA2Decodable>) deserializeJwtObject:(NSString*)data forClass:(Class)aClass error:(NSError**)error;
+
+@end
+
+
+@interface NSData (JWTEncoded)
+
+/**
+ Init data with Base64Url encoded string. The "JWT Encoded" naming is used to avoid conflicts with another libraries.
+ */
+- (instancetype) initWithJwtEncodedString:(NSString*)jwtEncodedString;
+
+/**
+ Return bytes represented as Base64Url encoded string.
+ */
+- (NSString*) jwtEncodedString;
+
+@end

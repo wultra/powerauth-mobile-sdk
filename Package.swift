@@ -12,7 +12,8 @@ let package = Package(
         .library(name: "PowerAuth2", type: .dynamic, targets: ["PowerAuth2"])
     ],
     dependencies: [
-        .package(path: "proj-xcode")
+        .package(path: "proj-xcode"),
+        .package(url: "https://github.com/wultra/cc7", exact: "0.7.0-spm2")
     ],
     targets: [
         
@@ -86,7 +87,7 @@ let package = Package(
                 .headerSearchPath("PowerAuth2TestsBase"),
                 .headerSearchPath("PowerAuth2Private")
             ]
-        )                
+        )
     ],
     cLanguageStandard: .c17,
     cxxLanguageStandard: .cxx20

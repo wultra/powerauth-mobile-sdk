@@ -89,7 +89,7 @@
     return NO;
 }
 
-- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^_Nonnull)(const char * _Nonnull  passphrase, NSInteger length))validationBlock
+- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^_Nonnull)(const char * _Nonnull password, NSInteger length))validationBlock
 {
     return [_password validatePasswordComplexity:validationBlock];
 }

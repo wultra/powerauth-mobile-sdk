@@ -101,7 +101,7 @@
     return NO;
 }
 
-- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^)(const char* passphrase, NSInteger length))validationBlock
+- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^)(const char* password, NSInteger length))validationBlock
 {
     auto plaintext = _password->passwordData();
     auto size = plaintext.size();

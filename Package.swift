@@ -26,7 +26,7 @@ let package = Package(
             path: "proj-xcode",
             exclude: [
                 "PowerAuth2/Info.plist",
-                "PowerAuth2/module.modulemap",
+                "PowerAuth2/module.modulemap"
             ],
             sources: [
                 "PowerAuth2",
@@ -64,33 +64,9 @@ let package = Package(
                 .headerSearchPath("PowerAuth2Tests"),
                 // Custom imports
                 .headerSearchPath("PowerAuth2Private"),
-                //.headerSearchPath("PowerAuth2TestsBase")
             ]
         ),
-        
-        // --- PowerAuthCoreTests ---
-        
-        .testTarget(
-            name: "PowerAuthCoreTests",
-            dependencies: [
-                "PowerAuthCore",
-                "PowerAuthCppTests"
-            ],
-            path: "proj-xcode",
-            exclude: [
-                "PowerAuthCoreTests/Info.plist"
-            ],
-            sources: [
-                "PowerAuthCoreTests"
-            ],
-            cSettings: [
-                // Required for <PowerAuthCore/Header.h> style imports.
-                .headerSearchPath("."),
-                // Required for "Header.h" style imports
-                .headerSearchPath("PowerAuthCoreTests")
-            ]
-        ),
-        
+                
         // --- PowerAuth2TestsBase ---
         
         .target(
@@ -121,18 +97,42 @@ let package = Package(
             path: "proj-xcode",
             exclude: [
                 "PowerAuthCore/Info.plist",
-                "PowerAuthCore/module.modulemap",
-                "PowerAuthCore/PowerAuthCorePrivateImpl.h"
+                "PowerAuthCore/module.modulemap"
             ],
             sources: [
-                "PowerAuthCore"
+                "PowerAuthCore",
+                "PowerAuthCorePrivate"
             ],
             publicHeadersPath: "PowerAuthCore",
             cSettings: [
                 // Required for <PowerAuthCore/Header.h> style imports.
                 .headerSearchPath("."),
                 // Required for "Header.h" style imports
-                .headerSearchPath("PowerAuthCore")
+                .headerSearchPath("PowerAuthCore"),
+                .headerSearchPath("PowerAuthCorePrivate"),
+            ]
+        ),
+        
+        // --- PowerAuthCoreTests ---
+        
+        .testTarget(
+            name: "PowerAuthCoreTests",
+            dependencies: [
+                "PowerAuthCore",
+                "PowerAuthCppTests"
+            ],
+            path: "proj-xcode",
+            exclude: [
+                "PowerAuthCoreTests/Info.plist"
+            ],
+            sources: [
+                "PowerAuthCoreTests"
+            ],
+            cSettings: [
+                // Required for <PowerAuthCore/Header.h> style imports.
+                .headerSearchPath("."),
+                // Required for "Header.h" style imports
+                .headerSearchPath("PowerAuthCoreTests")
             ]
         ),
         

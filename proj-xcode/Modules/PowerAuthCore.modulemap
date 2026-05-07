@@ -1,5 +1,5 @@
-// Module specification for Swift PM
-module PowerAuthCore {
+// Module specification for Xcode Build
+framework module PowerAuthCore {
   umbrella header "PowerAuthCore.h"
   export *
   module * { export * }

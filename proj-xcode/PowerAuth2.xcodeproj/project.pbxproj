@@ -659,6 +659,8 @@
 		BF5B1BB32FAC819A00A035FC /* PowerAuthLegacyCryptoUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthLegacyCryptoUtils.h; sourceTree = "<group>"; };
 		BF5B1BB42FAC819A00A035FC /* PowerAuthLegacyCryptoUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthLegacyCryptoUtils.m; sourceTree = "<group>"; };
 		BF5B1BB92FACA96300A035FC /* PowerAuthPasswordTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthPasswordTests.m; sourceTree = "<group>"; };
+		BF5B1BD32FACC3E900A035FC /* PowerAuth2.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = PowerAuth2.modulemap; sourceTree = "<group>"; };
+		BF5B1BD42FACC3E900A035FC /* PowerAuthCore.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = PowerAuthCore.modulemap; sourceTree = "<group>"; };
 		BF5EB53B24C85FE200F9DDB2 /* PowerAuth2.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF5EB56D24C860A500F9DDB2 /* PowerAuth2Tests-tvos.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "PowerAuth2Tests-tvos.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF667E8F28359C7C006E97F8 /* PowerAuth2IntegrationTests-ios.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "PowerAuth2IntegrationTests-ios.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1096,6 +1098,7 @@
 		BF4DBB921CDF3130008F3A47 = {
 			isa = PBXGroup;
 			children = (
+				BF5B1BD52FACC3E900A035FC /* Modules */,
 				BF0824882630492900B34E24 /* PowerAuth2 */,
 				BF5B1AC62FA1F04800A035FC /* PowerAuth2TestsBase */,
 				BF667EC12835A0B2006E97F8 /* PowerAuth2Tests */,
@@ -1150,6 +1153,15 @@
 				BF5B1BB42FAC819A00A035FC /* PowerAuthLegacyCryptoUtils.m */,
 			);
 			name = core;
+			sourceTree = "<group>";
+		};
+		BF5B1BD52FACC3E900A035FC /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				BF5B1BD32FACC3E900A035FC /* PowerAuth2.modulemap */,
+				BF5B1BD42FACC3E900A035FC /* PowerAuthCore.modulemap */,
+			);
+			path = Modules;
 			sourceTree = "<group>";
 		};
 		BF667EC12835A0B2006E97F8 /* PowerAuth2Tests */ = {
@@ -2387,7 +2399,7 @@
 				);
 				MACH_O_TYPE = mh_dylib;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MODULEMAP_FILE = PowerAuth2/module.modulemap;
+				MODULEMAP_FILE = Modules/PowerAuth2.modulemap;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "c11 c++11";
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -2431,7 +2443,7 @@
 				);
 				MACH_O_TYPE = mh_dylib;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MODULEMAP_FILE = PowerAuth2/module.modulemap;
+				MODULEMAP_FILE = Modules/PowerAuth2.modulemap;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "c11 c++11";
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -2635,7 +2647,7 @@
 				);
 				MACH_O_TYPE = mh_dylib;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MODULEMAP_FILE = PowerAuth2/module.modulemap;
+				MODULEMAP_FILE = Modules/PowerAuth2.modulemap;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "c11 c++11";
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -2684,7 +2696,7 @@
 				);
 				MACH_O_TYPE = mh_dylib;
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MODULEMAP_FILE = PowerAuth2/module.modulemap;
+				MODULEMAP_FILE = Modules/PowerAuth2.modulemap;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "c11 c++11";
 				MTL_ENABLE_DEBUG_INFO = NO;

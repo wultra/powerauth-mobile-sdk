@@ -341,7 +341,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
 }
 
-- (nullable PowerAuthCoreTask*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
+- (nullable PowerAuthCoreTask*) confirmActivationWithPassword:(nonnull PowerAuthCorePass*)password
                                               withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
                                                         error:(NSError*_Nullable*_Nullable)error
 {
@@ -385,7 +385,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
 }
 
-- (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePassword*)password
+- (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePass*)password
                                                  withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
                                                            error:(NSError*_Nullable*_Nullable)error;
 {
@@ -451,7 +451,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
 
 #pragma mark - Signature keys management
 
-- (nullable PowerAuthCoreRequest*) verifyPassword:(nonnull PowerAuthCorePassword*)password
+- (nullable PowerAuthCoreRequest*) verifyPassword:(nonnull PowerAuthCorePass*)password
                                             error:(NSError*_Nullable*_Nullable)error
 {
     try {
@@ -465,8 +465,8 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
 }
 
-- (nullable PowerAuthCoreRequest*) changePassword:(nonnull PowerAuthCorePassword*)oldPassword
-                                       toPassword:(nonnull PowerAuthCorePassword*)newPassword
+- (nullable PowerAuthCoreRequest*) changePassword:(nonnull PowerAuthCorePass*)oldPassword
+                                       toPassword:(nonnull PowerAuthCorePass*)newPassword
                                             error:(NSError*_Nullable*_Nullable)error
 {
     try {
@@ -495,7 +495,7 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
 }
 
-- (nullable PowerAuthCoreRequest*) addBiometryFactorWithPassword:(nonnull PowerAuthCorePassword*)password
+- (nullable PowerAuthCoreRequest*) addBiometryFactorWithPassword:(nonnull PowerAuthCorePass*)password
                                                  withBiometryKek:(nonnull PowerAuthCoreData *)biometryKek
                                                            error:(NSError **)error
 {

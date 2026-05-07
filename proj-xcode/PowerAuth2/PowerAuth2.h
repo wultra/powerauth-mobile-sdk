@@ -37,3 +37,7 @@ FOUNDATION_EXPORT const unsigned char PowerAuth2VersionString[];
 #import <PowerAuth2/PowerAuthSystem.h>
 
 #import <PowerAuth2/PowerAuthWCSessionManager.h>
+
+#import <PowerAuth2/PowerAuthPassword.h>
+#import <PowerAuth2/PowerAuthSecureData.h>
+#import <PowerAuth2/PowerAuthLegacyCryptoUtils.h>

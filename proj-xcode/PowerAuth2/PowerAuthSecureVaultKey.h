@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import <PowerAuth2/PowerAuthSecureData.h>
 
 @class PowerAuthCoreData;
 
@@ -49,9 +49,9 @@ typedef NS_ENUM(int, PowerAuthSecureVaultKeyId) {
 ///   - keySize: Size of derived key in bytes. Minimum is 16 bytes.
 ///   - error: Pointer to an error object that is set in case of failure.
 /// - Returns: A derived key, or `nil` if the operation fails.
-- (nullable PowerAuthCoreData*) deriveKeyWithIndex:(UInt64)index
-                                           keySize:(UInt64)keySize
-                                             error:(NSError*_Nullable*_Nullable)error
+- (nullable PowerAuthSecureData*) deriveKeyWithIndex:(UInt64)index
+                                             keySize:(UInt64)keySize
+                                               error:(NSError*_Nullable*_Nullable)error
                                 NS_SWIFT_NAME(deriveKey(withIndex:keySize:));
 
 /// Compare two vault encryption keys.

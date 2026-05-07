@@ -6,7 +6,7 @@
 # library distribution. Typically, this script is used for CocoaPods integration.
 # 
 # The result of the build process is:
-#    PowerAuthCore.xcframework or PowerAuth2.xcframework:
+#    PowerAuth2.xcframework:
 #      multi-architecture, multi-platform dynamic framework (also called as "fat") 
 #      with all core functionality of PowerAuth2 SDK. The library contains all C++
 #      code, plus thin ObjC wrapper written on top of that codes.
@@ -53,9 +53,7 @@ FULL_REBUILD=1
 CLEANUP_AFTER=1
 OUT_DIR=''
 TMP_DIR=''
-DO_BUILDCORE=0
 DO_BUILDSDK=0
-DO_COPYSDK=0
 OPT_LEGACY_ARCH=0
 OPT_USE_BITCODE=0
 OPT_WEAK_TVOS=0
@@ -73,8 +71,6 @@ function USAGE
     echo ""
     echo "commands are:"
     echo ""
-    echo "  copySdk           Copy SDK files to output directory"
-    echo "  buildCore         Build PowerAuthCore.xcframework to out directory"
     echo "  buildSdk          Build PowerAuth2.xcframework to out directory"
     echo ""
     echo "options are:"
@@ -204,29 +200,6 @@ function GET_BITCODE_OPTION
 {
     [[ x$OPT_USE_BITCODE == x0 ]] && echo "ENABLE_BITCODE=NO"
     [[ x$OPT_USE_BITCODE == x1 ]] && echo "ENABLE_BITCODE=YES"
-}
-
-# -----------------------------------------------------------------------------
-# Copy all source files in SDK to destination directory
-# Parameters:
-#   $1   - source directory
-#   $2   - destination directory
-# -----------------------------------------------------------------------------
-function COPY_SOURCE_FILES
-{
-    local SRC="$1"
-    local DST="$2"
-    
-    # Prepare output directory
-    $MD "${DST}"
-    DST=$(realpath "$DST")
-    
-    # Copy public / private SDK folders
-    PUSH_DIR "$SRC"
-    ####
-    $CP *.m *.h "${DST}"
-    ####
-    POP_DIR
 }
 
 # -----------------------------------------------------------------------------
@@ -392,24 +365,6 @@ function BUILD_LIB
 }
 
 # -----------------------------------------------------------------------------
-# Copy PowerAuth2 SDK sources to destination folder.
-# -----------------------------------------------------------------------------
-function COPY_SDK_SOURCES
-{
-    LOG_LINE
-    LOG "Copying SDK files ..."
-    LOG_LINE
-    
-    # Copy source files...
-    COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}"
-    # Copy private source files...
-    COPY_SOURCE_FILES "${SOURCE_FILES}Private" "${OUT_DIR}/Private"
-        
-    # Remove umbrella header, because CocoaPods generates its own.
-    $RM "${OUT_DIR}/PowerAuth2.h"
-}
-
-# -----------------------------------------------------------------------------
 # Clear project for specific scheme
 # Parameters:
 #   $1  -   configuration name
@@ -500,13 +455,13 @@ do
     opt="$1"
     case "$opt" in
         buildCore)
-            DO_BUILDCORE=1
+            FAILURE "'buildCore' command is no longer supported."
             ;;
         buildSdk)
             DO_BUILDSDK=1
             ;;
         copySdk)
-            DO_COPYSDK=1
+            FAILURE "'copySdk' command is no longer supported."
             ;;
         -nc | --no-clean)
             FULL_REBUILD=0 
@@ -545,8 +500,8 @@ do
     shift
 done
 
-if [ x$DO_BUILDCORE$DO_BUILDSDK$DO_COPYSDK == x000 ]; then
-    FAILURE "No command specified. Use 'buildCore', 'buildSdk' or 'copySdk' parameter."
+if [ x$DO_BUILDSDK == x0 ]; then
+    FAILURE "No command specified. Use 'buildSdk' parameter."
 fi
 
 # Defaulting target & temporary folders
@@ -575,12 +530,10 @@ $MD "${TMP_DIR}"
 #
 # Build core or copy SDK
 #
-if [[ x$DO_BUILDCORE == x1 ]] || [[ x$DO_BUILDSDK == x1 ]]; then
+if [[ x$DO_BUILDSDK == x1 ]]; then
     DO_PATCH_TARGETS
 fi
-[[ x$DO_BUILDCORE == x1 ]] && BUILD_LIB PowerAuthCore
 [[ x$DO_BUILDSDK == x1 ]] && BUILD_LIB PowerAuth2
-[[ x$DO_COPYSDK == x1 ]] && COPY_SDK_SOURCES
 
 #
 # Remove temporary data

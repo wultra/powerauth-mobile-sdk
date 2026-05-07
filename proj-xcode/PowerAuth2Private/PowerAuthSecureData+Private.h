@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,16 @@
  * limitations under the License.
  */
 
-#import "PowerAuthPasswordChangeData+Private.h"
+#import <PowerAuth2/PowerAuthSecureData.h>
+#import <PowerAuthCore/PowerAuthCoreData.h>
 
-@implementation PowerAuthPasswordChangeData
-{
-    PowerAuthPassword * _oldPassword;
-}
-
-- (instancetype) initWithCorePassword:(PowerAuthPassword*)password
-{
-    self = [super init];
-    if (self) {
-        _oldPassword = password;
-    }
-    return self;
-}
-
-- (PowerAuthPassword*) oldPassword
-{
-    return _oldPassword;
-}
-
-- (void) secureClear
-{
-    [_oldPassword secureClear];
-    _oldPassword = nil;
-}
-
+@interface PowerAuthSecureData (Private)
+@property (nonatomic, readonly) PowerAuthCoreData * coreData;
+- (instancetype) initWithCoreData:(PowerAuthCoreData*)coreData;
 @end
+
+@interface PowerAuthCoreData (SdkPrivate)
+- (PowerAuthSecureData*) toSecureData;
+@end
+
+

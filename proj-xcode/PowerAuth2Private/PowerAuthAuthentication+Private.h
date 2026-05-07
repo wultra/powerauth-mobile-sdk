@@ -15,9 +15,10 @@
  */
 
 #import <PowerAuth2/PowerAuthAuthentication.h>
+#import <PowerAuthCore/PowerAuthCoreData.h>
+#import <PowerAuthCore/PowerAuthCorePass.h>
 
 @class PowerAuthKeychainAuthentication;
-@class PowerAuthCoreCredentials;
 
 @interface PowerAuthAuthentication (Private)
 /**
@@ -35,4 +36,8 @@
 /// @return `nil` if the authentication object can be used; an `NSError` describing the problem otherwise.
 - (NSError*) validateUsage:(BOOL)forPersist;
 
+@end
+
+@interface PowerAuthPassword (Private)
+@property (nonatomic, readonly) PowerAuthCorePass * corePassword;
 @end

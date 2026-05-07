@@ -1,5 +1,5 @@
-/**
- * Copyright 2021 Wultra s.r.o.
+/*
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,23 @@
  * limitations under the License.
  */
 
-#import <PowerAuthCore/PowerAuthCoreMacros.h>
+#import <PowerAuth2/PowerAuthSecureData.h>
+
+// ---------------------------------------------------------------------------------------
+//                                     WARNING
+//
+//         This is a legacy header that exposes internal PowerAuthCoreCryptoUtils
+//               and related objects for public use from PowerAuth2 module.
+//
+//       It's not recommended to add any other functionality into this header. If so,
+//             then it must match interface provided by internal core module.
+//
+//                We'll provide replacement API in some future SDK release.
+// ---------------------------------------------------------------------------------------
+
+// ===============================================
+// PowerAuthCoreCryptoUtils.h content starts here.
+// ===============================================
 
 // This interface is also exposed publicly with using PowerAuthLegacyCryptoUtils.h, so
 // we have to use guarding macro to prevent double interface declaration.
@@ -65,7 +81,7 @@
  Computes HMAC-SHA-256 for given data and key. Returns nil in case that underlying
  implementation fail.
  */
-+ (nonnull NSData*) hmacSha256:(nonnull NSData*)data 
++ (nonnull NSData*) hmacSha256:(nonnull NSData*)data
                            key:(nonnull NSData*)key;
 
 /**
@@ -77,7 +93,7 @@
                         length:(NSUInteger)length;
 
 /**
- Generates a required amount of random bytes. Returns nil in case that 
+ Generates a required amount of random bytes. Returns nil in case that
  underlying random generator is broken.
  */
 + (nullable NSData*) randomBytes:(NSUInteger)count;
@@ -154,3 +170,20 @@
 @end
 
 #endif // POWERAUTH_CORE_CRYPTO_UTILS_DEFINED
+
+
+// ===============================================
+// PowerAuthCoreCryptoUtils.h content ends here.
+// ===============================================
+
+// PowerAuth2 module additions
+
+@interface PowerAuthCoreCryptoUtils (PowerAuth2Extension)
+
+/**
+ Generates a required amount of random bytes. Returns nil in case that
+ underlying random generator is broken.
+ */
++ (nullable PowerAuthSecureData*) randomData:(NSUInteger)count;
+
+@end

@@ -249,7 +249,7 @@
     }
     PowerAuthAuthentication * auth = activation.credentials;
     
-    PowerAuthCorePassword * newPassword = [PowerAuthCorePassword passwordWithString:@"nbusr321"];
+    PowerAuthPassword * newPassword = [PowerAuthPassword passwordWithString:@"nbusr321"];
     
     // 1) Change password in two steps
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
@@ -325,7 +325,7 @@
     }
     PowerAuthAuthentication * auth = activation.credentials;
     
-    PowerAuthCorePassword * newPassword = [PowerAuthCorePassword passwordWithString:@"nbusr321"];
+    PowerAuthPassword * newPassword = [PowerAuthPassword passwordWithString:@"nbusr321"];
     
     // 1) At first, validate password with using deprecated function
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
@@ -1004,8 +1004,8 @@
     NSError * error = nil;
     BOOL result = NO;
     
-    PowerAuthCoreData * goodEEK = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V3 error:nil];
-    PowerAuthCoreData * badEEK = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V4 error:nil];
+    PowerAuthSecureData * goodEEK = [[PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V3 error:nil] toSecureData];
+    PowerAuthSecureData * badEEK = [[PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V4 error:nil] toSecureData];
     
     // Before activation, EEK flag is always false.
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
@@ -1233,7 +1233,7 @@
         return;
     }
     XCTAssertFalse([_sdk hasBiometryFactor]);
-    PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
+    PowerAuthSecureData * newBiometryKek = [PowerAuthCoreCryptoUtils randomData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
     PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:63] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
@@ -1271,7 +1271,7 @@
                                      cripple:0];
     XCTAssertFalse(result);
 
-    newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
+    newBiometryKek = [PowerAuthCoreCryptoUtils randomData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
     newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek];
     randomData = [[[PowerAuthCoreCryptoUtils randomBytes:63] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
@@ -2176,8 +2176,8 @@
 {
     CHECK_TEST_CONFIG();
     
-    PowerAuthCoreEncryptor * encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk encryptorForApplicationScopeWithCallback:^(PowerAuthCoreEncryptor * _Nullable encryptor, NSError * _Nullable error) {
+    PowerAuthEncryptor * encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk encryptorForApplicationScopeWithCallback:^(PowerAuthEncryptor * _Nullable encryptor, NSError * _Nullable error) {
             XCTAssertNil(error);
             [waiting reportCompletion:encryptor];
         }];
@@ -2194,7 +2194,7 @@
     XCTAssertTrue(_sdk.hasValidActivation);
     
     encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk encryptorForActivationScopeWithCallback:^(PowerAuthCoreEncryptor * _Nullable encryptor, NSError * _Nullable error) {
+        [_sdk encryptorForActivationScopeWithCallback:^(PowerAuthEncryptor * _Nullable encryptor, NSError * _Nullable error) {
             XCTAssertNil(error);
             [waiting reportCompletion:encryptor];
         }];
@@ -2226,13 +2226,13 @@
     return vaultKey;
 }
 
-- (PowerAuthCoreData*) fetchLegacyVaultKey:(PowerAuthAuthentication*)credentials
-                           derivationIndex:(NSUInteger)derivationIndex
-                                shouldPass:(BOOL)shouldPass
+- (PowerAuthSecureData*) fetchLegacyVaultKey:(PowerAuthAuthentication*)credentials
+                             derivationIndex:(NSUInteger)derivationIndex
+                                  shouldPass:(BOOL)shouldPass
 {
     __block NSError * outError = nil;
-    PowerAuthCoreData * vaultKey = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk fetchEncryptionKey:credentials index:derivationIndex callback:^(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error) {
+    PowerAuthSecureData * vaultKey = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchEncryptionKey:credentials index:derivationIndex callback:^(PowerAuthSecureData * _Nullable encryptionKey, NSError * _Nullable error) {
             outError = error;
             [waiting reportCompletion:encryptionKey];
         }];
@@ -2258,7 +2258,7 @@
     }
     NSError * error;
     PowerAuthSecureVaultKey *any2fa, *knowledge, *otherKDK;
-    PowerAuthCoreData *legacy, *other, *another;
+    PowerAuthSecureData *legacy, *other, *another;
     if ([_sdk currentAlgorithm] != PowerAuthAlgorithm_LEGACY_P256) {
         // V4
         any2fa = [self fetchVaultEncryptionKey:PowerAuthSecureVaultKeyId_KnowledgeOrBiometry credentials:activation.credentials shouldPass:YES];
@@ -2905,7 +2905,7 @@
     XCTAssertTrue(_sdk.hasBiometryFactor);
 
     // Start protocol upgrade with custom new biometry KEK.
-    PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:32];
+    PowerAuthSecureData * newBiometryKek = [PowerAuthCoreCryptoUtils randomData:32];
     PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
     
     XCTAssertEqual(targetAlgorithm, _sdk.currentAlgorithm);
@@ -3098,7 +3098,7 @@
     // required to confirm the protocol upgrade in the background.
     //
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
-    PowerAuthCoreData * newBiometryKek = self.hasBiometrySupport ? [PowerAuthCoreCryptoUtils randomCoreData:32] : nil;
+    PowerAuthSecureData * newBiometryKek = self.hasBiometrySupport ? [PowerAuthCoreCryptoUtils randomData:32] : nil;
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:TestActivationFlags_PersistWithBiometry];
     
     // Set 3 failures in a row, as there are 3 confirm attempts in the task.
@@ -3231,7 +3231,7 @@
     const PowerAuthAlgorithm targetAlgorithm = self.powerAuthAlgorithm;
     _sdk = [_helper prepareActivationForUpgradeTest:targetAlgorithm withFlags:0];
     
-    PowerAuthCoreData * newBiometryKek = [PowerAuthCoreCryptoUtils randomCoreData:32];
+    PowerAuthSecureData * newBiometryKek = [PowerAuthCoreCryptoUtils randomData:32];
     PowerAuthProtocolUpgradeResult * result = [_helper startProtocolUpgradeWithCustomBiometryKek:newBiometryKek shouldFinish:targetAlgorithm > PowerAuthAlgorithm_LEGACY_P256];
     
     if (self.powerAuthAlgorithm <= PowerAuthAlgorithm_LEGACY_P256) {

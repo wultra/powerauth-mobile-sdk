@@ -12,8 +12,7 @@ let package = Package(
         .library(name: "PowerAuth2", type: .dynamic, targets: ["PowerAuth2"])
     ],
     dependencies: [
-        .package(path: "proj-xcode"),
-        .package(url: "https://github.com/wultra/cc7", exact: "0.7.0-spm2")
+        .package(url: "https://github.com/wultra/cc7", exact: "0.7.0-spm3")
     ],
     targets: [
         
@@ -69,6 +68,29 @@ let package = Package(
             ]
         ),
         
+        // --- PowerAuthCoreTests ---
+        
+        .testTarget(
+            name: "PowerAuthCoreTests",
+            dependencies: [
+                "PowerAuthCore",
+                "PowerAuthCppTests"
+            ],
+            path: "proj-xcode",
+            exclude: [
+                "PowerAuthCoreTests/Info.plist"
+            ],
+            sources: [
+                "PowerAuthCoreTests"
+            ],
+            cSettings: [
+                // Required for <PowerAuthCore/Header.h> style imports.
+                .headerSearchPath("."),
+                // Required for "Header.h" style imports
+                .headerSearchPath("PowerAuthCoreTests")
+            ]
+        ),
+        
         // --- PowerAuth2TestsBase ---
         
         .target(
@@ -86,6 +108,75 @@ let package = Package(
                 .headerSearchPath("."),
                 .headerSearchPath("PowerAuth2TestsBase"),
                 .headerSearchPath("PowerAuth2Private")
+            ]
+        ),
+        
+        // --- PowerAuthCore ---
+        
+        .target(
+            name: "PowerAuthCore",
+            dependencies: [
+                "PowerAuthCpp"
+            ],
+            path: "proj-xcode",
+            exclude: [
+                "PowerAuthCore/Info.plist",
+                "PowerAuthCore/module.modulemap",
+                "PowerAuthCore/PowerAuthCorePrivateImpl.h"
+            ],
+            sources: [
+                "PowerAuthCore"
+            ],
+            publicHeadersPath: "PowerAuthCore",
+            cSettings: [
+                // Required for <PowerAuthCore/Header.h> style imports.
+                .headerSearchPath("."),
+                // Required for "Header.h" style imports
+                .headerSearchPath("PowerAuthCore")
+            ]
+        ),
+        
+        // --- PowerAuthCpp ---
+        
+        .target(
+            name: "PowerAuthCpp",
+            dependencies: [
+                .product(name: "cc7", package: "cc7")
+            ],
+            path: ".",
+            exclude: [
+                "include/PowerAuthTests",
+            ],
+            sources: [
+                "src/PowerAuth"
+            ],
+            publicHeadersPath: "include",
+            cSettings: [
+                .headerSearchPath("include")
+            ]
+        ),
+        
+        // --- PowerAuthCppTests ---
+        
+        .target(
+            name: "PowerAuthCppTests",
+            dependencies: [
+                "PowerAuthCpp",
+                .product(name: "cc7tests", package: "cc7"),
+            ],
+            path: ".",
+            exclude: [
+                "include/PowerAuth",
+                "src/PowerAuthTests/TestData/pa2.conf",
+                "src/PowerAuthTests/TestData/pa2",
+                "src/PowerAuthTests/TestData/update-pa2-files.sh"
+            ],
+            sources: [
+                "src/PowerAuthTests"
+            ],
+            publicHeadersPath: "include",
+            cSettings: [
+                .headerSearchPath("include")
             ]
         )
     ],

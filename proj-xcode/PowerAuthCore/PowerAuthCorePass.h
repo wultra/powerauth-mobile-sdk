@@ -19,13 +19,13 @@
 #pragma mark Password -
 
 /**
- The PowerAuthCorePassword is an object representing an arbitrary passphrase. The underlying implementation
+ The PowerAuthCorePass is an object representing an arbitrary passphrase. The underlying implementation
  guarantees that the sensitive information is cleared from the memory when the object is destroyed.
  
  
  Discussion
  
- Working with an user's passphrases is always a very delicate task. The good implementation should
+ Working with an user's passwords is always a very delicate task. The good implementation should
  always follow several well known rules, for example:
  
     1. Should minimize traces of the plaintext passphrase in the memory
@@ -68,7 +68,7 @@
  At the end, you can get benefits from a supporting very strong passphrases and also 
  you'll minimize all traces of the passphrase in the memory.
  */
-@interface PowerAuthCorePassword : NSObject
+@interface PowerAuthCorePass : NSObject
 
 /**
  Constructor with no parameters is not available.
@@ -112,7 +112,7 @@
 /**
  Returns YES if both receiver is equal to password object.
  */
-- (BOOL) isEqualToPassword:(nullable PowerAuthCorePassword*)password;
+- (BOOL) isEqualToPassword:(nullable PowerAuthCorePass*)password;
 
 /**
  The method allows you to validate stored passphrase with using provided validation block.
@@ -142,7 +142,7 @@
  The method creates a new `PowerAuthCorePassword` immutable instance that will contain the same passphrase
  as the receiver.
  */
-- (nonnull PowerAuthCorePassword*) copyToImmutable;
+- (nonnull PowerAuthCorePass*) copyToImmutable;
 
 @end
 
@@ -153,7 +153,7 @@
  
  The final passphrase is an UTF8 representation of added characters.
  */
-@interface PowerAuthCoreMutablePassword : PowerAuthCorePassword
+@interface PowerAuthCoreMutablePass : PowerAuthCorePass
 
 /**
  Initialize PowerAuthCoreMutablePassword object with empty passphrase.

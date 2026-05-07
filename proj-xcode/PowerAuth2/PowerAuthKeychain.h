@@ -297,11 +297,11 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
 @end
 
 #if PA2_HAS_CORE_MODULE
-@class PowerAuthCoreData;
-@interface PowerAuthKeychain (CoreData)
+@class PowerAuthSecureData;
+@interface PowerAuthKeychain (SecureData)
 
 /**
- Retrieve the core data for given key in the Keychain synchronously, in case record requires biometry, use given authentication object.
+ Retrieve the secure data for given key in the Keychain synchronously, in case record requires biometry, use given authentication object.
  
  @param key Key for which to retrieve the value.
  @param status Status that was returned when obtaining keychain item.
@@ -309,21 +309,21 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @return Core data for given key, or 'nil' in case no data are present or when an error occurred.
  */
 
-- (nullable PowerAuthCoreData*) coreDataForKey:(nonnull NSString *)key
-                                        status:(nullable OSStatus *)status
-                                authentication:(nullable PowerAuthKeychainAuthentication*)authentication;
+- (nullable PowerAuthSecureData*) secureDataForKey:(nonnull NSString *)key
+                                            status:(nullable OSStatus *)status
+                                    authentication:(nullable PowerAuthKeychainAuthentication*)authentication;
 
 /**
  Store core data for given key in the Keychain synchronously. Unlike regular NSData API functions, this function use
  update or add operation automatically.
 
- @param coreData Secret data to be stored.
+ @param secureData Secret data to be stored.
  @param key Key to use for data storage.
  @param access Restrict access to the item.
  @return Operation result.
 */
-- (PowerAuthKeychainStoreItemResult) setCoreData:(nonnull PowerAuthCoreData*)coreData
-                                          forKey:(nonnull NSString*)key
-                                          access:(PowerAuthKeychainItemAccess)access;
+- (PowerAuthKeychainStoreItemResult) setSecureData:(nonnull PowerAuthSecureData*)secureData
+                                            forKey:(nonnull NSString*)key
+                                            access:(PowerAuthKeychainItemAccess)access;
 @end
 #endif // PA2_HAS_CORE_MODULE

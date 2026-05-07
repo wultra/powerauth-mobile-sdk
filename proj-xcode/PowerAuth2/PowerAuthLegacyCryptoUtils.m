@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,14 @@
  * limitations under the License.
  */
 
-#import "PowerAuthPasswordChangeData+Private.h"
+#import "PowerAuthLegacyCryptoUtils.h"
+#import "PowerAuthSecureData+Private.h"
 
-@implementation PowerAuthPasswordChangeData
-{
-    PowerAuthPassword * _oldPassword;
-}
+@implementation PowerAuthCoreCryptoUtils (PowerAuth2Extension)
 
-- (instancetype) initWithCorePassword:(PowerAuthPassword*)password
++ (PowerAuthSecureData*) randomData:(NSUInteger)count
 {
-    self = [super init];
-    if (self) {
-        _oldPassword = password;
-    }
-    return self;
-}
-
-- (PowerAuthPassword*) oldPassword
-{
-    return _oldPassword;
-}
-
-- (void) secureClear
-{
-    [_oldPassword secureClear];
-    _oldPassword = nil;
+    return [[self randomCoreData:count] toSecureData];
 }
 
 @end

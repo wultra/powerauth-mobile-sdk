@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuthCore/PowerAuthCorePassword.h>
+#import <PowerAuthCore/PowerAuthCorePass.h>
 #import <PowerAuthCore/PowerAuthCoreData.h>
 
 /// Object representing user's credentials for authentication.
@@ -27,7 +27,7 @@
 + (nonnull PowerAuthCoreCredentials*) possession;
 
 /// Create credentials with possession and knowledge factor.
-+ (nullable PowerAuthCoreCredentials*) knowledge:(nonnull PowerAuthCorePassword*)password;
++ (nullable PowerAuthCoreCredentials*) knowledge:(nonnull PowerAuthCorePass*)password;
 
 /// Create credentials with possession and biometry factor
 + (nullable PowerAuthCoreCredentials*) biometry:(nonnull PowerAuthCoreData*)biometryKek;

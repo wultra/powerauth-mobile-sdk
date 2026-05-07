@@ -16,34 +16,35 @@
 
 #import <PowerAuth2/PowerAuthSecureVaultKey.h>
 #import "PA2PrivateMacros.h"
+#import "PowerAuthSecureData+Private.h"
 
 #import <PowerAuthCore/PowerAuthCore.h>
 
 @implementation PowerAuthSecureVaultKey
 {
-    PowerAuthCoreData * _key;
+    PowerAuthSecureData * _key;
 }
 
-- (instancetype) initWithCoreData:(PowerAuthCoreData*)coreData
-                            keyId:(PowerAuthSecureVaultKeyId)keyId
+- (instancetype) initWithSecureData:(PowerAuthSecureData*)secureData
+                              keyId:(PowerAuthSecureVaultKeyId)keyId
 {
-    if (!coreData) {
+    if (!secureData) {
         return nil;
     }
     self = [super init];
     if (self) {
-        _key = coreData;
+        _key = secureData;
         _keyId = keyId;
     }
     return self;
 }
 
-- (nullable PowerAuthCoreData*) deriveKeyWithIndex:(UInt64)index
-                                           keySize:(UInt64)keySize
-                                             error:(NSError * _Nullable __autoreleasing *)error
+- (nullable PowerAuthSecureData*) deriveKeyWithIndex:(UInt64)index
+                                             keySize:(UInt64)keySize
+                                               error:(NSError * _Nullable __autoreleasing *)error
 {
     NSError * localError = nil;
-    PowerAuthCoreData * derivedKey = [PowerAuthCoreSession deriveVaultEncryptionKey:_key
+    PowerAuthCoreData * derivedKey = [PowerAuthCoreSession deriveVaultEncryptionKey:_key.coreData
                                                                               keyId:(PowerAuthCoreSecureVaultKeyId)_keyId
                                                                               index:index
                                                                             keySize:keySize
@@ -52,7 +53,7 @@
         PA2WrapError(localError, error);
         return nil;
     }
-    return derivedKey;
+    return [derivedKey toSecureData];
 }
 
 - (BOOL) isEqualToVaultEncryptionKey:(nullable PowerAuthSecureVaultKey*)other
@@ -64,7 +65,7 @@
         return YES;
     }
     return _keyId == other->_keyId &&
-           [_key isEqualToCoreData:other->_key];
+           [_key isEqualToSecureData:other->_key];
 }
 
 - (BOOL) isEqual:(id)object

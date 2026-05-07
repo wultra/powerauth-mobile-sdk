@@ -16,8 +16,6 @@
 
 #import <PowerAuth2/PowerAuthMacros.h>
 
-@class PowerAuthCoreOtp;
-
 /**
  The `PowerAuthActivationCode` object contains parsed components from user-provided activation, or recovery
  code. You can use methods from `PowerAuthActivationCodeUtil` class to fill this object with valid data.

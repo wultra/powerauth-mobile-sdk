@@ -15,7 +15,7 @@
  */
 
 #import <PowerAuthCore/PowerAuthCoreMacros.h>
-#import <PowerAuthCore/PowerAuthCorePassword.h>
+#import <PowerAuthCore/PowerAuthCorePass.h>
 #import <PowerAuthCore/PowerAuthCoreData.h>
 #import <PowerAuthCore/PowerAuthCoreOtpUtil.h>
 

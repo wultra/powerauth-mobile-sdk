@@ -237,7 +237,7 @@
 ///   - biometryKek: Biometric factor KEK. Should be set if the session already have a biometry configured.
 ///   - error: Pointer where error is stored in case of failure.
 /// - Returns: Core task for protocol upgrade procedure.
-- (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePassword*)password
+- (nullable PowerAuthCoreTask*) startProtocolUpgradeWithPassword:(nullable PowerAuthCorePass*)password
                                                  withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
                                                error: (NSError*_Nullable*_Nullable)error;
 
@@ -250,7 +250,7 @@
 ///   - biometryKek: Optional biometric factor KEK. If `nil` then this session will not have biometry configured.
 ///   - error: Pointer where error is stored in case of failure.
 /// - Returns: Core task for activation confirmation.
-- (nullable PowerAuthCoreTask*) confirmActivationWithPassword:(nonnull PowerAuthCorePassword*)password
+- (nullable PowerAuthCoreTask*) confirmActivationWithPassword:(nonnull PowerAuthCorePass*)password
                                               withBiometryKek:(nullable PowerAuthCoreData*)biometryKek
                                                         error:(NSError*_Nullable*_Nullable)error;
 
@@ -286,7 +286,7 @@
 ///   - password: User's password.
 ///   - error: Pointer where error is stored in case of failure.
 /// - Returns: Core request object containing all required information for password verify.
-- (nullable PowerAuthCoreRequest*) verifyPassword:(nonnull PowerAuthCorePassword*)password
+- (nullable PowerAuthCoreRequest*) verifyPassword:(nonnull PowerAuthCorePass*)password
                                             error:(NSError*_Nullable*_Nullable)error;
 
 /// Change user's password.
@@ -300,8 +300,8 @@
 /// - Returns: Core request in case that operation require communication with the server, or `nil` in case the
 ///            password has been changed synchronously. Check the returned error to distinguish between the success
 ///            and the failure.
-- (nullable PowerAuthCoreRequest*) changePassword:(nonnull PowerAuthCorePassword*)oldPassword
-                                       toPassword:(nonnull PowerAuthCorePassword*)newPassword
+- (nullable PowerAuthCoreRequest*) changePassword:(nonnull PowerAuthCorePass*)oldPassword
+                                       toPassword:(nonnull PowerAuthCorePass*)newPassword
                                             error:(NSError*_Nullable*_Nullable)error;
 
 /// Returns `true` in case the biometric factor is set.
@@ -318,7 +318,7 @@
 ///   - biometryKek: New biometry KEK.
 ///   - error: Pointer where error is stored in case of failure.
 /// - Returns: Core request object containing all required information for biometry add.
-- (nullable PowerAuthCoreRequest*) addBiometryFactorWithPassword:(nonnull PowerAuthCorePassword*)password
+- (nullable PowerAuthCoreRequest*) addBiometryFactorWithPassword:(nonnull PowerAuthCorePass*)password
                                                  withBiometryKek:(nonnull PowerAuthCoreData*)biometryKek
                                                            error:(NSError*_Nullable*_Nullable)error;
 /// Remove biometry factor.

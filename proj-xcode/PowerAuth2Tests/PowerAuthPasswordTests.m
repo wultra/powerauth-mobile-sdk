@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 #import <XCTest/XCTest.h>
 
-#import <PowerAuthCore/PowerAuthCore.h>
+#import <PowerAuth2/PowerAuth2.h>
 
-@interface PowerAuthCorePasswordTests : XCTestCase
+@interface PowerAuthPasswordTests : XCTestCase
 @end
 
-@implementation PowerAuthCorePasswordTests
+@implementation PowerAuthPasswordTests
 
 #define DATA_BYTES(vn, ...) \
     const UInt8 vn##bytes[] = __VA_ARGS__; \
@@ -29,23 +29,23 @@
 
 - (void) testImmutable
 {
-    PowerAuthCorePassword * p1 = [PowerAuthCorePassword passwordWithString:@"HelloWorld"];
+    PowerAuthPassword * p1 = [PowerAuthPassword passwordWithString:@"HelloWorld"];
     XCTAssertEqual(10, p1.length);
     XCTAssertEqualObjects(@"HelloWorld", [self extractStringFromPassword:p1]);
     
-    PowerAuthCorePassword * p2 = [PowerAuthCorePassword passwordWithString:@"HelloWorld"];
+    PowerAuthPassword * p2 = [PowerAuthPassword passwordWithString:@"HelloWorld"];
     XCTAssertTrue([p1 isEqualToPassword:p2]);
     XCTAssertEqualObjects(p1, p2);
     
     DATA_BYTES(p3data, { 1, 2, 3, 4, 5, 6, 7 });
-    PowerAuthCorePassword * p3 = [PowerAuthCorePassword passwordWithData:p3data];
+    PowerAuthPassword * p3 = [PowerAuthPassword passwordWithData:p3data];
     XCTAssertEqual(7, p3.length);
     XCTAssertEqualObjects([p3data copy], [self extractBytesFromPassword:p3]);
 }
 
 - (void) testMutableNumbers
 {
-    PowerAuthCoreMutablePassword * p1 = [PowerAuthCoreMutablePassword mutablePassword];
+    PowerAuthMutablePassword * p1 = [PowerAuthMutablePassword mutablePassword];
     XCTAssertEqual(0, p1.length);
     
     XCTAssertTrue([p1 addCharacter:1]);
@@ -56,19 +56,19 @@
     XCTAssertEqual(5, p1.length);
     
     DATA_BYTES(expectedBytes1, { 0, 1, 2, 3, 4});
-    XCTAssertEqualObjects([PowerAuthCorePassword passwordWithData:expectedBytes1], p1);
+    XCTAssertEqualObjects([PowerAuthPassword passwordWithData:expectedBytes1], p1);
     
     XCTAssertTrue([p1 removeCharacterAtIndex:0]);
     DATA_BYTES(expectedBytes2, { 1, 2, 3, 4});
-    XCTAssertEqualObjects([PowerAuthCorePassword passwordWithData:expectedBytes2], p1);
+    XCTAssertEqualObjects([PowerAuthPassword passwordWithData:expectedBytes2], p1);
     
     XCTAssertTrue([p1 removeCharacterAtIndex:1]);
     DATA_BYTES(expectedBytes3, { 1, 3, 4});
-    XCTAssertEqualObjects([PowerAuthCorePassword passwordWithData:expectedBytes3], p1);
+    XCTAssertEqualObjects([PowerAuthPassword passwordWithData:expectedBytes3], p1);
     
     XCTAssertTrue([p1 removeCharacterAtIndex:2]);
     DATA_BYTES(expectedBytes4, { 1, 3 });
-    XCTAssertEqualObjects([PowerAuthCorePassword passwordWithData:expectedBytes4], p1);
+    XCTAssertEqualObjects([PowerAuthPassword passwordWithData:expectedBytes4], p1);
     
     XCTAssertTrue([p1 removeLastCharacter]);
     XCTAssertTrue([p1 removeLastCharacter]);
@@ -89,7 +89,7 @@
 
 - (void) testMutableUnicode
 {
-    PowerAuthCoreMutablePassword * p1 = [PowerAuthCoreMutablePassword mutablePassword];
+    PowerAuthMutablePassword * p1 = [PowerAuthMutablePassword mutablePassword];
     XCTAssertEqual(0, p1.length);
     
     XCTAssertTrue([p1 addCharacter:'e']);
@@ -123,9 +123,9 @@
 - (void) testPasswordEqual
 {
     DATA_BYTES(p2data, { 'f', 'i', 'x', 'e', 'd' });
-    PowerAuthCorePassword * p1 = [PowerAuthCorePassword passwordWithString:@"fixed"];
-    PowerAuthCorePassword * p2 = [PowerAuthCorePassword passwordWithData:p2data];
-    PowerAuthCoreMutablePassword * p3 = [PowerAuthCoreMutablePassword mutablePassword];
+    PowerAuthPassword * p1 = [PowerAuthPassword passwordWithString:@"fixed"];
+    PowerAuthPassword * p2 = [PowerAuthPassword passwordWithData:p2data];
+    PowerAuthMutablePassword * p3 = [PowerAuthMutablePassword mutablePassword];
     [p3 addCharacter:'f'];
     [p3 addCharacter:'i'];
     [p3 addCharacter:'x'];
@@ -141,11 +141,11 @@
 
 - (void) testPasswordNotEqual
 {
-    PowerAuthCorePassword * p1 = [PowerAuthCorePassword passwordWithString:@"fixed"];
-    PowerAuthCorePassword * p2 = [PowerAuthCorePassword passwordWithString:@"strin"];
-    PowerAuthCorePassword * p3 = [PowerAuthCorePassword passwordWithString:@"string"];
-    PowerAuthCorePassword * p4 = [PowerAuthCorePassword passwordWithString:@"stri"];
-    PowerAuthCorePassword * p5 = [PowerAuthCoreMutablePassword mutablePassword];
+    PowerAuthPassword * p1 = [PowerAuthPassword passwordWithString:@"fixed"];
+    PowerAuthPassword * p2 = [PowerAuthPassword passwordWithString:@"strin"];
+    PowerAuthPassword * p3 = [PowerAuthPassword passwordWithString:@"string"];
+    PowerAuthPassword * p4 = [PowerAuthPassword passwordWithString:@"stri"];
+    PowerAuthPassword * p5 = [PowerAuthMutablePassword mutablePassword];
     XCTAssertFalse([p1 isEqualToPassword:p2]);
     XCTAssertFalse([p1 isEqualToPassword:p3]);
     XCTAssertFalse([p1 isEqualToPassword:p4]);
@@ -164,18 +164,18 @@
 {
     // Prepare data
     DATA_BYTES(p2data, { 'f', 'i', 'x', 'e', 'd' });
-    PowerAuthCorePassword * p1 = [PowerAuthCorePassword passwordWithString:@"fixed"];
-    PowerAuthCorePassword * p2 = [PowerAuthCorePassword passwordWithData:p2data];
-    PowerAuthCoreMutablePassword * p3 = [PowerAuthCoreMutablePassword mutablePassword];
+    PowerAuthPassword * p1 = [PowerAuthPassword passwordWithString:@"fixed"];
+    PowerAuthPassword * p2 = [PowerAuthPassword passwordWithData:p2data];
+    PowerAuthMutablePassword * p3 = [PowerAuthMutablePassword mutablePassword];
     [p3 addCharacter:'f'];
     [p3 addCharacter:'i'];
     [p3 addCharacter:'x'];
     [p3 addCharacter:'e'];
     [p3 addCharacter:'d'];
     // Now make copy from passwords
-    PowerAuthCorePassword * p1copy = [p1 copyToImmutable];
-    PowerAuthCorePassword * p2copy = [p2 copyToImmutable];
-    PowerAuthCorePassword * p3copy = [p3 copyToImmutable];
+    PowerAuthPassword * p1copy = [p1 copyToImmutable];
+    PowerAuthPassword * p2copy = [p2 copyToImmutable];
+    PowerAuthPassword * p3copy = [p3 copyToImmutable];
     XCTAssertTrue([p1copy isEqualToPassword:p1]);
     XCTAssertTrue([p2copy isEqualToPassword:p2]);
     XCTAssertTrue([p3copy isEqualToPassword:p3]);
@@ -207,7 +207,7 @@
     XCTAssertEqualObjects(@"fix", [self extractStringFromPassword: p3]);
 }
 
-- (NSString*) extractStringFromPassword:(PowerAuthCorePassword*)password
+- (NSString*) extractStringFromPassword:(PowerAuthPassword*)password
 {
     __block NSString * stringPassword = nil;
     [password validatePasswordComplexity:^NSInteger(const char * _Nonnull passphrase, NSInteger length) {
@@ -217,7 +217,7 @@
     return stringPassword;
 }
 
-- (NSData*) extractBytesFromPassword:(PowerAuthCorePassword*)password
+- (NSData*) extractBytesFromPassword:(PowerAuthPassword*)password
 {
     __block NSData * passwordData = nil;
     [password validatePasswordComplexity:^NSInteger(const char * _Nonnull passphrase, NSInteger length) {
@@ -228,3 +228,4 @@
 }
 
 @end
+

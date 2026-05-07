@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-// PA2_SHARED_SOURCE PowerAuth2ForWatch .
-// PA2_SHARED_SOURCE PowerAuth2ForExtensions .
-
 #import <PowerAuth2/PowerAuthMacros.h>
 
 @class PowerAuthCoreHttpHeader;

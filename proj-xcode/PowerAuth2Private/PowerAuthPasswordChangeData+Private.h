@@ -15,13 +15,12 @@
  */
 
 #import <PowerAuth2/PowerAuthPasswordChangeData.h>
-
-@class PowerAuthCorePassword;
+#import <PowerAuth2/PowerAuthPassword.h>
 
 @interface PowerAuthPasswordChangeData (Private)
 
-@property (nonatomic, strong, readonly, nullable) PowerAuthCorePassword * oldPassword;
+@property (nonatomic, strong, readonly, nullable) PowerAuthPassword * oldPassword;
 
-- (nonnull instancetype) initWithCorePassword:(nonnull PowerAuthCorePassword*)password;
+- (nonnull instancetype) initWithCorePassword:(nonnull PowerAuthPassword*)password;
 
 @end

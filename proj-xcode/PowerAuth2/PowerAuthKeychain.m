@@ -29,7 +29,7 @@
 #endif
 
 #if PA2_HAS_CORE_MODULE
-#import <PowerAuthCore/PowerAuthCore.h>
+#import <PowerAuth2/PowerAuthSecureData.h>
 #endif
 
 @implementation PowerAuthKeychain {
@@ -536,17 +536,17 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 
 @implementation PowerAuthKeychain (CoreData)
 
-- (PowerAuthCoreData*) coreDataForKey:(NSString *)key
-                               status:(OSStatus *)status
-                       authentication:(PowerAuthKeychainAuthentication*)authentication
+- (PowerAuthSecureData*) secureDataForKey:(NSString *)key
+                                   status:(OSStatus *)status
+                           authentication:(PowerAuthKeychainAuthentication*)authentication
 {
     NSData * data = [self dataForKey:key status:status authentication:authentication];
-    return data ? [[PowerAuthCoreData alloc] initWithDataAndClearSource:data] : nil;
+    return data ? [[PowerAuthSecureData alloc] initWithDataAndClearSource:data] : nil;
 }
 
-- (PowerAuthKeychainStoreItemResult) setCoreData:(nonnull PowerAuthCoreData*)coreData
-                                          forKey:(nonnull NSString*)key
-                                          access:(PowerAuthKeychainItemAccess)access
+- (PowerAuthKeychainStoreItemResult) setSecureData:(nonnull PowerAuthSecureData*)coreData
+                                            forKey:(nonnull NSString*)key
+                                            access:(PowerAuthKeychainItemAccess)access
 {
     if ([self containsDataForKey:key]) {
         return [self updateValue:coreData.sensitiveData forKey:key];

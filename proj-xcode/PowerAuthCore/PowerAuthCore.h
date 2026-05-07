@@ -30,7 +30,7 @@ FOUNDATION_EXPORT const unsigned char PowerAuthCoreVersionString[];
 #import <PowerAuthCore/PowerAuthCoreRequest.h>
 #import <PowerAuthCore/PowerAuthCoreEncryptorFactory.h>
 #import <PowerAuthCore/PowerAuthCoreOtpUtil.h>
-#import <PowerAuthCore/PowerAuthCorePassword.h>
+#import <PowerAuthCore/PowerAuthCorePass.h>
 #import <PowerAuthCore/PowerAuthCoreCredentials.h>
 #import <PowerAuthCore/PowerAuthCoreData.h>
 #import <PowerAuthCore/PowerAuthCoreCryptoUtils.h>

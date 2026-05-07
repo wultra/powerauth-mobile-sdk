@@ -27,6 +27,8 @@
 #import "PowerAuthActivationResult+Private.h"
 #import "PowerAuthProtocolUpgradeResult+Private.h"
 #import "PowerAuthPasswordChangeData+Private.h"
+#import "PowerAuthSecureData+Private.h"
+#import "PowerAuthEncryptor+Private.h"
 
 #import <PowerAuthCore/PowerAuthCore.h>
 
@@ -73,8 +75,8 @@
 @end
 
 @interface PowerAuthSecureVaultKey (Private)
-- (instancetype) initWithCoreData:(PowerAuthCoreData*)coreData
-                            keyId:(PowerAuthSecureVaultKeyId)keyId;
+- (instancetype) initWithSecureData:(PowerAuthSecureData*)secureData
+                              keyId:(PowerAuthSecureVaultKeyId)keyId;
 @end
 
 @interface PowerAuthDevicePublicKeyData (Private)

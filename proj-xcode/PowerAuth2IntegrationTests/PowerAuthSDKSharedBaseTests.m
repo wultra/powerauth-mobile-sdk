@@ -468,7 +468,7 @@
     XCTAssertEqual(self.powerAuthAlgorithm, _sdk.currentAlgorithm);
     XCTAssertEqual(self.powerAuthAlgorithm, _altSdk.currentAlgorithm);
     
-    PowerAuthCorePassword * password = [_helper.authPossessionWithKnowledge.password copyToImmutable];
+    PowerAuthPassword * password = [_helper.authPossessionWithKnowledge.password copyToImmutable];
     XCTAssertTrue([_helper checkForCorePassword:password]);
     XCTAssertTrue([_altHelper checkForCorePassword:password]);
 }

@@ -552,7 +552,7 @@ static NSString * PA_Ver_Current = @"4.0";
     return _sdk;
 }
 
-- (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)customBiometryKek
+- (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthSecureData*)customBiometryKek
                                                                  shouldFinish:(BOOL)shouldFinish
 {
     PowerAuthProtocolUpgradeResult * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
@@ -682,7 +682,7 @@ static NSString * PA_Ver_Current = @"4.0";
         PowerAuthCoreData* biometryKek = [_sdk.sessionProvider readTaskWithSession:^PowerAuthCoreData* _Nullable(PowerAuthCoreSession * _Nonnull session, NSError * _Nonnull __autoreleasing * _Nullable error) {
             return [session generateFactorKek:error];
         } error:nil];
-        return [PowerAuthAuthentication persistWithPasswordAndBiometry:newPassword customBiometryKey:biometryKek];
+        return [PowerAuthAuthentication persistWithPasswordAndBiometry:newPassword customBiometryKey:[biometryKek toSecureData]];
     }
     return [PowerAuthAuthentication persistWithPassword:newPassword];
 }
@@ -704,7 +704,7 @@ static NSString * PA_Ver_Current = @"4.0";
 /**
  Validates password on server. Returns YES if password is valid.
  */
-- (BOOL) checkForCorePassword:(PowerAuthCorePassword*)password
+- (BOOL) checkForCorePassword:(PowerAuthPassword*)password
 {
     BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         id<PowerAuthOperationTask> task = [_sdk testCorePassword:password callback:^(NSError * _Nullable error) {
@@ -1007,7 +1007,7 @@ static NSString * PA_Ver_Current = @"4.0";
     }];
 }
 
-- (id<PowerAuthOperationTask>) testCorePassword:(PowerAuthCorePassword*)password callback:(void (^)(NSError *))callback
+- (id<PowerAuthOperationTask>) testCorePassword:(PowerAuthPassword*)password callback:(void (^)(NSError *))callback
 {
     // For integration testing only.
     //

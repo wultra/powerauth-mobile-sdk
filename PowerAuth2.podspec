@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
     # General information
     s.cocoapods_version = '>= 1.10'
     s.name              = 'PowerAuth2'
-    s.version           = '1.9.2'
+    s.version           = '2.0.0-beta1'
     s.summary           = 'PowerAuth Mobile SDK for iOS'
     s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
     s.social_media_url  = 'https://twitter.com/wultra'
@@ -14,7 +14,6 @@ Pod::Spec.new do |s|
         :type => 'Apache License, Version 2.0', 
         :file => 'LICENSE' 
     }
-    s.dependency 'PowerAuthCore', '~> 1.9.2'
         
     # Source files
     s.source = { 
@@ -23,27 +22,15 @@ Pod::Spec.new do |s|
         :submodules => true
     }
     
-    s.ios.deployment_target  = '12.0'
-    s.tvos.deployment_target = '12.0'
+    s.ios.deployment_target  = '13.0'
+    s.tvos.deployment_target = '13.0'
     
     # XCFramework  build    
     s.prepare_command = <<-CMD
-        ./scripts/ios-build-sdk.sh copySdk --out-dir Build/PowerAuth2
+        ./scripts/ios-build-sdk.sh buildSdk --out-dir Build/PowerAuth2 --optional-tvos --include-dsyms
     CMD
     
     # Produced files
-    s.source_files          = 'Build/PowerAuth2/**/*.{h,m}'
-    s.private_header_files  = 'Build/PowerAuth2/Private/*.h'
-    s.tvos.exclude_files    = [
-        'Build/PowerAuth2/Private/PA2WC*.{h,m}',
-        'Build/PowerAuth2/Private/PowerAuthWC*.{h,m}'
-    ]
-    s.requires_arc          = true
+    s.vendored_frameworks   = 'Build/PowerAuth2/PowerAuth2.xcframework'
     
-    # Tweaks
-    s.pod_target_xcconfig   = {
-        'OTHER_LDFLAGS' => '-ObjC',
-        'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO'
-    }
-
 end

@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
+#import "PowerAuthPasswordHelper.h"
 #import <PowerAuthCore/PowerAuthCore.h>
 
-@interface PowerAuthCorePassword (PowerAuthCorePasswordHelper)
+@implementation PowerAuthPassword (PowerAuthPasswordHelper)
 
-@property (nonatomic, strong, readonly, nullable) NSString * extractedPassword;
+- (NSString*) extractedPassword
+{
+    __block NSString * password = nil;
+    [self validatePasswordComplexity:^NSInteger(const char * passphrase, NSInteger length) {
+        password = [[NSString alloc] initWithBytes:passphrase length:length encoding:NSUTF8StringEncoding];
+        return 0;
+    }];
+    return password;
+}
 
 @end

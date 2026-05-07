@@ -31,7 +31,7 @@
 
 
 /// The `PA2TimeSynchronizationService` class provides functionality to synchronize time with the server.
-/// The class implements both `PowerAuthTimeSynchronizationService` and `PowerAuthCoreTimeService` protocols.
+/// The class implements `PowerAuthTimeSynchronizationService` public protocol.
 @interface PA2TimeSynchronizationService : NSObject<PowerAuthTimeSynchronizationService, PA2GetSystemStatusTaskDelegate>
 
 /// Initialize time synchronization service.

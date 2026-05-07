@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#import <PowerAuthCore/PowerAuthCorePassword.h>
+#import <PowerAuthCore/PowerAuthCorePass.h>
 #import "PowerAuthCorePrivateImpl.h"
 
 #pragma mark -
 #pragma mark Password -
 
-@implementation PowerAuthCorePassword
+@implementation PowerAuthCorePass
 {
     powerAuth::PasswordPtr _password;
 }
@@ -45,7 +45,7 @@
     return self;
 }
 
-- (instancetype) initWithCopy:(nonnull PowerAuthCorePassword*)other
+- (instancetype) initWithCopy:(nonnull PowerAuthCorePass*)other
 {
     self = [super init];
     if (self) {
@@ -67,12 +67,12 @@
 
 + (instancetype) passwordWithString:(NSString *)string
 {
-    return [[PowerAuthCorePassword alloc] initWithString:string];
+    return [[PowerAuthCorePass alloc] initWithString:string];
 }
 
 + (instancetype) passwordWithData:(NSData *)data
 {
-    return [[PowerAuthCorePassword alloc] initWithData:data];
+    return [[PowerAuthCorePass alloc] initWithData:data];
 }
 
 - (NSUInteger) length
@@ -80,7 +80,7 @@
     return _password->length();
 }
 
-- (BOOL) isEqualToPassword:(PowerAuthCorePassword *)password
+- (BOOL) isEqualToPassword:(PowerAuthCorePass *)password
 {
     if (self == password) {
         return YES;
@@ -95,7 +95,7 @@
     if (object == self) {
         return YES;
     }
-    if ([object isKindOfClass:[PowerAuthCorePassword class]]) {
+    if ([object isKindOfClass:[PowerAuthCorePass class]]) {
         return [self isEqualToPassword:object];
     }
     return NO;
@@ -117,9 +117,9 @@
     _password->secureClear();
 }
 
-- (PowerAuthCorePassword*) copyToImmutable
+- (PowerAuthCorePass*) copyToImmutable
 {
-    return [[PowerAuthCorePassword alloc] initWithCopy:self];
+    return [[PowerAuthCorePass alloc] initWithCopy:self];
 }
 
 @end
@@ -128,7 +128,7 @@
 #pragma mark -
 #pragma mark Password (Private) -
 
-@implementation PowerAuthCorePassword (Private)
+@implementation PowerAuthCorePass (Private)
 
 - (const powerAuth::PasswordPtr &) passObjRef
 {
@@ -142,7 +142,7 @@
 #pragma mark -
 #pragma mark Mutable password -
 
-@implementation PowerAuthCoreMutablePassword
+@implementation PowerAuthCoreMutablePass
 
 - (instancetype) init
 {
@@ -151,7 +151,7 @@
 
 + (instancetype) mutablePassword
 {
-    return [[PowerAuthCoreMutablePassword alloc] init];
+    return [[PowerAuthCoreMutablePass alloc] init];
 }
 
 - (void) clear

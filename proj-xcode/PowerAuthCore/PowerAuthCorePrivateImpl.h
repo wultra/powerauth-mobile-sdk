@@ -43,7 +43,7 @@
  so it's not available for Objective-C or Swift codes.
  */
 
-@interface PowerAuthCorePassword (Private)
+@interface PowerAuthCorePass (Private)
 - (const powerAuth::PasswordPtr &) passObjRef;
 @end
 

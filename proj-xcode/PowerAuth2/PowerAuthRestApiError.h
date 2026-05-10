@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 /**
  Class representing an error in the RESTful API.

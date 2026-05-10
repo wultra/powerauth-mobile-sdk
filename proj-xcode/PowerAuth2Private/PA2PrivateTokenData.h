@@ -17,7 +17,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch private
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions private
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 /**
  The PA2PrivateTokenData is a model object keeping all information about

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 /**
  The `PowerAuthActivationCode` object contains parsed components from user-provided activation, or recovery

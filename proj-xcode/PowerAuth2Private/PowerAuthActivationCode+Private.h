@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthActivationCode.h>
+#import "PowerAuthActivationCode.h"
 
 #import <PowerAuthCore/PowerAuthCore.h>
 

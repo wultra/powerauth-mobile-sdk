@@ -26,10 +26,10 @@
 #import "PA2SessionInterface.h"
 #import "PowerAuthAuthentication+Private.h"
 
-#import <PowerAuth2/PowerAuthErrorConstants.h>
-#import <PowerAuth2/PowerAuthKeychain.h>
-#import <PowerAuth2/PowerAuthConfiguration.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthErrorConstants.h"
+#import "PowerAuthKeychain.h"
+#import "PowerAuthConfiguration.h"
+#import "PowerAuthLog.h"
 
 @implementation PA2PrivateTokenKeychainStore
 {

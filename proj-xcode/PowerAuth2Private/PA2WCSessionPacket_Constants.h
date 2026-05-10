@@ -16,7 +16,7 @@
 
 // PA2_SHARED_SOURCE PowerAuth2ForWatch private
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 // Key used in userInfo, transmitted over the WatchConnectivity.
 PA2_EXTERN_C NSString * __nonnull const PA2WCSessionPacket_USER_INFO_KEY;

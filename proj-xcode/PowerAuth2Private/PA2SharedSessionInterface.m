@@ -22,7 +22,7 @@
 #import "PA2SessionDataProvider.h"
 #import "PowerAuthExternalPendingOperation+Private.h"
 
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthLog.h"
 
 #pragma mark Private constants
 

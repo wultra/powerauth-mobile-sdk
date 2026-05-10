@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthUserInfo.h>
+#import "PowerAuthUserInfo.h"
 #import "PA2Codable.h"
 
 @interface PowerAuthUserInfo (Private) <PA2Decodable>

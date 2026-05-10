@@ -17,7 +17,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch .
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 #if PA2_HAS_LACONTEXT == 1
 #import <LocalAuthentication/LocalAuthentication.h>

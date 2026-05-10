@@ -15,7 +15,7 @@
  */
 
 #import "PA2SessionDataProvider.h"
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthLog.h"
 
 @implementation PA2SessionDataProvider
 {

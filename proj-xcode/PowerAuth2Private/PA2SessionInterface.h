@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthCoreSessionProvider.h>
+#import "PowerAuthCoreSessionProvider.h"
 #import "PA2SessionDataProvider.h"
 #import "PA2TokenDataLock.h"
 

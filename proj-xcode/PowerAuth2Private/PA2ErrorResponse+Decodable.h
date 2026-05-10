@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthRestApiErrorResponse.h>
+#import "PowerAuthRestApiErrorResponse.h"
 #import "PA2Codable.h"
 
 @interface PowerAuthRestApiErrorResponse (Decodable) <PA2Decodable>

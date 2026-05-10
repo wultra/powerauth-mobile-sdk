@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthCustomHeaderRequestInterceptor.h>
+#import "PowerAuthCustomHeaderRequestInterceptor.h"
 
 /**
  The `PowerAuthBasicHttpAuthenticationRequestInterceptor` class implements Basic HTTP Authentication.

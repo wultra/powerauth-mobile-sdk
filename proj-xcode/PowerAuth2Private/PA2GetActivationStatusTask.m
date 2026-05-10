@@ -20,8 +20,8 @@
 #import "PA2CoreHttpClient.h"
 #import "PA2Result.h"
 
-#import <PowerAuth2/PowerAuthLog.h>
-#import <PowerAuth2/PowerAuthAuthentication.h>
+#import "PowerAuthLog.h"
+#import "PowerAuthAuthentication.h"
 
 #import <PowerAuthCore/PowerAuthCore.h>
 

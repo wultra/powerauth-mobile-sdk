@@ -16,7 +16,7 @@
 
 #import "PA2DefaultSessionInterface.h"
 #import "PA2SessionDataProvider.h"
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthLog.h"
 #import "PA2PrivateMacros.h"
 
 #import <PowerAuthCore/PowerAuthCore.h>

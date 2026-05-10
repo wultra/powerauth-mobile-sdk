@@ -15,7 +15,7 @@
  */
 
 #import "PA2AppGroupContainer.h"
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthLog.h"
 #import "PA2PrivateConstants.h"
 
 #import <PowerAuthCore/PowerAuthCore.h>

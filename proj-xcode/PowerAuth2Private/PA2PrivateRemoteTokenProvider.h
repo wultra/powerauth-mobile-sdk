@@ -17,8 +17,8 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch private
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions private
 
-#import <PowerAuth2/PowerAuthToken.h>
-#import <PowerAuth2/PowerAuthOperationTask.h>
+#import "PowerAuthToken.h"
+#import "PowerAuthOperationTask.h"
 
 @class PowerAuthConfiguration;
 @class PA2PrivateTokenData;

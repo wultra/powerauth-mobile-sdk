@@ -20,7 +20,7 @@
 
 #import "PA2CoreHttpClient.h"
 
-#import <PowerAuth2/PowerAuthAuthentication.h>
+#import "PowerAuthAuthentication.h"
 
 @implementation PA2PrivateHttpTokenProvider
 {

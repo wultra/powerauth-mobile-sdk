@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthActivation.h>
-#import <PowerAuth2/PowerAuthActivationResult.h>
-#import <PowerAuth2/PowerAuthActivationStatus.h>
-#import <PowerAuth2/PowerAuthProtocolUpgradeResult.h>
-#import <PowerAuth2/PowerAuthAuthentication.h>
-#import <PowerAuth2/PowerAuthConfiguration.h>
-#import <PowerAuth2/PowerAuthClientConfiguration.h>
-#import <PowerAuth2/PowerAuthBiometricConfiguration.h>
-#import <PowerAuth2/PowerAuthKeychainConfiguration.h>
-#import <PowerAuth2/PowerAuthBiometricStatus.h>
-#import <PowerAuth2/PowerAuthToken.h>
-#import <PowerAuth2/PowerAuthToken+WatchSupport.h>
-#import <PowerAuth2/PowerAuthHttpHeader.h>
-#import <PowerAuth2/PowerAuthCoreSessionProvider.h>
-#import <PowerAuth2/PowerAuthTimeSynchronizationService.h>
-#import <PowerAuth2/PowerAuthExternalPendingOperation.h>
-#import <PowerAuth2/PowerAuthUserInfo.h>
-#import <PowerAuth2/PowerAuthServerStatus.h>
-#import <PowerAuth2/PowerAuthSecureVaultKey.h>
-#import <PowerAuth2/PowerAuthSignatureTypes.h>
-#import <PowerAuth2/PowerAuthPasswordChangeData.h>
-#import <PowerAuth2/PowerAuthEncryptor.h>
+#import "PowerAuthActivation.h"
+#import "PowerAuthActivationResult.h"
+#import "PowerAuthActivationStatus.h"
+#import "PowerAuthProtocolUpgradeResult.h"
+#import "PowerAuthAuthentication.h"
+#import "PowerAuthConfiguration.h"
+#import "PowerAuthClientConfiguration.h"
+#import "PowerAuthBiometricConfiguration.h"
+#import "PowerAuthKeychainConfiguration.h"
+#import "PowerAuthBiometricStatus.h"
+#import "PowerAuthToken.h"
+#import "PowerAuthToken+WatchSupport.h"
+#import "PowerAuthHttpHeader.h"
+#import "PowerAuthCoreSessionProvider.h"
+#import "PowerAuthTimeSynchronizationService.h"
+#import "PowerAuthExternalPendingOperation.h"
+#import "PowerAuthUserInfo.h"
+#import "PowerAuthServerStatus.h"
+#import "PowerAuthSecureVaultKey.h"
+#import "PowerAuthSignatureTypes.h"
+#import "PowerAuthPasswordChangeData.h"
+#import "PowerAuthEncryptor.h"
 
 // Deprecated
-#import <PowerAuth2/PowerAuthDeprecated.h>
+#import "PowerAuthDeprecated.h"
 
 @interface PowerAuthSDK : NSObject<PowerAuthSessionStatusProvider>
 

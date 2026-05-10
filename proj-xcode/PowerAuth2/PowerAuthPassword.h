@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 /**
  The `PowerAuthPassword` is an object representing an arbitrary password. The underlying implementation

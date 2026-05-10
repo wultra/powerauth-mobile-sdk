@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthSignatureTypes.h>
+#import "PowerAuthSignatureTypes.h"
 
 #import <PowerAuthCore/PowerAuthCore.h>
 

@@ -20,7 +20,7 @@
 #import "PA2PrivateMacros.h"
 #import "PowerAuthServerStatus+Private.h"
 
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthLog.h"
 #import <UIKit/UIApplication.h>
 
 #pragma mark - Task interface

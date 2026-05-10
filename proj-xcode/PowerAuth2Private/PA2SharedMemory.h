@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 /**
  The `PA2SharedMemory` allows you to create a named memory region that is shared between the multiple applications.

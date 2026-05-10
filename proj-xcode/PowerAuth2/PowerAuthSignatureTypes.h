@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 /// The `PowerAuthCoreSignatureKeyId` enumeration defines keys available for
 /// signature calculation or verification.

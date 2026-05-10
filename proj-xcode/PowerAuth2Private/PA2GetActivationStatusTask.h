@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthCoreSessionProvider.h>
-#import <PowerAuth2/PowerAuthActivationStatus.h>
+#import "PowerAuthCoreSessionProvider.h"
+#import "PowerAuthActivationStatus.h"
 #import "PA2GroupedTask.h"
 
 @class PA2CoreHttpClient;

@@ -16,7 +16,7 @@
 
 #import "PA2SharedLock.h"
 #import "PA2PrivateMacros.h"
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthLog.h"
 #include <pthread.h>
 
 #pragma mark - Internal objects

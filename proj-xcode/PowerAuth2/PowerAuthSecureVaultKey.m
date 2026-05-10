@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthSecureVaultKey.h>
+#import "PowerAuthSecureVaultKey.h"
 #import "PA2PrivateMacros.h"
 #import "PowerAuthSecureData+Private.h"
 

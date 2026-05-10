@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthSDK.h>
-#import <PowerAuth2/PowerAuthKeychain.h>
+#import "PowerAuthSDK.h"
+#import "PowerAuthKeychain.h"
 
 #import "PA2GetActivationStatusTask.h"
 #import "PA2KeystoreService.h"

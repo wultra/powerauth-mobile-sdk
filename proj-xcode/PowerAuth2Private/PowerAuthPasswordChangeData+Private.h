@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthPasswordChangeData.h>
-#import <PowerAuth2/PowerAuthPassword.h>
+#import "PowerAuthPasswordChangeData.h"
+#import "PowerAuthPassword.h"
 
 @interface PowerAuthPasswordChangeData (Private)
 

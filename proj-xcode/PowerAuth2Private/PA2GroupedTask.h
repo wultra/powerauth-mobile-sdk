@@ -17,7 +17,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch private
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions private
 
-#import <PowerAuth2/PowerAuthOperationTask.h>
+#import "PowerAuthOperationTask.h"
 
 #pragma mark - Grouped task
 

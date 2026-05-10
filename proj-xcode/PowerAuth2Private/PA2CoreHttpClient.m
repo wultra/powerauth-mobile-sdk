@@ -21,7 +21,7 @@
 #import "PA2PrivateMacros.h"
 #import "PA2ErrorResponse+Decodable.h"
 
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthLog.h"
 
 #import <PowerAuthCore/PowerAuthCore.h>
 

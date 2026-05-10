@@ -16,7 +16,7 @@
 
 // PA2_SHARED_SOURCE PowerAuth2ForWatch private
 
-#import <PowerAuth2/PowerAuthWCSessionManager.h>
+#import "PowerAuthWCSessionManager.h"
 
 // -----------------------------------------------------------------------
 #if defined(PA2_WATCH_SUPPORT)

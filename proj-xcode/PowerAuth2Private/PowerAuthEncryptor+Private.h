@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthEncryptor.h>
+#import "PowerAuthEncryptor.h"
 
 @class PowerAuthCoreEncryptor;
 

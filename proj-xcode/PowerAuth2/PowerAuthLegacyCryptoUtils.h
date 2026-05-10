@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthSecureData.h>
+#import "PowerAuthSecureData.h"
 
 // ---------------------------------------------------------------------------------------
 //                                     WARNING

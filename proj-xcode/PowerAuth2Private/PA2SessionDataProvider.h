@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthKeychain.h>
+#import "PowerAuthKeychain.h"
 
 /**
  The `PA2SessionDataProvider` implements persistent storage for `PowerAuthCoreSession`

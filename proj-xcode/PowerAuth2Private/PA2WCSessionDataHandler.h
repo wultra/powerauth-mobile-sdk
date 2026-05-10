@@ -16,7 +16,7 @@
 
 // PA2_SHARED_SOURCE PowerAuth2ForWatch private
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 // -----------------------------------------------------------------------
 #if defined(PA2_WATCH_SUPPORT)
 // -----------------------------------------------------------------------

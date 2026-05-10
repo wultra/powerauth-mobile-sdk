@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthKeychain.h>
+#import "PowerAuthKeychain.h"
 
 /// `PowerAuthBiometricStatus` represents the overall availability of biometric
 /// authentication in a `PowerAuthSDK` instance.

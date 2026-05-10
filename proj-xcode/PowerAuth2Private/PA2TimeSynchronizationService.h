@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthTimeSynchronizationService.h>
-#import <PowerAuth2/PowerAuthServerStatus.h>
+#import "PowerAuthTimeSynchronizationService.h"
+#import "PowerAuthServerStatus.h"
 
 #import <PowerAuthCore/PowerAuthCore.h>
 

@@ -19,7 +19,7 @@
 #import "PA2CoreHttpClient.h"
 #import "PA2GroupedTask.h"
 
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthLog.h"
 
 #pragma mark - Task interface
 

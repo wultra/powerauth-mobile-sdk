@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthHttpHeader.h>
+#import "PowerAuthHttpHeader.h"
 #import <PowerAuthCore/PowerAuthCore.h>
 
 @implementation PowerAuthHttpHeader

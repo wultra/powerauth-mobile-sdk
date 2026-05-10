@@ -22,22 +22,22 @@ FOUNDATION_EXPORT double PowerAuth2VersionNumber;
 //! Project version string for PowerAuth2.
 FOUNDATION_EXPORT const unsigned char PowerAuth2VersionString[];
 
-#import <PowerAuth2/PowerAuthSDK.h>
-#import <PowerAuth2/PowerAuthActivationCode.h>
-#import <PowerAuth2/PowerAuthErrorConstants.h>
-#import <PowerAuth2/PowerAuthKeychain.h>
+#import "PowerAuthSDK.h"
+#import "PowerAuthActivationCode.h"
+#import "PowerAuthErrorConstants.h"
+#import "PowerAuthKeychain.h"
 
-#import <PowerAuth2/PowerAuthRestApiError.h>
-#import <PowerAuth2/PowerAuthRestApiErrorResponse.h>
-#import <PowerAuth2/PowerAuthClientSslNoValidationStrategy.h>
-#import <PowerAuth2/PowerAuthBasicHttpAuthenticationRequestInterceptor.h>
-#import <PowerAuth2/PowerAuthCustomHeaderRequestInterceptor.h>
+#import "PowerAuthRestApiError.h"
+#import "PowerAuthRestApiErrorResponse.h"
+#import "PowerAuthClientSslNoValidationStrategy.h"
+#import "PowerAuthBasicHttpAuthenticationRequestInterceptor.h"
+#import "PowerAuthCustomHeaderRequestInterceptor.h"
 
-#import <PowerAuth2/PowerAuthLog.h>
-#import <PowerAuth2/PowerAuthSystem.h>
+#import "PowerAuthLog.h"
+#import "PowerAuthSystem.h"
 
-#import <PowerAuth2/PowerAuthWCSessionManager.h>
+#import "PowerAuthWCSessionManager.h"
 
-#import <PowerAuth2/PowerAuthPassword.h>
-#import <PowerAuth2/PowerAuthSecureData.h>
-#import <PowerAuth2/PowerAuthLegacyCryptoUtils.h>
+#import "PowerAuthPassword.h"
+#import "PowerAuthSecureData.h"
+#import "PowerAuthLegacyCryptoUtils.h"

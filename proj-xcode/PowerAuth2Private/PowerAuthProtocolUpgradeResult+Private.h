@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthProtocolUpgradeResult.h>
+#import "PowerAuthProtocolUpgradeResult.h"
 
 @class PowerAuthCoreProtocolUpgradeResult;
 

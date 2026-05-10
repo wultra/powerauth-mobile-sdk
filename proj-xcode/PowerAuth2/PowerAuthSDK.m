@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthSDK.h>
-#import <PowerAuth2/PowerAuthKeychain.h>
-#import <PowerAuth2/PowerAuthSystem.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthSDK.h"
+#import "PowerAuthKeychain.h"
+#import "PowerAuthSystem.h"
+#import "PowerAuthLog.h"
 
 #import "PowerAuthSDK+Private.h"
 

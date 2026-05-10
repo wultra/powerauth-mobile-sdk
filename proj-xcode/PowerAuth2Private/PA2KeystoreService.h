@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthOperationTask.h>
+#import "PowerAuthOperationTask.h"
 #import "PA2SessionInterface.h"
 
 @class PA2GetTemporaryKeyTask, PA2CoreHttpClient;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthActivationResult.h>
+#import "PowerAuthActivationResult.h"
 
 @class PowerAuthCoreActivationResult;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthOperationTask.h>
+#import "PowerAuthOperationTask.h"
 
 /// The `PA2CompositeTask` allows you to execute multiple operation tasks as an one
 /// cancelable operation exposed to the application.

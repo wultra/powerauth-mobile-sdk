@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 /**
  The `PowerAuthClientSslValidationStrategy` protocol defines interface for custom TLS connection validation.

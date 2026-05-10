@@ -17,8 +17,8 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch .
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
-#import <PowerAuth2/PowerAuthKeychain.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthKeychain.h"
+#import "PowerAuthLog.h"
 
 #import "PA2PrivateMacros.h"
 
@@ -29,7 +29,7 @@
 #endif
 
 #if PA2_HAS_CORE_MODULE
-#import <PowerAuth2/PowerAuthSecureData.h>
+#import "PowerAuthSecureData.h"
 #endif
 
 @implementation PowerAuthKeychain {

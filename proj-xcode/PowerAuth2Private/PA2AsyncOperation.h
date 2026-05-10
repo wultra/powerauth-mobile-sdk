@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthRestApiErrorResponse.h>
-#import <PowerAuth2/PowerAuthOperationTask.h>
+#import "PowerAuthRestApiErrorResponse.h"
+#import "PowerAuthOperationTask.h"
 
 /**
  The `PA2AsyncOperation` implements a simple asynchronous NSOperation,

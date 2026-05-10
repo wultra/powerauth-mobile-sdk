@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthServerStatus.h>
+#import "PowerAuthServerStatus.h"
 
 @class PowerAuthCoreServerStatus;
 

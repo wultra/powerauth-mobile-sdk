@@ -17,9 +17,9 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch private
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions private
 
-#import <PowerAuth2/PowerAuthMacros.h>
-#import <PowerAuth2/PowerAuthErrorConstants.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthMacros.h"
+#import "PowerAuthErrorConstants.h"
+#import "PowerAuthLog.h"
 
 // Check whether we're using C++ in Extensions SDK. If yes, then treat this as an error.
 #if defined(__cplusplus) && defined(PA2_EXTENSION_SDK)

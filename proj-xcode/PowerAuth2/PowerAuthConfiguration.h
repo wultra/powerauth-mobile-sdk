@@ -17,7 +17,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch .
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
-#import <PowerAuth2/PowerAuthSharingConfiguration.h>
+#import "PowerAuthSharingConfiguration.h"
 
 /// The `PowerAuthAlgorithm` enumeration defines algorithms available for PowerAuth
 /// initialization. The algorithm specifies also the protocol version used for communication

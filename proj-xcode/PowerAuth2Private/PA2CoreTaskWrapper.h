@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthOperationTask.h>
+#import "PowerAuthOperationTask.h"
 
 #import <PowerAuthCore/PowerAuthCore.h>
 

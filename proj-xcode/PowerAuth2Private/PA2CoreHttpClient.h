@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthClientConfiguration.h>
-#import <PowerAuth2/PowerAuthRestApiErrorResponse.h>
-#import <PowerAuth2/PowerAuthOperationTask.h>
+#import "PowerAuthClientConfiguration.h"
+#import "PowerAuthRestApiErrorResponse.h"
+#import "PowerAuthOperationTask.h"
 
 #import "PA2TimeSynchronizationService.h"
 #import "PA2KeystoreService.h"

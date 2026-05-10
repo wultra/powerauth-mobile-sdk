@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthAuthentication.h>
-#import <PowerAuth2/PowerAuthKeychainAuthentication.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthAuthentication.h"
+#import "PowerAuthKeychainAuthentication.h"
+#import "PowerAuthLog.h"
 #import "PowerAuthAuthentication+Private.h"
 #import "PA2PrivateMacros.h"
 

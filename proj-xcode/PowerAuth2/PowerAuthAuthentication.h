@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
-#import <PowerAuth2/PowerAuthPassword.h>
-#import <PowerAuth2/PowerAuthSecureData.h>
+#import "PowerAuthMacros.h"
+#import "PowerAuthPassword.h"
+#import "PowerAuthSecureData.h"
 
 #if PA2_HAS_LACONTEXT == 1
 #import <LocalAuthentication/LocalAuthentication.h>

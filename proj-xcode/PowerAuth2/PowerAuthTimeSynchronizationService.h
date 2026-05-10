@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthOperationTask.h>
+#import "PowerAuthOperationTask.h"
 
 /// The `PowerAuthTimeSynchronizationService` protocol defines interface that allows you to synchronize the
 /// local device time with the PowerAuth Server and then get the synchronized time.

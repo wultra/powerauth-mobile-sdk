@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthAuthentication.h>
+#import "PowerAuthAuthentication.h"
 #import <PowerAuthCore/PowerAuthCoreData.h>
 #import <PowerAuthCore/PowerAuthCorePass.h>
 

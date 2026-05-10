@@ -16,7 +16,7 @@
 
 #import <PA2AsyncOperation.h>
 #import <PA2PrivateMacros.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthLog.h"
 
 @interface PA2AsyncOperation (Private)
 @property (nonatomic, assign) BOOL isExecuting;

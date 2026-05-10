@@ -18,7 +18,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions private
 
 #import "PA2PrivateMacros.h"
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthLog.h"
 
 id PA2CastToImpl(id instance, Class desiredClass)
 {

@@ -15,4 +15,4 @@
  */
 
 // Response objects
-#import <PowerAuth2/PowerAuthUserInfo.h>
+#import "PowerAuthUserInfo.h"

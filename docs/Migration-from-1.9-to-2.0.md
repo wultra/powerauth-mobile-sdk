@@ -179,6 +179,7 @@ Notable changes on iOS:
 - Added full support for Swift Package Manager. Please change your dependency to `https://github.com/wultra/powerauth-mobile-sdk`.
 - Added the `PowerAuthSecureData` object to enhance in-memory management of sensitive data.
 - Added `powerAuthRestApiErrorResponse` property to `NSError` to simplify access to the reason of the failure, received from the server.
+- CocoaPods integration now precompiles the whole `PowerAuth2` module during the install phase.
 
 ### API changes
 

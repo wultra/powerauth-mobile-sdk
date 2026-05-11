@@ -175,7 +175,9 @@ Notable changes on Android:
 
 Notable changes on iOS:
 
-- Added the `PowerAuthCoreData` object to `PowerAuthCore` module to enhance in-memory management of sensitive data.
+- The `PowerAuthCore` module is no longer available. The essential functionality is now provided by the `PowerAuth2` module. Please remove all `PowerAuthCore` imports from your code.
+- Added full support for Swift Package Manager. Please change your dependency to `https://github.com/wultra/powerauth-mobile-sdk`.
+- Added the `PowerAuthSecureData` object to enhance in-memory management of sensitive data.
 - Added `powerAuthRestApiErrorResponse` property to `NSError` to simplify access to the reason of the failure, received from the server.
 
 ### API changes
@@ -226,16 +228,21 @@ Notable changes on iOS:
   - `invalidateLocalAuthenticationContextAfterUse` - use new `PowerAuthBiometricConfiguration.invalidateLocalAuthenticationContextAfterUse` instead, with the same meaning.
   - Be aware that if you provide both, `PowerAuthBiometricConfiguration` and  `PowerAuthKeychainConfiguration` objects to initialize `PowerAuthSDK`, then the values from the biometric configuration takes precedence.
 
+- Changes caused by removing the `PowerAuthCore` module:
+  - `PowerAuthCorePassword` class is now deprecated, please use `PowerAuthPassword` with identical functionality as a replacement.
+  - `PowerAuthCoreOtpUtil` is no longer available. Please use `PowerAuthActivationCodeUtil` class as a replacement.
+  - `PowerAuthCoreOtp` is no longer available. Please use `PowerAuthActivationCode` class as a replacement.
+
 - `PowerAuthActivationState` enumeration no longer contains "created" case. The case is never returned from the server back to the mobile client.
 
 - Changes in End-To-End encryption:
   - `PowerAuthSDK.eciesEncryptorForApplicationScope(callback:)` - method has been removed, use `encryptorForApplicationScope(callback:)` as replacement.
   - `PowerAuthSDK.eciesEncryptorForActivationScope(callback:)` - method has been removed, use `encryptorForActivationScope(callback:)` as replacement.
-  - `PowerAuthCoreEciesEncryptor` class has been removed and replaced by `PowerAuthCoreEncryptor`. The new class doesn't allow you to reuse its instance, so you have to create new encryptor for each encrypted request.
-  - `PowerAuthCoreEciesCryptogram` is removed and replaced by `PowerAuthCoreEncryptedRequest` and `PowerAuthCoreEncryptedResponse`.
+  - `PowerAuthCoreEciesEncryptor` class has been removed and replaced by `PowerAuthEncryptor`. The new class doesn't allow you to reuse its instance, so you have to create new encryptor for each encrypted request.
+  - `PowerAuthCoreEciesCryptogram` is removed and replaced by `PowerAuthEncryptedRequest` and `PowerAuthEncryptedResponse`.
   - `PowerAuthCoreEciesMetaData` is removed. You can get the encryption header in more straightforward way. Check the updated E2EE documentation for more details.
 
-- The following functions or properties now takes or returns `PowerAuthCoreData` instead of `Data`:
+- The following functions or properties now takes or returns `PowerAuthSecureData` instead of `Data`:
   - `PowerAuthSDK.fetchEncryptionKey()`
   - All static functions in `PowerAuthAuthentication` that takes custom biometry key in parameter.
   - `PowerAuthAuthentication.overridenPossessionKey` and the method is deprecated with no replacement.

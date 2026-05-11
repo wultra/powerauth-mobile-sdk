@@ -204,5 +204,7 @@
 
 @end
 
+// Expose deprecated types as typedefs.
+
 PA2_DEPRECATED_TYPE(2.0.0, PowerAuthCorePassword, PowerAuthPassword)
 PA2_DEPRECATED_TYPE(2.0.0, PowerAuthCoreMutablePassword, PowerAuthMutablePassword)

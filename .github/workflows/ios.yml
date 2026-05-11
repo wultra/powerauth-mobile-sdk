@@ -35,10 +35,10 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
             submodules: 'recursive'
       - name: Set proper Xcode version
-        run: sudo xcode-select -s "/Applications/Xcode_26.4.app"
+        run: sudo xcode-select -s "/Applications/Xcode_26.2.app"
       - name: Build library
         run: ./scripts/test-build.sh script -v2

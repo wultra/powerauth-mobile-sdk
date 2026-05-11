@@ -1,4 +1,4 @@
-// swift-tools-version: 6.3
+// swift-tools-version: 5.9
 import PackageDescription
 
 let package = Package(
@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "PowerAuth2", type: .dynamic, targets: ["PowerAuth2"])
     ],
     dependencies: [
-        .package(url: "https://github.com/wultra/cc7", exact: "0.7.0-spm3")
+        .package(url: "https://github.com/wultra/cc7", exact: "0.7.0-rc2")
     ],
     targets: [
         

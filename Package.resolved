@@ -1,15 +1,14 @@
 {
-  "originHash" : "6a58338efe1468ce9c3dfd4e9f9c2de2908a03369ffa6980a8e4eff423b228c7",
   "pins" : [
     {
       "identity" : "cc7",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/wultra/cc7",
       "state" : {
-        "revision" : "4b121897bc8f091085203d2dd21d40f10bbe4129",
-        "version" : "0.7.0-spm3"
+        "revision" : "0ea92b389c86eb5fa7201d058b544a835980a405",
+        "version" : "0.7.0-rc2"
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }

@@ -186,9 +186,8 @@ function DEPLOY_BUILD
     LOG "   scripts/android-publish-build.sh central"
     LOG ""
     LOG_LINE
-    LOG "----- Publishing Android to Maven Central..."
-    pod $POD_VERBOSE trunk push ${PODSPEC}
 
+    LOG "----- Publishing Android to Maven Central..."
     "${TOP}/android-publish-build.sh" $SCRIPT_VERBOSE central
 
     if [ x$VERSION_PRE_RELEASE == x0 ]; then
@@ -205,6 +204,7 @@ function DEPLOY_BUILD
     # Publish Apple platform
 
     if [ x$VERSION_PRE_RELEASE == x0 ]; then
+        LOG ""
         LOG_LINE
         LOG "Going to publish ${PODSPEC} to CocoaPods. In case of failure"
         LOG "then please try to run the publishing manually: "
@@ -212,9 +212,11 @@ function DEPLOY_BUILD
         LOG "   pod trunk push ${PODSPEC}"
         LOG ""
         LOG_LINE
+
         LOG "----- Publishing ${PODSPEC} to CocoaPods..."
         pod $POD_VERBOSE trunk push ${PODSPEC}
     else
+        LOG ""
         LOG_LINE
         LOG "Pre-release version doesn't need to be published to CocoaPods."
         LOG "If you still want to publish this version, then run:"

@@ -213,9 +213,9 @@ if [ $DO_REPO == 'central' ]; then
         LOG_LINE -a
         LOG "Publishing with staging API"
         LOG_LINE
-        curl --silent --fail-with-body          \
-            -X POST                             \
-            -u ${NEXUS_USER}:${NEXUS_PASSWORD}  \
+        curl --silent --fail-with-body              \
+            -X POST                                 \
+            -u "${NEXUS_USER}:${NEXUS_PASSWORD}"    \
             https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/com.wultra
     else
         LOG_LINE -a

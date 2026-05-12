@@ -41,7 +41,7 @@ using namespace cc7;
     return [[PowerAuthCoreCredentials alloc] initWithCredentials:Credentials::possession()];
 }
 
-+ (nullable PowerAuthCoreCredentials*) knowledge:(nonnull PowerAuthCorePassword*)password
++ (nullable PowerAuthCoreCredentials*) knowledge:(nonnull PowerAuthCorePass*)password
 {
     return [[PowerAuthCoreCredentials alloc] initWithCredentials:Credentials::knowledge(password.passObjRef->passwordData())];
 }

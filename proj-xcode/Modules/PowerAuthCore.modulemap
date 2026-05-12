@@ -1,0 +1,6 @@
+// Module specification for Xcode Build
+framework module PowerAuthCore {
+  umbrella header "PowerAuthCore.h"
+  export *
+  module * { export * }
+}

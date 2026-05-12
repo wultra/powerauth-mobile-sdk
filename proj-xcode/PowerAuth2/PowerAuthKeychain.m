@@ -17,8 +17,8 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch .
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
-#import <PowerAuth2/PowerAuthKeychain.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthKeychain.h"
+#import "PowerAuthLog.h"
 
 #import "PA2PrivateMacros.h"
 
@@ -29,7 +29,7 @@
 #endif
 
 #if PA2_HAS_CORE_MODULE
-@import PowerAuthCore;
+#import "PowerAuthSecureData.h"
 #endif
 
 @implementation PowerAuthKeychain {
@@ -536,17 +536,17 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 
 @implementation PowerAuthKeychain (CoreData)
 
-- (PowerAuthCoreData*) coreDataForKey:(NSString *)key
-                               status:(OSStatus *)status
-                       authentication:(PowerAuthKeychainAuthentication*)authentication
+- (PowerAuthSecureData*) secureDataForKey:(NSString *)key
+                                   status:(OSStatus *)status
+                           authentication:(PowerAuthKeychainAuthentication*)authentication
 {
     NSData * data = [self dataForKey:key status:status authentication:authentication];
-    return data ? [[PowerAuthCoreData alloc] initWithDataAndClearSource:data] : nil;
+    return data ? [[PowerAuthSecureData alloc] initWithDataAndClearSource:data] : nil;
 }
 
-- (PowerAuthKeychainStoreItemResult) setCoreData:(nonnull PowerAuthCoreData*)coreData
-                                          forKey:(nonnull NSString*)key
-                                          access:(PowerAuthKeychainItemAccess)access
+- (PowerAuthKeychainStoreItemResult) setSecureData:(nonnull PowerAuthSecureData*)coreData
+                                            forKey:(nonnull NSString*)key
+                                            access:(PowerAuthKeychainItemAccess)access
 {
     if ([self containsDataForKey:key]) {
         return [self updateValue:coreData.sensitiveData forKey:key];

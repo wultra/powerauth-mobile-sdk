@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthToken+WatchSupport.h>
-#import <PowerAuth2/PowerAuthConfiguration.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthToken+WatchSupport.h"
+#import "PowerAuthConfiguration.h"
+#import "PowerAuthLog.h"
 
 // -----------------------------------------------------------------------
 #if defined(PA2_WATCH_SUPPORT)

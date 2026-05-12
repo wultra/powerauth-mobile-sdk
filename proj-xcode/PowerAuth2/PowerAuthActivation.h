@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthActivationCode.h>
+#import "PowerAuthActivationCode.h"
 
 /**
  The `PowerAuthActivation` object contains activation data required for the activation creation. The object supports

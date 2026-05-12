@@ -15,7 +15,7 @@
  */
 
 #include <cc7tests/CC7Tests.h>
-#include <../PowerAuth/v4/HybridKeyPair.h>
+#include "../PowerAuth/v4/HybridKeyPair.h"
 
 using namespace cc7;
 using namespace cc7::tests;

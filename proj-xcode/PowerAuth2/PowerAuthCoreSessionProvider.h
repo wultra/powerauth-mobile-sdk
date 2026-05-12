@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthSessionStatusProvider.h>
-#import <PowerAuth2/PowerAuthExternalPendingOperation.h>
+#import "PowerAuthSessionStatusProvider.h"
+#import "PowerAuthExternalPendingOperation.h"
 
 @class PowerAuthCoreSession;
 

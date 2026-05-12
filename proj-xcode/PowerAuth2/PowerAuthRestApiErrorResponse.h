@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthRestApiError.h>
+#import "PowerAuthRestApiError.h"
 
 /**
  Enum representing the response status: OK, or ERROR

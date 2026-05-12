@@ -8,9 +8,9 @@ ARCH_WATCHOS="armv7k arm64_32"
 ARCH_WATCHOS_SIM="x86_64 i386 arm64"
 
 # Minimum OS version
-MIN_VER_IOS="12.0"
-MIN_VER_TVOS="12.0"
-MIN_VER_CATALYST="10.15"
+MIN_VER_IOS="13.0"
+MIN_VER_TVOS="13.0"
+MIN_VER_CATALYST="13.5"
 MIN_VER_WATCHOS="4.0"
 
 # Minimum OS versions when legacy architectures are supported

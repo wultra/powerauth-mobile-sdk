@@ -15,15 +15,18 @@
  */
 
 #import <XCTest/XCTest.h>
-@import PowerAuth2;
+#import <PowerAuth2/PowerAuth2.h>
 
 #import "PowerAuthAuthentication+Private.h"
+#import "PowerAuthSecureData+Private.h"
 #import "PowerAuthMacros.h"
-#import "PowerAuthCorePasswordHelper.h"
+
+#import <PowerAuth2TestsBase/PowerAuthPasswordHelper.h>
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @interface PowerAuthAuthenticationTests : XCTestCase
-@property (nonatomic, strong) PowerAuthCoreData * customBiometryKey;
-@property (nonatomic, strong) PowerAuthCoreData * customPossessionKey;
+@property (nonatomic, strong) PowerAuthSecureData * customBiometryKey;
+@property (nonatomic, strong) PowerAuthSecureData * customPossessionKey;
 @property (nonatomic, strong) NSString * biometryPrompt;
 @property (nonatomic, strong) id biometryContext;
 @property (nonatomic, readonly) BOOL hasBiometry;
@@ -33,8 +36,8 @@
 
 - (void) setUp
 {
-    self.customBiometryKey = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V3 error:nil];
-    self.customPossessionKey = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V3 error:nil];
+    self.customBiometryKey = [[PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V3 error:nil] toSecureData];
+    self.customPossessionKey = [[PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V3 error:nil] toSecureData];
     self.biometryPrompt = @"Authenticate with biometry";
     
 #if PA2_HAS_LACONTEXT
@@ -65,7 +68,7 @@
         
     // core password variants
     
-    auth = [PowerAuthAuthentication persistWithCorePassword:[PowerAuthCorePassword passwordWithString:@"1234"]];
+    auth = [PowerAuthAuthentication persistWithCorePassword:[PowerAuthPassword passwordWithString:@"1234"]];
     XCTAssertTrue(auth.usePossession);
     XCTAssertFalse(auth.useBiometry);
     XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
@@ -105,7 +108,7 @@
     
     // core password variants
     
-    auth = [PowerAuthAuthentication persistWithCorePasswordAndBiometry:[PowerAuthCorePassword passwordWithString:@"1234"]];
+    auth = [PowerAuthAuthentication persistWithCorePasswordAndBiometry:[PowerAuthPassword passwordWithString:@"1234"]];
     XCTAssertTrue(auth.usePossession);
     XCTAssertTrue(auth.useBiometry);
     XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
@@ -118,7 +121,7 @@
         XCTAssertNotNil([auth validateUsage:YES]);
     }
     
-    auth = [PowerAuthAuthentication persistWithCorePasswordAndBiometry:[PowerAuthCorePassword passwordWithString:@"4321"] customBiometryKey:_customBiometryKey];
+    auth = [PowerAuthAuthentication persistWithCorePasswordAndBiometry:[PowerAuthPassword passwordWithString:@"4321"] customBiometryKey:_customBiometryKey];
     XCTAssertTrue(auth.usePossession);
     XCTAssertTrue(auth.useBiometry);
     XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
@@ -157,7 +160,7 @@
         
     // core password variants
     
-    auth = [PowerAuthAuthentication possessionWithCorePassword:[PowerAuthCorePassword passwordWithString:@"1234"]];
+    auth = [PowerAuthAuthentication possessionWithCorePassword:[PowerAuthPassword passwordWithString:@"1234"]];
     XCTAssertTrue(auth.usePossession);
     XCTAssertFalse(auth.useBiometry);
     XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
@@ -238,7 +241,7 @@
     auth = [PowerAuthAuthentication persistWithPassword:@"Hello"];
     error = [auth validateUsage:NO];
     XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
-    auth = [PowerAuthAuthentication persistWithCorePassword:[PowerAuthCorePassword passwordWithString:@"Hello"]];
+    auth = [PowerAuthAuthentication persistWithCorePassword:[PowerAuthPassword passwordWithString:@"Hello"]];
     error = [auth validateUsage:NO];
     XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
     
@@ -248,20 +251,20 @@
     auth = [PowerAuthAuthentication persistWithPassword:@"4321" customPossessionKey:_customPossessionKey];
     error = [auth validateUsage:YES];
     XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
-    auth = [PowerAuthAuthentication persistWithCorePassword:[PowerAuthCorePassword passwordWithString:@"4321"] customPossessionKey:_customPossessionKey];
+    auth = [PowerAuthAuthentication persistWithCorePassword:[PowerAuthPassword passwordWithString:@"4321"] customPossessionKey:_customPossessionKey];
     error = [auth validateUsage:YES];
     XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
     auth = [PowerAuthAuthentication persistWithPasswordAndBiometry:@"4321" customBiometryKey:_customBiometryKey customPossessionKey:_customPossessionKey];
     error = [auth validateUsage:YES];
     XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
-    auth = [PowerAuthAuthentication persistWithCorePasswordAndBiometry:[PowerAuthCorePassword passwordWithString:@"4321"] customBiometryKey:_customBiometryKey customPossessionKey:_customPossessionKey];
+    auth = [PowerAuthAuthentication persistWithCorePasswordAndBiometry:[PowerAuthPassword passwordWithString:@"4321"] customBiometryKey:_customBiometryKey customPossessionKey:_customPossessionKey];
     error = [auth validateUsage:YES];
     XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
     
     auth = [PowerAuthAuthentication possessionWithPassword:@"4321" customPossessionKey:_customPossessionKey];
     error = [auth validateUsage:NO];
     XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
-    auth = [PowerAuthAuthentication possessionWithCorePassword:[PowerAuthCorePassword passwordWithString:@"4321"] customPossessionKey:_customPossessionKey];
+    auth = [PowerAuthAuthentication possessionWithCorePassword:[PowerAuthPassword passwordWithString:@"4321"] customPossessionKey:_customPossessionKey];
     error = [auth validateUsage:NO];
     XCTAssertEqual(PowerAuthErrorCode_WrongParameter, error.powerAuthErrorCode);
     auth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:_customBiometryKey customPossessionKey:_customPossessionKey];

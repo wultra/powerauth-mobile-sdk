@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "cc7",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/wultra/cc7",
+      "state" : {
+        "revision" : "0ea92b389c86eb5fa7201d058b544a835980a405",
+        "version" : "0.7.0-rc2"
+      }
+    }
+  ],
+  "version" : 2
+}

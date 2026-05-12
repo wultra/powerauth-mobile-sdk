@@ -1,0 +1,11 @@
+module PowerAuth {
+    umbrella header "PowerAuth/PowerAuth.h"
+    export *
+    module * { export * }
+}
+
+module PowerAuthTests {
+    umbrella header "PowerAuthTests/PowerAuthTestsList.h"
+    export *
+    module * { export * }
+}

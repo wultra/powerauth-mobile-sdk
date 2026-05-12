@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthDeprecated.h>
+#import "PowerAuthDeprecated.h"

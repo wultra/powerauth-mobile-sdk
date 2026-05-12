@@ -16,7 +16,7 @@
 
 #import "BaseTestWithActivation.h"
 // Access private SDK header
-#import "../PowerAuth2/private/PA2CoreHttpClient.h"
+#import "PA2CoreHttpClient.h"
 
 @implementation BaseTestWithActivation
 

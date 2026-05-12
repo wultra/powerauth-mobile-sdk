@@ -62,19 +62,57 @@ Related documents:
 
 ## Installation
 
-This chapter describes how to get PowerAuth SDK for iOS and tvOS up and running in your app. In the current version, you can choose between CocoaPods and Swift Package Manager library integration.
+This chapter describes how to get PowerAuth SDK for iOS and tvOS up and running in your app. In the current version, you can choose between Swift Package Manager and CocoaPods library integration.
 
 ### Supported Platforms
 
 The library is available for the following Apple platforms:
 
-- **iOS** 11.0+
-- **mac Catalyst** 10.15+
-- **tvOS** 11.0+
+- **iOS** 13.0+
+- **mac Catalyst** 13.5+
+- **tvOS** 13.0+
 
 To simplify the documentation, we'll use **iOS** for the rest of the documentation and highlight the exceptions only. For example, **tvOS** doesn't support biometry and watch connectivity.
 
+### Swift Package Manager
+
+Add `https://github.com/wultra/powerauth-mobile-sdk` repository as a package in Xcode UI and add the `PowerAuth2` library as a dependency.
+
+Alternatively, you can add the dependency manually. For example:
+
+```swift
+// swift-tools-version:6.3
+import PackageDescription
+let package = Package(
+    name: "YourLibrary",
+    platforms: [
+        .iOS(.v13)
+    ],
+    products: [
+        .library(
+            name: "YourLibrary",
+            targets: ["YourLibrary"]
+        ),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/wultra/powerauth-mobile-sdk", from: "2.0.0")
+    ],
+    targets: [
+        .target(
+            name: "YourLibrary",
+            dependencies: [
+                .product(name: "PowerAuth2", package: "powerauth-mobile-sdk")
+            ]
+        )
+    ]
+)
+```
+
 ### CocoaPods
+
+<!-- begin box warning -->
+Be aware that CocoaPods will no longer accept updates [by the end of 2026](https://blog.cocoapods.org/CocoaPods-Specs-Repo/). You should migrate your project to Swift Package Manager.
+<!-- end -->
 
 [CocoaPods](http://cocoapods.org) is a dependency manager for Cocoa projects. You can install it with the following command:
 ```bash
@@ -84,7 +122,7 @@ $ gem install cocoapods
 To integrate the PowerAuth library into your Xcode project using CocoaPods, specify it in your `Podfile`:
 
 ```ruby
-platform :ios, '11.0'
+platform :ios, '13.0'
 target '<Your Target App>' do
   pod 'PowerAuth2'
 end
@@ -95,11 +133,6 @@ Then, run the following command:
 ```bash
 $ pod install
 ```
-
-### Swift Package Manager
-
-If you wish to integrate the PowerAuth SDK into your app via SPM, please visit the [PowerAuth mobile SDK for Swift PM](https://github.com/wultra/powerauth-mobile-sdk-spm)
-
 
 ## Configuration
 
@@ -969,7 +1002,7 @@ The typical password-change flow in a mobile application consists of the followi
 
 ## Working with passwords securely
 
-PowerAuth mobile SDK uses the `PowerAuthCorePassword` object behind the scene, to store the user's password or PIN securely. The object automatically wipes out the plaintext password on its destroy, so there are no traces of sensitive data left in the memory. You can easily enhance your application's runtime security by adopting this object in your code and this chapter explains in detail how to do it.
+PowerAuth mobile SDK uses the `PowerAuthPassword` object behind the scene, to store the user's password or PIN securely. The object automatically wipes out the plaintext password on its destroy, so there are no traces of sensitive data left in the memory. You can easily enhance your application's runtime security by adopting this object in your code and this chapter explains in detail how to do it.
 
 ### Problem explanation
 
@@ -979,7 +1012,7 @@ If you store the user's password in a simple string, there is a high probability
 
 - If the device's memory is not stressed enough, then the application may remain in memory active for days.
 
-The situation that the user's password stays in memory for days may be critical in situations when the attacker has the device in possession. For example, if the device is lost or is in a repair shop. To minimize the risks, the `PowerAuthCorePassword` object does the following things:
+The situation that the user's password stays in memory for days may be critical in situations when the attacker has the device in possession. For example, if the device is lost or is in a repair shop. To minimize the risks, the `PowerAuthPassword` object does the following things:
 
 - Always keeps the user's password scrambled with random data, so it cannot be easily found by simple string search. The password in plaintext is revealed only for a short and well-defined time when it's needed for the cryptographic operation.
 
@@ -993,12 +1026,10 @@ The situation that the user's password stays in memory for days may be critical 
 
 ### Special password object usage
 
-PowerAuth mobile SDK allows you to use both strings and special password objects at input, so it's up to you which way fits best for your purposes. For simplicity, this documentation uses strings for the passwords, but all code examples can be changed to utilize the `PowerAuthCorePassword` object as well. For example, this is the modified code for the first step of [Password Change](#password-change):
+PowerAuth mobile SDK allows you to use both strings and special password objects at input, so it's up to you which way fits best for your purposes. For simplicity, this documentation uses strings for the passwords, but all code examples can be changed to utilize the `PowerAuthPassword` object as well. For example, this is the modified code for the first step of [Password Change](#password-change):
 
 ```swift
-import PowerAuthCore
-
-let oldPass = PowerAuthCorePassword(string: "oldPassword")
+let oldPass = PowerAuthPassword(string: "oldPassword")
 powerAuthSDK.beginPasswordChange(oldPassword: oldPass) { changeData, error in
     if let changeData {
         // Success
@@ -1010,24 +1041,24 @@ powerAuthSDK.beginPasswordChange(oldPassword: oldPass) { changeData, error in
 
 ### Entering PIN
 
-If your application is using a system numeric keyboard to enter the user's PIN then you can migrate to the `PowerAuthCorePassword` object right now. We recommend you do the following things:
+If your application is using a system numeric keyboard to enter the user's PIN then you can migrate to the `PowerAuthPassword` object right now. We recommend you do the following things:
 
 - Implement your own PIN keyboard UI
 
 - Make sure that the password object is allocated and referenced only in the PIN keyboard controller and is deallocated when the user leaves the controller.
 
-- Use `PowerAuthCoreMutablePassword` that allows you to manipulate the content of the PIN 
+- Use `PowerAuthMutablePassword` that allows you to manipulate the content of the PIN 
 
 Here's the simple pseudo-controller example:
 
 ```swift
 class EnterPinScene {
     let desiredPinLength = 4
-    var pin: PowerAuthCoreMutablePassword!
+    var pin: PowerAuthMutablePassword!
     
     func onEnterScene() {
         // Allocate the pin when entering the scene
-        pin = PowerAuthCoreMutablePassword()
+        pin = PowerAuthMutablePassword()
     }
     
     func onLeaveScene() {
@@ -1061,7 +1092,7 @@ class EnterPinScene {
         }
     }
     
-    func onContinueAction(pin: PowerAuthCorePassword) {
+    func onContinueAction(pin: PowerAuthPassword) {
         // Do something with your pin...
     }
 }
@@ -1069,11 +1100,11 @@ class EnterPinScene {
 
 ### Entering arbitrary password
 
-Unfortunately, there's no simple solution for this scenario. It's quite difficult to re-implement the whole keyboard on your own, so we recommend you keep using the system keyboard. You can still create the `PowerAuthCorePassword` object from an already entered string:
+Unfortunately, there's no simple solution for this scenario. It's quite difficult to re-implement the whole keyboard on your own, so we recommend you keep using the system keyboard. You can still create the `PowerAuthPassword` object from an already entered string:
 
 ```swift
 let passwordString = "nbusr123"
-let password = PowerAuthCorePassword(string: passwordString)
+let password = PowerAuthPassword(string: passwordString)
 ```
 
 ### Create a password from data
@@ -1082,7 +1113,7 @@ In case that passphrase is somehow created externally in the form of an array of
 
 ```swift
 let passwordData = Data(base64Encoded: "bmJ1c3IxMjMK")!
-let password = PowerAuthCorePassword(data: passwordData)
+let password = PowerAuthPassword(data: passwordData)
 ```
 
 ### Compare two passwords
@@ -1090,9 +1121,9 @@ let password = PowerAuthCorePassword(data: passwordData)
 To compare two passwords, use `isEqual(to:)` method:
 
 ```swift
-let password1 = PowerAuthCorePassword(string: "1234")
-let password2 = PowerAuthCorePassword(string: "Hello")
-let password3 = PowerAuthCoreMutablePassword()
+let password1 = PowerAuthPassword(string: "1234")
+let password2 = PowerAuthPassword(string: "Hello")
+let password3 = PowerAuthMutablePassword()
 password3.addCharacter(0x31)
 password3.addCharacter(0x32)
 password3.addCharacter(0x33)
@@ -1103,7 +1134,7 @@ print("\(password1.isEqual(to: password3))")    // true
 
 ### Validate password complexity
 
-The `PowerAuthCorePassword` object doesn't provide functions that validate password complexity, but allows you to implement such functionality on your own:
+The `PowerAuthPassword` object doesn't provide functions that validate password complexity, but allows you to implement such functionality on your own:
 
 ```swift
 enum PasswordComplexity: Int {
@@ -1126,7 +1157,7 @@ func superPasswordValidator(passwordPtr: UnsafePointer<Int8>, size: Int) -> Pass
     return .strong
 }
 
-extension PowerAuthCorePassword {
+extension PowerAuthPassword {
     // Convenient wrapper to validateComplexity() method
     func validateComplexity() -> PasswordComplexity {
         let validationResult = self.validateComplexity { ptr, size in
@@ -1144,22 +1175,22 @@ You can use our [Passphrase meter](https://github.com/wultra/passphrase-meter) l
 
 ## Working with sensitive data
 
-The PowerAuth mobile SDK is using `PowerAuthCoreData` object for manage the cryptographically sensitive data, such as encryption keys. You can encounter this object in several public API functions, such as functions for [Secure Vault](#secure-vault). This chapter explains how to use the `PowerAuthCoreData` object properly.
+The PowerAuth mobile SDK is using the `PowerAuthSecureData` object to manage the cryptographically sensitive data, such as encryption keys. You can encounter this object in several public API functions, such as functions for [Secure Vault](#secure-vault). This chapter explains how to use the `PowerAuthSecureData` object properly.
 
-### Create instance of `PowerAuthCoreData`
+### Create an instance of `PowerAuthSecureData`
 
 If you need to provide cryptographically sensitive key material to PowerAuth mobile SDK, then use the following code:
 
 ```swift
 let yourKey = "nbuSR123nbuSR123".data(using: .ascii)!
-let secureData = PowerAuthCoreData(withData: yourKey)
+let secureData = PowerAuthSecureData(withData: yourKey)
 ```
 
 The `secureData` object will keep copy of bytes. In case you also wants to destroy the content of source `Data` structure, then you can try an alternative constructor, that try to erase content of the source data in case the source data is instance of `NSMutableData` class:
 
 ```swift
 let mutableKey = NSMutableData(data: "nbuSR123nbuSR123".data(using: .ascii)!) as Data
-let secureData = PowerAuthCoreData(withDataAndClearSource: mutableKey)
+let secureData = PowerAuthSecureData(withDataAndClearSource: mutableKey)
 ```
 
 As you can see, this unlikely happens in typical Swift projects, so you may ensure on your own that data is erased properly:
@@ -1173,16 +1204,16 @@ extension Data {
 }
 
 var yourKey = "nbuSR123nbuSR123".data(using: .ascii)!
-let secureData = PowerAuthCoreData(withData: yourKey)
+let secureData = PowerAuthSecureData(withData: yourKey)
 yourKey.secureErase()
 ```
 
-### Using instance of `PowerAuthCoreData`
+### Using an instance of `PowerAuthSecureData`
 
 To get reference to stored bytes, use the following code:
 
 ```swift
-func processSecureData(secureData: PowerAuthCoreData) {
+func processSecureData(secureData: PowerAuthSecureData) {
     doSomethingWitBytes(secureData.sensitiveData)
 }
 ```
@@ -1555,15 +1586,12 @@ Currently, PowerAuth SDK supports two basic modes of end-to-end encryption:
 - In an "application" scope, the encryptor can be acquired and used during the whole lifetime of the application.
 - In an "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bound to the parameters agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Authentication Code](#symmetric-multi-factor-authentication-code) in "encrypt-then-sign" mode.
 
-For both scenarios, you need to acquire the `PowerAuthCoreEncryptor` object, which will then provide an interface for the request encryption and the response decryption. The object currently provides only low-level encryption and decryption methods, so you need to implement your own JSON (de)serialization and request and response processing.
+For both scenarios, you need to acquire the `PowerAuthEncryptor` object, which will then provide an interface for the request encryption and the response decryption. The object currently provides only low-level encryption and decryption methods, so you need to implement your own JSON (de)serialization and request and response processing.
 
 The following steps are typically required for a full E2EE request and response processing:
 
 1. Acquire the right encryptor from the `PowerAuthSDK` instance. For example:
-   ```swift
-   // Import PowerAuthCore to access ECIES implementation
-   import PowerAuthCore
-   
+   ```swift   
    // Encryptor for "application" scope.
    sdk.encryptorForApplicationScope { encryptor, error in
       if let encryptor {
@@ -1592,7 +1620,7 @@ The following steps are typically required for a full E2EE request and response 
 1. Extract request body and HTTP headers:
    ```swift
    let requestBody: Data = encryptedRequest.requestBody
-   let requestHeaders: [PowerAuthCoreHttpHeader] = encryptedRequest.requestHeaders
+   let requestHeaders: [PowerAuthHttpHeader] = encryptedRequest.requestHeaders
    ```
 
 1. Add all HTTP headers to the request (for signed requests, see note below):
@@ -1609,7 +1637,7 @@ The following steps are typically required for a full E2EE request and response 
 
 1. In case of success, decrypt the response:
    ```swift
-   let encryptedResponse = PowerAuthCoreEncryptedResponse(responseBody: responseBody)
+   let encryptedResponse = PowerAuthEncryptedResponse(responseBody: responseBody)
    let response = try encryptor.decryptResponse(encryptedResponse)
    ```
 
@@ -2058,7 +2086,7 @@ If the activation in your application is still using EEK, please use the followi
 
 ```swift
 if powerAuthSDK.hasExternalEncryptionKey {
-    let eek = PowerAuthCoreData(withData: eekBytes)
+    let eek = PowerAuthSecureData(withData: eekBytes)
     try powerAuthSDK.removeExternalEncryptionKey(eek)
 }
 ```
@@ -2587,10 +2615,10 @@ If you set `nil` to the `userAgent` property, then the default "User-Agent" prov
 
 ### tvOS support in CocoaPods
 
-The tvOS SDK is not required by default since the SDK version 1.7.7. If your build or development machine doesn't have tvOS SDK installed, then the `PowerAuthCore` module is precompiled with no tvOS platform included in the final xcframework. Since CocoaPods keep various build artifacts in its cache, then this might be problematic in case you'll add support for tvOS later, during the development. To fix such possible issues, please remove the `PowerAuthCore` pod from the cache:
+The tvOS SDK is not required by default since the SDK version 1.7.7. If your build or development machine doesn't have tvOS SDK installed, then the `PowerAuth2` module is precompiled with no tvOS platform included in the final xcframework. Since CocoaPods keep various build artifacts in its cache, then this might be problematic in case you'll add support for tvOS later, during the development. To fix such possible issues, please remove the `PowerAuth2` pod from the cache:
 
 ```sh
-pod cache clean 'PowerAuthCore' --all
+pod cache clean 'PowerAuth2' --all
 ```
 
 ### Length of application group

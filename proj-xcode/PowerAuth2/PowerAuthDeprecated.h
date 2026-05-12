@@ -16,6 +16,6 @@
 
 // This header contains all deprecated PA2* interfaces
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 // Reserved for future deprecations

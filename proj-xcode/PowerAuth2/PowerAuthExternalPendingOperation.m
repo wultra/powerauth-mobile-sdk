@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthExternalPendingOperation.h>
+#import "PowerAuthExternalPendingOperation.h"
 
 @implementation PowerAuthExternalPendingOperation
 

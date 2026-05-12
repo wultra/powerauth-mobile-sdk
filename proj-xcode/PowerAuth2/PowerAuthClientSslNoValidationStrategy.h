@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthClientConfiguration.h>
+#import "PowerAuthClientConfiguration.h"
 
 /** Class that implements SSL validation strategy that accepts any SSL certificate.
  

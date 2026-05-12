@@ -14,34 +14,31 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthActivation.h>
-#import <PowerAuth2/PowerAuthActivationResult.h>
-#import <PowerAuth2/PowerAuthActivationStatus.h>
-#import <PowerAuth2/PowerAuthProtocolUpgradeResult.h>
-#import <PowerAuth2/PowerAuthAuthentication.h>
-#import <PowerAuth2/PowerAuthConfiguration.h>
-#import <PowerAuth2/PowerAuthClientConfiguration.h>
-#import <PowerAuth2/PowerAuthBiometricConfiguration.h>
-#import <PowerAuth2/PowerAuthKeychainConfiguration.h>
-#import <PowerAuth2/PowerAuthBiometricStatus.h>
-#import <PowerAuth2/PowerAuthToken.h>
-#import <PowerAuth2/PowerAuthToken+WatchSupport.h>
-#import <PowerAuth2/PowerAuthHttpHeader.h>
-#import <PowerAuth2/PowerAuthCoreSessionProvider.h>
-#import <PowerAuth2/PowerAuthTimeSynchronizationService.h>
-#import <PowerAuth2/PowerAuthExternalPendingOperation.h>
-#import <PowerAuth2/PowerAuthUserInfo.h>
-#import <PowerAuth2/PowerAuthServerStatus.h>
-#import <PowerAuth2/PowerAuthSecureVaultKey.h>
-#import <PowerAuth2/PowerAuthSignatureTypes.h>
-#import <PowerAuth2/PowerAuthPasswordChangeData.h>
+#import "PowerAuthActivation.h"
+#import "PowerAuthActivationResult.h"
+#import "PowerAuthActivationStatus.h"
+#import "PowerAuthProtocolUpgradeResult.h"
+#import "PowerAuthAuthentication.h"
+#import "PowerAuthConfiguration.h"
+#import "PowerAuthClientConfiguration.h"
+#import "PowerAuthBiometricConfiguration.h"
+#import "PowerAuthKeychainConfiguration.h"
+#import "PowerAuthBiometricStatus.h"
+#import "PowerAuthToken.h"
+#import "PowerAuthToken+WatchSupport.h"
+#import "PowerAuthHttpHeader.h"
+#import "PowerAuthCoreSessionProvider.h"
+#import "PowerAuthTimeSynchronizationService.h"
+#import "PowerAuthExternalPendingOperation.h"
+#import "PowerAuthUserInfo.h"
+#import "PowerAuthServerStatus.h"
+#import "PowerAuthSecureVaultKey.h"
+#import "PowerAuthSignatureTypes.h"
+#import "PowerAuthPasswordChangeData.h"
+#import "PowerAuthEncryptor.h"
 
 // Deprecated
-#import <PowerAuth2/PowerAuthDeprecated.h>
-
-// Core classes
-@class PowerAuthCoreSession, PowerAuthCorePassword, PowerAuthCoreData, PowerAuthCoreCredentials;
-@class PowerAuthCoreEncryptor, PowerAuthCoreEncryptorFactory;
+#import "PowerAuthDeprecated.h"
 
 @interface PowerAuthSDK : NSObject<PowerAuthSessionStatusProvider>
 
@@ -298,7 +295,7 @@
  @param callback A callback called when the process finishes - it contains an error in case of failure.
  @return PowerAuthOperationTask associated with the running request.
  */
-- (nullable id<PowerAuthOperationTask>) persistActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
+- (nullable id<PowerAuthOperationTask>) persistActivationWithCorePassword:(nonnull PowerAuthPassword*)password
                                                                  callback:(nonnull void(^)(NSError * _Nullable error))callback
                                                                     NS_SWIFT_NAME(persistActivation(withPassword:callback:));
 
@@ -336,7 +333,7 @@
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
  */
-- (BOOL) persistActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
+- (BOOL) persistActivationWithCorePassword:(nonnull PowerAuthPassword*)password
                                      error:(NSError * _Nullable * _Nullable)error
                             NS_SWIFT_NAME(persistActivation(withPassword:))
                              PA2_DEPRECATED(2.0.0);
@@ -370,8 +367,8 @@
  @param callback A callback called when the upgrade task finishes.
  @return Protocol upgrade task instance.
  */
-- (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(nonnull PowerAuthCorePassword*)password
-                                                           customBiometryKek:(nullable PowerAuthCoreData*)customBiometryKek
+- (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(nonnull PowerAuthPassword*)password
+                                                           customBiometryKek:(nullable PowerAuthSecureData*)customBiometryKek
                                                                     callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
                             NS_SWIFT_NAME(startProtocolUpgrade(password:customBiometryKek:callback:));
 
@@ -385,7 +382,7 @@
  @return Protocol upgrade task instance.
  */
 - (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithPassword:(nonnull NSString*)password
-                                                       customBiometryKek:(nullable PowerAuthCoreData*)customBiometryKek
+                                                       customBiometryKek:(nullable PowerAuthSecureData*)customBiometryKek
                                                                 callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
                             NS_SWIFT_NAME(startProtocolUpgrade(password:customBiometryKek:callback:));
 
@@ -398,7 +395,7 @@
  @param callback A callback called when the upgrade task finishes.
  @return Protocol upgrade task instance.
  */
-- (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(nonnull PowerAuthCorePassword*)password
+- (nullable id<PowerAuthOperationTask>) startProtocolUpgradeWithCorePassword:(nonnull PowerAuthPassword*)password
                                                                     callback:(nonnull void(^)(PowerAuthProtocolUpgradeResult * _Nullable result, NSError * _Nullable error))callback
                             NS_SWIFT_NAME(startProtocolUpgrade(password:callback:));
 
@@ -584,7 +581,7 @@
 ///   - callback: A block invoked when the operation completes. The block provides either the
 ///               password-change data needed for the next step, or an error if verification fails.
 /// - Returns: A `PowerAuthOperationTask` associated with the running request, or `nil` if the request cannot be started.
-- (nullable id<PowerAuthOperationTask>) beginPasswordChangeWithCorePassword:(nonnull PowerAuthCorePassword*)oldPassword
+- (nullable id<PowerAuthOperationTask>) beginPasswordChangeWithCorePassword:(nonnull PowerAuthPassword*)oldPassword
                                                                    callback:(nonnull void(^)(PowerAuthPasswordChangeData * _Nullable changeData, NSError * _Nullable error))callback
                             NS_SWIFT_NAME(beginPasswordChange(oldPassword:callback:));
 
@@ -615,7 +612,7 @@
 ///   - callback: A block invoked when the operation completes. The block provides an error if the operation fails,
 ///               or `nil` on success.
 /// - Returns: A `PowerAuthOperationTask` associated with the running request, or `nil` if the request cannot be started.
-- (nullable id<PowerAuthOperationTask>) finishPasswordChangeWithNewCorePassword:(nonnull PowerAuthCorePassword*)newPassword
+- (nullable id<PowerAuthOperationTask>) finishPasswordChangeWithNewCorePassword:(nonnull PowerAuthPassword*)newPassword
                                                                      changeData:(nonnull PowerAuthPasswordChangeData*)changeData
                                                                        callback:(nonnull void(^)(NSError * _Nullable error))callback
                             NS_SWIFT_NAME(finishPasswordChange(newPassword:changeData:callback:));
@@ -651,8 +648,8 @@
  @param newPassword New password, to be set in case authentication with old password passes.
  @return Returns YES in case password was changed without error, NO otherwise.
  */
-- (BOOL) unsafeChangeCorePasswordFrom:(nonnull PowerAuthCorePassword*)oldPassword
-                                   to:(nonnull PowerAuthCorePassword*)newPassword
+- (BOOL) unsafeChangeCorePasswordFrom:(nonnull PowerAuthPassword*)oldPassword
+                                   to:(nonnull PowerAuthPassword*)newPassword
                         NS_SWIFT_NAME(unsafeChangePassword(from:to:))
                         PA2_DEPRECATED(2.0.0);
 
@@ -680,8 +677,8 @@
  @param callback The callback method with the password change result.
  @return PowerAuthOperationTask associated with the running request.
  */
-- (nullable id<PowerAuthOperationTask>) changeCorePasswordFrom:(nonnull PowerAuthCorePassword*)oldPassword
-                                                            to:(nonnull PowerAuthCorePassword*)newPassword
+- (nullable id<PowerAuthOperationTask>) changeCorePasswordFrom:(nonnull PowerAuthPassword*)oldPassword
+                                                            to:(nonnull PowerAuthPassword*)newPassword
                                                       callback:(nonnull void(^)(NSError * _Nullable error))callback
                             NS_SWIFT_NAME(changePassword(from:to:callback:))
                             PA2_DEPRECATED(2.0.0);
@@ -695,7 +692,7 @@
  @param callback The callback method with error associated with the password validation.
  @return PowerAuthOperationTask associated with the running request.
  */
-- (nullable id<PowerAuthOperationTask>) validateCorePassword:(nonnull PowerAuthCorePassword*)password
+- (nullable id<PowerAuthOperationTask>) validateCorePassword:(nonnull PowerAuthPassword*)password
                                                     callback:(nonnull void(^)(NSError * _Nullable error))callback
                             NS_SWIFT_NAME(validatePassword(password:callback:))
                             PA2_DEPRECATED(2.0.0);
@@ -747,7 +744,7 @@
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) addBiometryFactorWithPassword:(nonnull NSString*)password
-                                                    customBiometryKek:(nullable PowerAuthCoreData*)customBiometryKek
+                                                    customBiometryKek:(nullable PowerAuthSecureData*)customBiometryKek
                                                              callback:(nonnull void(^)(NSError * _Nullable error))callback
                             NS_SWIFT_NAME(addBiometryFactor(password:customBiometryKek:callback:));
 
@@ -760,7 +757,7 @@
  @param callback The callback method with the biometry key adding operation result.
  @return PowerAuthOperationTask associated with the running request.
  */
-- (nullable id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(nonnull PowerAuthCorePassword*)password
+- (nullable id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(nonnull PowerAuthPassword*)password
                                                                  callback:(nonnull void(^)(NSError * _Nullable error))callback
                             NS_SWIFT_NAME(addBiometryFactor(password:callback:));
 
@@ -774,8 +771,8 @@
  @param callback The callback method with the biometry key adding operation result.
  @return PowerAuthOperationTask associated with the running request.
  */
-- (nullable id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(nonnull PowerAuthCorePassword*)password
-                                                        customBiometryKek:(nullable PowerAuthCoreData*)customBiometryKek
+- (nullable id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(nonnull PowerAuthPassword*)password
+                                                        customBiometryKek:(nullable PowerAuthSecureData*)customBiometryKek
                                                                  callback:(nonnull void(^)(NSError * _Nullable error))callback
                             NS_SWIFT_NAME(addBiometryFactor(password:customBiometryKek:callback:));
 
@@ -866,7 +863,7 @@
  */
 - (nullable id<PowerAuthOperationTask>) fetchEncryptionKey:(nonnull PowerAuthAuthentication*)authentication
                                                      index:(UInt64)index
-                                                  callback:(nonnull void(^)(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error))callback;
+                                                  callback:(nonnull void(^)(PowerAuthSecureData * _Nullable encryptionKey, NSError * _Nullable error))callback;
 
 /// Get a vault encryption key from the server. This method is effective only if PowerAuthSDK is running
 /// at protocol version 4.0 and higher.
@@ -1057,12 +1054,11 @@
 
 /**
  Creates a new instance of encryptor suited for application's general end-to-end encryption purposes. The returned encryptor is
- cryptographically bound to the PowerAuth configuration, so it can be used with or without a valid activation. The encryptor also contains
- an associated `PowerAuthCoreEciesMetaData` object, allowing you to properly setup HTTP header for the request.
+ cryptographically bound to the PowerAuth configuration, so it can be used with or without a valid activation.
  
  @return PowerAuthOperationTask associated with the running request or nil if the result of the function is available immediately.
  */
-- (nullable id<PowerAuthOperationTask>) encryptorForApplicationScopeWithCallback:(nonnull void(^)(PowerAuthCoreEncryptor * _Nullable encryptor, NSError * _Nullable error))callback;
+- (nullable id<PowerAuthOperationTask>) encryptorForApplicationScopeWithCallback:(nonnull void(^)(PowerAuthEncryptor * _Nullable encryptor, NSError * _Nullable error))callback;
 
 /**
  Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes. The returned encryptor is
@@ -1070,7 +1066,7 @@
   
  @return PowerAuthOperationTask associated with the running request or nil if the result of the function is available immediately.
  */
-- (nullable id<PowerAuthOperationTask>) encryptorForActivationScopeWithCallback:(nonnull void(^)(PowerAuthCoreEncryptor * _Nullable encryptor, NSError * _Nullable error))callback;
+- (nullable id<PowerAuthOperationTask>) encryptorForActivationScopeWithCallback:(nonnull void(^)(PowerAuthEncryptor * _Nullable encryptor, NSError * _Nullable error))callback;
 
 @end
 
@@ -1188,7 +1184,7 @@
 ///   - externalEncryptionKey: EEK previously used for the factor keys protection.
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: YES in case of success, NO otherwise.
-- (BOOL) removeExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey
+- (BOOL) removeExternalEncryptionKey:(nonnull PowerAuthSecureData *)externalEncryptionKey
                                error:(NSError * _Nullable * _Nullable)error;
 
 /// Add external encryption key for testing purposes. The method should not be used in the
@@ -1199,7 +1195,7 @@
 ///   - eek: EEK to apply
 ///   - error: Pointer where error is set in case of failure.
 /// - Returns: YES in case of success, NO otherwise.
-- (BOOL) addExternalEncryptionKeyForTest:(nonnull PowerAuthCoreData *)externalEncryptionKey
+- (BOOL) addExternalEncryptionKeyForTest:(nonnull PowerAuthSecureData *)externalEncryptionKey
                                    error:(NSError * _Nullable * _Nullable)error;
 
 @end

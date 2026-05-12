@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import <PowerAuthCore/PowerAuthCoreMacros.h>
+
+// This interface is also exposed publicly with using PowerAuthLegacyCryptoUtils.h, so
+// we have to use guarding macro to prevent double interface declaration.
+
+#ifndef POWERAUTH_CORE_CRYPTO_UTILS_DEFINED
+#define POWERAUTH_CORE_CRYPTO_UTILS_DEFINED
 
 @class PowerAuthCoreECKeyPair;
 @class PowerAuthCoreECPublicKey;
@@ -146,3 +152,5 @@
 @property (nonatomic, strong, readonly, nonnull) PowerAuthCoreECPublicKey * publicKey;
 
 @end
+
+#endif // POWERAUTH_CORE_CRYPTO_UTILS_DEFINED

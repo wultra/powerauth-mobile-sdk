@@ -16,7 +16,7 @@
 
 #import "PowerAuthActivationResult+Private.h"
 
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @implementation PowerAuthActivationResult
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 /// The `PowerAuthServerStatus` contains information about the server, such as
 /// time on the server.

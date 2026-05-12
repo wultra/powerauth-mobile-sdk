@@ -17,13 +17,13 @@
 #import <XCTest/XCTest.h>
 #import "PowerAuthTestServerAPI.h"
 #import "PowerAuthTestServerConfig.h"
-#import "PowerAuthCorePasswordHelper.h"
+#import "PowerAuthPasswordHelper.h"
 #import "AsyncHelper.h"
 
-@import PowerAuth2;
-@import PowerAuthCore;
+#import <PowerAuth2/PowerAuth2.h>
+#import <PowerAuthCore/PowerAuthCore.h>
 
-#import <PowerAuth2/PowerAuthMacros.h> // Expose SDK macros, to allow platform specific #if-defs
+#import "PowerAuthSecureData+Private.h"
 
 typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
     TestActivationFlags_None                     = 0,
@@ -173,7 +173,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
  @param shouldFinish Boolean flag indicating whether the call should finish successfully or not.
  @return Result of the protocol upgrade task if completed sucessully, nil on an error.
  */
-- (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthCoreData*)customBiometryKek
+- (PowerAuthProtocolUpgradeResult*) startProtocolUpgradeWithCustomBiometryKek:(PowerAuthSecureData*)customBiometryKek
                                                                  shouldFinish:(BOOL)shouldFinish;
 
 /**
@@ -226,7 +226,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 /**
  Validates password on server. Returns YES if password is valid.
  */
-- (BOOL) checkForCorePassword:(PowerAuthCorePassword*)password;
+- (BOOL) checkForCorePassword:(PowerAuthPassword*)password;
 
 /**
  Converts factors from auth object to string.
@@ -292,6 +292,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 - (id<PowerAuthOperationTask>) testPassword:(NSString*)password callback:(void (^)(NSError *))callback;
 
 /// Test password on the server. The method suppose to be used only in integration tests.
-- (id<PowerAuthOperationTask>) testCorePassword:(PowerAuthCorePassword*)password callback:(void (^)(NSError *))callback;
+- (id<PowerAuthOperationTask>) testCorePassword:(PowerAuthPassword*)password callback:(void (^)(NSError *))callback;
 
 @end
+

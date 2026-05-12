@@ -17,7 +17,7 @@
 #import <XCTest/XCTest.h>
 #import "PA2WeakArray.h"
 #import "PA2AsyncOperation.h"
-#import "AsyncHelper.h"
+#import <PowerAuth2TestsBase/AsyncHelper.h>
 
 @interface PA2WeakArrayTests : XCTestCase
 @end

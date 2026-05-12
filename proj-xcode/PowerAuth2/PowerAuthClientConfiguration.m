@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthClientConfiguration.h>
-#import <PowerAuth2/PowerAuthSystem.h>
+#import "PowerAuthClientConfiguration.h"
+#import "PowerAuthSystem.h"
 
 @implementation PowerAuthClientConfiguration
 

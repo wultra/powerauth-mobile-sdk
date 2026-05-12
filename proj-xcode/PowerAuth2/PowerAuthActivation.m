@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthActivation.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthActivation.h"
+#import "PowerAuthLog.h"
 #import "PA2PrivateMacros.h"
 
 @implementation PowerAuthActivation

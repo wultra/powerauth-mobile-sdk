@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthSDK.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthSDK.h"
+#import "PowerAuthLog.h"
 
 #import "PowerAuthSDK+Private.h"
 // -----------------------------------------------------------------------

@@ -16,14 +16,12 @@
 
 #import "PowerAuthPasswordChangeData+Private.h"
 
-@import PowerAuthCore;
-
 @implementation PowerAuthPasswordChangeData
 {
-    PowerAuthCorePassword * _oldPassword;
+    PowerAuthPassword * _oldPassword;
 }
 
-- (instancetype) initWithCorePassword:(PowerAuthCorePassword*)password
+- (instancetype) initWithCorePassword:(PowerAuthPassword*)password
 {
     self = [super init];
     if (self) {
@@ -32,7 +30,7 @@
     return self;
 }
 
-- (PowerAuthCorePassword*) oldPassword
+- (PowerAuthPassword*) oldPassword
 {
     return _oldPassword;
 }

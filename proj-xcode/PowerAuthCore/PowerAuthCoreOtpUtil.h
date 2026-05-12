@@ -17,8 +17,8 @@
 #import <PowerAuthCore/PowerAuthCoreMacros.h>
 
 /**
- The `PowerAuthCoreOtp` object contains parsed components from user-provided activation, or recovery
- code. You can use methods from `PowerAuthCoreOtpUtil` class to fill this object with valid data.
+ The `PowerAuthCoreOtp` object contains parsed components from user-provided activation code.
+ You can use methods from `PowerAuthCoreOtpUtil` class to fill this object with valid data.
  */
 @interface PowerAuthCoreOtp : NSObject
 

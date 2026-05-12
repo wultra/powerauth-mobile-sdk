@@ -16,14 +16,14 @@
 
 // PA2_SHARED_SOURCE PowerAuth2ForWatch .
 
-#import <PowerAuth2/PowerAuthWCSessionManager.h>
+#import "PowerAuthWCSessionManager.h"
 
 // -----------------------------------------------------------------------
 #if defined(PA2_WATCH_SUPPORT)
 // -----------------------------------------------------------------------
 
-#import <PowerAuth2/PowerAuthErrorConstants.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import "PowerAuthErrorConstants.h"
+#import "PowerAuthLog.h"
 
 #import "PowerAuthWCSessionManager+Private.h"
 #import "PA2PrivateMacros.h"

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import "PowerAuthMacros.h"
 
 /// Object representing an opaque data for the password change operation.
 @interface PowerAuthPasswordChangeData : NSObject

@@ -24,7 +24,7 @@
 #include "TargetConditionals.h"
 
 #if PA2_HAS_CORE_MODULE
-@import PowerAuthCore;
+#import <PowerAuthCore/PowerAuthCore.h>
 #define _CoreModuleIsDebug() PowerAuthCoreHasDebugFeatures()
 #else
 #define _CoreModuleIsDebug() NO

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthUserInfo.h>
+#import "PowerAuthUserInfo.h"
 
 /// The PowerAuthActivationResult object represents successful result from the activation process.
 @interface PowerAuthActivationResult : NSObject

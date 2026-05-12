@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthClientConfiguration.h>
+#import "PowerAuthClientConfiguration.h"
 
 /**
  The `PowerAuthCustomHeaderRequestInterceptor` class implements `PowerAuthHttpRequestInterceptor` interface and allows

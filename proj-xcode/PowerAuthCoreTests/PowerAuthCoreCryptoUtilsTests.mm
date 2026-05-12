@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#include <PowerAuthCore/PowerAuthCore.h>
-#include <XCTest/XCTest.h>
+#import <XCTest/XCTest.h>
 
 #include <cc7/CC7.h>
 #include <cc7/objc/ObjcHelper.h>
+
+#import <PowerAuthCore/PowerAuthCore.h>
 
 @interface PowerAuthCoreCryptoUtilsTests : XCTestCase
 @end

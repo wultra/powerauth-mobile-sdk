@@ -12,11 +12,11 @@
 #  $VERBOSE_FOR_SCRIPT
 #     contains exact string as provided to SET_VERBOSE_LEVEL_FROM_SWITCH
 #  $VERBOSE_VARIANT1
-#     contains '-v' if VERBOSE==2, othherwise empty string
+#     contains '-v' if VERBOSE==2, otherwise empty string
 #  $VERBOSE_VARIANT2
-#     contains '-verbose' if VERBOSE==2, othherwise empty string
+#     contains '-verbose' if VERBOSE==2, otherwise empty string
 #  $VERBOSE_VARIANT3
-#     contains '--verbose' if VERBOSE==2, othherwise empty string
+#     contains '--verbose' if VERBOSE==2, otherwise empty string
 # -----------------------------------------------------------------------------
 set -e
 set +v
@@ -79,6 +79,8 @@ function WARNING
 #    prints dashed line to stdout if VERBOSE is greater than 0
 #    Function also prevents that two lines will never be displayed subsequently
 #    if -a parameter is provided, then always prints dashed line 
+# LOG_CLEAR_LINE_FLAG
+#    Clears internal flag indicating that last log was line.
 # DEBUG_LOG 
 #    Prints all parameters to stdout if VERBOSE is greater than 1
 # EXIT_SUCCESS
@@ -114,6 +116,10 @@ function EXIT_SUCCESS
     LOG "Success"
     exit 0
 }
+function LOG_CLEAR_LINE_FLAG
+{
+    LAST_LOG_IS_LINE=0
+}
 # -----------------------------------------------------------------------------
 # PROMPT_YES_FOR_CONTINUE asks user whether script should continue
 #
@@ -137,6 +143,48 @@ function PROMPT_YES_FOR_CONTINUE
             FAILURE "Aborted by user."
             ;;
     esac
+}
+
+# -----------------------------------------------------------------------------
+# PROMPT_CENTER_TEXT given prints text with leading and trailing spaces to
+# appear vertically centered on the screen.
+#
+# Parameters:
+# - $1 line width
+# - $2 text to center in line
+# -----------------------------------------------------------------------------
+function PROMPT_CENTER_TEXT
+{
+    local line=$1
+    local text="$2"
+    local width=${#text}
+    local leading=$(((line - width) / 2))
+    local trailing=$((line - width - leading))
+    local lead=$(printf "%*s" $leading)
+    local trail=$(printf "%*s" $trailing)
+    echo "$lead$text$trail"
+}
+# -----------------------------------------------------------------------------
+# PROMPT_PRINT prints box with information. You should use this function only
+# in scripts that require user's interaction.
+#
+# Parameters:
+# - $@ prompt to display and highlight. Treat each parameter as a whole line.
+# -----------------------------------------------------------------------------
+function PROMPT_PRINT
+{
+    if [ $VERBOSE -gt 0 ]; then
+        echo "$CMD:  ----------------------------------------------------------------------------"
+        echo "$CMD: |                                                                            |"
+        while [[ $# -gt 0 ]]; do
+            local text=$(PROMPT_CENTER_TEXT 76 "$1")
+            echo "$CMD: |$text|"
+            shift
+        done
+        echo "$CMD: |                                                                            |"
+        echo "$CMD:  ----------------------------------------------------------------------------"
+        LAST_LOG_IS_LINE=1
+    fi
 }
 # -----------------------------------------------------------------------------
 # REQUIRE_COMMAND uses "which" buildin command to test existence of requested
@@ -221,23 +269,34 @@ function UPDATE_VERBOSE_COMMANDS
     fi
 }
 # -----------------------------------------------------------------------------
-# Validate if $1 as VERSION has valid format: x.y.z
-# Also sets global VERSION to $1 if VERSION string is empty.
+# Validate if $1 as VERSION has valid format: 
+#  - x.y.z (production version)
+#  - x.y.z-alphaN (alpha version)
+#  - x.y.z-betaN (beta version)
+#  - x.y.z-rcN (release candidate version)
+# Also sets global VERSION to $1 and VERSION_PRE_RELEASE to 0 or 1, depending
+# on whether version string is for production or pre-release.
 # -----------------------------------------------------------------------------
 function VALIDATE_AND_SET_VERSION_STRING
 {
     if [ -z "$1" ]; then
         FAILURE "Version string is empty"
     fi
-    local rx='^([0-9]+\.){2}(\*|[0-9]+)$'
+    local rx='^([0-9]+)\.([0-9]+)\.([0-9]+)(-(alpha|beta|rc)([0-9]+))?$'
     if [[ ! "$1" =~ $rx ]]; then
         FAILURE "Version string is invalid: '$1'"
     fi
-    if [ -z "$VERSION" ]; then
-        VERSION=$1
-        DEBUG_LOG "Changing version to $VERSION"
+    if [ ! -z "$VERSION" ]; then
+        WARNING "Global Version string is already set to $VERSION"
+    fi
+    VERSION=$1
+    rx='^[0-9]+\.[0-9]+\.[0-9]+-(alpha|beta|rc)[0-9]*$'
+    if [[ "$1" =~ $rx ]]; then
+        VERSION_PRE_RELEASE=1
+        DEBUG_LOG "Changing global version to $VERSION (pre-release)"
     else
-        FAILURE "Version string is already set to $VERSION"
+        VERSION_PRE_RELEASE=0
+        DEBUG_LOG "Changing global version to $VERSION (production)"
     fi
 }
 # -----------------------------------------------------------------------------
@@ -308,6 +367,88 @@ function SHA512
 {
     local HASH=( `shasum -a 512 "$1"` )
     echo ${HASH[0]}
+}
+function SHA1
+{
+    local HASH=( `shasum -a 1 "$1"` )
+    echo ${HASH[0]}
+}
+
+# -----------------------------------------------------------------------------
+# Hexadecimal utility functions:
+# HEX_TO_STR
+#    Converts hexadecimal characters into string (or raw bytes)
+# STR_TO_HEX
+#    Converts string (or raw bytes) into hexadecimal string
+# FILE_TO_HEX
+#    Converts content of file into hexadecimal string.
+# HEX_LENGTH
+#    Print number of bytes in hexadecimal string.
+# HEX_TO_SHORT
+#    Convert hexadecimal value into signed short.
+# -----------------------------------------------------------------------------
+function HEX_TO_STR
+{
+    echo "$1" | xxd -r -p
+}
+function STR_TO_HEX
+{
+    local val=$(printf %s "$1" | xxd -p)
+    STR_TO_UPPER ${val//$'\n'}
+}
+function FILE_TO_HEX
+{
+    local val=$(cat "$1" | xxd -p)
+    STR_TO_UPPER ${val//$'\n'}
+}
+function HEX_LENGTH
+{
+    local data=$1
+    local len=$((${#data} / 2))
+    local hexLen=$(echo "ibase=10;obase=16; ${len}" | bc)
+    if [ ${#hexLen} == 1 ]; then
+        echo 0$hexLen
+    else
+        echo $hexLen
+    fi
+}
+function HEX_TO_SHORT
+{
+    local value=$(echo "ibase=16; $1" | bc)
+    if (( value > 32767 )); then
+        value=$((value - 65536))
+    fi
+    echo $value
+}
+
+# -----------------------------------------------------------------------------
+# String utility functions
+# STR_TO_UPPER
+#    Make all characters in string uppercased
+# STR_TO_LOWER
+#    Make all characters in string lowercased
+# -----------------------------------------------------------------------------
+function STR_TO_UPPER
+{
+    echo $1 | tr '[:lower:]' '[:upper:]'
+}
+function STR_TO_LOWER
+{
+    echo $1 | tr '[:upper:]' '[:lower:]'
+}
+
+# -----------------------------------------------------------------------------
+# Path utility functions
+# REAL_PATH
+#    Get real path to file. Unlike builtin realpath function, this resolves the
+#    parent directory, so the target file may not exit.
+# -----------------------------------------------------------------------------
+function REAL_PATH
+{
+    local path=$1
+    local dir=$(realpath $(dirname "$path"))
+    local fname=$(basename "$path")
+    echo $dir/$fname
 }
 
 # -----------------------------------------------------------------------------

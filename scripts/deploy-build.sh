@@ -44,11 +44,7 @@ function USAGE
 ###############################################################################
 # Config
 PODSPEC="PowerAuth2.podspec"
-PODSPEC_COR="PowerAuthCore.podspec"
-PODSPEC_EXT="PowerAuth2ForExtensions.podspec"
-PODSPEC_WOS="PowerAuth2ForWatch.podspec"
 INFO_PLIST="proj-xcode/PowerAuth2/Info.plist"
-INFO_PLIST_COR="proj-xcode/PowerAuthCore/Info.plist"
 
 GRADLE_PROP="proj-android/PowerAuthLibrary/gradle.properties"
 MASTER_BRANCH="master"
@@ -108,27 +104,26 @@ function PREPARE_VERSIONING_FILES
 {
     PUSH_DIR "${SRC_ROOT}"
     ####
-
+    if [ x$VERSION_PRE_RELEASE == x1 ]; then
+        # All pre-release versions are marked as X.Y.Z-SNAPSHOT on Android
+        local VERSION_ANDROID="${VERSION%%-*}-SNAPSHOT"
+    else
+        local VERSION_ANDROID=$VERSION
+    fi
     # PowerAuth2
     LOG "----- Generating ${PODSPEC}..."
     sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC}" > "$SRC_ROOT/${PODSPEC}" 
-    git add ${PODSPEC}
-    # PowerAuthCore
-    LOG "----- Generating ${PODSPEC_COR}..."
-    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_COR}" > "$SRC_ROOT/${PODSPEC_COR}" 
-    git add ${PODSPEC_COR}
     # Info.plist files
     LOG "----- Generating ${INFO_PLIST}..."
     sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2-Info.plist" > "$SRC_ROOT/${INFO_PLIST}"
-    LOG "----- Generating ${INFO_PLIST_COR}..."
-    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PAC-Info.plist" > "$SRC_ROOT/${INFO_PLIST_COR}"
-    git add ${INFO_PLIST} ${INFO_PLIST_COR}
-
+    # Gradle
     LOG "----- Generating gradle.properties..."
-    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/gradle.properties" > "$SRC_ROOT/${GRADLE_PROP}" 
-    git add ${GRADLE_PROP}
+    sed -e "s/%DEPLOY_VERSION%/$VERSION_ANDROID/g" "${TOP}/templates/gradle.properties" > "$SRC_ROOT/${GRADLE_PROP}" 
     
-    local TAG_MESSAGE="ios+android version $VERSION"
+    LOG "----- Staging local changes..."
+    git add .
+    
+    local TAG_MESSAGE="version $VERSION"
 
     LOG "----- Commiting versioning files..."
     git commit -m "Deployment: Update versioning file[s] to ${VERSION}"
@@ -171,7 +166,7 @@ function PUSH_VERSIONING_FILES
 # -----------------------------------------------------------------------------
 function VALIDATE_BEFORE_PUBLISH
 {
-    "${TOP}/test-build.sh" $SCRIPT_VERBOSE lint
+    "${TOP}/test-build.sh" $SCRIPT_VERBOSE lint android
 }
 
 # -----------------------------------------------------------------------------
@@ -182,90 +177,55 @@ function DEPLOY_BUILD
     PUSH_DIR "${SRC_ROOT}"
     ####
     
-    # At first, publis PowerAuthCore.podspec, then we have to wait about
-    # 20 minutes to publish PowerAuth2.podspec
-    
-    # There's now way to test whether core has been really published.
-    # 
-    # We can use --synchronized option, but it will clone the gigantic
-    # git repository with all specs, so update will take the same time
-    # as a plain wait.
-    
-    LOG "----- Publishing ${PODSPEC_COR} to CocoaPods..."
-    pod $POD_VERBOSE trunk push ${PODSPEC_COR}
-
-    # Now publish extensions & watchOS libs
-    
-    # 1260 - 21 minutes
-    local WAIT_TIME=1260
-    local END_TIME=$((`date +%s` + $WAIT_TIME))
-    
-    LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."
-    # TODO ...
-    LOG "----- Publishing ${PODSPEC_EXT} to CocoaPods..."
-    # TODO ...
-    
-    # Also publish Android library
-    
-    "${TOP}/android-publish-build.sh" $SCRIPT_VERBOSE central
-    
-    LOG ""
-    LOG_LINE
-    LOG "We're still need to wait for PowerAuthCore.podspec publication."
-    LOG "              Meanwhile, you can to go to"
-    LOG ""
-    LOG "  --> https://central.sonatype.com/publishing/deployments <--"
-    LOG ""
-    LOG "    and switch Android build to the production manually."
-    LOG_LINE
-    
-    LOG "Waiting for several minutes to propagate ${PODSPEC_COR} to trunk..."
-    while [ `date +%s` -lt $END_TIME ]
-    do
-        local remaining=$(( ($END_TIME - `date +%s`) / 60 ))
-        LOG " - $remaining minute(s) to go..."
-        sleep 60
-    done
-    
-    # Now finally try to publish
+    # Publish Android platform
     
     LOG_LINE
-    LOG "Going to publish ${PODSPEC} to CocoaPods. In case of failure"
-    LOG "then  please try to run the publishing manually: "
+    LOG "Going to publish Android to Maven Central. In case of failure"
+    LOG "then please try to run the publishing manually: "
     LOG ""
-    LOG "   pod trunk push ${PODSPEC}"
+    LOG "   scripts/android-publish-build.sh central"
     LOG ""
     LOG_LINE
-    LOG "----- Publishing ${PODSPEC} to CocoaPods..."
+    LOG "----- Publishing Android to Maven Central..."
     pod $POD_VERBOSE trunk push ${PODSPEC}
 
+    "${TOP}/android-publish-build.sh" $SCRIPT_VERBOSE central
+
+    if [ x$VERSION_PRE_RELEASE == x0 ]; then
+        LOG ""
+        LOG_LINE
+        LOG "    While Apple platform is being published, you can go to"
+        LOG ""
+        LOG " --> https://central.sonatype.com/publishing/deployments <--"
+        LOG ""
+        LOG "     and switch Android build to the production manually."
+        LOG_LINE
+    fi
+
+    # Publish Apple platform
+
+    if [ x$VERSION_PRE_RELEASE == x0 ]; then
+        LOG_LINE
+        LOG "Going to publish ${PODSPEC} to CocoaPods. In case of failure"
+        LOG "then please try to run the publishing manually: "
+        LOG ""
+        LOG "   pod trunk push ${PODSPEC}"
+        LOG ""
+        LOG_LINE
+        LOG "----- Publishing ${PODSPEC} to CocoaPods..."
+        pod $POD_VERBOSE trunk push ${PODSPEC}
+    else
+        LOG_LINE
+        LOG "Pre-release version doesn't need to be published to CocoaPods."
+        LOG "If you still want to publish this version, then run:"
+        LOG ""
+        LOG "   pod trunk push ${PODSPEC}"
+        LOG ""
+        LOG_LINE
+    fi
     ####
     POP_DIR
 }
-
-# -----------------------------------------------------------------------------
-# Merges recent changes to the 'master' branch
-# -----------------------------------------------------------------------------
-function MERGE_TO_MASTER
-{
-    if [ x$STANDARD_BRANCH == x0 ]; then
-        LOG "----- OK, but not merged to '${MASTER_BRANCH}'"
-    else
-        PUSH_DIR "${SRC_ROOT}"
-        ####
-        LOG "----- Merging to '${MASTER_BRANCH}'..."
-        git fetch origin
-        git checkout ${MASTER_BRANCH}
-        git rebase origin/${DEV_BRANCH}
-        git push
-        git checkout ${DEV_BRANCH}
-        ####
-        POP_DIR
-        LOG "----- OK"
-    fi
-    exit 0
-}
-
 
 ###############################################################################
 # Script's main execution starts here...
@@ -316,5 +276,5 @@ VALIDATE_GIT_STATUS
 VALIDATE_BEFORE_PUBLISH
 PUSH_VERSIONING_FILES
 DEPLOY_BUILD
-MERGE_TO_MASTER
 
+EXIT_SUCCESS -l

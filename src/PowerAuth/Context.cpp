@@ -270,7 +270,7 @@ std::shared_ptr<Context> Context::createTargetAlgorithmContext()
     return _target_context;
 }
 
-void Context::resetState() noexcept
+void Context::resetState()
 {
     if (_current_specification != _initial_specification) {
         // The specification is different than initial. We have to re-create all services.

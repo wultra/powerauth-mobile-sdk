@@ -142,7 +142,8 @@ private:
 
     mutable SharedMutexPtr _shared_mutex;
     const ConfigurationPtr _configuration;
-    PowerAuthSpecPtr _specification;
+    const PowerAuthSpecPtr _initial_specification;
+    PowerAuthSpecPtr _current_specification;
     SessionDataPtr _session_data;
     cc7::crypto::KeyPairFactoryPtr _signing_keys_factory;
     

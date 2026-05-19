@@ -73,8 +73,8 @@ const Configuration& Context::configuration() const noexcept
 
 PowerAuthSpecPtr Context::specification() const noexcept
 {
-    CHECK_OBJ_PTR(_specification)
-    return _specification;
+    CHECK_OBJ_PTR(_current_specification)
+    return _current_specification;
 }
 
 
@@ -238,7 +238,8 @@ const cc7::crypto::KeyPairFactoryPtr& Context::getSigningKeyPairFactoryPtr() con
 Context::Context(PowerAuthSpecPtr specification, ConfigurationPtr configuration) :
     _shared_mutex(std::make_shared<std::recursive_mutex>()),
     _configuration(configuration),
-    _specification(specification)
+    _initial_specification(specification),
+    _current_specification(specification)
 {
 }
 
@@ -256,6 +257,7 @@ ContextPtr Context::getInstance(ConfigurationPtr configuration)
 Context::Context(const Context& primary_context) :
     _shared_mutex(primary_context.getSharedMutexPtr()),
     _configuration(primary_context.getConfigurationPtr()),
+    _initial_specification(primary_context._initial_specification),
     _time_service(primary_context.getTimeServicePtr()),
     _session_data(primary_context.getSessionDataPtr())
 {
@@ -270,8 +272,15 @@ std::shared_ptr<Context> Context::createTargetAlgorithmContext()
 
 void Context::resetState() noexcept
 {
-    for (const auto& service : _services) {
-        service->clearActivationData();
+    if (_current_specification != _initial_specification) {
+        // The specification is different than initial. We have to re-create all services.
+        destroyServices();
+        createServices(false, _initial_specification);
+    } else {
+        // Just clear activation data per-service
+        for (const auto& service : _services) {
+            service->clearActivationData();
+        }
     }
 }
 
@@ -300,11 +309,11 @@ void Context::createServices(bool initial_setup, ConstPowerAuthSpecPtr specifica
         _time_service = std::make_shared<TimeService>(self);
         _session_data = std::make_shared<SessionData>(specification);
     }
-    _specification = specification;
-    _signing_keys_factory = _specification->getSigningKeyPairFactory();
+    _current_specification = specification;
+    _signing_keys_factory = _current_specification->getSigningKeyPairFactory();
     if (version == Version_V4) {
         // V4
-        _shared_secret = ISharedSecret::getInstance(_specification->algorithm());
+        _shared_secret = ISharedSecret::getInstance(_current_specification->algorithm());
         _key_provider = std::make_shared<v4::KeyProviderV4>(self);
         _key_provider->asService()->restoreSensitiveData();
         _vault_service = std::make_shared<VaultService>(self, version);

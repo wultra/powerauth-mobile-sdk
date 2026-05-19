@@ -241,6 +241,10 @@ public class PowerAuthTestHelper {
             final PowerAuthBiometricConfiguration biometricConfiguration = prepareBiometricConfiguration();
             final PowerAuthClientConfiguration clientConfiguration = prepareClientConfiguration();
             final PowerAuthKeychainConfiguration keychainConfiguration = prepareKeychainConfiguration();
+            if (!isActive) {
+                // Eliminate any stale keychain state left by a previous test.
+                PowerAuthSDK.cleanupInstanceData(context, configuration, keychainConfiguration);
+            }
             // Prepare PowerAuthSDK instance.
             final PowerAuthSDK sdk = new PowerAuthSDK.Builder(configuration)
                     .biometricConfiguration(biometricConfiguration)

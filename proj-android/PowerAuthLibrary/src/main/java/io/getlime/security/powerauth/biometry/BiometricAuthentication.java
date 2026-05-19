@@ -24,8 +24,6 @@ import androidx.annotation.UiThread;
 import androidx.fragment.app.FragmentManager;
 import android.util.Pair;
 
-import java.util.concurrent.Executor;
-
 import io.getlime.security.powerauth.biometry.impl.BiometricAuthenticator;
 import io.getlime.security.powerauth.biometry.impl.BiometricErrorDialogFragment;
 import io.getlime.security.powerauth.biometry.impl.BiometricHelper;
@@ -203,9 +201,9 @@ public class BiometricAuthentication {
             try {
                 // Acquire encryptor and initialize the cipher
                 final IBiometricKeyEncryptor encryptor = requestData.getBiometricKeyEncryptorProvider().getBiometricKeyEncryptor();
-                final boolean initializationSuccess = encryptor.initializeCipher(true) != null;
+                encryptor.initializeCryptoObject(true);
                 // Encrypt the key
-                final BiometricKeyData keyData = initializationSuccess ? encryptor.encryptBiometricKey(requestData.getRequest().getRawKeyData()) : null;
+                final BiometricKeyData keyData = encryptor.encryptBiometricKey(requestData.getRequest().getRawKeyData());
                 if (keyData == null) {
                     throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Failed to encrypt biometric key.");
                 }

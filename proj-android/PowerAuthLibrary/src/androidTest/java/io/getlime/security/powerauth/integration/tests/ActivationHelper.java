@@ -113,7 +113,7 @@ public class ActivationHelper {
             this.activation = activation;
             this.validAuthentication = validAuthentication;
             this.invalidAuthentication = invalidAuthentication;
-            this.fakeBiometricKek = fakeBiometricKek.copy();
+            this.fakeBiometricKek = fakeBiometricKek != null ? fakeBiometricKek.copy() : null;
             this.createActivationResult = createActivationResult;
         }
     }

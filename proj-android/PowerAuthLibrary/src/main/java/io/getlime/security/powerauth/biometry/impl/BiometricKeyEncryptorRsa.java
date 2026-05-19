@@ -19,12 +19,13 @@ package io.getlime.security.powerauth.biometry.impl;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.biometric.BiometricPrompt;
 
 import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -33,20 +34,20 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.ProviderException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
 
 import io.getlime.security.powerauth.biometry.BiometricKeyData;
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 import io.getlime.security.powerauth.core.SecureData;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
@@ -107,48 +108,53 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
     }
 
     @Override
+    public int getEncryptorType() {
+        return EncryptorType.RSA;
+    }
+
+    @Override
     public boolean isAuthenticationRequiredOnEncryption() {
         return false;
     }
 
-    @Nullable
+    @NonNull
     @Override
-    public Cipher initializeCipher(boolean encryptMode) {
+    public BiometricPrompt.CryptoObject initializeCryptoObject(boolean encryptMode) throws PowerAuthErrorException {
         try {
             if (cipherIsInitialized) {
                 throw new IllegalStateException("Cipher is already initialized");
             }
             // Get instance of RSA cipher
             cipher = Cipher.getInstance(RSA_CIPHER);
-            if (cipher != null) {
-                if (encryptMode) {
-                    // Initialize for encryption with public key.
-                    if (publicKey == null) {
-                        throw new IllegalStateException("Initializing cipher for encryption, but public key is missing");
-                    }
-                    // Initialize RSA parameters (OAEP with SHA-256 and MGF1).
-                    // Note that MGF1 configured with SHA-256 is not supported, so that's why we still use SHA-1.
-                    final PublicKey unrestrictedPublicKey = KeyFactory.getInstance(publicKey.getAlgorithm()).generatePublic(new X509EncodedKeySpec(publicKey.getEncoded()));
-                    final OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT);
-                    // Initialize cipher for data encryption
-                    cipher.init(Cipher.ENCRYPT_MODE, unrestrictedPublicKey, spec);
-                } else {
-                    // Initialize for decryption with private key.
-                    if (privateKey == null) {
-                        throw new IllegalStateException("Initializing cipher for decryption, but private key is missing");
-                    }
-                    // Initialize cipher for data decryption.
-                    cipher.init(Cipher.DECRYPT_MODE, privateKey);
-                }
-                this.encryptMode = encryptMode;
+            if (cipher == null) {
+                throw new NoSuchAlgorithmException("Failed to initialize " + RSA_CIPHER);
             }
+            if (encryptMode) {
+                // Initialize for encryption with public key.
+                if (publicKey == null) {
+                    throw new IllegalStateException("Initializing cipher for encryption, but public key is missing");
+                }
+                // Initialize RSA parameters (OAEP with SHA-256 and MGF1).
+                // Note that MGF1 configured with SHA-256 is not supported, so that's why we still use SHA-1.
+                final PublicKey unrestrictedPublicKey = KeyFactory.getInstance(publicKey.getAlgorithm()).generatePublic(new X509EncodedKeySpec(publicKey.getEncoded()));
+                final OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT);
+                // Initialize cipher for data encryption
+                cipher.init(Cipher.ENCRYPT_MODE, unrestrictedPublicKey, spec);
+            } else {
+                // Initialize for decryption with private key.
+                if (privateKey == null) {
+                    throw new IllegalStateException("Initializing cipher for decryption, but private key is missing");
+                }
+                // Initialize cipher for data decryption.
+                cipher.init(Cipher.DECRYPT_MODE, privateKey);
+            }
+            this.encryptMode = encryptMode;
         } catch (Throwable e) {
-            PowerAuthLog.e("BiometricKeyEncryptorRsa.initializeCipher failed: " + e.getMessage());
-            this.cipher = null;
+            throw PowerAuthErrorException.wrapException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Failed to initialize RSA biometric key encryptor", e);
         } finally {
             cipherIsInitialized = true;
         }
-        return cipher;
+        return new BiometricPrompt.CryptoObject(cipher);
     }
 
     @Nullable

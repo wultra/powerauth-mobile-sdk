@@ -49,13 +49,15 @@ public interface IBiometricKeystore {
      * in order to derive key used for biometric authentication.
      *
      * @param invalidateByBiometricEnrollment Sets whether the new key should be invalidated on biometric enrollment.
-     * @param useSymmetricKey Sets whether symmetric key should be created.
+     * @param encryptorType Type of encryptor to be created.
      * @param keyId Key identifier.
      *
      * @return New generated {@link IBiometricKeyEncryptor} key or {@code null} in case of failure.
      */
     @Nullable
-    IBiometricKeyEncryptor createBiometricKeyEncryptor(@NonNull String keyId, boolean invalidateByBiometricEnrollment, boolean useSymmetricKey);
+    IBiometricKeyEncryptor createBiometricKeyEncryptor(@NonNull String keyId,
+                                                       @IBiometricKeyEncryptor.EncryptorType int encryptorType,
+                                                       boolean invalidateByBiometricEnrollment);
 
     /**
      * Removes an encryption key from Keystore.

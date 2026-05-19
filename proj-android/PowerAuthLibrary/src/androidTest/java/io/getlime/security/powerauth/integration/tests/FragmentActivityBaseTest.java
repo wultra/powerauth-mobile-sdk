@@ -48,7 +48,9 @@ public abstract class FragmentActivityBaseTest extends BaseTest implements Power
     @Override
     public void tearDown() {
         super.tearDown();
-        activityScenario.close();
+        if (activityScenario != null) {
+            activityScenario.close();
+        }
     }
 
     void runWithFragmentActivity(final ITestExecution execution) throws Exception {

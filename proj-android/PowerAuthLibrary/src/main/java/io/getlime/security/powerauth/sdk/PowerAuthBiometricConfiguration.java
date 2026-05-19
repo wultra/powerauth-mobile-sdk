@@ -27,6 +27,7 @@ public class PowerAuthBiometricConfiguration {
     private final boolean confirmBiometricAuthentication;
     private final boolean authenticateOnBiometricKeySetup;
     private final boolean enableFallbackToSharedBiometryKey;
+    private final boolean useLegacySymmetricKeyType;
 
     /**
      * Get information whether the biometric factor is invalidated when the biometric configuration changes
@@ -75,6 +76,14 @@ public class PowerAuthBiometricConfiguration {
     }
 
     /**
+     * Get whether legacy symmetric key is used for the biometric factor data is used.
+     * @return {@code true} if legacy symmetric key is used.
+     */
+    public boolean isUseLegacySymmetricKeyType() {
+        return useLegacySymmetricKeyType;
+    }
+
+    /**
      * Private constructor. Use {@link Builder} to create a new instance of this class.
      *
      * @param invalidateBiometricFactorAfterChange  If set, then the biometric factor is invalidated
@@ -86,16 +95,20 @@ public class PowerAuthBiometricConfiguration {
      *                                              If not set, then only usage of biometric key require biometric authentication.
      * @param enableFallbackToSharedBiometryKey     If set, then the PowerAuthSDK does one more additional lookup to use legacy
      *                                              key shared between multiple PowerAuthSDK instances.
+     * @param useLegacySymmetricKeyType             If set, then the PowerAuthSDK uses legacy symmetric key for biometric factor
+     *                                              key protection. This option should be used only for the testing purposes.
      */
     private PowerAuthBiometricConfiguration(
             boolean invalidateBiometricFactorAfterChange,
             boolean confirmBiometricAuthentication,
             boolean authenticateOnBiometricKeySetup,
-            boolean enableFallbackToSharedBiometryKey) {
+            boolean enableFallbackToSharedBiometryKey,
+            boolean useLegacySymmetricKeyType) {
         this.invalidateBiometricFactorAfterChange = invalidateBiometricFactorAfterChange;
         this.confirmBiometricAuthentication = confirmBiometricAuthentication;
         this.authenticateOnBiometricKeySetup = authenticateOnBiometricKeySetup;
         this.enableFallbackToSharedBiometryKey = enableFallbackToSharedBiometryKey;
+        this.useLegacySymmetricKeyType = useLegacySymmetricKeyType;
     }
 
     /**
@@ -108,12 +121,14 @@ public class PowerAuthBiometricConfiguration {
         this.confirmBiometricAuthentication = keychainConfiguration.isConfirmBiometricAuthentication();
         this.authenticateOnBiometricKeySetup = keychainConfiguration.isAuthenticateOnBiometricKeySetup();
         this.enableFallbackToSharedBiometryKey = keychainConfiguration.isFallbackToSharedBiometryKeyEnabled();
+        this.useLegacySymmetricKeyType = false;
     }
 
     public static final boolean DEFAULT_INVALIDATE_BIOMETRIC_FACTOR_AFTER_CHANGE = true;
     public static final boolean DEFAULT_CONFIRM_BIOMETRIC_AUTHENTICATION = false;
     public static final boolean DEFAULT_AUTHENTICATE_ON_BIOMETRIC_KEY_SETUP = true;
     public static final boolean DEFAULT_ENABLE_FALLBACK_TO_SHARED_BIOMETRY_KEY = true;
+    public static final boolean DEFAULT_USE_LEGACY_SYMMETRIC_KEY_TYPE = false;
 
     /**
      * A builder that collects arguments for {@link PowerAuthBiometricConfiguration}.
@@ -124,6 +139,7 @@ public class PowerAuthBiometricConfiguration {
         private boolean confirmBiometricAuthentication = DEFAULT_CONFIRM_BIOMETRIC_AUTHENTICATION;
         private boolean authenticateOnBiometricKeySetup = DEFAULT_AUTHENTICATE_ON_BIOMETRIC_KEY_SETUP;
         private boolean enableFallbackToSharedBiometryKey = DEFAULT_ENABLE_FALLBACK_TO_SHARED_BIOMETRY_KEY;
+        private boolean useLegacySymmetricKeyType = DEFAULT_USE_LEGACY_SYMMETRIC_KEY_TYPE;
 
         /**
          * Creates a builder for {@link PowerAuthBiometricConfiguration}.
@@ -160,8 +176,9 @@ public class PowerAuthBiometricConfiguration {
         /**
          * (Optional) Set, whether biometric key setup always require a biometric authentication.
          * <p>
-         * Setting parameter to {@code true} leads to use symmetric AES cipher on the background,
-         * so both configuration and usage of biometric key require the biometric authentication.
+         * Setting parameter to {@code true} leads to use symmetric HMAC as KDF function on the
+         * background, so both configuration and usage of biometric key require the biometric
+         * authentication.
          * <p>
          * If set to {@code false}, then RSA cipher is used and only the usage of biometric key
          * require the biometric authentication. This is due to fact, that RSA cipher can encrypt
@@ -194,6 +211,23 @@ public class PowerAuthBiometricConfiguration {
         }
 
         /**
+         * (Optional) Set, whether PowerAuthSDK instance should use legacy symmetric key for protecting biometric key data.
+         * By setting this to {@code true}, the legacy AES-KDF used in PowerAuth Mobile SDK 1.x is used, instead of the new
+         * HMAC-KDF based protection.
+         * <p>
+         * The default value is {@code false} and the legacy key is not used.
+         * <p>
+         * It is recommended to use this option only for the testing purposes.
+         *
+         * @param useLegacyKeyType If {@code true}, then the legacy AES-KDF supported by SDK 1.x is used.
+         * @return {@link PowerAuthBiometricConfiguration.Builder}
+         */
+        public @NonNull PowerAuthBiometricConfiguration.Builder useLegacySymmetricKey(boolean useLegacyKeyType) {
+            this.useLegacySymmetricKeyType = useLegacyKeyType;
+            return this;
+        }
+
+        /**
          * Build final {@link PowerAuthBiometricConfiguration} object.
          *
          * @return New instance of {@link PowerAuthBiometricConfiguration}.
@@ -203,7 +237,8 @@ public class PowerAuthBiometricConfiguration {
                     invalidateBiometricFactorAfterChange,
                     confirmBiometricAuthentication,
                     authenticateOnBiometricKeySetup,
-                    enableFallbackToSharedBiometryKey);
+                    enableFallbackToSharedBiometryKey,
+                    useLegacySymmetricKeyType);
         }
     }
 }

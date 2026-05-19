@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Wultra s.r.o.
+ * Copyright 2026 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.biometry.impl;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -29,14 +28,10 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.ProviderException;
-import java.security.spec.AlgorithmParameterSpec;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.Mac;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 
 import io.getlime.security.powerauth.biometry.BiometricKeyData;
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
@@ -46,31 +41,30 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
- * The {@code BiometricKeyEncryptorAes} implements {@link IBiometricKeyEncryptor} and provides
- * protection of PowerAuth biometric factor with using symmetric AES cipher. The key is stored in
- * Android KeyStore and the biometric authentication is required for both data encryption and decryption.
- * <p>
- * The cipher configuration is compatible with previous versions of PowerAuth SDK (1.4.3 and older).
+ * The {@code BiometricKeyEncryptorMac} implements {@link IBiometricKeyEncryptor} and provides
+ * protection of PowerAuth biometric factor with using symmetric HMAC KDF. The key is stored in
+ * Android KeyStore and the biometric authentication is required for key creation and use.
  */
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
+public class BiometricKeyEncryptorMac implements IBiometricKeyEncryptor {
 
     /**
      * Expected key type stored in KeyStore.
      */
-    public static final @NonNull String KEY_ALGORITHM = "AES";
+    public static @NonNull String KEY_ALGORITHM = KeyProperties.KEY_ALGORITHM_HMAC_SHA256;
+
     /**
-     * Symmetric AES key.
+     * Symmetric MAC key.
      */
     private final @NonNull SecretKey key;
     /**
-     * Symmetric AES cipher
+     * Mac object
      */
-    private @Nullable Cipher cipher;
+    private @Nullable Mac mac;
     /**
-     * If true, then internal cipher is already initialized.
+     * If true, then internal Mac is already initialized or failed to initialize.
      */
-    private boolean cipherIsInitialized;
+    private boolean macIsInitialized;
     /**
      * If true, then encryptor object was already used, so no subsequent calls are allowed.
      */
@@ -81,21 +75,26 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
     private boolean encryptMode;
 
     /**
-     * AES cipher configuration.
+     * Mac configuration.
      */
-    private static final String AES_CIPHER = "AES/CBC/PKCS7Padding";
+    private static final String MAC_CONFIG = KEY_ALGORITHM;
+
+    /**
+     * Size of the generated key.
+     */
+    private static final int MAC_KEY_SIZE = 48;
 
     /**
      * Initialize encryptor with symmetric {@link SecretKey}.
      * @param key Encryption and decryption key.
      */
-    public BiometricKeyEncryptorAes(@NonNull SecretKey key) {
+    public BiometricKeyEncryptorMac(@NonNull SecretKey key) {
         this.key = key;
     }
 
     @Override
     public int getEncryptorType() {
-        return EncryptorType.AES;
+        return EncryptorType.HMAC;
     }
 
     @Override
@@ -107,41 +106,29 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
     @Override
     public BiometricPrompt.CryptoObject initializeCryptoObject(boolean encryptMode) throws PowerAuthErrorException {
         try {
-            if (cipherIsInitialized) {
-                throw new IllegalStateException("Cipher is already initialized");
+            if (macIsInitialized) {
+                throw new IllegalStateException("CryptoObject is already initialized");
             }
-            cipher = Cipher.getInstance(AES_CIPHER);
-            if (cipher == null) {
-                throw new NoSuchAlgorithmException("Failed to initialize " + AES_CIPHER);
+            mac = Mac.getInstance(MAC_CONFIG);
+            if (mac == null) {
+                throw new NoSuchAlgorithmException("Failed to initialize " + MAC_CONFIG);
             }
-            // Security Notes
-            //
-            // We always initialize cipher to encrypt mode, because AES cipher is later used
-            // as KDF function. We don't actually encrypt and decrypt the raw biometric key.
-            //
-            // The following zero-IV probably raise a false positive finding in the security review.
-            // We're keeping this mode for a backward compatibility with already created keys.
-            // All new keys will use "BiometricEncryptorMac" for a similar function.
-            final byte[] zero_iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            AlgorithmParameterSpec algorithmSpec = new IvParameterSpec(zero_iv);
-            cipher.init(Cipher.ENCRYPT_MODE, key, algorithmSpec);
-            // Keep encrypt mode flag to be validated later in encrypt / decrypt methods.
+            mac.init(key);
             this.encryptMode = encryptMode;
-
         } catch (Throwable e) {
-            throw PowerAuthErrorException.wrapException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Failed to initialize AES biometric key encryptor", e);
+            throw PowerAuthErrorException.wrapException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Failed to initialize HMAC biometric key encryptor", e);
         } finally {
-            this.cipherIsInitialized = true;
+            this.macIsInitialized = true;
         }
-        return new BiometricPrompt.CryptoObject(cipher);
+        return new BiometricPrompt.CryptoObject(mac);
     }
 
     @Nullable
     @Override
     public BiometricKeyData encryptBiometricKey(@NonNull SecureData key) {
-        final SecureData derivedKey = aesKdf(key, true);
-        // We use AES as KDF, so we must return the provided key back to the application
-        // to save it to the persistent storage, to be able to perform the same KDF in decryption.
+        final SecureData derivedKey = hmacKdf(key, true);
+        // We use HMAC as KDF, so we must return the provided key back to the application
+        // to save it to the persistent storage, to be able to perform the same KDF in "decryption".
         return derivedKey != null ? new BiometricKeyData(key, derivedKey, true) : null;
     }
 
@@ -149,26 +136,26 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
     @Override
     public BiometricKeyData decryptBiometricKey(@NonNull SecureData encryptedKey) {
         // Note that "encryptedKey" is actually the same key as was provided to "encryptBiometricKey"
-        // method. This is due to fact, that we use AES as KDF.
-        final SecureData derivedKey = aesKdf(encryptedKey, false);
+        // method. This is due to fact, that we use HMAC as KDF.
+        final SecureData derivedKey = hmacKdf(encryptedKey, false);
         // It's not required to store "dataToSave" after the decryption. We return the same data
         // just for convenience.
         return derivedKey != null ? new BiometricKeyData(encryptedKey, derivedKey, false) : null;
     }
 
     /**
-     * Private method that implements AES KDF.
+     * Private method that implements KDF with using HMAC.
      *
      * @param keyToDerive Key material to be derived with KDF.
      * @param encryptMode Encrypt / Decrypt flag, to test API usage.
      * @return Derived data or {@code null} in case of failure.
      */
     @Nullable
-    private SecureData aesKdf(@NonNull SecureData keyToDerive, boolean encryptMode) {
+    private SecureData hmacKdf(@NonNull SecureData keyToDerive, boolean encryptMode) {
         try {
             // State checks
-            if (cipher == null) {
-                throw new IllegalStateException("Cipher is not initialized");
+            if (mac == null) {
+                throw new IllegalStateException("Mac is not initialized");
             }
             if (this.encryptMode != encryptMode) {
                 throw new IllegalStateException("Encryptor is not configured for " + (encryptMode ? "encryption" : "decryption"));
@@ -179,9 +166,9 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
             encryptorIsUsed = true;
 
             // Derive the key
-            return SecureData.capture(cipher.doFinal(keyToDerive.getSensitiveData()));
-        } catch (ProviderException | BadPaddingException | IllegalBlockSizeException e) {
-            PowerAuthLog.e("BiometricKeyEncryptorAes.aesKdf failed: " + e.getMessage());
+            return SecureData.capture(mac.doFinal(keyToDerive.getSensitiveData()));
+        } catch (ProviderException e) {
+            PowerAuthLog.e("BiometricKeyEncryptorMac.hmacKdf failed: " + e.getMessage());
             return null;
         }
     }
@@ -196,24 +183,21 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
      * @return New instance of {@link BiometricKeyEncryptorAes} or {@code null} in case of failure.
      */
     @Nullable
-    public static IBiometricKeyEncryptor createAesEncryptor(@NonNull String providerName, @NonNull String keyName, boolean invalidateByBiometricEnrollment) {
+    public static IBiometricKeyEncryptor createMacEncryptor(@NonNull String providerName, @NonNull String keyName, boolean invalidateByBiometricEnrollment) {
         try {
             // Acquire AES key generator
-            final KeyGenerator keyGenerator = KeyGenerator.getInstance("AES", providerName);
+            final KeyGenerator keyGenerator = KeyGenerator.getInstance(MAC_CONFIG, providerName);
             // Configure AES key generator
-            final KeyGenParameterSpec.Builder keySpecBuilder = new KeyGenParameterSpec.Builder(keyName, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                    .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                    .setUserAuthenticationRequired(true)
-                    .setRandomizedEncryptionRequired(false)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7);
+            final KeyGenParameterSpec.Builder keySpecBuilder = new KeyGenParameterSpec.Builder(keyName, KeyProperties.PURPOSE_SIGN)
+                    .setUserAuthenticationRequired(true);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 keySpecBuilder.setInvalidatedByBiometricEnrollment(invalidateByBiometricEnrollment);
             }
-            // Initialize generator and generate a new AES key in the KeyStore.
+            // Initialize generator and generate a new MAC key in the KeyStore.
             keyGenerator.init(keySpecBuilder.build());
             final SecretKey key = keyGenerator.generateKey();
             // Create a new instance of encryptor.
-            return new BiometricKeyEncryptorAes(key);
+            return new BiometricKeyEncryptorMac(key);
         } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchProviderException | ProviderException e) {
             PowerAuthLog.e("BiometricKeyEncryptorAes.createAesEncryptor failed: " + e.getMessage());
             return null;

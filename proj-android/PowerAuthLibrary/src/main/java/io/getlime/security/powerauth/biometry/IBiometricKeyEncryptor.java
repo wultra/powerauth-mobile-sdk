@@ -16,9 +16,19 @@
 
 package io.getlime.security.powerauth.biometry;
 
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
+import static io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor.EncryptorType.*;
+
+import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.biometric.BiometricPrompt;
+
+import java.lang.annotation.Retention;
+
 import io.getlime.security.powerauth.core.SecureData;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 import javax.crypto.Cipher;
 
@@ -31,6 +41,28 @@ import javax.crypto.Cipher;
  * Calling methods from this interface for multiple times produce {@code IllegalStateException}.
  */
 public interface IBiometricKeyEncryptor {
+
+    @Retention(SOURCE)
+    @IntDef({AES, RSA, HMAC})
+    @interface EncryptorType {
+        /**
+         * Symmetric key for AES.
+         */
+        int AES = 0;
+        /**
+         * Asymmetric RSA key.
+         */
+        int RSA = 1;
+        /**
+         * Symmetric
+         */
+        int HMAC = 2;
+    }
+
+    /**
+     * @return Type of this encryptor.
+     */
+    @EncryptorType int getEncryptorType();
 
     /**
      * @return {@code true} if biometric authentication is required in {@link #encryptBiometricKey(SecureData)} method.
@@ -45,10 +77,11 @@ public interface IBiometricKeyEncryptor {
      *
      * @param encryptMode Tells whether object will be later used for key encryption or decryption.
      *
-     * @return Instance of {@link Cipher} object or {@code null} in case of failure.
+     * @return Instance of {@link BiometricPrompt.CryptoObject} object
+     * @throws PowerAuthErrorException in case of failure.
      */
-    @Nullable
-    Cipher initializeCipher(boolean encryptMode);
+    @NonNull
+    BiometricPrompt.CryptoObject initializeCryptoObject(boolean encryptMode) throws PowerAuthErrorException;
 
     /**
      * Encrypt biometric key and return object that contains encrypted key and data to store to permanent storage.

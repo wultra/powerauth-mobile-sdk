@@ -76,7 +76,7 @@ public class PowerAuthBiometricConfiguration {
     }
 
     /**
-     * Get whether legacy symmetric key is used for the biometric factor data is used.
+     * Get whether the legacy symmetric key is used to protect biometric factor data.
      * @return {@code true} if legacy symmetric key is used.
      */
     public boolean isUseLegacySymmetricKeyType() {

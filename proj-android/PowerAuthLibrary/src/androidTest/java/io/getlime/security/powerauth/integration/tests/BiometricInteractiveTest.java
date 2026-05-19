@@ -39,7 +39,7 @@ import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
 
 import static org.junit.Assert.*;
 
-@Ignore("Commend when you ready for interactive tests")
+@Ignore("Comment when you ready for interactive tests")
 public class BiometricInteractiveTest extends FragmentActivityBaseTest {
     @Test
     public void testHmacAuthentication() throws Exception {

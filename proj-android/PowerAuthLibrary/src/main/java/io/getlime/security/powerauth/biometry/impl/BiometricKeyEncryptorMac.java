@@ -51,7 +51,7 @@ public class BiometricKeyEncryptorMac implements IBiometricKeyEncryptor {
     /**
      * Expected key type stored in KeyStore.
      */
-    public static @NonNull String KEY_ALGORITHM = KeyProperties.KEY_ALGORITHM_HMAC_SHA256;
+    public static final @NonNull String KEY_ALGORITHM = KeyProperties.KEY_ALGORITHM_HMAC_SHA256;
 
     /**
      * Symmetric MAC key.

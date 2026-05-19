@@ -141,7 +141,7 @@ public class BiometricAuthenticationRequest {
     }
 
     /**
-     * @return {@code true} in case that symmetric cipher should be used for biometric key protection.
+     * @return Type of encryptor used for the biometric key protection.
      */
     @IBiometricKeyEncryptor.EncryptorType
     public int getEncryptorType() {

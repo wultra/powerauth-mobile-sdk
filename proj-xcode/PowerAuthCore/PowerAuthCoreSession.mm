@@ -73,7 +73,11 @@ using namespace powerAuth;
 - (void) resetSession
 {
     [self requireWriteAccess:nil];
-    _session->resetState();
+    try {
+        _session->resetState();
+    } catch (...) {
+        // TODO: log failure
+    }
 }
 
 - (id<PowerAuthCoreSessionDelegate>) delegate

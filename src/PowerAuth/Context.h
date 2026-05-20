@@ -62,8 +62,9 @@ public:
     std::shared_ptr<Context> createTargetAlgorithmContext();
     
     /// Reset context state. This is identical to remove activation locally.
-    void resetState() noexcept;
+    void resetState();
     
+    /// If there's target context, then reset the context and remove it.
     void destroyTargetAlgorithmContext();
     
     /// Returns the target algorithm context if exists.
@@ -142,7 +143,8 @@ private:
 
     mutable SharedMutexPtr _shared_mutex;
     const ConfigurationPtr _configuration;
-    PowerAuthSpecPtr _specification;
+    const PowerAuthSpecPtr _initial_specification;
+    PowerAuthSpecPtr _current_specification;
     SessionDataPtr _session_data;
     cc7::crypto::KeyPairFactoryPtr _signing_keys_factory;
     

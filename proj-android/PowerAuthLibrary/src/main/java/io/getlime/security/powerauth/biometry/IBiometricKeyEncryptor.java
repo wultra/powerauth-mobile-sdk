@@ -54,7 +54,7 @@ public interface IBiometricKeyEncryptor {
          */
         int RSA = 1;
         /**
-         * Symmetric
+         * Symmetric key for HMAC-SHA384
          */
         int HMAC = 2;
     }

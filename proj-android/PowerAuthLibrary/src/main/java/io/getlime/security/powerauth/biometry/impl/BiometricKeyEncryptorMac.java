@@ -80,11 +80,6 @@ public class BiometricKeyEncryptorMac implements IBiometricKeyEncryptor {
     private static final String MAC_CONFIG = KEY_ALGORITHM;
 
     /**
-     * Size of the generated key.
-     */
-    private static final int MAC_KEY_SIZE = 48;
-
-    /**
      * Initialize encryptor with symmetric {@link SecretKey}.
      * @param key Encryption and decryption key.
      */
@@ -180,14 +175,14 @@ public class BiometricKeyEncryptorMac implements IBiometricKeyEncryptor {
      * @param keyName KeyStore key alias.
      * @param invalidateByBiometricEnrollment If {@code true}, then key will be invalidated on
      *                                        new biometric enrollment.
-     * @return New instance of {@link BiometricKeyEncryptorAes} or {@code null} in case of failure.
+     * @return New instance of {@link BiometricKeyEncryptorMac} or {@code null} in case of failure.
      */
     @Nullable
     public static IBiometricKeyEncryptor createMacEncryptor(@NonNull String providerName, @NonNull String keyName, boolean invalidateByBiometricEnrollment) {
         try {
-            // Acquire AES key generator
+            // Acquire MAC key generator
             final KeyGenerator keyGenerator = KeyGenerator.getInstance(MAC_CONFIG, providerName);
-            // Configure AES key generator
+            // Configure MAC key generator
             final KeyGenParameterSpec.Builder keySpecBuilder = new KeyGenParameterSpec.Builder(keyName, KeyProperties.PURPOSE_SIGN)
                     .setUserAuthenticationRequired(true);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -199,7 +194,7 @@ public class BiometricKeyEncryptorMac implements IBiometricKeyEncryptor {
             // Create a new instance of encryptor.
             return new BiometricKeyEncryptorMac(key);
         } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchProviderException | ProviderException e) {
-            PowerAuthLog.e("BiometricKeyEncryptorAes.createAesEncryptor failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeyEncryptorMac.createAesEncryptor failed: " + e.getMessage());
             return null;
         }
     }

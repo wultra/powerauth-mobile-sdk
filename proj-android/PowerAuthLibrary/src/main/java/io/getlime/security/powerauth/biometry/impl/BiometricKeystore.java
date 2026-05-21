@@ -85,16 +85,17 @@ public class BiometricKeystore implements IBiometricKeystore {
                 mKeyStore.deleteEntry(alias);
                 return false;
             }
-            // Try to initialize cipher in decryption mode
-            if (encryptor.initializeCryptoObject(false) == null) {
-                // Failed to initialize cipher, key is invalid - remove it
-                PowerAuthLog.w("BiometricKeystore.containsBiometricKeyEncryptor: Failed to initialize cipher, removing invalid key");
+            try {
+                // Try to initialize cipher in decryption mode
+                encryptor.initializeCryptoObject(false);
+            } catch (PowerAuthErrorException e) {
+                PowerAuthLog.w("BiometricKeystore.containsBiometricKeyEncryptor: Failed to initialize crypto object:" + e);
                 mKeyStore.deleteEntry(alias);
                 return false;
             }
             // Key is valid
             return true;
-        } catch (KeyStoreException | PowerAuthErrorException e) {
+        } catch (KeyStoreException e) {
             PowerAuthLog.e("BiometricKeystore.containsBiometricKeyEncryptor failed: " + e.getMessage());
             return false;
         }

@@ -26,7 +26,6 @@ import androidx.fragment.app.FragmentActivity;
 import android.text.TextUtils;
 import io.getlime.security.powerauth.core.SecureData;
 
-import java.util.Arrays;
 import java.util.concurrent.Executor;
 
 /**
@@ -43,7 +42,7 @@ public class BiometricAuthenticationRequest {
     private final boolean forceGenerateNewKey;
     private final boolean invalidateByBiometricEnrollment;
     private final boolean userConfirmationRequired;
-    private final boolean useSymmetricCipher;
+    private final @IBiometricKeyEncryptor.EncryptorType int encryptorType;
     private final @NonNull SecureData rawKeyData;
     private final @Nullable IBiometricKeyEncryptor biometricKeyEncryptor;
     private final @NonNull Executor backgroundTaskExecutor;
@@ -58,7 +57,7 @@ public class BiometricAuthenticationRequest {
             boolean forceGenerateNewKey,
             boolean invalidateByBiometricEnrollment,
             boolean userConfirmationRequired,
-            boolean useSymmetricCipher,
+            @IBiometricKeyEncryptor.EncryptorType int encryptorType,
             @NonNull SecureData rawKeyData,
             @Nullable IBiometricKeyEncryptor biometricKeyEncryptor,
             @NonNull Executor backgroundTaskExecutor) {
@@ -71,7 +70,7 @@ public class BiometricAuthenticationRequest {
         this.forceGenerateNewKey = forceGenerateNewKey;
         this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
         this.userConfirmationRequired = userConfirmationRequired;
-        this.useSymmetricCipher = useSymmetricCipher;
+        this.encryptorType = encryptorType;
         this.rawKeyData = rawKeyData;
         this.biometricKeyEncryptor = biometricKeyEncryptor;
         this.backgroundTaskExecutor = backgroundTaskExecutor;
@@ -142,10 +141,11 @@ public class BiometricAuthenticationRequest {
     }
 
     /**
-     * @return {@code true} in case that symmetric cipher should be used for biometric key protection.
+     * @return Type of encryptor used for the biometric key protection.
      */
-    public boolean isUseSymmetricCipher() {
-        return useSymmetricCipher;
+    @IBiometricKeyEncryptor.EncryptorType
+    public int getEncryptorType() {
+        return encryptorType;
     }
 
     /**
@@ -189,7 +189,8 @@ public class BiometricAuthenticationRequest {
         private boolean forceGenerateNewKey = false;
         private boolean invalidateByBiometricEnrollment = true;
         private boolean userConfirmationRequired = false;
-        private boolean useSymmetricCipher = true;
+        @IBiometricKeyEncryptor.EncryptorType
+        private int encryptorType = IBiometricKeyEncryptor.EncryptorType.HMAC;
         private SecureData rawKeyData;
         private IBiometricKeyEncryptor biometricKeyEncryptor;
         private Executor backgroundTaskExecutor;
@@ -241,7 +242,7 @@ public class BiometricAuthenticationRequest {
                     forceGenerateNewKey,
                     invalidateByBiometricEnrollment,
                     userConfirmationRequired,
-                    useSymmetricCipher,
+                    encryptorType,
                     rawKeyData,
                     biometricKeyEncryptor,
                     backgroundTaskExecutor);
@@ -350,16 +351,17 @@ public class BiometricAuthenticationRequest {
         /**
          * @param forceGenerateNewKey             If true then the new biometric key will be generated as a
          *                                        part of the process.
+         * @param encryptorType                   Type of biometric key encryptor to use.
          * @param invalidateByBiometricEnrollment Sets whether the new key should be invalidated on
          *                                        biometric enrollment.
-         * @param useSymmetricCipher              If true then symmetric cipher will be used to biometric
-         *                                        factor key protection.
          * @return This value will never be {@code null}.
          */
-        public Builder setForceGenerateNewKey(boolean forceGenerateNewKey, boolean invalidateByBiometricEnrollment, boolean useSymmetricCipher) {
+        public Builder setForceGenerateNewKey(boolean forceGenerateNewKey,
+                                              @IBiometricKeyEncryptor.EncryptorType int encryptorType,
+                                              boolean invalidateByBiometricEnrollment) {
             this.forceGenerateNewKey = forceGenerateNewKey;
             this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
-            this.useSymmetricCipher = useSymmetricCipher;
+            this.encryptorType = encryptorType;
             return this;
         }
 

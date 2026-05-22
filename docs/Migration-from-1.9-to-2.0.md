@@ -25,6 +25,7 @@ Notable changes on Android:
 
 - New `PowerAuthBiometricPrompt` class simplifies biometric key setup and authentication.
 - Added the `SecureData` class to `io.getlime.security.powerauth.core` package to enhance in-memory management of sensitive data.
+- The biometric key protection now defaults to HMAC-KDF instead of the legacy AES-KDF used in SDK 1.x. Existing biometric factors enrolled under the previous SDK remain fully functional and are not affected by this change.
 
 ### API changes
 

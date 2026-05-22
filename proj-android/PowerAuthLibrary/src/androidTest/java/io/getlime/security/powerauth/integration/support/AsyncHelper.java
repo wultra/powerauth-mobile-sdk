@@ -22,6 +22,9 @@ import androidx.annotation.NonNull;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import io.getlime.security.powerauth.sdk.impl.MainThreadExecutor;
 
 /**
  * The {@code AsyncHelper} class helps synchronize asynchronous tasks. Simply call {@link #await(Execution)}
@@ -132,7 +135,20 @@ public class AsyncHelper {
      * @throws Exception In case of failure, or operation doesn't finish in defined waiting time.
      */
     public static <TResult> TResult await(@NonNull Execution<TResult> executionBlock) throws Exception {
-        return synchronizeImpl(true, executionBlock);
+        return synchronizeImpl(true, false, executionBlock);
+    }
+
+    /**
+     * Synchronize asynchronous operation. This variant of synchronization await executes function
+     * on main thread.
+     *
+     * @param executionBlock Execution block that must implement start of asynchronous operation.
+     * @param <TResult> Type of result.
+     * @return Result reported from asynchronous operation.
+     * @throws Exception In case of failure, or operation doesn't finish in defined waiting time.
+     */
+    public static <TResult> TResult awaitForMainThread(@NonNull Execution<TResult> executionBlock) throws Exception {
+        return synchronizeImpl(true, true, executionBlock);
     }
 
     /**
@@ -145,23 +161,38 @@ public class AsyncHelper {
      * @throws Exception Operation doesn't finish in defined waiting time.
      */
     public static <TResult> TResult awaitNoThrow(@NonNull Execution<TResult> executionBlock) throws Exception {
-        return synchronizeImpl(false, executionBlock);
+        return synchronizeImpl(false, false, executionBlock);
     }
 
     /**
      * Internal implementation of synchronization.
      *
      * @param throwOnError If false, error reported from asynchronous operation will be ignored.
+     * @param mainThread If true, then function will execute function on main thread.
      * @param executionBlock Execution block that must implement start of asynchronous operation.
      * @param <TResult> Type of result.
      * @return Result reported from asynchronous operation or null in case of ignored error.
      * @throws Exception In case of not-ignored failure, or operation doesn't finish in defined waiting time.
      */
-    private static <TResult> TResult synchronizeImpl(boolean throwOnError, @NonNull Execution<TResult> executionBlock) throws Exception {
+    private static <TResult> TResult synchronizeImpl(boolean throwOnError, boolean mainThread, @NonNull Execution<TResult> executionBlock) throws Exception {
         final CountDownLatch signal = new CountDownLatch(1);
         final ResultCatcher<TResult> resultCatcher = new ResultCatcher<>(signal);
-        executionBlock.execute(resultCatcher);
-        final long awaitTimeout = Debug.isDebuggerConnected() ? 300 : 10; // give more time to developer to debug the things
+        long awaitTimeout = Debug.isDebuggerConnected() ? 300 : 10; // give more time to developer to debug the things
+        if (mainThread) {
+            // Execute on main thread
+            MainThreadExecutor.getInstance().dispatchCallback(() -> {
+                try {
+                    executionBlock.execute(resultCatcher);
+                } catch (Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+            // Main thread task is typically doing an interaction with user. Wait for a bit longer
+            awaitTimeout *= 3;
+        } else {
+            // Execute on the current thread
+            executionBlock.execute(resultCatcher);
+        }
         boolean completed = signal.await(awaitTimeout, TimeUnit.SECONDS);
         if (!completed) {
             throw new Exception("Asynchronous operation did not finish in time.");

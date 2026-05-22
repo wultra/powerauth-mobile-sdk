@@ -3149,13 +3149,25 @@ public class PowerAuthSDK {
             return new DummyCancelable();
         }
 
+        // Determine biometric key encryptor type
+        final int encryptorType;
+        if (mBiometricConfiguration.isAuthenticateOnBiometricKeySetup()) {
+            if (mBiometricConfiguration.isUseLegacySymmetricKeyType()) {
+                encryptorType = IBiometricKeyEncryptor.EncryptorType.AES;
+            } else {
+                encryptorType = IBiometricKeyEncryptor.EncryptorType.HMAC;
+            }
+        } else {
+            encryptorType = IBiometricKeyEncryptor.EncryptorType.RSA;
+        }
+
         // Build a new authentication request.
         final BiometricAuthenticationRequest.Builder authenticationRequestBuilder = new BiometricAuthenticationRequest.Builder(context)
                 .setTitle(prompt.getTitle())
                 .setDescription(prompt.getDescription())
                 .setRawKeyData(rawKeyData)
                 .setKeystoreAlias(biometricDataMapping.keystoreId)
-                .setForceGenerateNewKey(forceGenerateNewKey, mBiometricConfiguration.isInvalidateBiometricFactorAfterChange(), mBiometricConfiguration.isAuthenticateOnBiometricKeySetup())
+                .setForceGenerateNewKey(forceGenerateNewKey, encryptorType, mBiometricConfiguration.isInvalidateBiometricFactorAfterChange())
                 .setUserConfirmationRequired(mBiometricConfiguration.isConfirmBiometricAuthentication())
                 .setBackgroundTaskExecutor(mExecutorProvider.getBiometricExecutor());
         if (prompt.getSubtitle() != null) {

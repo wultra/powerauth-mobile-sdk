@@ -40,7 +40,7 @@ public class DummyBiometricKeystore implements IBiometricKeystore {
 
     @Nullable
     @Override
-    public IBiometricKeyEncryptor createBiometricKeyEncryptor(@NonNull String keyId, boolean invalidateByBiometricEnrollment, boolean useSymmetricKey) {
+    public IBiometricKeyEncryptor createBiometricKeyEncryptor(@NonNull String keyId, @IBiometricKeyEncryptor.EncryptorType int encryptorType, boolean invalidateByBiometricEnrollment) {
         return null;
     }
 

@@ -67,6 +67,7 @@ public abstract class BaseTest {
         powerAuthSDK = testHelper.getSharedSdk();
         activationHelper = new ActivationHelper(testHelper);
         authenticationHelper = new AuthenticationHelper(testHelper);
+        powerAuthSDK.removeActivationLocal(testHelper.getContext());
         assertEquals(getAlgorithmForTest(), getCurrentAlgorithm());
         if (isRequestFailureSimulatorAvailable()) {
             clearAllSimulateFailures();

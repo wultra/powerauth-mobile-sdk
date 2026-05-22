@@ -161,11 +161,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
 
         // Now construct appropriate cipher with the biometric key, wrapped in the crypto object.
         final IBiometricKeyEncryptor encryptor = requestData.getBiometricKeyEncryptorProvider().getBiometricKeyEncryptor();
-        final BiometricPrompt.CryptoObject cryptoObject = wrapCipherToCryptoObject(encryptor.initializeCipher(request.isForceGenerateNewKey()));
-        if (cryptoObject == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Cannot create CryptoObject for biometric authentication.");
-        }
-
+        final BiometricPrompt.CryptoObject cryptoObject = encryptor.initializeCryptoObject(request.isForceGenerateNewKey());
         final BiometricDialogResources resources = requestData.getResources();
 
         // Build BiometricPrompt with title & description
@@ -285,24 +281,22 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
                 biometricPromptIsProbablyVisible = true;
-                // Acquire cipher from the result. This is a bit over-paranoid, but let us check everything
-                // returned from the system.
-                final Cipher cipher;
-                if (result.getCryptoObject() != null) {
-                    cipher = result.getCryptoObject().getCipher();
-                } else {
-                    cipher = null;
-                }
-                if (cipher != null) {
-                    // Let's try to encrypt or decrypt the biometric key
-                    final BiometricKeyData biometricKeyData = encryptOrDecryptRawKeyData(requestData);
-                    if (biometricKeyData != null) {
-                        dispatcher.dispatchSuccess(biometricKeyData);
-                        return;
+                // Test whether CryptoObject is present in the result.
+                final BiometricPrompt.CryptoObject cryptoObject = result.getCryptoObject();
+                if (cryptoObject != null) {
+                    if (cryptoObject.getCipher() != null || cryptoObject.getMac() != null) {
+                        // Let's try to encrypt or decrypt the biometric key
+                        final BiometricKeyData biometricKeyData = encryptOrDecryptRawKeyData(requestData);
+                        if (biometricKeyData != null) {
+                            dispatcher.dispatchSuccess(biometricKeyData);
+                            return;
+                        }
+                        PowerAuthLog.e("Failed to encrypt biometric key.");
+                    } else {
+                        PowerAuthLog.e("Failed to get Cipher or Mac from CryptoObject.");
                     }
-                    PowerAuthLog.e("Failed to encrypt biometric key.");
                 } else {
-                    PowerAuthLog.e("Failed to get Cipher from CryptoObject.");
+                    PowerAuthLog.e("No CryptoObject returned after successful authentication.");
                 }
                 // If the code ends here, it mostly means that the vendor's implementation is quite off the standard.
                 // The device reports success, but we're unable to derive our cryptographic key, due to malfunction in cipher
@@ -396,17 +390,6 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
     private boolean isDeviceSecuredAndUnlocked() {
         final KeyguardManager keyguardManager = context.getSystemService(KeyguardManager.class);
         return keyguardManager.isDeviceSecure() && !keyguardManager.isDeviceLocked();
-    }
-
-    /**
-     * Wrap {@link Cipher} into {@link BiometricPrompt.CryptoObject}.
-     *
-     * @param cipher A cipher object that must be wrapped.
-     * @return {@link BiometricPrompt.CryptoObject} created for given cipher.
-     */
-    private @Nullable BiometricPrompt.CryptoObject wrapCipherToCryptoObject(@Nullable Cipher cipher) {
-        // Wrap cipher into required crypto object
-        return cipher != null ? new BiometricPrompt.CryptoObject(cipher) : null;
     }
 
     /**

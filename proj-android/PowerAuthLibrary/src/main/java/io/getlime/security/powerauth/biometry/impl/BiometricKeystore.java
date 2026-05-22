@@ -37,6 +37,7 @@ import javax.crypto.SecretKey;
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.core.CryptoUtils;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
@@ -84,10 +85,11 @@ public class BiometricKeystore implements IBiometricKeystore {
                 mKeyStore.deleteEntry(alias);
                 return false;
             }
-            // Try to initialize cipher in decryption mode
-            if (encryptor.initializeCipher(false) == null) {
-                // Failed to initialize cipher, key is invalid - remove it
-                PowerAuthLog.w("BiometricKeystore.containsBiometricKeyEncryptor: Failed to initialize cipher, removing invalid key");
+            try {
+                // Try to initialize cipher in decryption mode
+                encryptor.initializeCryptoObject(false);
+            } catch (PowerAuthErrorException e) {
+                PowerAuthLog.w("BiometricKeystore.containsBiometricKeyEncryptor: Failed to initialize crypto object:" + e);
                 mKeyStore.deleteEntry(alias);
                 return false;
             }
@@ -101,12 +103,18 @@ public class BiometricKeystore implements IBiometricKeystore {
 
     @Override
     public @Nullable
-    IBiometricKeyEncryptor createBiometricKeyEncryptor(@NonNull String keyId, boolean invalidateByBiometricEnrollment, boolean useSymmetricKey) {
+    IBiometricKeyEncryptor createBiometricKeyEncryptor(@NonNull String keyId, @IBiometricKeyEncryptor.EncryptorType int encryptorType, boolean invalidateByBiometricEnrollment) {
         removeBiometricKeyEncryptor(keyId);
-        if (useSymmetricKey) {
-            return BiometricKeyEncryptorAes.createAesEncryptor(PROVIDER_NAME, getKeystoreAlias(keyId), invalidateByBiometricEnrollment);
-        } else {
-            return BiometricKeyEncryptorRsa.createRsaEncryptor(PROVIDER_NAME, getKeystoreAlias(keyId), invalidateByBiometricEnrollment);
+        final String keystoreAlias = getKeystoreAlias(keyId);
+        switch (encryptorType) {
+            case IBiometricKeyEncryptor.EncryptorType.AES:
+                return BiometricKeyEncryptorAes.createAesEncryptor(PROVIDER_NAME, keystoreAlias, invalidateByBiometricEnrollment);
+            case IBiometricKeyEncryptor.EncryptorType.HMAC:
+                return BiometricKeyEncryptorMac.createMacEncryptor(PROVIDER_NAME, keystoreAlias, invalidateByBiometricEnrollment);
+            case IBiometricKeyEncryptor.EncryptorType.RSA:
+                return BiometricKeyEncryptorRsa.createRsaEncryptor(PROVIDER_NAME, keystoreAlias, invalidateByBiometricEnrollment);
+            default:
+                throw new IllegalStateException("Encryptor type not supported");
         }
     }
 
@@ -135,13 +143,21 @@ public class BiometricKeystore implements IBiometricKeystore {
             mKeyStore.load(null);
             final Key key = mKeyStore.getKey(getKeystoreAlias(keyId), null);
             if (key instanceof SecretKey) {
-                // AES symmetric key
-                return new BiometricKeyEncryptorAes((SecretKey)key);
+                // Symmetric key is stored, determine the key type.
+                final String keyAlgorithm = key.getAlgorithm();
+                if (BiometricKeyEncryptorMac.KEY_ALGORITHM.equals(keyAlgorithm)) {
+                    // MAC symmetric key
+                    return new BiometricKeyEncryptorMac((SecretKey) key);
+                } else if (BiometricKeyEncryptorAes.KEY_ALGORITHM.equals(keyAlgorithm)) {
+                    // AES symmetric key
+                    return new BiometricKeyEncryptorAes((SecretKey) key);
+                }
+                PowerAuthLog.e("BiometricKeystore.getBiometricKeyEncryptor unknown key algorithm: " + keyAlgorithm);
             } else if (key instanceof PrivateKey) {
                 // RSA private key
                 return new BiometricKeyEncryptorRsa((PrivateKey)key);
             } else if (key != null) {
-                PowerAuthLog.e("BiometricKeystore.getBiometricKeyEncryptor unknown key type: " + key.toString());
+                PowerAuthLog.e("BiometricKeystore.getBiometricKeyEncryptor unknown key type: " + key);
             }
             return null;
         } catch (NoSuchAlgorithmException | KeyStoreException | CertificateException | UnrecoverableKeyException | IOException e) {

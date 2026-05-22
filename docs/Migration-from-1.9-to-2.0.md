@@ -296,6 +296,7 @@ If you're using [Activation Data Sharing](PowerAuth-SDK-for-iOS.md#share-activat
 Notable changes on watchOS:
 
 - The library now contains statically linked OpenSSL crypto library and therefore the final module is significantly bigger.
+- Added full support for Swift Package Manager. Please add the following dependency into your project: `https://github.com/wultra/powerauth-mobile-watch-sdk`.
 
 ### API changes
 

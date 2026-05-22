@@ -25,14 +25,52 @@ Related documents:
 
 ## Installation
 
-This chapter describes how to get PowerAuth SDK for watchOS up and running in your app. In the current version, you can choose between CocoaPods and manual library integration. Both types of installation will lead to your watchOS application linked with a dynamic library, provided by the `PowerAuth2ForWatch.[xc]framework`.
+This chapter describes how to get PowerAuth SDK for watchOS up and running in your app. In the current version, you can choose between Swift Package Manager and CocoaPods library integration.
 
 To distinguish between SDKs, the following short terms will be used in this document:
 
 - **iOS SDK**, as short term for *PowerAuth SDK for iOS*
 - **Watch SDK** as short term for *PowerAuth SDK for watchOS*
 
+### Swift Package Manager
+
+Add `https://github.com/wultra/powerauth-mobile-watch-sdk` repository as a package in Xcode UI and add the `PowerAuth2ForWatch` library as a dependency.
+
+Alternatively, you can add the dependency manually. For example:
+
+```swift
+// swift-tools-version:6.3
+import PackageDescription
+let package = Package(
+    name: "YourLibrary",
+    platforms: [
+        .watchOS(.v4)
+    ],
+    products: [
+        .library(
+            name: "YourLibrary",
+            targets: ["YourLibrary"]
+        ),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/wultra/powerauth-mobile-watch-sdk", from: "2.0.0")
+    ],
+    targets: [
+        .target(
+            name: "YourLibrary",
+            dependencies: [
+                .product(name: "PowerAuth2ForWatch", package: "powerauth-mobile-watch-sdk")
+            ]
+        )
+    ]
+)
+```
+
 ### CocoaPods
+
+<!-- begin box warning -->
+Be aware that CocoaPods will no longer accept updates [by the end of 2026](https://blog.cocoapods.org/CocoaPods-Specs-Repo/). You should migrate your project to Swift Package Manager.
+<!-- end -->
 
 [CocoaPods](http://cocoapods.org) is a dependency manager for Cocoa projects. You can install it with the following command:
 

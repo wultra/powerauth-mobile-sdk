@@ -1561,7 +1561,7 @@ self.httpClient.post(null, "/custom/activation/remove") { (error) in
 
 ### Removal via Signed Request
 
-PowerAuth Standard RESTful API has a dedicated endpoint for an activation removal. This endpoint uses a authentication header verification for looking up the activation to be removed. The benefit of this method is that it is already present in both PowerAuth SDK for iOS and PowerAuth Standard RESTful API - nothing has to be programmed. Also, the user does not have to be logged in to use it. However, the user has to authenticate using 2FA with either a password or biometry.
+PowerAuth Standard RESTful API has a dedicated endpoint for activation removal. This endpoint uses a authentication header verification for looking up the activation to be removed. The benefit of this method is that it is already present in both PowerAuth SDK for iOS and PowerAuth Standard RESTful API - nothing has to be programmed. Also, the user does not have to be logged in to use it. However, the user has to authenticate using 2FA with either a password or biometry.
 
 Use the following code for an activation removal using a signed request:
 
@@ -1580,7 +1580,7 @@ powerAuthSDK.removeActivation(with: auth) { (error) in
 ```
 
 <!-- begin box info -->
-Depending on the support and the configuration on the server, it's possible to remove the activation with a 1FA authentication (e.g. using `PowerAuthAuthentication.possession()`).
+Depending on server support and configuration, it's possible to remove the activation with 1FA authentication (e.g. using `PowerAuthAuthentication.possession()`).
 <!-- end -->
 
 

@@ -43,7 +43,6 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
 /**
  * Class representing a Keystore used to store biometry related key.
  */
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class BiometricKeystore implements IBiometricKeystore {
 
     private static final String KEY_NAME_PREFIX = "com.wultra.powerauth.biometricKey.";

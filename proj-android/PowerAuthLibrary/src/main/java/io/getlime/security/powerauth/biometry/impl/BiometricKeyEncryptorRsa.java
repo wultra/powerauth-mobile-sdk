@@ -56,7 +56,6 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
  * is stored in Android KeyStore and the biometric authentication is required only for data
  * decryption.
  */
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
 
     /**

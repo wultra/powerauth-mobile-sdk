@@ -46,7 +46,6 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
  * {@link BiometricPrompt} support library. This implementation is automatically used on devices with
  * Android 6.0 and newer.
  */
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class BiometricAuthenticator implements IBiometricAuthenticator {
 
     private final @NonNull Context context;
@@ -129,6 +128,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
 
             case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
             case BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED:
+            case BiometricManager.BIOMETRIC_ERROR_IDENTITY_CHECK_NOT_ACTIVE:
                 return BiometricStatus.NOT_AVAILABLE;
 
             case BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED:

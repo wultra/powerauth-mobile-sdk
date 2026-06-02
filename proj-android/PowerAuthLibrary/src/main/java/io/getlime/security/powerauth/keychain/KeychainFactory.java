@@ -155,43 +155,34 @@ public class KeychainFactory {
     @NonNull
     private static Keychain createKeychain(@NonNull Context context, @NonNull SharedData sharedData, @NonNull String identifier) {
         final SharedPreferences preferences = context.getSharedPreferences(identifier, Context.MODE_PRIVATE);
-        final boolean isAlreadyEncrypted;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            isAlreadyEncrypted = EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences);
-        } else {
-            isAlreadyEncrypted = false;
-        }
+        final boolean isAlreadyEncrypted = EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences);
         final int keychainProtection = sharedData.getKeychainProtection(context);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (keychainProtection != KeychainProtection.NONE || isAlreadyEncrypted) {
-                // If Android "M" and later, then create a secret key provider and try to create an encrypted keychain.
-                final SymmetricKeyProvider masterKeyProvider = sharedData.getMasterEncryptionKeyProvider(context);
-                final SymmetricKeyProvider backupKeyProvider = sharedData.getBackupEncryptionKeyProvider(context);
-                if (masterKeyProvider != null) {
-                    final EncryptedKeychain encryptedKeychain = new EncryptedKeychain(context, identifier, masterKeyProvider, backupKeyProvider);
-                    if (isAlreadyEncrypted) {
-                        // If keychain is already encrypted, then just validate encryption support.
-                        // The update function may fail in case that re-encryption did not end well,
-                        // and the previously encrypted content was stored back to the legacy keychain.
-                        if (encryptedKeychain.updateEncryptionSupport(preferences)) {
-                            return encryptedKeychain;
-                        }
-                    } else if (encryptedKeychain.importFromLegacyKeychain(preferences)) {
-                        // Import from legacy keychain succeeded, so return encrypted keychain.
+        if (keychainProtection != KeychainProtection.NONE || isAlreadyEncrypted) {
+            // Create a secret key provider and try to create an encrypted keychain.
+            final SymmetricKeyProvider masterKeyProvider = sharedData.getMasterEncryptionKeyProvider(context);
+            final SymmetricKeyProvider backupKeyProvider = sharedData.getBackupEncryptionKeyProvider(context);
+            if (masterKeyProvider != null) {
+                final EncryptedKeychain encryptedKeychain = new EncryptedKeychain(context, identifier, masterKeyProvider, backupKeyProvider);
+                if (isAlreadyEncrypted) {
+                    // If keychain is already encrypted, then just validate encryption support.
+                    // The update function may fail in case that re-encryption did not end well,
+                    // and the previously encrypted content was stored back to the legacy keychain.
+                    if (encryptedKeychain.updateEncryptionSupport(preferences)) {
                         return encryptedKeychain;
                     }
+                } else if (encryptedKeychain.importFromLegacyKeychain(preferences)) {
+                    // Import from legacy keychain succeeded, so return encrypted keychain.
+                    return encryptedKeychain;
                 }
             }
         }
 
         // Otherwise just return the legacy keychain.
         final Keychain keychain =  new LegacyKeychain(context, identifier);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences)) {
-                // Print error in case that keychain was previously encrypted and now it's not.
-                PowerAuthLog.e("KeychainFactory: " + identifier + ": The content was previously encrypted but the encryption is no longer available.");
-                keychain.removeAll();
-            }
+        if (EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences)) {
+            // Print error in case that keychain was previously encrypted and now it's not.
+            PowerAuthLog.e("KeychainFactory: " + identifier + ": The content was previously encrypted but the encryption is no longer available.");
+            keychain.removeAll();
         }
         return keychain;
     }
@@ -300,7 +291,6 @@ public class KeychainFactory {
          * @return Instance of {@link SymmetricKeyProvider} configured for AES-GCM with 256bit key.
          */
         @Nullable
-        @RequiresApi(api = Build.VERSION_CODES.M)
         SymmetricKeyProvider getMasterEncryptionKeyProvider(@NonNull Context context) {
             if (masterEncryptionKeyProvider == null) {
                 masterEncryptionKeyProvider = SymmetricKeyProvider.getAesGcmKeyProvider(MASTER_KEY_ALIAS, true, getStrongBoxSupport(context), MASTER_KEY_SIZE, true,null);
@@ -318,7 +308,6 @@ public class KeychainFactory {
          * @return Instance of backup {@link SymmetricKeyProvider} configured for AES-GCM with 256bit key.
          */
         @Nullable
-        @RequiresApi(api = Build.VERSION_CODES.M)
         SymmetricKeyProvider getBackupEncryptionKeyProvider(@NonNull Context context) {
             if (backupEncryptionKeyProvider == null) {
                 final KeychainProtectionSupport keychainProtectionSupport = getStrongBoxSupport(context);
@@ -340,41 +329,39 @@ public class KeychainFactory {
         @KeychainProtection int getKeychainProtection(@NonNull Context context) {
             if (keychainProtection == 0) {
                 // Protection level is not determined yet (e.g. value is equal to `0`)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    final SymmetricKeyProvider keyProvider = EncryptedKeychain.determineEffectiveSymmetricKeyProvider(
-                            getMasterEncryptionKeyProvider(context),
-                            getBackupEncryptionKeyProvider(context));
-                    final SecretKey secretKey = keyProvider != null ? keyProvider.getOrCreateSecretKey(context, false) : null;
-                    final KeyInfo secretKeyInfo = keyProvider != null ? keyProvider.getSecretKeyInfo(context) : null;
-                    if (secretKey != null && secretKeyInfo != null) {
-                        final KeychainProtectionSupport keychainProtectionSupport = keyProvider.getKeychainProtectionSupport();
-                        if (keychainProtectionSupport.isKeyStoreEncryptionEnabled()) {
-                            if (EncryptedKeychain.verifyKeystoreEncryption(context, keyProvider)) {
-                                // We can trust KeyStore, just determine the level of protection
-                                if (secretKeyInfo.isInsideSecureHardware()) {
-                                    if (keychainProtectionSupport.isStrongBoxSupported()) {
-                                        if (keychainProtectionSupport.isStrongBoxEnabled()) {
-                                            // Keychain encryption key is stored in StrongBox.
-                                            keychainProtection = KeychainProtection.STRONGBOX;
-                                        } else {
-                                            // Keychain encryption key should not be stored in StrongBox due to its poor reliability.
-                                            PowerAuthLog.e("KeychainFactory: StrongBox is supported but not enabled on this device.");
-                                            keychainProtection = KeychainProtection.HARDWARE;
-                                        }
+                final SymmetricKeyProvider keyProvider = EncryptedKeychain.determineEffectiveSymmetricKeyProvider(
+                        getMasterEncryptionKeyProvider(context),
+                        getBackupEncryptionKeyProvider(context));
+                final SecretKey secretKey = keyProvider != null ? keyProvider.getOrCreateSecretKey(context, false) : null;
+                final KeyInfo secretKeyInfo = keyProvider != null ? keyProvider.getSecretKeyInfo(context) : null;
+                if (secretKey != null && secretKeyInfo != null) {
+                    final KeychainProtectionSupport keychainProtectionSupport = keyProvider.getKeychainProtectionSupport();
+                    if (keychainProtectionSupport.isKeyStoreEncryptionEnabled()) {
+                        if (EncryptedKeychain.verifyKeystoreEncryption(context, keyProvider)) {
+                            // We can trust KeyStore, just determine the level of protection
+                            if (secretKeyInfo.isInsideSecureHardware()) {
+                                if (keychainProtectionSupport.isStrongBoxSupported()) {
+                                    if (keychainProtectionSupport.isStrongBoxEnabled()) {
+                                        // Keychain encryption key is stored in StrongBox.
+                                        keychainProtection = KeychainProtection.STRONGBOX;
                                     } else {
-                                        // Keychain encryption key is stored in the dedicated secure hardware, but is not StrongBox backed.
+                                        // Keychain encryption key should not be stored in StrongBox due to its poor reliability.
+                                        PowerAuthLog.e("KeychainFactory: StrongBox is supported but not enabled on this device.");
                                         keychainProtection = KeychainProtection.HARDWARE;
                                     }
                                 } else {
-                                    // Keychain encryption key is not stored in the dedicated secure hardware.
-                                    keychainProtection = KeychainProtection.SOFTWARE;
+                                    // Keychain encryption key is stored in the dedicated secure hardware, but is not StrongBox backed.
+                                    keychainProtection = KeychainProtection.HARDWARE;
                                 }
+                            } else {
+                                // Keychain encryption key is not stored in the dedicated secure hardware.
+                                keychainProtection = KeychainProtection.SOFTWARE;
                             }
-                        } else if (keychainProtectionSupport.isKeyStoreEncryptionSupported()) {
-                            // Keychain encryption is supported but not enabled for this device de to poor KeyStore reliability.
-                            PowerAuthLog.e("KeychainFactory: Android KeyStore is supported but not enabled on this device.");
-                            keychainProtection = KeychainProtection.NONE;
                         }
+                    } else if (keychainProtectionSupport.isKeyStoreEncryptionSupported()) {
+                        // Keychain encryption is supported but not enabled for this device de to poor KeyStore reliability.
+                        PowerAuthLog.e("KeychainFactory: Android KeyStore is supported but not enabled on this device.");
+                        keychainProtection = KeychainProtection.NONE;
                     }
                 }
                 // If keychain protection is still undetermined, then it means that some operation

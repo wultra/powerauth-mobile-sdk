@@ -34,7 +34,6 @@ import io.getlime.security.powerauth.biometry.impl.IBiometricAuthenticator;
 import io.getlime.security.powerauth.biometry.impl.IBiometricKeyEncryptorProvider;
 import io.getlime.security.powerauth.biometry.impl.PrivateRequestData;
 import io.getlime.security.powerauth.biometry.impl.dummy.DummyBiometricAuthenticator;
-import io.getlime.security.powerauth.biometry.impl.dummy.DummyBiometricKeystore;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
@@ -62,10 +61,7 @@ public class BiometricAuthentication {
      * @return Object implementing {@link IBiometricKeystore} interface.
      */
     public static @NonNull IBiometricKeystore getBiometricKeystore() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return new BiometricKeystore();
-        }
-        return new DummyBiometricKeystore();
+        return new BiometricKeystore();
     }
 
 
@@ -437,12 +433,9 @@ public class BiometricAuthentication {
             if (authenticator != null) {
                 return authenticator;
             }
-            // If Android 6.0 "Marshmallow" and newer, then try to build authenticator using BiometricPrompt from support lib.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                final IBiometricAuthenticator newAuthenticator = BiometricAuthenticator.createAuthenticator(context, getBiometricKeystore());
-                if (newAuthenticator != null) {
-                    return newAuthenticator;
-                }
+            final IBiometricAuthenticator newAuthenticator = BiometricAuthenticator.createAuthenticator(context, getBiometricKeystore());
+            if (newAuthenticator != null) {
+                return newAuthenticator;
             }
             // Otherwise return dummy authenticator, which provides no biometric functions.
             // In this case, we can cache the authenticator.

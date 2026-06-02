@@ -88,14 +88,11 @@ public class DefaultKeychainProtectionSupport implements KeychainProtectionSuppo
      * @return {@code true} if KeyStore backed keys are available on the current device.
      */
     private static boolean getKeyStoreEncryptionIsSupported(@NonNull Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                return KeyStore.getInstance(SymmetricKeyProvider.ANDROID_KEY_STORE) != null;
-            } catch (KeyStoreException e) {
-                return false;
-            }
+        try {
+            return KeyStore.getInstance(SymmetricKeyProvider.ANDROID_KEY_STORE) != null;
+        } catch (KeyStoreException e) {
+            return false;
         }
-        return false;
     }
 
     /**

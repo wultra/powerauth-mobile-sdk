@@ -45,7 +45,6 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
  * protection of PowerAuth biometric factor with using symmetric HMAC KDF. The key is stored in
  * Android KeyStore and the biometric authentication is required for key creation and use.
  */
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class BiometricKeyEncryptorMac implements IBiometricKeyEncryptor {
 
     /**

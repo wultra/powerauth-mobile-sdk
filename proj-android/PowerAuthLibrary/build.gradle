@@ -75,11 +75,11 @@ android {
 
     dependencies {
         implementation 'io.getlime.core:rest-model-base:1.12.0'
-        implementation 'androidx.annotation:annotation:1.9.1'
+        implementation 'androidx.annotation:annotation:1.10.0'
         implementation 'androidx.appcompat:appcompat:1.7.1'
         implementation 'androidx.fragment:fragment:1.8.9'
-        implementation 'androidx.biometric:biometric:1.1.0'
-        implementation 'com.google.code.gson:gson:2.13.2'
+        implementation 'androidx.biometric:biometric:1.4.0-alpha07'
+        implementation 'com.google.code.gson:gson:2.14.0'
 
         // testing
         androidTestImplementation 'androidx.test:core:1.7.0'
@@ -87,7 +87,7 @@ android {
         androidTestImplementation 'androidx.test:rules:1.7.0'
         androidTestImplementation 'androidx.test.ext:junit:1.3.0'
         androidTestImplementation 'io.getlime.core:rest-model-base:1.12.0'
-        androidTestImplementation 'com.google.code.gson:gson:2.13.2'
+        androidTestImplementation 'com.google.code.gson:gson:2.14.0'
 
         constraints {
             def kotlinVersion = "1.8.20" // brought transitively from dependencies

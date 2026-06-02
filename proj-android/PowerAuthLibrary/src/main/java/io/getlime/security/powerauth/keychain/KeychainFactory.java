@@ -359,7 +359,7 @@ public class KeychainFactory {
                             }
                         }
                     } else if (keychainProtectionSupport.isKeyStoreEncryptionSupported()) {
-                        // Keychain encryption is supported but not enabled for this device de to poor KeyStore reliability.
+                        // Keychain encryption is supported but not enabled for this device due to poor KeyStore reliability.
                         PowerAuthLog.e("KeychainFactory: Android KeyStore is supported but not enabled on this device.");
                         keychainProtection = KeychainProtection.NONE;
                     }

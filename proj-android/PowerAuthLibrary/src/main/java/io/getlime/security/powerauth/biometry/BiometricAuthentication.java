@@ -54,9 +54,7 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
 public class BiometricAuthentication {
 
   /**
-     * Returns object representing a Keystore used to store biometry related key. If the biometric
-     * authentication is not available on the authenticator, then returns a dummy implementation where
-     * all interface methods fails, or does not provide the required information.
+     * Returns object representing a Keystore used to store biometry related key.
      *
      * @return Object implementing {@link IBiometricKeystore} interface.
      */

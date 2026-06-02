@@ -51,7 +51,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.wultra.android.powerauth:powerauth-sdk:1.x.y'
+    implementation 'com.wultra.android.powerauth:powerauth-sdk:1.x.y'
 }
 ```
 
@@ -2011,6 +2011,18 @@ PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
         .build(getApplicationContext());
 ```
 <!-- end -->
+
+#### Biometric Authentication Troubleshooting
+
+If your application depends on `core-ktx`, version `1.18` and newer, please add the following dependency to resolve internal incompatibilities between `androidx.biometric` and `androidx.core`:
+
+```gradle
+dependencies {
+    implementation 'androidx.biometric:biometric:1.4.0-alpha07'
+}
+```
+
+Check issue [886](https://github.com/wultra/powerauth-mobile-sdk/issues/886) for more details.
 
 ## Activation Removal
 

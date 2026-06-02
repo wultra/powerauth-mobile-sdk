@@ -2109,6 +2109,10 @@ powerAuthSDK.removeActivationWithAuthentication(context, authentication, new IAc
 ```
 <!-- end -->
 
+<!-- begin box info -->
+Depending on server support and configuration, it's possible to remove the activation with 1FA authentication (e.g. using `PowerAuthAuthentication.possession()`).
+<!-- end -->
+
 ## End-To-End Encryption
 
 Currently, PowerAuth SDK supports two basic modes of end-to-end encryption, based on the ECIES scheme:

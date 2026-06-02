@@ -20,11 +20,19 @@ DerivedData
 !default.perspectivev3
 xcuserdata
 
+## SPM
+.build
+.swiftpm/xcode/xcuserdata/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+
 ## Other
 *.xccheckout
 *.moved-aside
 *.xcuserstate
 *.xcscmblueprint
+
+## AI
+.claude
 
 ## VSCode
 .vscode

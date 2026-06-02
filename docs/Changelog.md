@@ -10,7 +10,7 @@
 
 ### Both platforms
 
-- OpenSSL upgraded to version `3.5.5`
+- OpenSSL upgraded to version `3.5.6`
 - PowerAuth protocol version 4.0 introduces major cryptographic upgrades to strengthen long-term security and add post-quantum protection. Signature and key agreement mechanisms now use larger elliptic curves (P-384) and optionally operate in hybrid mode with quantum-resistant ML-DSA and ML-KEM algorithms. The end-to-end encryption scheme transitions from ECIES with AES-128/CBC and HMAC-SHA-256 to an AEAD design using AES-256/CTR with KMAC-256, providing stronger integrity and confidentiality guarantees. Overall, version 4.0 modernizes the protocol to align with emerging cryptographic standards and resist future quantum attacks.
 - Existing activations can be upgraded to the new PowerAuth protocol version 4.0 using the authenticated protocol upgrade procedure.
 - You can select a level of security that suits your business needs. See the `PowerAuthConfiguration` documentation for more details.

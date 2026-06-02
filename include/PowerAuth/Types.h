@@ -21,6 +21,7 @@
 #include <cc7/json/Json.h>
 #include <PowerAuth/Exception.h>
 #include <mutex>
+#include <optional>
 
 namespace powerAuth {
 

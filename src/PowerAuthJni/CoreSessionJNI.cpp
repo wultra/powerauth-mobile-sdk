@@ -259,6 +259,12 @@ CC7_JNI_METHOD_PARAMS(jobject, createActivation, jobject L1Data, jobject L2Data)
 /// Build Java `CoreActivationStatus` from C++ ActivationStatus object.
 static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const ActivationStatusPtr& status)
 {
+    jobject unblock_timestamp;
+    if (status->blockExpirationTime().has_value()) {
+        unblock_timestamp = jni.createObject(jni.commonSpecs().specLong.methods.initValue, status->blockExpirationTime().value());
+    } else {
+        unblock_timestamp = nullptr;
+    }
     // constructor (int state,
     //              int failCount,
     //              int maxFailCount,
@@ -267,6 +273,7 @@ static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const Ac
     //              boolean isCounterSynchronizationRecommended,
     //              boolean isSessionSerializationNeeded,
     //              boolean isRemoveBiometricKekRecommended,
+    //              Long blockExpirationTime,
     //              Map<String, Object> customObject)
     return jni.createObject(specs.respActivationStatus.methods.init,
                             jni.toJava(specs.coreActivationState, status->activationState()),
@@ -277,6 +284,7 @@ static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const Ac
                             status->isCounterSynchronizationRecommended(),
                             status->isSessionStateSerializationRecommended(),
                             status->isRemoveBiometricKekRecommended(),
+                            unblock_timestamp,
                             JsonValueToJava(jni, status->customObject()));
 }
 

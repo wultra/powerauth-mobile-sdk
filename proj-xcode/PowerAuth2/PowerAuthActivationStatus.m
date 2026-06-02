@@ -44,6 +44,11 @@
     return _status.remainingAttempts;
 }
 
+- (NSDate*) blockExpirationTime
+{
+    return _status.blockExpirationTime;
+}
+
 - (BOOL) isProtocolUpgradeAvailable
 {
     return _status.isProtocolUpgradeAvailable;

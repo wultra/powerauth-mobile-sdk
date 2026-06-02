@@ -629,6 +629,15 @@ if (powerAuthSDK.hasValidActivation()) {
             if (status.isProtocolUpgradeAvailable) {
                 // Upgrade to new protocol is available
             }
+            if (status.blockExpirationTime != null) {
+                // Activation is temporarily blocked. Use synchronized time to compare
+                // the timestamp received from the server.
+                val currentTime = powerAuthSDK.timeSynchronizationService.currentTime
+                val remainingBlockTime = status.blockExpirationTime - currentTime
+                if (remainingBlockTime > 0) {
+                    Log.i(TAG, "Milliseconds to activation unblock ${remainingBlockTime}")
+                }
+            }
         }
 
         override fun onActivationStatusFailed(t: Throwable) {

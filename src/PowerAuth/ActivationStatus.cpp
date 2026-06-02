@@ -33,7 +33,7 @@ ActivationStatus::ActivationStatus(ProtocolVersion version,
                                    ActivationState activation_state,
                                    CounterState counter_state,
                                    const BinaryData& data,
-                                   std::optional<Timestamp> block_expiration_time,
+                                   const std::optional<Timestamp>& block_expiration_time,
                                    const cc7::json::JsonValue& custom_object) :
     _protocol_version(version),
     _activation_state(activation_state),

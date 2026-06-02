@@ -189,7 +189,7 @@ public:
                      ActivationState activation_state,
                      CounterState counter_state,
                      const BinaryData& data,
-                     std::optional<Timestamp> block_expiration_time,
+                     const std::optional<Timestamp>& block_expiration_time,
                      const cc7::json::JsonValue& custom_object);
 private:
     

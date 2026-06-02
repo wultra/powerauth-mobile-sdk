@@ -27,11 +27,16 @@
 
 - NPE in BiometricAuthentication when keys invalidated by biometric enrollment ([795](https://github.com/wultra/powerauth-mobile-sdk/issues/795))
 - Biometric authentication offloaded to the background thread ([677](https://github.com/wultra/powerauth-mobile-sdk/issues/677))
+- Change biometric key protection to HMAC-KDF ([888](https://github.com/wultra/powerauth-mobile-sdk/issues/888))
+- Transitive dependency breaks biometry support ([886](https://github.com/wultra/powerauth-mobile-sdk/issues/886))
 
 ### Apple
 
 - Hide symbols from transient dependencies ([688](https://github.com/wultra/powerauth-mobile-sdk/issues/688))
-
+- Synchronize time with PowerAuth Mobile SDK for watchOS ([551](https://github.com/wultra/powerauth-mobile-sdk/issues/551))
+- Missing nullable annotation in `PowerAuthRestApiErrorResponse` ([696](https://github.com/wultra/powerauth-mobile-sdk/issues/696))
+- Direct support for Swift Package Manager ([310](https://github.com/wultra/powerauth-mobile-sdk/issues/310))
+ 
 
 <!--------------------------------------------------->
 ## 1.9.6 (October 2025)

@@ -129,11 +129,12 @@ struct ClassSpecs
             //              boolean isCounterSynchronizationRecommended,
             //              boolean isSessionSerializationNeeded,
             //              boolean isRemoveBiometricKekRecommended,
+            //              Long blockExpirationTime,
             //              Map<String, Object> customObject)
             cc7::jni::JniInitMethod init;
         };
         static constexpr JniMethodSpec methodSpecs[] = {
-                JniMethodSpec::constructor("(IIIIZZZZLjava/util/Map;)V", offsetof(Methods, init))
+                JniMethodSpec::constructor("(IIIIZZZZLjava/lang/Long;Ljava/util/Map;)V", offsetof(Methods, init))
         };
 
         jclass classRef;

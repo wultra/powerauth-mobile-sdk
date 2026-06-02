@@ -243,10 +243,20 @@ ResponseObjectPtr ActivationServiceV4::processResponseActivationStatus(Context &
     LOCK_GUARD();
     // Extract values
     auto status_blob = response["activationStatus"].asBase64();
-    auto custom_object = response.containsValueAtPath("customObject", cc7::json::JsonValue::Object) ? response["customObject"] : cc7::json::JsonValue::object();
+    auto custom_object = response.containsValueAtPath("customObject", cc7::json::JsonValue::Object)
+            ? response["customObject"]
+            : cc7::json::JsonValue::object();
+    auto unblock_timestamp = response.containsValueAtPath("timestampBlockExpire", cc7::json::JsonValue::Integer)
+            ? std::optional<Timestamp>(response["timestampBlockExpire"].asInteger())
+            : std::nullopt;
+    // Simple input validation
     if (status_blob.size() < v4::STATUS_BLOB_SIZE + v4::STATUS_MAC_SIZE) {
         throw Exception(EC_InvalidData, "Binary status blob is too short");
     }
+    if (unblock_timestamp.has_value() && unblock_timestamp.value() <= 0) {
+        throw Exception(EC_InvalidData, "Block expiration timestamp is invalid");
+    }
+    
     // Verify status MAC
     auto status_blob_data = status_blob.byteRange().subRangeTo(v4::STATUS_BLOB_SIZE);
     auto status_blob_mac  = status_blob.byteRange().subRangeFrom(v4::STATUS_BLOB_SIZE);
@@ -282,15 +292,18 @@ ResponseObjectPtr ActivationServiceV4::processResponseActivationStatus(Context &
         default:
             throw Exception(EC_InvalidData, "Unsupported activation state in binary status blob");
     }
-
     // try synchronize counter
     auto counter_state = trySynchronizeCounter(binary_data, key_mac_ctr_data);
     if (counter_state == ActivationStatus::CounterState_Invalid) {
         // force state to deadlock
         local_state = ActivationState::Deadlock;
     }
-    // Check counter synchronization
-    auto activation_status = std::make_shared<ActivationStatus>(Version_V4, local_state, counter_state, binary_data, custom_object);
+    // Validate unblock timestamp
+    if (unblock_timestamp.has_value() && binary_data.state != ActivationStatus::ServerState_Blocked) {
+        unblock_timestamp = std::nullopt;
+    }
+    // Build status object
+    auto activation_status = std::make_shared<ActivationStatus>(Version_V4, local_state, counter_state, binary_data, unblock_timestamp, custom_object);
     _session_data->setActivationStatus(activation_status);
     return activation_status;
 }

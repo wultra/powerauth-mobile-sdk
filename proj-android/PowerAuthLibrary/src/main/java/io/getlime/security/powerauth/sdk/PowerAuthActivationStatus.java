@@ -17,6 +17,9 @@
 package io.getlime.security.powerauth.sdk;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.util.Map;
 
 import io.getlime.security.powerauth.core.response.CoreActivationStatus;
 
@@ -72,6 +75,15 @@ public class PowerAuthActivationStatus {
         return coreStatus.isProtocolUpgradeAvailable();
     }
 
+    /**
+     * @return Custom object returned from the server. The value is optional and PowerAuth Application Server
+     *         must support this custom object.
+     */
+    @Nullable
+    public Map<String, Object> getCustomObject() {
+        return coreStatus.getCustomObject();
+    }
+    
     /**
      * @return Instance of {@link CoreActivationStatus} for internal purposes.
      */

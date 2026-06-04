@@ -536,6 +536,7 @@
     
     status = [_helper fetchActivationStatus];
     XCTAssertEqual(status.state, PowerAuthActivationState_Blocked);
+    XCTAssertNil(status.blockExpirationTime);   // activation was manually blocked
 
     // 3) Unblock activation & fetch status
     serverStatus = [testServerApi unblockActivation:activation.activationId];
@@ -709,6 +710,59 @@
             // blocked
             XCTAssertTrue(after.state == PowerAuthActivationState_Blocked, @"Activation should be blocked");
         }
+    }
+}
+
+- (void) testTemporaryBlock
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test checks whether time of temporary block expiration is propagated to application.
+    // The test requires protocol V4 and temporary block feature turned on on the server.
+    //
+    
+    if ([self powerAuthAlgorithm] == PowerAuthAlgorithm_LEGACY_P256) {
+        return;
+    }
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+    for (UInt32 i = 0; i < status.maxFailCount; i++) {
+        XCTAssertFalse([_helper checkForPassword:@"MustBeWrong"]);
+        status = [_helper fetchActivationStatus];
+        XCTAssertEqual(status.failCount, i + 1);
+        if (status.failCount == status.maxFailCount) {
+            XCTAssertEqual(PowerAuthActivationState_Blocked, status.state);
+        } else {
+            XCTAssertEqual(PowerAuthActivationState_Active, status.state);
+        }
+    }
+    
+    NSDate * expiration = status.blockExpirationTime;
+    if (!expiration) {
+        NSLog(@"WARNING: Temporary block feature is not turned on the server");
+        return;
+    }
+    
+    NSTimeInterval remainingWait = expiration.timeIntervalSince1970 - _sdk.timeSynchronizationService.currentTime;
+    if (remainingWait < 2) {
+        NSLog(@"Waiting for activation unblock: %@", @(remainingWait));
+        [NSThread sleepForTimeInterval:remainingWait + 0.1];
+        status = [_helper fetchActivationStatus];
+        XCTAssertEqual(PowerAuthActivationState_Active, status.state);
+        XCTAssertNil(status.blockExpirationTime);
+        XCTAssertEqual(1, status.remainingAttempts);
+        XCTAssertFalse([_helper checkForPassword:@"MustBeWrong"]);
+        status = [_helper fetchActivationStatus];
+        XCTAssertEqual(PowerAuthActivationState_Blocked, status.state);
+        XCTAssertNotNil(status.blockExpirationTime);
+    } else {
+        NSLog(@"We'll not wait for unblock the activation.");
     }
 }
 

@@ -586,6 +586,7 @@ public class BaseSdkTest extends BaseTest {
             return;
         }
         long remainingWait = expiration - powerAuthSDK.getTimeSynchronizationService().getCurrentTime();
+        assertTrue(remainingWait >= 0);
         if (remainingWait < 2000) {
             PowerAuthLog.d("Waiting for activation unblock " + remainingWait + "ms");
             Thread.sleep(remainingWait + 100);

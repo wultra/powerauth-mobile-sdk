@@ -19,8 +19,6 @@ package io.getlime.security.powerauth.sdk;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.Map;
-
 import io.getlime.security.powerauth.core.response.CoreActivationStatus;
 
 /**

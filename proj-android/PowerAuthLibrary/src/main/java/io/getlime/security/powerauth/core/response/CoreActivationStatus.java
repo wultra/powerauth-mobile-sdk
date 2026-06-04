@@ -21,7 +21,6 @@ import androidx.annotation.Nullable;
 import java.util.Map;
 
 import io.getlime.security.powerauth.core.CoreActivationState;
-import jakarta.validation.constraints.Null;
 
 /**
  * The {@code CoreActivationStatus} object represents complete status of the activation.

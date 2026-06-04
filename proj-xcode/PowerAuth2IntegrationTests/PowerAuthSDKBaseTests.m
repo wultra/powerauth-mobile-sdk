@@ -750,7 +750,8 @@
     }
     
     NSTimeInterval remainingWait = expiration.timeIntervalSince1970 - _sdk.timeSynchronizationService.currentTime;
-    if (remainingWait < 2) {
+    
+    if (remainingWait >= 0 && remainingWait < 2) {
         NSLog(@"Waiting for activation unblock: %@", @(remainingWait));
         [NSThread sleepForTimeInterval:remainingWait + 0.1];
         status = [_helper fetchActivationStatus];
@@ -762,6 +763,7 @@
         XCTAssertEqual(PowerAuthActivationState_Blocked, status.state);
         XCTAssertNotNil(status.blockExpirationTime);
     } else {
+        XCTAssertTrue(remainingWait >= 0);
         NSLog(@"We'll not wait for unblock the activation.");
     }
 }

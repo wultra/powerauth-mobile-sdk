@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.sdk;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import io.getlime.security.powerauth.core.response.CoreActivationStatus;
 
@@ -63,6 +64,18 @@ public class PowerAuthActivationStatus {
      */
     public int getRemainingAttempts() {
         return coreStatus.getRemainingAttempts();
+    }
+
+    /**
+     * If the activation is temporarily blocked, function returns the time when it will be unblocked.
+     * <p>
+     * Be aware that if you want to compare this date to the current date, you must use {@link IPowerAuthTimeSynchronizationService} to get the synchronized current time.
+     *
+     * @return The time when the temporarily blocked activation will be unblocked, otherwise {@code null}.
+     */
+    @Nullable
+    public Long getBlockExpirationTime() {
+        return coreStatus.getBlockExpirationTime();
     }
 
     /**

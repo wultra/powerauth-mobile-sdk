@@ -44,6 +44,7 @@ import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
 import static org.junit.Assert.*;
@@ -560,6 +561,45 @@ public class BaseSdkTest extends BaseTest {
             });
         });
         assertTrue(powerAuthSDK.hasValidActivation());
+    }
+
+    @Test
+    public void testTemporaryBlock() throws Exception {
+        if (getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256) {
+            return;
+        }
+        activationHelper.createStandardActivation(true, null);
+        PowerAuthActivationStatus status = activationHelper.fetchActivationStatus();
+        for (int i = 0; i < status.getMaxFailCount(); i++) {
+            activationHelper.validateUserPassword(activationHelper.getInvalidPassword());
+            status = activationHelper.fetchActivationStatus();
+            assertEquals(i + 1, status.getFailCount());
+            if (status.getRemainingAttempts() == 0) {
+                assertEquals(PowerAuthActivationState.BLOCKED, status.getState());
+            } else {
+                assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
+            }
+        }
+        Long expiration = status.getBlockExpirationTime();
+        if (expiration == null) {
+            PowerAuthLog.w("Temporary block feature is not turned on the server");
+            return;
+        }
+        long remainingWait = expiration - powerAuthSDK.getTimeSynchronizationService().getCurrentTime();
+        assertTrue(remainingWait >= 0);
+        if (remainingWait < 2000) {
+            PowerAuthLog.d("Waiting for activation unblock " + remainingWait + "ms");
+            Thread.sleep(remainingWait + 100);
+            status = activationHelper.fetchActivationStatus();
+            assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
+            assertEquals(1, status.getRemainingAttempts());
+            activationHelper.validateUserPassword(activationHelper.getInvalidPassword());
+            status = activationHelper.fetchActivationStatus();
+            assertEquals(PowerAuthActivationState.BLOCKED, status.getState());
+            assertNotNull(status.getBlockExpirationTime());
+        } else {
+            PowerAuthLog.d("We'll not wait for unblock the activation.");
+        }
     }
 
     // User Info

@@ -70,6 +70,12 @@ typedef NS_ENUM(NSInteger, PowerAuthActivationState) {
  */
 @property (nonatomic, assign, readonly) UInt32 remainingAttempts;
 /**
+ If the activation is temporarily blocked, contains the time when it will be unblocked.
+ 
+ Be aware that if you want to compare this date to the current date, you must use `PowerAuthTimeSynchronizationService` to get the synchronized current time.
+ */
+@property (nonatomic, strong, nullable, readonly) NSDate* blockExpirationTime;
+/**
  Contains YES if upgrade to a newer protocol version is available.
  */
 @property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;

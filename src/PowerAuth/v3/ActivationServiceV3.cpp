@@ -256,7 +256,7 @@ ResponseObjectPtr ActivationServiceV3::processResponseActivationStatus(Context& 
     }
     
     // Check counter synchronization
-    auto activation_status = std::make_shared<ActivationStatus>(Version_V3, local_state, counter_state, binary_data, custom_object);
+    auto activation_status = std::make_shared<ActivationStatus>(Version_V3, local_state, counter_state, binary_data, std::nullopt, custom_object);
     _session_data->setActivationStatus(activation_status);
     return activation_status;
 }

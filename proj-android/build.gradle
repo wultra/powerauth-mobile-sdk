@@ -35,7 +35,7 @@ plugins {
 ext {
     compileSdkVersion = 36
     targetSdkVersion = 36
-    minSdkVersion = 21
+    minSdkVersion = 23
     buildToolsVersion = "36.1.0"
     // NDK, check https://developer.android.com/ndk/downloads for updates
     ndkVersion = "27.3.13750724" // LTS r27d

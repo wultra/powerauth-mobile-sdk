@@ -52,7 +52,6 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
  * <p>
  * The cipher configuration is compatible with previous versions of PowerAuth SDK (1.4.3 and older).
  */
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
 
     /**

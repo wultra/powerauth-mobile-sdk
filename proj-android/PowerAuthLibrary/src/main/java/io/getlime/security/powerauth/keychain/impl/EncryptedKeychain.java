@@ -47,7 +47,6 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
  * <p>
  * The "AES/GCM/NoPadding" scheme is used for encryption and decryption.
  */
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class EncryptedKeychain implements Keychain {
 
     /**

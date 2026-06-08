@@ -10,7 +10,7 @@
 
 ### Both platforms
 
-- OpenSSL upgraded to version `3.5.5`
+- OpenSSL upgraded to version `3.5.6`
 - PowerAuth protocol version 4.0 introduces major cryptographic upgrades to strengthen long-term security and add post-quantum protection. Signature and key agreement mechanisms now use larger elliptic curves (P-384) and optionally operate in hybrid mode with quantum-resistant ML-DSA and ML-KEM algorithms. The end-to-end encryption scheme transitions from ECIES with AES-128/CBC and HMAC-SHA-256 to an AEAD design using AES-256/CTR with KMAC-256, providing stronger integrity and confidentiality guarantees. Overall, version 4.0 modernizes the protocol to align with emerging cryptographic standards and resist future quantum attacks.
 - Existing activations can be upgraded to the new PowerAuth protocol version 4.0 using the authenticated protocol upgrade procedure.
 - You can select a level of security that suits your business needs. See the `PowerAuthConfiguration` documentation for more details.
@@ -27,11 +27,16 @@
 
 - NPE in BiometricAuthentication when keys invalidated by biometric enrollment ([795](https://github.com/wultra/powerauth-mobile-sdk/issues/795))
 - Biometric authentication offloaded to the background thread ([677](https://github.com/wultra/powerauth-mobile-sdk/issues/677))
+- Change biometric key protection to HMAC-KDF ([888](https://github.com/wultra/powerauth-mobile-sdk/issues/888))
+- Transitive dependency breaks biometry support ([886](https://github.com/wultra/powerauth-mobile-sdk/issues/886))
 
 ### Apple
 
 - Hide symbols from transient dependencies ([688](https://github.com/wultra/powerauth-mobile-sdk/issues/688))
-
+- Synchronize time with PowerAuth Mobile SDK for watchOS ([551](https://github.com/wultra/powerauth-mobile-sdk/issues/551))
+- Missing nullable annotation in `PowerAuthRestApiErrorResponse` ([696](https://github.com/wultra/powerauth-mobile-sdk/issues/696))
+- Direct support for Swift Package Manager ([310](https://github.com/wultra/powerauth-mobile-sdk/issues/310))
+ 
 
 <!--------------------------------------------------->
 ## 1.9.6 (October 2025)

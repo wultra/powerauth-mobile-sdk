@@ -49,7 +49,6 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
 /**
  * The {@code SymmetricKeyProvider} class manages symmetric encryption key stored in Android KeyStore.
  */
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class SymmetricKeyProvider {
 
     public static final String ANDROID_KEY_STORE = "AndroidKeyStore";

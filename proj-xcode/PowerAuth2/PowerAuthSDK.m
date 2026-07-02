@@ -1016,9 +1016,16 @@ static PowerAuthSDK * s_inst;
     }
     
     return [_client postCoreTask:task completion:^(PowerAuthCoreTask * _Nonnull task, PowerAuthProtocolUpgradeResult *  _Nullable result, NSError * _Nullable error) {
-        if (!error && biometryKek) {
-            [_biometryOnlyKeychain updateValue:biometryKek.sensitiveData
-                                        forKey:_biometryKeyIdentifier];
+        if (!error) {
+            // Delete then re-add the biometry key to avoid triggering a biometric prompt.
+            // SecItemUpdate on a biometry-protected item forces Face ID / Touch ID; SecItemDelete
+            // and SecItemAdd do not. Only touch the keychain when the upgrade succeeded.
+            [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+            if (biometryKek) {
+                [_biometryOnlyKeychain setSecureData:[biometryKek toSecureData]
+                                              forKey:_biometryKeyIdentifier
+                                              access:_biometricConfiguration.biometricItemAccess];
+            }
         }
         callback(result, error);
     }];

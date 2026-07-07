@@ -1443,6 +1443,7 @@ static PowerAuthSDK * s_inst;
         return nil;
     }
     NSError * localError = nil;
+    __block PowerAuthSecureData * biometryKekData = nil;
     PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
         PowerAuthCoreData * biometryKek = customBiometryKek ? customBiometryKek.coreData : [session generateFactorKek:error];
         if (!biometryKek) {
@@ -1450,9 +1451,7 @@ static PowerAuthSDK * s_inst;
         }
         PowerAuthCoreRequest * request = [session addBiometryFactorWithPassword:password.corePassword withBiometryKek:biometryKek error:error];
         if (!*error) {
-            [_biometryOnlyKeychain setSecureData:[biometryKek toSecureData]
-                                          forKey:_biometryKeyIdentifier
-                                          access:_biometricConfiguration.biometricItemAccess];
+            biometryKekData = [biometryKek toSecureData];
         }
         return request;
     } error:&localError];
@@ -1461,6 +1460,12 @@ static PowerAuthSDK * s_inst;
         return nil;
     }
     return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+        // Store the biometry KEK into the keychain only after the server confirms the operation
+        if (!error) {
+            [_biometryOnlyKeychain setSecureData:biometryKekData
+                                          forKey:_biometryKeyIdentifier
+                                          access:_biometricConfiguration.biometricItemAccess];
+        }
         callback(error);
     }];
 }

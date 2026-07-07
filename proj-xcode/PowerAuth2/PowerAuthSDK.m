@@ -1462,7 +1462,7 @@ static PowerAuthSDK * s_inst;
     return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
         // Store the biometry KEK into the keychain only after the server confirms the operation.
         if (!error && biometryKekData) {
-            // remove biometry key and store new one
+            // Remove biometry key and store new one.
             [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
             [_biometryOnlyKeychain setSecureData:biometryKekData
                                           forKey:_biometryKeyIdentifier

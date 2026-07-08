@@ -1460,15 +1460,22 @@ static PowerAuthSDK * s_inst;
         return nil;
     }
     return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+        NSError * finalError = error;
         // Store the biometry KEK into the keychain only after the server confirms the operation.
-        if (!error && biometryKekData) {
+        if (!finalError && biometryKekData) {
             // Remove biometry key and store new one.
             [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-            [_biometryOnlyKeychain setSecureData:biometryKekData
-                                          forKey:_biometryKeyIdentifier
-                                          access:_biometricConfiguration.biometricItemAccess];
+            PowerAuthKeychainStoreItemResult storeResult =
+                            [_biometryOnlyKeychain addValue:biometryKekData.sensitiveData
+                                                    forKey:_biometryKeyIdentifier
+                                                    access:_biometricConfiguration.biometricItemAccess];
+            if (storeResult != PowerAuthKeychainStoreItemResult_Ok) {
+                // if the key update failed, report an error
+                finalError = PA2MakeError(PowerAuthErrorCode_BiometryFailed, @"Failed to store biometry key");
+            }
+            biometryKekData = nil;
         }
-        callback(error);
+        callback(finalError);
     }];
 }
 

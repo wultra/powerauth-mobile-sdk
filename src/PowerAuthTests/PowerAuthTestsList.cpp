@@ -45,6 +45,9 @@ cc7::tests::UnitTestCreationInfoList GetPowerAuthTestCreationInfoList()
     // v3
     CC7_ADD_UNIT_TEST(KeyProviderV3Tests, list);
     
+    // Session
+    CC7_ADD_UNIT_TEST(SessionResetStateTests, list);
+    
     // legacy
     CC7_ADD_UNIT_TEST(pa2CryptoAESTests, list);
     CC7_ADD_UNIT_TEST(pa2CryptoHMACTests, list);

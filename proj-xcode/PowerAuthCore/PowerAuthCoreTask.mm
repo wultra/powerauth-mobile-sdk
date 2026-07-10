@@ -24,6 +24,7 @@
     BOOL _responseCaptured;
     id _responseObject;
     id _responseJson;
+    PowerAuthCoreRequest * _lastRequest;
 }
 
 - (id) initWithTask:(powerAuth::TaskPtr&)task
@@ -111,9 +112,25 @@
 {
     try {
         auto request = _task->getNextRequest();
-        return request ? [[PowerAuthCoreRequest alloc] initWithRequest:request] : nil;
+        _lastRequest = request ? [[PowerAuthCoreRequest alloc] initWithRequest:request] : nil;
+        return _lastRequest;
     } catch (...) {
-        _failure = powerAuth::BuildNSErrorFromException();
+        // The error re-created from the C++ exception contains only the error code and message.
+        // If the failure was caused by the last executed request, then prefer its original
+        // failure, because it may contain additional information, such as the REST API error
+        // response received from the server. To not lose any information, the re-created error
+        // is attached to the failure's userInfo under the `PowerAuthCoreErrorInfoKey_CoreError` key.
+        NSError * coreError = powerAuth::BuildNSErrorFromException();
+        NSError * lastRequestFailure = _lastRequest.failure;
+        if (lastRequestFailure) {
+            NSMutableDictionary * userInfo = [lastRequestFailure.userInfo mutableCopy];
+            userInfo[PowerAuthCoreErrorInfoKey_CoreError] = coreError;
+            _failure = [NSError errorWithDomain:lastRequestFailure.domain
+                                           code:lastRequestFailure.code
+                                       userInfo:userInfo];
+        } else {
+            _failure = coreError;
+        }
         if (error) {
             *error = _failure;
         }

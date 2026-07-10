@@ -123,7 +123,7 @@
         NSError * coreError = powerAuth::BuildNSErrorFromException();
         NSError * lastRequestFailure = _lastRequest.failure;
         if (lastRequestFailure) {
-            NSMutableDictionary * userInfo = [lastRequestFailure.userInfo mutableCopy];
+            NSMutableDictionary * userInfo = [NSMutableDictionary dictionaryWithDictionary:lastRequestFailure.userInfo ?: @{}];
             userInfo[PowerAuthCoreErrorInfoKey_CoreError] = coreError;
             _failure = [NSError errorWithDomain:lastRequestFailure.domain
                                            code:lastRequestFailure.code

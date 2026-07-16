@@ -1232,10 +1232,27 @@
     if (!activation) {
         return;
     }
+
+    PowerAuthKeychain * biometryKeychain = [self biometryKeychain];
+
     XCTAssertFalse([_sdk hasBiometryFactor]);
+    XCTAssertFalse([biometryKeychain containsDataForKey:_sdk.configuration.instanceId]);
     PowerAuthSecureData * newBiometryKek = [PowerAuthCoreCryptoUtils randomData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
     PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:63] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+
+    // First, try to use incorrect password
+    [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk addBiometryFactorWithPassword:@"incorrectPassword" customBiometryKek:newBiometryKek callback:^(NSError * _Nullable error) {
+            XCTAssertNotNil(error);
+            [waiting reportCompletion:nil];
+        }];
+    }];
+
+    XCTAssertFalse([_sdk hasBiometryFactor]);
+    XCTAssertFalse([biometryKeychain containsDataForKey:_sdk.configuration.instanceId]);
+
+    // Now use correct password
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         [_sdk addBiometryFactorWithCorePassword:activation.credentials.password customBiometryKek:newBiometryKek callback:^(NSError * _Nullable error) {
             XCTAssertNil(error);
@@ -1262,6 +1279,7 @@
     }];
     
     XCTAssertFalse([_sdk hasBiometryFactor]);
+    XCTAssertFalse([biometryKeychain containsDataForKey:_sdk.configuration.instanceId]);
     
     result = [_helper validateAuthentication:newBiometryAuth
                                         data:randomData
@@ -3363,6 +3381,13 @@
 - (PowerAuthKeychain*) instanceKeychain
 {
     NSString * keychainId = _sdk.keychainConfiguration.keychainInstanceName_Status;
+    NSString * accessGroup = _sdk.configuration.sharingConfiguration.appGroup;
+    return [[PowerAuthKeychain alloc] initWithIdentifier:keychainId accessGroup:accessGroup];
+}
+
+- (PowerAuthKeychain*) biometryKeychain
+{
+    NSString * keychainId = _sdk.keychainConfiguration.keychainInstanceName_Biometry;
     NSString * accessGroup = _sdk.configuration.sharingConfiguration.appGroup;
     return [[PowerAuthKeychain alloc] initWithIdentifier:keychainId accessGroup:accessGroup];
 }

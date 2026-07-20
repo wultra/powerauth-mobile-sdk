@@ -272,15 +272,13 @@ std::shared_ptr<Context> Context::createTargetAlgorithmContext()
 
 void Context::resetState()
 {
+    // Clear activation data per-service.
+    clearActivationData();
+    
     if (_current_specification != _initial_specification) {
         // The specification is different than initial. We have to re-create all services.
         destroyServices();
         createServices(false, _initial_specification);
-    } else {
-        // Just clear activation data per-service
-        for (const auto& service : _services) {
-            service->clearActivationData();
-        }
     }
 }
 

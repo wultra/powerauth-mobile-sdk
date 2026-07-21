@@ -30,3 +30,4 @@
 }
 # necessary for R8 fullMode
 -keep, allowobfuscation class io.getlime.core.rest.model.base.**
+-dontwarn lombok.Generated

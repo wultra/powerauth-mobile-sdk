@@ -1666,6 +1666,23 @@
         XCTAssertTrue(result);
         XCTAssertNil(error);
     }
+    
+    NSString * uriId = @"/operation/authorize/offline";
+    NSData * body = [payload.parsedData dataUsingEncoding:NSUTF8StringEncoding];
+    NSString * nonce = payload.nonce;
+    
+    // There's no activation yet, so computing an offline authentication code should fail
+    BOOL failed = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk offlineAuthenticationCodeWithAuthentication:[PowerAuthAuthentication possession] uriId:uriId body:body nonce:nonce callback:^(NSString * _Nullable authenticationCode, NSError * _Nullable error) {
+            
+            XCTAssertNil(authenticationCode);
+            XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+            
+            [waiting reportCompletion:@(authenticationCode == nil && error != nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(failed);
+    
     PowerAuthSdkActivation * activation = [_helper createActivation:YES];
     if (!activation) {
         return;
@@ -1729,10 +1746,6 @@
     }
     
     // Well, we have a data for offline signature, so let's try to verify it.
-    NSString * uriId = @"/operation/authorize/offline";
-    NSData * body = [payload.parsedData dataUsingEncoding:NSUTF8StringEncoding];
-    NSString * nonce = payload.nonce;
-
     PowerAuthAuthentication * sign_auth = [auth copy];
     NSString * local_signature = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         [_sdk offlineAuthenticationCodeWithAuthentication:sign_auth uriId:uriId body:body nonce:nonce callback:^(NSString * _Nullable authenticationCode, NSError * _Nullable error) {

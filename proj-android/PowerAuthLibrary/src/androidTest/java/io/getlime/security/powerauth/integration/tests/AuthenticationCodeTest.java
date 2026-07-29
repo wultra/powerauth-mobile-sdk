@@ -143,6 +143,7 @@ public class AuthenticationCodeTest extends BaseTest {
                     "POST",
                     "/some/uriId",
                     testHelper.getRandomGenerator().generateRandomString(10, 32).getBytes(Charset.defaultCharset()));
+            fail("authenticationHeaderForRequestWithBody should fail without activation");
         } catch (PowerAuthErrorException ex) {
             assertEquals(PowerAuthErrorCodes.MISSING_ACTIVATION, ex.getPowerAuthErrorCode());
         }
@@ -153,6 +154,7 @@ public class AuthenticationCodeTest extends BaseTest {
                     "/some/uriId",
                     Map.of("param1", "value1")
             );
+            fail("authenticationHeaderForRequestWithParams should fail without activation");
         } catch (PowerAuthErrorException ex) {
             assertEquals(PowerAuthErrorCodes.MISSING_ACTIVATION, ex.getPowerAuthErrorCode());
         }

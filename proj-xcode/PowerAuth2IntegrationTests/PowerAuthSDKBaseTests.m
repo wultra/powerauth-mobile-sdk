@@ -1562,6 +1562,59 @@
     XCTAssertEqual(matched, keyMapping.count);
 }
 
+- (void) testAuthenticationHeaderForRequest
+{
+    CHECK_TEST_CONFIG();
+    
+    NSError * error = nil;
+    PowerAuthHttpHeader * header = nil;
+    
+    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+    
+    // Activation does not exist yet
+    header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:[PowerAuthAuthentication possession]
+                                                                     method:@"POST"
+                                                                      uriId:@"/some/uriId"
+                                                                       body:randomData
+                                                                      error:&error];
+    
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+    XCTAssertNil(header);
+    error = nil;
+    
+    header = [_sdk authenticationHeaderForRequestWithParamsWithAuthentication:[PowerAuthAuthentication possession]
+                                                                        method:@"POST"
+                                                                         uriId:@"/some/uriId"
+                                                                        params:@{ @"param1": @"value1" }
+                                                                         error:&error];
+    
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+    XCTAssertNil(header);
+    error = nil;
+
+    // Now create the activation and verify that the same calls succeed
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:[PowerAuthAuthentication possession]
+                                                                      method:@"POST"
+                                                                       uriId:@"/some/uriId"
+                                                                        body:randomData
+                                                                       error:&error];
+    XCTAssertNil(error);
+    XCTAssertNotNil(header);
+    
+    header = [_sdk authenticationHeaderForRequestWithParamsWithAuthentication:[PowerAuthAuthentication possession]
+                                                                        method:@"POST"
+                                                                         uriId:@"/some/uriId"
+                                                                        params:@{ @"param1": @"value1" }
+                                                                         error:&error];
+    XCTAssertNil(error);
+    XCTAssertNotNil(header);
+}
+
 - (void) testActivationCodeSignature
 {
     CHECK_TEST_CONFIG();

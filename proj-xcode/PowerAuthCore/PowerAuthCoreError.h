@@ -23,6 +23,10 @@ POWERAUTH_EXTERN_C NSString * __nonnull const PowerAuthCoreErrorDomain;
 /// information about error is stored.
 POWERAUTH_EXTERN_C NSString * __nonnull const PowerAuthCoreErrorInfoKey_AdditionalErrors;
 
+/// A key to `NSError.userInfo` dictionary where the optional `NSError` object re-created
+/// from the underlying C++ core failure is stored.
+POWERAUTH_EXTERN_C NSString * __nonnull const PowerAuthCoreErrorInfoKey_CoreError;
+
 /// Error codes returned for `PowerAuthCoreErrorDomain` errors.
 typedef NS_ENUM(NSInteger, PowerAuthCoreError) {
     PowerAuthCoreError_NA,

@@ -996,7 +996,7 @@ static PowerAuthSDK * s_inst;
         }
     }
     if (localError) {
-        callback(nil, localError);
+        callback(nil, PA2WrapError(localError, NULL));
         return nil;
     }
     

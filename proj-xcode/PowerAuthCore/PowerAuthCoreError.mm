@@ -22,6 +22,7 @@
 
 NSString * const PowerAuthCoreErrorDomain                   = @"PowerAuthCoreErrorDomain";
 NSString * const PowerAuthCoreErrorInfoKey_AdditionalErrors = @"PowerAuthCoreErrorInfoKey_AdditionalErrors";
+NSString * const PowerAuthCoreErrorInfoKey_CoreError        = @"PowerAuthCoreErrorInfoKey_CoreError";
 
 @implementation NSError (PowerAuthCoreError)
 

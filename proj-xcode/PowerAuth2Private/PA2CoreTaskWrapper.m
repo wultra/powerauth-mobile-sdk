@@ -67,9 +67,11 @@
 
 - (void) setFinished:(id)result error:(NSError*)error
 {
+    // Make sure that error reported back to the application has PowerAuthErrorDomain.
+    NSError * wrappedError = error ? PA2WrapError(error, NULL) : nil;
     dispatch_async(dispatch_get_main_queue(), ^{
         if (!_task.isCanceled && _completion) {
-            _completion(_task, result, error);
+            _completion(_task, result, wrappedError);
             _current_async_operation = nil;
             _completion = nil;
             _task = nil;

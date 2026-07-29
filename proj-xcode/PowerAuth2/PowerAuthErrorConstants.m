@@ -111,6 +111,9 @@ NSError * PA2WrapError(NSError * error, NSError** out_error)
                 errorCode = PowerAuthErrorCode_Other;
                 break;
         }
+    } else if ([domain isEqualToString:NSURLErrorDomain]) {
+        // Transport-level failure (e.g. timeout, no connection, TLS error)
+        errorCode = PowerAuthErrorCode_NetworkError;
     } else {
         errorCode = PowerAuthErrorCode_Other;
     }

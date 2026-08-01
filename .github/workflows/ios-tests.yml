@@ -1,0 +1,24 @@
+name: iOS Tests
+
+on:
+  push:
+    branches:
+      - develop
+      - release/*
+  pull_request:
+
+jobs:
+  tests:
+    name: iOS Tests
+    runs-on: macos-26
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set proper Xcode version
+        run: ./scripts/xcode-select.sh
+      - name: Run iOS tests
+        env:
+          TESTS_CONFIG: ${{ secrets.IOS_TESTS_CONFIG }}
+        run: ./scripts/test.sh -config "$TESTS_CONFIG"

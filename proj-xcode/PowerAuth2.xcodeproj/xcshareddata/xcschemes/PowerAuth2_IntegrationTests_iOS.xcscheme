@@ -521,6 +521,13 @@
             </SkippedTests>
          </TestableReference>
       </Testables>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "PA2_TEST_CRASH_ON_FAILURE"
+            value = "$(PA2_TEST_CRASH_ON_FAILURE)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"

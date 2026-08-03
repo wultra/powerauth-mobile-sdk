@@ -21,4 +21,10 @@ jobs:
       - name: Run iOS tests
         env:
           TESTS_CONFIG: ${{ secrets.IOS_TESTS_CONFIG }}
-        run: ./scripts/test.sh -config "$TESTS_CONFIG"
+        # Exercise the most commonly used PowerAuth algorithms; simulator biometry is excluded in CI.
+        run: |
+          ./scripts/test.sh \
+            -config "$TESTS_CONFIG" \
+            -algorithms "LEGACY_P256,EC_P384_ML_L3" \
+            -biometry off \
+            -crash-on-failure on

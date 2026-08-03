@@ -200,7 +200,9 @@ public class ProtocolUpgradeTest extends BaseTest {
         assertTrue(throwable instanceof PowerAuthErrorException);
         assertEquals(PowerAuthErrorCodes.NETWORK_ERROR, ((PowerAuthErrorException) throwable).getPowerAuthErrorCode());
         assertNotNull(throwable.getMessage());
-        assertTrue(throwable.getMessage().startsWith("powerAuth::PowerAuthException: Simulated error on data send"));
+        assertTrue(throwable.getMessage().startsWith("Simulated error on data send"));
+        assertEquals(1, throwable.getSuppressed().length);
+        assertTrue(throwable.getSuppressed()[0] instanceof CoreException);
 
         // Protocol version did not change
         assertEquals(PowerAuthAlgorithm.LEGACY_P256, powerAuthSDK.getCurrentAlgorithm());
@@ -238,8 +240,14 @@ public class ProtocolUpgradeTest extends BaseTest {
             assertEquals("powerAuth::PowerAuthException: Protocol upgrade is not possible with current configuration", upgradeException.getMessage());
         } else {
             // Simulated response failure
-            assertTrue(upgradeException instanceof FailedApiException);
-            assertEquals(500, ((FailedApiException) upgradeException).getResponseCode());
+            assertTrue(upgradeException instanceof ErrorResponseApiException);
+            final ErrorResponseApiException apiException = (ErrorResponseApiException) upgradeException;
+            assertEquals(500, apiException.getResponseCode());
+            assertNotNull(apiException.getResponseBody());
+            assertNotNull(apiException.getResponseJson());
+            assertNotNull(apiException.getErrorResponse());
+            assertEquals(1, apiException.getSuppressed().length);
+            assertTrue(apiException.getSuppressed()[0] instanceof CoreException);
         }
 
         // Protocol version did not change

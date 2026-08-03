@@ -295,6 +295,10 @@ HttpHeader Session::calculateOnlineAuthenticationHeader(const Credentials& crede
                                                         const cc7::ByteRange& request_body)
 {
     LOCK_GUARD();
+    if (!sessionData().hasActivationId()) {
+        throw Exception(EC_MissingActivation, "Authentication header calculation requires activation");
+    }
+    
     return _context->authenticationService().calculateOnlineAuthenticationHeader(credentials, {
         uri_identifier,
         http_method,

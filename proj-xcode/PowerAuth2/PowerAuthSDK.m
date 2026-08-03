@@ -1220,6 +1220,12 @@ static PowerAuthSDK * s_inst;
             // Mark this synchronized task as completed
             [task cancel];
         }];
+        
+        if (!computationTask) {
+            // executeBlockOnSerialQueue returns nil when there's no activation.
+            completionFunc(nil, PA2MakeError(PowerAuthErrorCode_MissingActivation, nil));
+        }
+        
         // Keep the computation task as a sub-task of composite task.
         [task replaceOperationTask:computationTask];
     };

@@ -2080,8 +2080,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				SDKROOT = iphoneos;
 				TVOS_DEPLOYMENT_TARGET = 13.0;
@@ -2145,8 +2144,7 @@
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../cc7/openssl-lib/apple";
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				SDKROOT = iphoneos;
 				TVOS_DEPLOYMENT_TARGET = 13.0;

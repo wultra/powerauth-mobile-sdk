@@ -2341,8 +2341,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2369,8 +2368,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2406,8 +2404,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OTHER_LDFLAGS = (
 					"-ObjC",
-					"-framework",
-					openssl,
+					"-lopenssl",
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2;
@@ -2449,8 +2446,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = (
 					"-ObjC",
-					"-framework",
-					openssl,
+					"-lopenssl",
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2;
@@ -2481,8 +2477,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-tvos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2510,8 +2505,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-tvos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2537,8 +2531,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2IntegrationTests-ios";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-ios.app/PowerAuth2TestsHostApp-ios";
@@ -2562,8 +2555,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2IntegrationTests-ios";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-ios.app/PowerAuth2TestsHostApp-ios";
@@ -2587,8 +2579,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2IntegrationTests-tvos";
 				SDKROOT = appletvos;
@@ -2613,8 +2604,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2IntegrationTests-tvos";
 				SDKROOT = appletvos;
@@ -2652,8 +2642,7 @@
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-ObjC",
-					"-framework",
-					openssl,
+					"-lopenssl",
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2;
@@ -2699,8 +2688,7 @@
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-ObjC",
-					"-framework",
-					openssl,
+					"-lopenssl",
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2;

@@ -996,7 +996,7 @@ static PowerAuthSDK * s_inst;
         }
     }
     if (localError) {
-        callback(nil, localError);
+        callback(nil, PA2WrapError(localError, NULL));
         return nil;
     }
     
@@ -1016,9 +1016,16 @@ static PowerAuthSDK * s_inst;
     }
     
     return [_client postCoreTask:task completion:^(PowerAuthCoreTask * _Nonnull task, PowerAuthProtocolUpgradeResult *  _Nullable result, NSError * _Nullable error) {
-        if (!error && biometryKek) {
-            [_biometryOnlyKeychain updateValue:biometryKek.sensitiveData
-                                        forKey:_biometryKeyIdentifier];
+        if (!error) {
+            // Delete then re-add the biometry key to avoid triggering a biometric prompt.
+            // SecItemUpdate on a biometry-protected item forces Face ID / Touch ID; SecItemDelete
+            // and SecItemAdd do not. Only touch the keychain when the upgrade succeeded.
+            [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+            if (biometryKek) {
+                [_biometryOnlyKeychain setSecureData:[biometryKek toSecureData]
+                                              forKey:_biometryKeyIdentifier
+                                              access:_biometricConfiguration.biometricItemAccess];
+            }
         }
         callback(result, error);
     }];
@@ -1213,6 +1220,12 @@ static PowerAuthSDK * s_inst;
             // Mark this synchronized task as completed
             [task cancel];
         }];
+        
+        if (!computationTask) {
+            // executeBlockOnSerialQueue returns nil when there's no activation.
+            completionFunc(nil, PA2MakeError(PowerAuthErrorCode_MissingActivation, nil));
+        }
+        
         // Keep the computation task as a sub-task of composite task.
         [task replaceOperationTask:computationTask];
     };
@@ -1435,25 +1448,35 @@ static PowerAuthSDK * s_inst;
         callback(PA2MakeError(PowerAuthErrorCode_BiometryNotAvailable, nil));
         return nil;
     }
+
     NSError * localError = nil;
+    __block PowerAuthCoreData * biometryKek = nil;
     PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
-        PowerAuthCoreData * biometryKek = customBiometryKek ? customBiometryKek.coreData : [session generateFactorKek:error];
+        biometryKek = customBiometryKek ? customBiometryKek.coreData : [session generateFactorKek:error];
         if (!biometryKek) {
+            PA2SetError(error, PowerAuthErrorCode_BiometryFailed, @"Invalid biometry KEK");
             return nil;
         }
-        PowerAuthCoreRequest * request = [session addBiometryFactorWithPassword:password.corePassword withBiometryKek:biometryKek error:error];
-        if (!*error) {
-            [_biometryOnlyKeychain setSecureData:[biometryKek toSecureData]
-                                          forKey:_biometryKeyIdentifier
-                                          access:_biometricConfiguration.biometricItemAccess];
-        }
-        return request;
+        return [session addBiometryFactorWithPassword:password.corePassword withBiometryKek:biometryKek error:error];
     } error:&localError];
     if (localError) {
         callback(localError);
         return nil;
     }
+
     return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, id response, NSError * error) {
+        // Store the biometry KEK into the keychain only after the server confirms the operation.
+        if (!error) {
+            // Remove biometry key and store new one.
+            [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+            PowerAuthKeychainStoreItemResult storeResult = [_biometryOnlyKeychain setSecureData:[biometryKek toSecureData]
+                                                                                         forKey:_biometryKeyIdentifier
+                                                                                         access:_biometricConfiguration.biometricItemAccess];
+            if (storeResult != PowerAuthKeychainStoreItemResult_Ok) {
+                // if the key update failed, report an error
+                error = PA2MakeError(PowerAuthErrorCode_BiometryFailed, @"Failed to store biometry key");
+            }
+        }
         callback(error);
     }];
 }

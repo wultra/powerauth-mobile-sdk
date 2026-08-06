@@ -245,6 +245,8 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
         // Make sure the core request is set as failed before we call the completion.
         if (error) {
             [self setCoreRequestFinished:request failure:error urlTask:nil];
+            // Make sure that error reported back to the application has PowerAuthErrorDomain.
+            error = PA2WrapError(error, NULL);
         }
         completion(request, object, error);
     };

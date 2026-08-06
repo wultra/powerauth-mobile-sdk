@@ -1232,10 +1232,27 @@
     if (!activation) {
         return;
     }
+
+    PowerAuthKeychain * biometryKeychain = [self biometryKeychain];
+
     XCTAssertFalse([_sdk hasBiometryFactor]);
+    XCTAssertFalse([biometryKeychain containsDataForKey:_sdk.configuration.instanceId]);
     PowerAuthSecureData * newBiometryKek = [PowerAuthCoreCryptoUtils randomData:_sdk.currentAlgorithm == PowerAuthAlgorithm_LEGACY_P256 ? 16 : 32];
     PowerAuthAuthentication * newBiometryAuth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:newBiometryKek];
     NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:63] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+
+    // First, try to use incorrect password
+    [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk addBiometryFactorWithPassword:@"incorrectPassword" customBiometryKek:newBiometryKek callback:^(NSError * _Nullable error) {
+            XCTAssertNotNil(error);
+            [waiting reportCompletion:nil];
+        }];
+    }];
+
+    XCTAssertFalse([_sdk hasBiometryFactor]);
+    XCTAssertFalse([biometryKeychain containsDataForKey:_sdk.configuration.instanceId]);
+
+    // Now use correct password
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         [_sdk addBiometryFactorWithCorePassword:activation.credentials.password customBiometryKek:newBiometryKek callback:^(NSError * _Nullable error) {
             XCTAssertNil(error);
@@ -1262,6 +1279,7 @@
     }];
     
     XCTAssertFalse([_sdk hasBiometryFactor]);
+    XCTAssertFalse([biometryKeychain containsDataForKey:_sdk.configuration.instanceId]);
     
     result = [_helper validateAuthentication:newBiometryAuth
                                         data:randomData
@@ -1544,6 +1562,59 @@
     XCTAssertEqual(matched, keyMapping.count);
 }
 
+- (void) testAuthenticationHeaderForRequest
+{
+    CHECK_TEST_CONFIG();
+    
+    NSError * error = nil;
+    PowerAuthHttpHeader * header = nil;
+    
+    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+    
+    // Activation does not exist yet
+    header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:[PowerAuthAuthentication possession]
+                                                                     method:@"POST"
+                                                                      uriId:@"/some/uriId"
+                                                                       body:randomData
+                                                                      error:&error];
+    
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+    XCTAssertNil(header);
+    error = nil;
+    
+    header = [_sdk authenticationHeaderForRequestWithParamsWithAuthentication:[PowerAuthAuthentication possession]
+                                                                        method:@"POST"
+                                                                         uriId:@"/some/uriId"
+                                                                        params:@{ @"param1": @"value1" }
+                                                                         error:&error];
+    
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+    XCTAssertNil(header);
+    error = nil;
+
+    // Now create the activation and verify that the same calls succeed
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:[PowerAuthAuthentication possession]
+                                                                      method:@"POST"
+                                                                       uriId:@"/some/uriId"
+                                                                        body:randomData
+                                                                       error:&error];
+    XCTAssertNil(error);
+    XCTAssertNotNil(header);
+    
+    header = [_sdk authenticationHeaderForRequestWithParamsWithAuthentication:[PowerAuthAuthentication possession]
+                                                                        method:@"POST"
+                                                                         uriId:@"/some/uriId"
+                                                                        params:@{ @"param1": @"value1" }
+                                                                         error:&error];
+    XCTAssertNil(error);
+    XCTAssertNotNil(header);
+}
+
 - (void) testActivationCodeSignature
 {
     CHECK_TEST_CONFIG();
@@ -1648,6 +1719,25 @@
         XCTAssertTrue(result);
         XCTAssertNil(error);
     }
+    
+    NSString * uriId = @"/operation/authorize/offline";
+    
+    // There's no activation yet, so computing an offline authentication code should fail
+    BOOL failed = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk offlineAuthenticationCodeWithAuthentication:[PowerAuthAuthentication possession]
+                                                    uriId:uriId
+                                                     body:[payload.parsedData dataUsingEncoding:NSUTF8StringEncoding]
+                                                    nonce:payload.nonce
+                                                 callback:^(NSString * _Nullable authenticationCode, NSError * _Nullable error) {
+            
+            XCTAssertNil(authenticationCode);
+            XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+            
+            [waiting reportCompletion:@(authenticationCode == nil && error != nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(failed);
+    
     PowerAuthSdkActivation * activation = [_helper createActivation:YES];
     if (!activation) {
         return;
@@ -1711,7 +1801,6 @@
     }
     
     // Well, we have a data for offline signature, so let's try to verify it.
-    NSString * uriId = @"/operation/authorize/offline";
     NSData * body = [payload.parsedData dataUsingEncoding:NSUTF8StringEncoding];
     NSString * nonce = payload.nonce;
 
@@ -3363,6 +3452,13 @@
 - (PowerAuthKeychain*) instanceKeychain
 {
     NSString * keychainId = _sdk.keychainConfiguration.keychainInstanceName_Status;
+    NSString * accessGroup = _sdk.configuration.sharingConfiguration.appGroup;
+    return [[PowerAuthKeychain alloc] initWithIdentifier:keychainId accessGroup:accessGroup];
+}
+
+- (PowerAuthKeychain*) biometryKeychain
+{
+    NSString * keychainId = _sdk.keychainConfiguration.keychainInstanceName_Biometry;
     NSString * accessGroup = _sdk.configuration.sharingConfiguration.appGroup;
     return [[PowerAuthKeychain alloc] initWithIdentifier:keychainId accessGroup:accessGroup];
 }

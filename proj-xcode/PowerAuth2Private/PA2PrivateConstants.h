@@ -25,7 +25,6 @@
 #define PA2Def_PowerAuthErrorDomain                 @"PowerAuthErrorDomain"
 #define PA2Def_PowerAuthErrorInfoKey_AdditionalInfo @"PowerAuthErrorInfoKey_AdditionalInfo"
 #define PA2Def_PowerAuthErrorInfoKey_ResponseData   @"PowerAuthErrorInfoKey_ResponseData"
-#define PA2Def_PowerAuthErrorInfoKey_ResponseData   @"PowerAuthErrorInfoKey_ResponseData"
 #define PA2Def_PowerAuthErrorInfoKey_ExtPendingApp  @"PowerAuthErrorInfoKey_ExternalPendingApplication"
 
 // Keychain constants, must keep PA2* naming to maintaing a compatibility with older SDK versions

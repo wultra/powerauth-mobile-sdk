@@ -251,6 +251,8 @@
 		BFCA38402E255A18002F595F /* KeyProviderV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA383E2E255A18002F595F /* KeyProviderV3.cpp */; };
 		BFCA38442E26C03C002F595F /* KeyProviderV3Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38432E26C03C002F595F /* KeyProviderV3Tests.cpp */; };
 		BFCA38452E26C03C002F595F /* KeyProviderV3Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38432E26C03C002F595F /* KeyProviderV3Tests.cpp */; };
+		5E5510022E26C03C00A1B2C3 /* SessionResetStateTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5E5510012E26C03C00A1B2C3 /* SessionResetStateTests.cpp */; };
+		5E5510032E26C03C00A1B2C3 /* SessionResetStateTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5E5510012E26C03C00A1B2C3 /* SessionResetStateTests.cpp */; };
 		BFCA38492E295176002F595F /* ActivationServiceV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38482E295176002F595F /* ActivationServiceV4.cpp */; };
 		BFCA384A2E295176002F595F /* ActivationServiceV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38482E295176002F595F /* ActivationServiceV4.cpp */; };
 		BFEEEBE12A3ADEA8007C6737 /* ByteUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */; };
@@ -707,6 +709,7 @@
 		BFCA383D2E255A18002F595F /* KeyProviderV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KeyProviderV3.h; sourceTree = "<group>"; };
 		BFCA383E2E255A18002F595F /* KeyProviderV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KeyProviderV3.cpp; sourceTree = "<group>"; };
 		BFCA38432E26C03C002F595F /* KeyProviderV3Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KeyProviderV3Tests.cpp; sourceTree = "<group>"; };
+		5E5510012E26C03C00A1B2C3 /* SessionResetStateTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SessionResetStateTests.cpp; sourceTree = "<group>"; };
 		BFCA38462E293E13002F595F /* ActivationService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActivationService.h; sourceTree = "<group>"; };
 		BFCA38472E295176002F595F /* ActivationServiceV4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActivationServiceV4.h; sourceTree = "<group>"; };
 		BFCA38482E295176002F595F /* ActivationServiceV4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ActivationServiceV4.cpp; sourceTree = "<group>"; };
@@ -1146,6 +1149,7 @@
 				BF75F9CF2E0A931E00D1E4F0 /* HybridKeyPairTests.cpp */,
 				BF75F9D02E0A931E00D1E4F0 /* KeyProviderV4Tests.cpp */,
 				BFCA38432E26C03C002F595F /* KeyProviderV3Tests.cpp */,
+				5E5510012E26C03C00A1B2C3 /* SessionResetStateTests.cpp */,
 				BFB6E7782DD7574600F18982 /* SharedSecretTests.cpp */,
 				BFB6E7642DD5CAC600F18982 /* PowerAuthKDFTests.cpp */,
 				BFB6E76E2DD5ECF800F18982 /* PowerAuthAEADTests.cpp */,
@@ -1883,6 +1887,7 @@
 				BFB6E76F2DD5ECF800F18982 /* PowerAuthAEADTests.cpp in Sources */,
 				BF75F9D32E0A931E00D1E4F0 /* KeyProviderV4Tests.cpp in Sources */,
 				BFCA38442E26C03C002F595F /* KeyProviderV3Tests.cpp in Sources */,
+				5E5510022E26C03C00A1B2C3 /* SessionResetStateTests.cpp in Sources */,
 				BF75F9D42E0A931E00D1E4F0 /* HybridKeyPairTests.cpp in Sources */,
 				BF4D85382DDF22CF00D32F55 /* TimeServiceTests.cpp in Sources */,
 				BF4D86742DF852DC00D32F55 /* ClientEncryptorTests.cpp in Sources */,
@@ -1936,6 +1941,7 @@
 				BFB6E7702DD5ECF800F18982 /* PowerAuthAEADTests.cpp in Sources */,
 				BF75F9D12E0A931E00D1E4F0 /* KeyProviderV4Tests.cpp in Sources */,
 				BFCA38452E26C03C002F595F /* KeyProviderV3Tests.cpp in Sources */,
+				5E5510032E26C03C00A1B2C3 /* SessionResetStateTests.cpp in Sources */,
 				BF75F9D22E0A931E00D1E4F0 /* HybridKeyPairTests.cpp in Sources */,
 				BF4D85372DDF22CF00D32F55 /* TimeServiceTests.cpp in Sources */,
 				BF4D86732DF852DC00D32F55 /* ClientEncryptorTests.cpp in Sources */,
@@ -2074,8 +2080,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				SDKROOT = iphoneos;
 				TVOS_DEPLOYMENT_TARGET = 13.0;
@@ -2139,8 +2144,7 @@
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../cc7/openssl-lib/apple";
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				OTHER_LDFLAGS = (
-					"-framework",
-					openssl,
+					"-lopenssl",
 				);
 				SDKROOT = iphoneos;
 				TVOS_DEPLOYMENT_TARGET = 13.0;

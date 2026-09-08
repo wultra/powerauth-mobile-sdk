@@ -208,7 +208,7 @@ static BOOL IsActivationRenameEndpointMissingError(NSError * error)
 {
     CHECK_TEST_CONFIG();
 
-    PowerAuthSdkActivation * activation = [_helper createActivation:YES removeAfter:YES];
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES removeAfter:NO];
     if (!activation) {
         return;
     }

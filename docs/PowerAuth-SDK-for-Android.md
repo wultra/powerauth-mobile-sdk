@@ -1724,6 +1724,24 @@ powerAuthSDK.removeActivationWithAuthentication(context, authentication, object:
 Depending on server support and configuration, it's possible to remove the activation with 1FA authentication (e.g. using `PowerAuthAuthentication.possession()`).
 <!-- end -->
 
+### Rename via Signed Request
+
+PowerAuth Standard RESTful API also provides an activation rename endpoint. The SDK signs the request and encrypts it in the activation scope. The operation requires 2FA, so use possession with password or possession with biometry; possession-only authentication is rejected locally. The callback returns the server-confirmed activation name.
+
+```kotlin
+val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
+
+powerAuthSDK.renameActivationWithAuthentication(context, authentication, "John's Android", object: IActivationRenameListener {
+    override fun onActivationRenameSucceed(activationName: String) {
+        // Server-confirmed activation name
+    }
+
+    override fun onActivationRenameFailed(t: Throwable) {
+        // Report error to user
+    }
+})
+```
+
 ## End-To-End Encryption
 
 Currently, PowerAuth SDK supports two basic modes of end-to-end encryption:

@@ -360,6 +360,26 @@ RequestPtr ActivationServiceV3::removeActivation(const CredentialsPtr& credentia
         .build();
 }
 
+RequestPtr ActivationServiceV3::renameActivation(const CredentialsPtr& credentials, const std::string_view& activation_name)
+{
+    LOCK_GUARD();
+    auto context = lockContext();
+
+    return RequestBuilder(*context, v3::Endpoint_ActivationRename)
+        .withJson(cc7::json::JsonValue::object({
+            { "activationName", cc7::json::JsonValue(activation_name) }
+        }))
+        .withAuthentication(credentials)
+        .withResponseCallback([](const Request& request, const cc7::json::JsonValue& response) -> ResponseObjectPtr {
+            auto activation_name = response["activationName"].asString();
+            if (activation_name.empty()) {
+                throw Exception(EC_InvalidResponse, "Invalid activation rename data received");
+            }
+            return std::make_shared<StringResponse>(activation_name);
+        })
+        .build();
+}
+
 // MARK: - Factors
 
 RequestPtr ActivationServiceV3::changePassword(const PasswordPtr& old_password, const PasswordPtr& new_password)

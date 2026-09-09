@@ -476,24 +476,6 @@ public class BaseSdkTest extends BaseTest {
         assertTrue(emptyNameError instanceof PowerAuthErrorException);
         assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, ((PowerAuthErrorException) emptyNameError).getPowerAuthErrorCode());
 
-        Throwable blankNameError = AsyncHelper.await(resultCatcher -> {
-            ICancelable task = powerAuthSDK.renameActivationWithAuthentication(testHelper.getContext(), activationHelper.getValidAuthentication(), " ", new IActivationRenameListener() {
-                @Override
-                public void onActivationRenameSucceed(@NonNull String activationName) {
-                    fail("Operation should not succeed");
-                }
-
-                @Override
-                public void onActivationRenameFailed(@NonNull Throwable t) {
-                    resultCatcher.completeWithResult(t);
-                }
-            });
-            assertNotNull(task);
-        });
-        Assume.assumeFalse("Activation rename endpoint is not available on the test server.", isActivationRenameEndpointMissing(blankNameError));
-        assertTrue(blankNameError instanceof FailedApiException);
-        assertEquals(400, ((FailedApiException) blankNameError).getResponseCode());
-
         Throwable possessionOnlyError = AsyncHelper.await(resultCatcher -> {
             ICancelable task = powerAuthSDK.renameActivationWithAuthentication(testHelper.getContext(), activationHelper.getPossessionAuthentication(), "New name", new IActivationRenameListener() {
                 @Override

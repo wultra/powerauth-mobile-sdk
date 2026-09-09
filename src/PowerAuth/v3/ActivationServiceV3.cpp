@@ -371,11 +371,11 @@ RequestPtr ActivationServiceV3::renameActivation(const CredentialsPtr& credentia
         }))
         .withAuthentication(credentials)
         .withResponseCallback([](const Request& request, const cc7::json::JsonValue& response) -> ResponseObjectPtr {
-            auto activation_name = response["activationName"].asString();
-            if (activation_name.empty()) {
+            auto returned_name = response["activationName"].asString();
+            if (returned_name.empty()) {
                 throw Exception(EC_InvalidResponse, "Invalid activation rename data received");
             }
-            return std::make_shared<StringResponse>(activation_name);
+            return std::make_shared<StringResponse>(returned_name);
         })
         .build();
 }

@@ -314,6 +314,19 @@ void Request::doPrepareRequest()
 
     prepareRequestBody();
 
+    if (is_authenticated) {
+        // PowerAuth uses sign-then-encrypt for authenticated encrypted requests.
+        // The server validates the authorization code against the decrypted body.
+        auto header = _authenticator->calculateOnlineAuthenticationHeader(*_authentication, {
+            _endpoint.uriId,
+            _endpoint.method,
+            _endpoint.isAllowedInPendingRegistration(),
+            _endpoint.isAllowedInUpgrade()
+        }, _request_body);
+        _authenticator = nullptr;
+        _request_headers.push_back(header);
+    }
+
     if (is_encrypted) {
         // Endpoint needs encryption
         _encryptor = _encryptor_factory->getClientEncryptor(_endpoint.encryptorId);
@@ -328,17 +341,6 @@ void Request::doPrepareRequest()
                                     cryptogram.requestHeaders.begin(),
                                     cryptogram.requestHeaders.end());
         }
-    }
-    if (is_authenticated) {
-        // Calculate authentication header
-        auto header = _authenticator->calculateOnlineAuthenticationHeader(*_authentication, {
-            _endpoint.uriId,
-            _endpoint.method,
-            _endpoint.isAllowedInPendingRegistration(),
-            _endpoint.isAllowedInUpgrade()
-        }, _request_body);
-        _authenticator = nullptr;
-        _request_headers.push_back(header);
     }
 }
 

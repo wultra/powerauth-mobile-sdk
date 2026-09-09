@@ -371,7 +371,7 @@ RequestPtr ActivationServiceV3::renameActivation(const CredentialsPtr& credentia
         }))
         .withAuthentication(credentials)
         .withResponseCallback([](const Request& request, const cc7::json::JsonValue& response) -> ResponseObjectPtr {
-            auto returned_name = response["activationName"].asString();
+            auto returned_name = response["responseObject"]["activationName"].asString();
             if (returned_name.empty()) {
                 throw Exception(EC_InvalidResponse, "Invalid activation rename data received");
             }

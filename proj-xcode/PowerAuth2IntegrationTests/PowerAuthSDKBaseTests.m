@@ -253,6 +253,19 @@ static BOOL IsActivationRenameEndpointMissingError(NSError * error)
     XCTAssertNil(emptyNameTask);
     XCTAssertEqual(PowerAuthErrorCode_WrongParameter, emptyNameError.powerAuthErrorCode);
 
+    __block NSError * blankNameError = nil;
+    id<PowerAuthOperationTask> blankNameTask = [_sdk renameActivationWithName:@" " authentication:activation.credentials callback:^(NSString * activationName, NSError * error) {
+        XCTAssertNil(activationName);
+        blankNameError = error;
+    }];
+    XCTAssertNotNil(blankNameTask);
+    if (IsActivationRenameEndpointMissingError(blankNameError)) {
+        XCTSkip(@"Activation rename endpoint is not available on the test server.");
+        return;
+    }
+    XCTAssertEqual(PowerAuthErrorCode_NetworkError, blankNameError.powerAuthErrorCode);
+    XCTAssertEqual(400, blankNameError.powerAuthRestApiErrorResponse.httpStatusCode);
+
     __block NSError * possessionOnlyError = nil;
     id<PowerAuthOperationTask> possessionOnlyTask = [_sdk renameActivationWithName:@"New name" authentication:[PowerAuthAuthentication possession] callback:^(NSString * activationName, NSError * error) {
         XCTAssertNil(activationName);

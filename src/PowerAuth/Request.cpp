@@ -314,34 +314,43 @@ void Request::doPrepareRequest()
 
     prepareRequestBody();
 
-    if (is_authenticated) {
-        // PowerAuth uses sign-then-encrypt for authenticated encrypted requests.
-        // The server validates the authorization code against the decrypted body.
-        auto header = _authenticator->calculateOnlineAuthenticationHeader(*_authentication, {
-            _endpoint.uriId,
-            _endpoint.method,
-            _endpoint.isAllowedInPendingRegistration(),
-            _endpoint.isAllowedInUpgrade()
-        }, _request_body);
-        _authenticator = nullptr;
-        _request_headers.push_back(header);
+    if (_endpoint.authenticateBeforeEncryption()) {
+        prepareAuthenticationHeader();
+        prepareRequestEncryption();
+    } else {
+        prepareRequestEncryption();
+        prepareAuthenticationHeader();
     }
+}
 
-    if (is_encrypted) {
-        // Endpoint needs encryption
-        _encryptor = _encryptor_factory->getClientEncryptor(_endpoint.encryptorId);
-        auto cryptogram = _encryptor->encryptRequest(_request_body);
-        // Encode cryptogram to body
-        _request_body = cc7::json::JsonWriter::toJsonData(cryptogram.requestPayload);
-        // Insert headers into request headers
-        if (!is_authenticated || _endpoint.forceEncryptionHeader()) {
-            // Insert encryption header only if this is not signed request.
-            // Or the encryption header is enforced by the endpoint's spec flag.
-            _request_headers.insert(_request_headers.end(),
-                                    cryptogram.requestHeaders.begin(),
-                                    cryptogram.requestHeaders.end());
-        }
+void Request::prepareRequestEncryption()
+{
+    if (!isEncrypted()) {
+        return;
     }
+    _encryptor = _encryptor_factory->getClientEncryptor(_endpoint.encryptorId);
+    auto cryptogram = _encryptor->encryptRequest(_request_body);
+    _request_body = cc7::json::JsonWriter::toJsonData(cryptogram.requestPayload);
+    if (!isAuthenticated() || _endpoint.forceEncryptionHeader()) {
+        _request_headers.insert(_request_headers.end(),
+                                cryptogram.requestHeaders.begin(),
+                                cryptogram.requestHeaders.end());
+    }
+}
+
+void Request::prepareAuthenticationHeader()
+{
+    if (!isAuthenticated()) {
+        return;
+    }
+    auto header = _authenticator->calculateOnlineAuthenticationHeader(*_authentication, {
+        _endpoint.uriId,
+        _endpoint.method,
+        _endpoint.isAllowedInPendingRegistration(),
+        _endpoint.isAllowedInUpgrade()
+    }, _request_body);
+    _authenticator = nullptr;
+    _request_headers.push_back(header);
 }
 
 void Request::prepareRequestBody()

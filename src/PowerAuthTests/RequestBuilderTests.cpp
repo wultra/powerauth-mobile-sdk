@@ -47,6 +47,8 @@ public:
     {
         validateActivationRenameEndpoint(v3::Endpoint_ActivationRename, Version_V3, "/pa/v3/activation/rename");
         validateActivationRenameEndpoint(v4::Endpoint_ActivationRename, Version_V4, "/pa/v4/activation/rename");
+        ccstAssertFalse(v3::Endpoint_TokenCreate.authenticateBeforeEncryption());
+        ccstAssertFalse(v4::Endpoint_TokenCreate.authenticateBeforeEncryption());
     }
 
     void validateActivationRenameEndpoint(const EndpointSpec& spec, ProtocolVersion version, const std::string& path)
@@ -61,6 +63,7 @@ public:
         ccstAssertTrue(spec.requireSerialQueue());
         ccstAssertFalse(spec.requireWrappedRequestResponse());
         ccstAssertFalse(spec.forceEncryptionHeader());
+        ccstAssertTrue(spec.authenticateBeforeEncryption());
     }
 };
 

@@ -37,7 +37,9 @@ struct EndpointSpec
         /// If set, then encryption header is enforced in request.
         FL_FORCE_ENCRYPTION_HEADER  = 1 << 5,
         /// If set, then response JSON is marshaled to managed environments, such as Java or Objective-C.
-        FL_PUBLIC_RESPONSE_JSON     = 1 << 6
+        FL_PUBLIC_RESPONSE_JSON     = 1 << 6,
+        /// If set, then the authentication code is calculated before request encryption.
+        FL_AUTHENTICATE_BEFORE_ENCRYPTION = 1 << 7
     };
     
     ProtocolVersion version;
@@ -90,6 +92,11 @@ struct EndpointSpec
     bool forceEncryptionHeader() const noexcept
     {
         return (flags & FL_FORCE_ENCRYPTION_HEADER) == FL_FORCE_ENCRYPTION_HEADER;
+    }
+
+    bool authenticateBeforeEncryption() const noexcept
+    {
+        return (flags & FL_AUTHENTICATE_BEFORE_ENCRYPTION) == FL_AUTHENTICATE_BEFORE_ENCRYPTION;
     }
 };
 

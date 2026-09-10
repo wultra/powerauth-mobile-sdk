@@ -243,6 +243,18 @@ public class CoreSession extends NativeObject {
     public native CoreRequest<Object> removeActivation(@NonNull CoreCredentials credentials) throws CoreException;
 
     /**
+     * Rename activation on the server.
+     *
+     * @param credentials Credentials with at least two factors.
+     * @param activationName New activation name.
+     * @return {@link CoreRequest} object containing all required information for activation rename.
+     * @throws CoreException In case of failure.
+     */
+    @NonNull
+    public native CoreRequest<String> renameActivation(@NonNull CoreCredentials credentials,
+                                                       @NonNull String activationName) throws CoreException;
+
+    /**
      * Start protocol upgrade procedure.
      *
      * @param password User's password to authenticate start of the protocol upgrade,

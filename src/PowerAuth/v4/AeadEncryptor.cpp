@@ -43,7 +43,6 @@ AeadClientEncryptor::AeadClientEncryptor(EncryptorParametersPtr& parameters,
     _secrets(std::move(secrets)),
     _nonce(nonce),
     _time_service(time_service),
-    _fail_on_nosync_time(true),
     _time_sync_task(-1)
 {
 #if DEBUG
@@ -75,8 +74,8 @@ EncryptedRequest AeadClientEncryptor::encryptRequest(const ByteRange &data)
     if (!canEncryptRequest()) {
         throw Exception(EC_NotAllowed, "Cannot encrypt request");
     }
-    if (!_time_service->isTimeSynchronized() && _fail_on_nosync_time) {
-        throw Exception(EC_TimeNotSynchronized, "Encryption required time synchronized with server");
+    if (!_time_service->isTimeSynchronized()) {
+        CC7_LOG("WARNING: Time is not synchronized. Encrypted data may be rejected on the server.");
     }
     
     const auto& aead = aeadAlg();
@@ -134,15 +133,6 @@ ByteArray AeadClientEncryptor::decryptResponse(const EncryptedResponse &response
     _time_sync_task = 0.0;
 
     return plaintext;
-}
-
-void AeadClientEncryptor::disableFailWhenTimeIsNotSynchronized()
-{
-#if DEBUG
-    _fail_on_nosync_time = false;
-#else
-    throw Exception(EC_InternalError, "Not implemented in RELEASE build");
-#endif
 }
 
 SymmetricKeyPtr AeadClientEncryptor::getKey() const

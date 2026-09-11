@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.integration.tests;
 import androidx.annotation.NonNull;
 
 import io.getlime.security.powerauth.core.CoreEncryptor;
+import io.getlime.security.powerauth.core.CoreEncryptedRequest;
 import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.keychain.Keychain;
 import io.getlime.security.powerauth.keychain.KeychainFactory;
@@ -672,6 +673,50 @@ public class BaseSdkTest extends BaseTest {
         });
         assertNotNull(actEncryptor);
         assertTrue(actEncryptor.canEncryptRequest());
+    }
+
+    @Test
+    public void testEncryptorEncryptsWithCachedKeyAfterTimeReset() throws Exception {
+        CoreEncryptor encryptor = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.getEncryptorForApplicationScope(new IGetEncryptorListener() {
+                @Override
+                public void onGetEncryptorSuccess(@NonNull CoreEncryptor encryptor) {
+                    resultCatcher.completeWithResult(encryptor);
+                }
+
+                @Override
+                public void onGetEncryptorFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+        assertNotNull(encryptor);
+        assertTrue(powerAuthSDK.getTimeSynchronizationService().isTimeSynchronized());
+
+        CoreEncryptedRequest encryptedRequest = encryptor.encryptRequest("{}".getBytes(StandardCharsets.UTF_8));
+        assertNotNull(encryptedRequest);
+
+        powerAuthSDK.getTimeSynchronizationService().resetTimeSynchronization();
+        assertFalse(powerAuthSDK.getTimeSynchronizationService().isTimeSynchronized());
+
+        encryptor = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.getEncryptorForApplicationScope(new IGetEncryptorListener() {
+                @Override
+                public void onGetEncryptorSuccess(@NonNull CoreEncryptor encryptor) {
+                    resultCatcher.completeWithResult(encryptor);
+                }
+
+                @Override
+                public void onGetEncryptorFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+        assertNotNull(encryptor);
+        assertFalse(powerAuthSDK.getTimeSynchronizationService().isTimeSynchronized());
+
+        encryptedRequest = encryptor.encryptRequest("{}".getBytes(StandardCharsets.UTF_8));
+        assertNotNull(encryptedRequest);
     }
 
     // TODO: This test is temporarily disabled, the used API doesn't work for protocol V4

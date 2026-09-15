@@ -94,7 +94,6 @@ public:
             auto client_enc_secrets = v4::AEAD_BuildSecrets(*client_enc_params, envelope_key, e2ee_key);
             
             auto client_encryptor = v4::AeadClientEncryptor(client_enc_params, client_enc_secrets, nonce, timeService);
-            client_encryptor.disableFailWhenTimeIsNotSynchronized();
             ccstAssertTrue(client_encryptor.canEncryptRequest());
             ccstAssertFalse(client_encryptor.canDecryptResponse());
             
@@ -164,7 +163,6 @@ public:
             auto client_enc_secrets = v4::AEAD_BuildSecrets(*client_enc_params, envelopeKey, sharedInfo2Key);
             
             auto client_encryptor = v4::AeadClientEncryptor(client_enc_params, client_enc_secrets, nonce, timeService);
-            client_encryptor.disableFailWhenTimeIsNotSynchronized();
             
             // Enforce time in testing time provider
             timeProvider->setTimestamp(timestampRequest);
@@ -233,7 +231,6 @@ public:
             auto client_enc_secrets = v3::ECIES_TestClientSecrets(*client_enc_params, requestEphemeralPublicKey, envelopeKey, transportKey);
             
             auto client_encryptor = v3::EciesClientEncryptor(client_enc_params, client_enc_secrets, requestNonce, timeService);
-            client_encryptor.disableFailWhenTimeIsNotSynchronized();
             
             // Enforce time in testing time provider
             timeProvider->setTimestamp(timestampRequest);

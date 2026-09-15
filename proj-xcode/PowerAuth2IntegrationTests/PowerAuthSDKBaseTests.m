@@ -2291,6 +2291,41 @@
     XCTAssertNotNil(encryptor);
 }
 
+- (void) testEncryptorEncryptsWithCachedKeyAfterTimeReset
+{
+    CHECK_TEST_CONFIG();
+
+    PowerAuthEncryptor * encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk encryptorForApplicationScopeWithCallback:^(PowerAuthEncryptor * _Nullable encryptor, NSError * _Nullable error) {
+            XCTAssertNil(error);
+            [waiting reportCompletion:encryptor];
+        }];
+    }];
+    XCTAssertNotNil(encryptor);
+    XCTAssertTrue(_sdk.timeSynchronizationService.isTimeSynchronized);
+    
+    NSError * error = nil;
+    PowerAuthEncryptedRequest * encryptedRequest = [encryptor encryptRequest:[@"{}" dataUsingEncoding:NSUTF8StringEncoding] error:&error];
+    XCTAssertNotNil(encryptedRequest);
+    XCTAssertNil(error);
+    
+    [_sdk.timeSynchronizationService resetTimeSynchronization];
+    XCTAssertFalse(_sdk.timeSynchronizationService.isTimeSynchronized);
+
+    encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk encryptorForApplicationScopeWithCallback:^(PowerAuthEncryptor * _Nullable encryptor, NSError * _Nullable error) {
+            XCTAssertNil(error);
+            [waiting reportCompletion:encryptor];
+        }];
+    }];
+    XCTAssertNotNil(encryptor);
+    XCTAssertFalse(_sdk.timeSynchronizationService.isTimeSynchronized);
+    
+    encryptedRequest = [encryptor encryptRequest:[@"{}" dataUsingEncoding:NSUTF8StringEncoding] error:&error];
+    XCTAssertNotNil(encryptedRequest);
+    XCTAssertNil(error);
+}
+
 #pragma mark - Vault keys
 
 - (PowerAuthSecureVaultKey*) fetchVaultEncryptionKey:(PowerAuthSecureVaultKeyId)keyId

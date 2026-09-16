@@ -1,7 +1,7 @@
 # Changelog
 
 <!--------------------------------------------------->
-## TBA - Not released yet
+## 2.0.1 (September 2026)
 
 ### Both platforms
 

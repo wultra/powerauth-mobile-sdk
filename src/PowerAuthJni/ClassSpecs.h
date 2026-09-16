@@ -321,7 +321,7 @@ struct ClassSpecs
     JniCommon::ConstantRangeSpec coreDevicePublicKeyFormat;
     JniCommon::ConstantSetSpec coreProtocolVersion;
     JniCommon::ConstantRangeSpec coreEncryptorScope;
-    JniCommon::ConstantRangeSpec coreActivationState;
+    JniCommon::ConstantSetSpec coreActivationState;
     JniCommon::ConstantRangeSpec coreSecureVaultKeyId;
 
     // handle based objects

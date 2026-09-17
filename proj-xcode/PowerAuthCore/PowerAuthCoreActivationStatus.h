@@ -21,16 +21,16 @@
 /// of the PowerAuthCoreActivationStatus object.
 typedef NS_ENUM(int, PowerAuthCoreActivationState) {
     /// The activation is not completed yet on the server.
-    PowerAuthCoreActivationState_PendingCommit = 0,
+    PowerAuthCoreActivationState_PendingCommit = 2,
     /// The activation is valid and active.
-    PowerAuthCoreActivationState_Active   = 1,
+    PowerAuthCoreActivationState_Active   = 3,
     /// The activation is blocked.
-    PowerAuthCoreActivationState_Blocked  = 2,
+    PowerAuthCoreActivationState_Blocked  = 4,
     /// The activation doesn't exist anymore.
-    PowerAuthCoreActivationState_Removed  = 3,
+    PowerAuthCoreActivationState_Removed  = 5,
     /// The activation is technically blocked. You cannot use it anymore
     /// for the authentication code calculations.
-    PowerAuthCoreActivationState_Deadlock   = 4,
+    PowerAuthCoreActivationState_Deadlock   = 128,
 };
 
 /// The `PowerAuthCoreActivationStatus` object represents complete status of the activation.

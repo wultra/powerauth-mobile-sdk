@@ -25,19 +25,20 @@ namespace powerAuth {
 /// enumeration is not identical with state of activation on the server. To get
 /// the exact state on the server, look for `ActivationStatus::ServerState`
 /// enumeration.
+/// Numeric values are preserved for compatibility with the PowerAuth SDK 1.9.x.
 enum class ActivationState
 {
     /// Activation is confirmed, but awaits for commit on the server.
-    PendingCommit,
+    PendingCommit = 2,
     /// Activation is active and ready for operation.
-    Active,
+    Active = 3,
     /// Activation is blocked.
-    Blocked,
+    Blocked = 4,
     /// Activation is removed on the server.
-    Removed,
+    Removed = 5,
     /// Activation is technically blocked, due to out-of-sync counters
     /// between client and the server.
-    Deadlock
+    Deadlock = 128
 };
 
 /// The `ActivationStatus` class contains information about activation received

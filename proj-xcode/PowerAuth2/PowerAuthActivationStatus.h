@@ -25,24 +25,24 @@ typedef NS_ENUM(NSInteger, PowerAuthActivationState) {
     /**
      The activation is not completed yet on the server.
      */
-    PowerAuthActivationState_PendingCommit = 0,
+    PowerAuthActivationState_PendingCommit = 2,
     /**
      The shared secure context is valid and active.
      */
-    PowerAuthActivationState_Active   = 1,
+    PowerAuthActivationState_Active   = 3,
     /**
      The activation is blocked.
      */
-    PowerAuthActivationState_Blocked  = 2,
+    PowerAuthActivationState_Blocked  = 4,
     /**
      The activation doesn't exist anymore.
      */
-    PowerAuthActivationState_Removed  = 3,
+    PowerAuthActivationState_Removed  = 5,
     /**
      The activation is technically blocked. You cannot use it anymore
      for the authentication code calculations.
      */
-    PowerAuthActivationState_Deadlock = 4,
+    PowerAuthActivationState_Deadlock = 128,
 };
 
 /**
@@ -80,4 +80,3 @@ typedef NS_ENUM(NSInteger, PowerAuthActivationState) {
 @property (nonatomic, strong, nullable, readonly) NSDictionary<NSString*, NSObject*>* customObject;
 
 @end
-

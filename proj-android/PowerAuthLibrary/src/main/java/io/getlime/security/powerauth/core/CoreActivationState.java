@@ -34,22 +34,22 @@ public @interface CoreActivationState {
     /**
      * The activation is not completed yet on the server.
      */
-    int PENDING_COMMIT = 0;
+    int PENDING_COMMIT = 2;
     /**
      * The activation is valid and active.
      */
-    int ACTIVE = 1;
+    int ACTIVE = 3;
     /**
      * The activation is blocked.
      */
-    int BLOCKED = 2;
+    int BLOCKED = 4;
     /**
      * The activation doesn't exist anymore.
      */
-    int REMOVED = 3;
+    int REMOVED = 5;
     /**
      * The activation is technically blocked. You cannot use it anymore for the authentication code
      * calculations.
      */
-    int DEADLOCK = 4;
+    int DEADLOCK = 128;
 }

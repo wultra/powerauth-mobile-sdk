@@ -17,13 +17,6 @@
 #import "PowerAuthSDKBaseTests.h"
 #import <PowerAuth2TestsBase/PA2ObjectSerialization.h>
 
-static BOOL IsActivationRenameEndpointMissingError(NSError * error)
-{
-    PowerAuthRestApiErrorResponse * response = error.powerAuthRestApiErrorResponse;
-    NSUInteger statusCode = response.httpStatusCode;
-    return error.powerAuthErrorCode == PowerAuthErrorCode_NetworkError && (statusCode == 404 || statusCode == 405 || statusCode == 501);
-}
-
 @implementation PowerAuthSDKBaseTests
 
 #pragma mark - Integration tests
@@ -222,10 +215,6 @@ static BOOL IsActivationRenameEndpointMissingError(NSError * error)
     }];
     if ([renameResult isKindOfClass:NSError.class]) {
         NSError * error = renameResult;
-        if (IsActivationRenameEndpointMissingError(error)) {
-            XCTSkip(@"Activation rename endpoint is not available on the test server.");
-            return;
-        }
         XCTFail(@"Activation rename failed: %@", error);
         return;
     }

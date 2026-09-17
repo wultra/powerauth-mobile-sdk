@@ -38,7 +38,6 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.integration.support.model.Activation;
 import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
-import io.getlime.security.powerauth.networking.exceptions.FailedApiException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.PowerAuthActivation;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
@@ -46,8 +45,6 @@ import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
-import org.junit.Assume;
-
 import static org.junit.Assert.*;
 
 public class BaseSdkTest extends BaseTest {
@@ -435,24 +432,11 @@ public class BaseSdkTest extends BaseTest {
         });
         if (renameResult instanceof Throwable) {
             final Throwable throwable = (Throwable) renameResult;
-            Assume.assumeFalse("Activation rename endpoint is not available on the test server.", isActivationRenameEndpointMissing(throwable));
             throw new AssertionError("Activation rename failed.", throwable);
         }
         final String returnedName = (String) renameResult;
         assertEquals(newName, returnedName);
         assertEquals(newName, activationHelper.getActivationDetail().getActivationName());
-    }
-
-    private static boolean isActivationRenameEndpointMissing(@NonNull Throwable throwable) {
-        Throwable cause = throwable;
-        while (cause != null) {
-            if (cause instanceof FailedApiException) {
-                final int responseCode = ((FailedApiException) cause).getResponseCode();
-                return responseCode == 404 || responseCode == 405 || responseCode == 501;
-            }
-            cause = cause.getCause();
-        }
-        return false;
     }
 
     @Test

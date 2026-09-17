@@ -1,7 +1,14 @@
 # Changelog
 
 <!--------------------------------------------------->
-## 2.0.0 (TBA - Not released yet)
+## 2.0.1 (September 2026)
+
+### Both platforms
+
+- End-to-end request encryption no longer fails immediately when local time is not synchronized. The SDK now logs a warning and continues with request encryption ([936](https://github.com/wultra/powerauth-mobile-sdk/issues/936)).
+
+<!--------------------------------------------------->
+## 2.0.0 (August 2026)
 
 ### Important notice
 

@@ -1724,12 +1724,30 @@ powerAuthSDK.removeActivationWithAuthentication(context, authentication, object:
 Depending on server support and configuration, it's possible to remove the activation with 1FA authentication (e.g. using `PowerAuthAuthentication.possession()`).
 <!-- end -->
 
+### Rename via Signed Request
+
+PowerAuth Standard RESTful API also provides an activation rename endpoint. The SDK signs the request before encrypting it in the activation scope. The operation requires 2FA, so use possession with password or possession with biometry; possession-only authentication is rejected locally. The callback returns the server-confirmed activation name.
+
+```kotlin
+val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
+
+powerAuthSDK.renameActivationWithAuthentication(context, authentication, "John's Android", object: IActivationRenameListener {
+    override fun onActivationRenameSucceed(activationName: String) {
+        // Server-confirmed activation name
+    }
+
+    override fun onActivationRenameFailed(t: Throwable) {
+        // Report error to user
+    }
+})
+```
+
 ## End-To-End Encryption
 
 Currently, PowerAuth SDK supports two basic modes of end-to-end encryption:
 
 - In an "application" scope, the encryptor can be acquired and used during the whole lifetime of the application.
-- In an "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bound to the parameters agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Authentication Code](#symmetric-multi-factor-authentication-code) in "encrypt-then-sign" mode.
+- In an "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bound to the parameters agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Authentication Code](#symmetric-multi-factor-authentication-code) in "sign-then-encrypt" mode.
 
 
 For both scenarios, you need to acquire an `CoreEncryptor` object, which will then provide an interface for the request encryption and the response decryption. The object currently provides only low-level encryption and decryption methods, so you need to implement your own JSON (de)serialization and request and response processing.

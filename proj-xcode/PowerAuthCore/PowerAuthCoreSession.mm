@@ -432,6 +432,30 @@ static void _ReportError(PowerAuthCoreError code, NSString * message, NSError **
     }
 }
 
+- (nullable PowerAuthCoreRequest*) renameActivationWithCredentials:(nonnull PowerAuthCoreCredentials*)credentials
+                                                              name:(nonnull NSString*)activationName
+                                                             error:(NSError * _Nullable __autoreleasing * _Nullable)error
+{
+    if (![self requireReadAccess:error]) {
+        return nil;
+    }
+    try {
+        auto request = _session->renameActivation(credentials.credentialsRef, objc::CopyFromNSString(activationName));
+        return [[PowerAuthCoreRequest alloc] initWithRequest:request withBuilder:^id(const powerAuth::ResponseObjectPtr &response) {
+            auto result = std::dynamic_pointer_cast<powerAuth::StringResponse>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No StringResponse object created");
+            }
+            return cc7::objc::CopyToNSString(result->string());
+        }];
+    } catch (...) {
+        if (error) {
+            *error = BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
+
 
 #pragma mark - User info
 

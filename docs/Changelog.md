@@ -1,6 +1,13 @@
 # Changelog
 
 <!--------------------------------------------------->
+## TBA - Not released yet
+
+### Both platforms
+
+- Added authenticated activation rename API for Apple and Android SDKs ([748](https://github.com/wultra/powerauth-mobile-sdk/issues/748))
+
+<!--------------------------------------------------->
 ## 2.0.1 (September 2026)
 
 ### Both platforms

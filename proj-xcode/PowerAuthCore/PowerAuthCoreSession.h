@@ -265,6 +265,19 @@
 - (nullable PowerAuthCoreRequest*) removeActivationWithCredentials:(nonnull PowerAuthCoreCredentials*)credentials
                                                              error:(NSError*_Nullable*_Nullable)error;
 
+/// Rename activation on the server.
+///
+/// This function doesn't change the session's state, so read access must be guaranteed.
+///
+/// - Parameters:
+///   - credentials: Credentials with at least two factors.
+///   - activationName: New activation name.
+///   - error: Pointer where error is stored in case of failure.
+/// - Returns: Core request object containing all required information for activation rename.
+- (nullable PowerAuthCoreRequest*) renameActivationWithCredentials:(nonnull PowerAuthCoreCredentials*)credentials
+                                                             name:(nonnull NSString*)activationName
+                                                             error:(NSError*_Nullable*_Nullable)error;
+
 #pragma mark - User info
 
 /// Fetch user info from the server.

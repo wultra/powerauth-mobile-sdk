@@ -197,6 +197,60 @@
     XCTAssertNil(_sdk.activationIdentifier);
 }
 
+- (void) testRenameActivation
+{
+    CHECK_TEST_CONFIG();
+
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES removeAfter:NO];
+    if (!activation) {
+        return;
+    }
+
+    NSString * newName = @"Renamed activation";
+    id renameResult = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk renameActivationWithName:newName authentication:activation.credentials callback:^(NSString * activationName, NSError * error) {
+            [waiting reportCompletion:error ? error : activationName];
+        }];
+        XCTAssertNotNil(task);
+    }];
+    if ([renameResult isKindOfClass:NSError.class]) {
+        NSError * error = renameResult;
+        XCTFail(@"Activation rename failed: %@", error);
+        return;
+    }
+    NSString * returnedName = renameResult;
+    XCTAssertEqualObjects(newName, returnedName);
+
+    PATSActivationStatus * serverStatus = [_helper.testServerApi getActivationStatus:activation.activationId];
+    XCTAssertEqualObjects(newName, serverStatus.activationName);
+}
+
+- (void) testRenameActivationValidation
+{
+    CHECK_TEST_CONFIG();
+
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES removeAfter:YES];
+    if (!activation) {
+        return;
+    }
+
+    __block NSError * emptyNameError = nil;
+    id<PowerAuthOperationTask> emptyNameTask = [_sdk renameActivationWithName:@"" authentication:activation.credentials callback:^(NSString * activationName, NSError * error) {
+        XCTAssertNil(activationName);
+        emptyNameError = error;
+    }];
+    XCTAssertNil(emptyNameTask);
+    XCTAssertEqual(PowerAuthErrorCode_WrongParameter, emptyNameError.powerAuthErrorCode);
+
+    __block NSError * possessionOnlyError = nil;
+    id<PowerAuthOperationTask> possessionOnlyTask = [_sdk renameActivationWithName:@"New name" authentication:[PowerAuthAuthentication possession] callback:^(NSString * activationName, NSError * error) {
+        XCTAssertNil(activationName);
+        possessionOnlyError = error;
+    }];
+    XCTAssertNil(possessionOnlyTask);
+    XCTAssertEqual(PowerAuthErrorCode_WrongParameter, possessionOnlyError.powerAuthErrorCode);
+}
+
 - (void) testRecreateActivation
 {
     CHECK_TEST_CONFIG();

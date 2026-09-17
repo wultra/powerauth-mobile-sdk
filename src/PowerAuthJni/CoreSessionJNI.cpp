@@ -338,6 +338,26 @@ CC7_JNI_METHOD_PARAMS(jobject, removeActivation, jobject credentials)
     NH_CATCH(nullptr)
 }
 
+CC7_JNI_METHOD_PARAMS(jobject, renameActivation, jobject credentials, jstring activationName)
+{
+    NH_TRY
+    {
+        jni.requireParameter(credentials, "credentials");
+        jni.requireParameter(activationName, "activationName");
+        auto& specs = NH_SPECS();
+        auto request = THIS_OBJ()->renameActivation(jni.fromJava<Credentials>(specs.coreCredentials, credentials),
+                                                     jni.fromJava(activationName));
+        return BuildCoreRequest(jni, request, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            auto result = std::dynamic_pointer_cast<StringResponse>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No StringResponse object created");
+            }
+            return jni.toJava(result->string());
+        });
+    }
+    NH_CATCH(nullptr)
+}
+
 CC7_JNI_METHOD_PARAMS(jobject, startProtocolUpgrade, jobject password, jobject biometryKek)
 {
     NH_TRY

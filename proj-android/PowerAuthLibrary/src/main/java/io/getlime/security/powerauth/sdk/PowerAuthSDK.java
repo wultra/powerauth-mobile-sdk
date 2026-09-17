@@ -1330,6 +1330,53 @@ public class PowerAuthSDK {
     }
 
     /**
+     * Rename current activation by calling a PowerAuth REST API endpoint.
+     *
+     * @param context        Context.
+     * @param authentication An authentication instance specifying two factors used to sign the request.
+     * @param activationName New activation name.
+     * @param listener       A callback with activation rename result.
+     * @return ICancelable associated with the running request.
+     */
+    public @Nullable
+    ICancelable renameActivationWithAuthentication(
+            @NonNull final Context context,
+            @NonNull PowerAuthAuthentication authentication,
+            @NonNull String activationName,
+            @NonNull final IActivationRenameListener listener) {
+        try {
+            if (activationName == null || activationName.length() == 0) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Activation name must not be empty.");
+            }
+            if (authentication.getPassword() == null && !authentication.useBiometricFactor()) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Activation rename requires two-factor authentication.");
+            }
+            final CoreCredentials credentials = resolveCredentialsWithAuthentication(authentication);
+            final CoreRequest<String> request = mSession.renameActivation(credentials, activationName);
+            return mClient.post(request, new INetworkResponseListener<>() {
+                @Override
+                public void onNetworkResponse(@Nullable String activationName) {
+                    listener.onActivationRenameSucceed(Objects.requireNonNull(activationName));
+                }
+
+                @Override
+                public void onNetworkError(@NonNull Throwable throwable) {
+                    listener.onActivationRenameFailed(throwable);
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+        } catch (CoreException e) {
+            dispatchCallback(() -> listener.onActivationRenameFailed(PowerAuthErrorException.wrapException(e)));
+        } catch (PowerAuthErrorException e) {
+            dispatchCallback(() -> listener.onActivationRenameFailed(e));
+        }
+        return null;
+    }
+
+    /**
      * Removes existing activation from the device.
      * <p>
      * This method removes the activation session state and shared biometry factor key. Cached possession related key remains intact.

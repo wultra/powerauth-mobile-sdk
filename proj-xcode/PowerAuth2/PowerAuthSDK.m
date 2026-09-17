@@ -1079,6 +1079,37 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
+- (id<PowerAuthOperationTask>) renameActivationWithName:(NSString*)activationName
+                                         authentication:(PowerAuthAuthentication*)authentication
+                                               callback:(void(^)(NSString * activationName, NSError *error))callback
+{
+    if (activationName.length == 0) {
+        callback(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Activation name must not be empty"));
+        return nil;
+    }
+    if (!authentication.password && !authentication.useBiometry) {
+        callback(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Activation rename requires two-factor authentication"));
+        return nil;
+    }
+
+    NSError * localError = nil;
+    PowerAuthCoreCredentials * credentials = [self resolveCredentialsWithAuthentication:authentication error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    PowerAuthCoreRequest * request = [_sessionInterface readTaskWithSession:^PowerAuthCoreRequest* (PowerAuthCoreSession * session, NSError ** error) {
+        return [session renameActivationWithCredentials:credentials name:activationName error:error];
+    } error:&localError];
+    if (localError) {
+        callback(nil, localError);
+        return nil;
+    }
+    return [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * request, NSString * response, NSError * error) {
+        callback(error ? nil : response, error);
+    }];
+}
+
 - (void) removeActivationLocal
 {
     // TODO: prepare func returning error

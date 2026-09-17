@@ -217,6 +217,19 @@ RequestPtr Session::removeActivation(const CredentialsPtr& credentials)
     return _context->activationService().removeActivation(credentials);
 }
 
+RequestPtr Session::renameActivation(const CredentialsPtr& credentials, const std::string_view& activation_name)
+{
+    LOCK_GUARD();
+    checkActivationData();
+    if (activation_name.empty()) {
+        throw Exception(EC_WrongParameter, "Activation name must not be empty");
+    }
+    if (credentials->factors() == AuthFactors::POSSESSION) {
+        throw Exception(EC_WrongParameter, "Activation rename requires two-factor authentication");
+    }
+    return _context->activationService().renameActivation(credentials, activation_name);
+}
+
 RequestPtr Session::verifyPassword(const PasswordPtr &password)
 {
     LOCK_GUARD();

@@ -46,7 +46,6 @@ import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
-
 import static org.junit.Assert.*;
 
 public class BaseSdkTest extends BaseTest {
@@ -412,6 +411,72 @@ public class BaseSdkTest extends BaseTest {
             });
         });
         assertTrue(result);
+    }
+
+    @Test
+    public void testRenameActivationWithAuthentication() throws Exception {
+        activationHelper.createStandardActivation(true, null);
+
+        final String newName = "Renamed activation";
+        final Object renameResult = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.renameActivationWithAuthentication(testHelper.getContext(), activationHelper.getValidAuthentication(), newName, new IActivationRenameListener() {
+                @Override
+                public void onActivationRenameSucceed(@NonNull String activationName) {
+                    resultCatcher.completeWithResult(activationName);
+                }
+
+                @Override
+                public void onActivationRenameFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithResult(t);
+                }
+            });
+        });
+        if (renameResult instanceof Throwable) {
+            final Throwable throwable = (Throwable) renameResult;
+            throw new AssertionError("Activation rename failed.", throwable);
+        }
+        final String returnedName = (String) renameResult;
+        assertEquals(newName, returnedName);
+        assertEquals(newName, activationHelper.getActivationDetail().getActivationName());
+    }
+
+    @Test
+    public void testRenameActivationValidation() throws Exception {
+        activationHelper.createStandardActivation(true, null);
+
+        Throwable emptyNameError = AsyncHelper.await(resultCatcher -> {
+            ICancelable task = powerAuthSDK.renameActivationWithAuthentication(testHelper.getContext(), activationHelper.getValidAuthentication(), "", new IActivationRenameListener() {
+                @Override
+                public void onActivationRenameSucceed(@NonNull String activationName) {
+                    fail("Operation should not succeed");
+                }
+
+                @Override
+                public void onActivationRenameFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithResult(t);
+                }
+            });
+            assertNull(task);
+        });
+        assertTrue(emptyNameError instanceof PowerAuthErrorException);
+        assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, ((PowerAuthErrorException) emptyNameError).getPowerAuthErrorCode());
+
+        Throwable possessionOnlyError = AsyncHelper.await(resultCatcher -> {
+            ICancelable task = powerAuthSDK.renameActivationWithAuthentication(testHelper.getContext(), activationHelper.getPossessionAuthentication(), "New name", new IActivationRenameListener() {
+                @Override
+                public void onActivationRenameSucceed(@NonNull String activationName) {
+                    fail("Operation should not succeed");
+                }
+
+                @Override
+                public void onActivationRenameFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithResult(t);
+                }
+            });
+            assertNull(task);
+        });
+        assertTrue(possessionOnlyError instanceof PowerAuthErrorException);
+        assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, ((PowerAuthErrorException) possessionOnlyError).getPowerAuthErrorCode());
     }
 
     // Activation status

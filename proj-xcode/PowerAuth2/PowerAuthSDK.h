@@ -421,6 +421,18 @@
 - (nullable id<PowerAuthOperationTask>) removeActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                                   callback:(nonnull void(^)(NSError * _Nullable error))callback;
 
+/// Rename current activation by calling the PowerAuth RESTful API endpoint `/pa/activation/rename`.
+///
+/// - Parameters:
+///   - activationName: New activation name. Must not be empty; the value is not trimmed.
+///   - authentication: An authentication instance specifying two factors used to sign the request.
+///   - callback: A callback with the server-confirmed activation name or an error.
+/// - Returns: PowerAuthOperationTask associated with the running request.
+- (nullable id<PowerAuthOperationTask>) renameActivationWithName:(nonnull NSString*)activationName
+                                                  authentication:(nonnull PowerAuthAuthentication*)authentication
+                                                        callback:(nonnull void(^)(NSString * _Nullable activationName, NSError * _Nullable error))callback
+    NS_SWIFT_NAME(renameActivation(name:authentication:callback:));
+
 /** Removes existing activation from the device.
  
  This method removes the activation session state and biometry factor key. Cached possession related key remains intact.

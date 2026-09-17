@@ -218,6 +218,9 @@ ResponseObjectPtr ActivationServiceV3::processResponseActivationStatus(Context& 
     auto& keyProvider = context.keyProvider();
     auto secrets = keyProvider.unlockSecretKeys();
     auto status_blob = decryptActivationStatusBlob(response, challenge, secrets);
+    CC7_LOG("ActivationServiceV3: decrypted status blob (%zu bytes): %s",
+            status_blob.size(),
+            status_blob.hexString().c_str());
     if (status_blob.size() != v3::STATUS_BLOB_SIZE) {
         throw Exception(EC_InvalidData, "Invalid size of binary status blob");
     }
@@ -226,6 +229,14 @@ ResponseObjectPtr ActivationServiceV3::processResponseActivationStatus(Context& 
     
     // Parse binary status blob
     auto binary_data = ActivationStatus::parseStatusBlobV3(status_blob);
+    CC7_LOG("ActivationServiceV3: parsed V3 status state=%u currentVersion=%u upgradeVersion=%u counterByte=%u failCount=%u/%u lookAheadCount=%u",
+            static_cast<unsigned>(binary_data.state),
+            static_cast<unsigned>(binary_data.currentVersion),
+            static_cast<unsigned>(binary_data.upgradeVersion),
+            static_cast<unsigned>(binary_data.counterByte),
+            static_cast<unsigned>(binary_data.failCount),
+            static_cast<unsigned>(binary_data.maxFailCount),
+            static_cast<unsigned>(binary_data.lookAheadCount));
 
     // Try synchronize counter
     auto counter_state = trySynchronizeCounter(binary_data, secrets->keyMacCtrData());

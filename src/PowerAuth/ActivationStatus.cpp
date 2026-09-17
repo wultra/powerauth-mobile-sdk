@@ -22,6 +22,24 @@ using namespace cc7;
 
 namespace powerAuth {
 
+namespace {
+
+void requireStatusBlobRead(bool ok, const char* field, const utils::DataReader& reader, const ByteRange& status_blob)
+{
+    if (ok) {
+        return;
+    }
+    CC7_LOG("parseStatusBlobV3: failed to read %s, offset=%zu remaining=%zu blobSize=%zu blob=%s",
+            field,
+            reader.currentOffset(),
+            reader.remainingSize(),
+            status_blob.size(),
+            status_blob.hexString().c_str());
+    throw Exception(EC_InvalidData, std::string("Invalid V3 activation status blob: ") + field);
+}
+
+} // namespace
+
 // MARK: - Construction
 
 #define STATUS_FLAG_ACTIVATION_CONFIRM    (1 << 0)
@@ -198,33 +216,72 @@ ActivationStatus::BinaryData ActivationStatus::parseStatusBlobV3(const cc7::Byte
     BinaryData out {};
     ByteRange header;
     auto reader = utils::DataReader(status_blob, false);
-    auto valid = reader.readMemoryRange(header, 4) &&
-            reader.readByte(out.state) &&
-            reader.readByte(out.currentVersion) &&
-            reader.readByte(out.upgradeVersion) &&
-            reader.skipBytes(5) &&  // reserved
-            reader.readByte(out.counterByte) &&
-            reader.readByte(out.failCount) &&
-            reader.readByte(out.maxFailCount) &&
-            reader.readByte(out.lookAheadCount) &&
-            reader.readMemory(out.counterHash, 16) &&
-            reader.remainingSize() == 0 &&
-            // formal validations
-            (header[0] == 0xDE && header[1] == 0xC0 && header[2] == 0xDE && header[3] == 0xD1) &&
-            validateStatusBlobV3(out);
-    if (!valid) {
-        throw Exception(EC_InvalidData, "Invalid V3 activation status blob");
+    requireStatusBlobRead(reader.readMemoryRange(header, 4), "header", reader, status_blob);
+    requireStatusBlobRead(reader.readByte(out.state), "state", reader, status_blob);
+    requireStatusBlobRead(reader.readByte(out.currentVersion), "currentVersion", reader, status_blob);
+    requireStatusBlobRead(reader.readByte(out.upgradeVersion), "upgradeVersion", reader, status_blob);
+    requireStatusBlobRead(reader.skipBytes(5), "reserved", reader, status_blob);
+    requireStatusBlobRead(reader.readByte(out.counterByte), "counterByte", reader, status_blob);
+    requireStatusBlobRead(reader.readByte(out.failCount), "failCount", reader, status_blob);
+    requireStatusBlobRead(reader.readByte(out.maxFailCount), "maxFailCount", reader, status_blob);
+    requireStatusBlobRead(reader.readByte(out.lookAheadCount), "lookAheadCount", reader, status_blob);
+    requireStatusBlobRead(reader.readMemory(out.counterHash, 16), "counterHash", reader, status_blob);
+    if (reader.remainingSize() != 0) {
+        CC7_LOG("parseStatusBlobV3: unexpected trailing bytes, remaining=%zu blobSize=%zu blob=%s",
+                reader.remainingSize(),
+                status_blob.size(),
+                status_blob.hexString().c_str());
+        throw Exception(EC_InvalidData, "Invalid V3 activation status blob: trailing bytes");
+    }
+    if (!(header.size() == 4 && header[0] == 0xDE && header[1] == 0xC0 && header[2] == 0xDE && header[3] == 0xD1)) {
+        CC7_LOG("parseStatusBlobV3: invalid header %02X%02X%02X%02X blob=%s",
+                header.size() > 0 ? header[0] : 0,
+                header.size() > 1 ? header[1] : 0,
+                header.size() > 2 ? header[2] : 0,
+                header.size() > 3 ? header[3] : 0,
+                status_blob.hexString().c_str());
+        throw Exception(EC_InvalidData, "Invalid V3 activation status blob: header magic");
+    }
+    if (!validateStatusBlobV3(out)) {
+        throw Exception(EC_InvalidData, "Invalid V3 activation status blob: validation");
     }
     return out;
 }
 
 bool ActivationStatus::validateStatusBlobV3(const BinaryData &data) noexcept
 {
-    return data.state >= ServerState_Created && data.state <= ServerState_Removed &&
-           data.currentVersion == Version_V3 &&
-           data.upgradeVersion >= Version_V3 &&
-           data.failCount <= data.maxFailCount &&
-           data.lookAheadCount > 0 && data.lookAheadCount <= v3::LOOK_AHEAD_MAX;
+    if (data.state < ServerState_Created || data.state > ServerState_Removed) {
+        CC7_LOG("validateStatusBlobV3: invalid state=%u (expected %u..%u)",
+                static_cast<unsigned>(data.state),
+                static_cast<unsigned>(ServerState_Created),
+                static_cast<unsigned>(ServerState_Removed));
+        return false;
+    }
+    if (data.currentVersion != Version_V3) {
+        CC7_LOG("validateStatusBlobV3: invalid currentVersion=%u (expected %u)",
+                static_cast<unsigned>(data.currentVersion),
+                static_cast<unsigned>(Version_V3));
+        return false;
+    }
+    if (data.upgradeVersion < Version_V3) {
+        CC7_LOG("validateStatusBlobV3: invalid upgradeVersion=%u (expected >= %u)",
+                static_cast<unsigned>(data.upgradeVersion),
+                static_cast<unsigned>(Version_V3));
+        return false;
+    }
+    if (data.failCount > data.maxFailCount) {
+        CC7_LOG("validateStatusBlobV3: failCount=%u > maxFailCount=%u",
+                static_cast<unsigned>(data.failCount),
+                static_cast<unsigned>(data.maxFailCount));
+        return false;
+    }
+    if (data.lookAheadCount == 0 || data.lookAheadCount > v3::LOOK_AHEAD_MAX) {
+        CC7_LOG("validateStatusBlobV3: invalid lookAheadCount=%u (expected 1..%zu)",
+                static_cast<unsigned>(data.lookAheadCount),
+                v3::LOOK_AHEAD_MAX);
+        return false;
+    }
+    return true;
 }
 
 } // namespace powerAuth

@@ -405,6 +405,8 @@
 		BFFECF2526385BC8001DA7A9 /* PowerAuthActivationCode+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF4017CD2632E83300C1E65C /* PowerAuthActivationCode+Private.h */; };
 		BFFECF2A26385BC9001DA7A9 /* PowerAuthActivationCode+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF4017CD2632E83300C1E65C /* PowerAuthActivationCode+Private.h */; };
 		BFFECF5E26385D23001DA7A9 /* PowerAuthWCSessionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA0E2A0200D12420011F0A6 /* PowerAuthWCSessionManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F91820260000000000000002 /* PowerAuthLogTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = F91820260000000000000001 /* PowerAuthLogTests.mm */; };
+		F91820260000000000000003 /* PowerAuthLogTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = F91820260000000000000001 /* PowerAuthLogTests.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -765,6 +767,7 @@
 		BFFECEB326383CB9001DA7A9 /* PowerAuthDeprecated.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthDeprecated.h; sourceTree = "<group>"; };
 		BFFECEC226383E48001DA7A9 /* PowerAuthDeprecated.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthDeprecated.m; sourceTree = "<group>"; };
 		BFFECECD2638449D001DA7A9 /* PA2PrivateConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateConstants.h; sourceTree = "<group>"; };
+		F91820260000000000000001 /* PowerAuthLogTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthLogTests.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1176,6 +1179,7 @@
 				BF667EC62835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m */,
 				BF215F01287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m */,
 				BF112EC32F3B528300D578F0 /* PowerAuthConfigurationTests.m */,
+				F91820260000000000000001 /* PowerAuthLogTests.mm */,
 				BF28C1C32982A05100E2CD8E /* PowerAuthUserInfoTests.m */,
 				BF667EC72835A0B2006E97F8 /* Info.plist */,
 			);
@@ -1893,6 +1897,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF112ECA2F3B528E00D578F0 /* PowerAuthConfigurationTests.m in Sources */,
+				F91820260000000000000002 /* PowerAuthLogTests.mm in Sources */,
 				BF369FCA285370DD0004C454 /* PA2GroupedTaskTests.m in Sources */,
 				BF28C1C42982A05100E2CD8E /* PowerAuthUserInfoTests.m in Sources */,
 				BF667ED02835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m in Sources */,
@@ -1982,6 +1987,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF112ECB2F3B528E00D578F0 /* PowerAuthConfigurationTests.m in Sources */,
+				F91820260000000000000003 /* PowerAuthLogTests.mm in Sources */,
 				BF369FCB285370DD0004C454 /* PA2GroupedTaskTests.m in Sources */,
 				BF28C1C52982A05100E2CD8E /* PowerAuthUserInfoTests.m in Sources */,
 				BF667ED12835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m in Sources */,

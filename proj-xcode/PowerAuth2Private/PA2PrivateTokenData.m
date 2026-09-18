@@ -88,7 +88,7 @@
 
 #pragma mark - Debug
 
-#if defined(DEBUG)
+#if defined(ENABLE_PA2_LOG)
 - (NSString*) description
 {
     NSDictionary * dict = [self toDictionary];

@@ -30,8 +30,7 @@
 
 namespace powerAuth {
 
-#if defined(DEBUG)
-// debug build
+#if defined(ENABLE_CC7_LOG)
 static void _DumpErr(const char * msg)
 {
     CC7_LOG("%s", msg);
@@ -53,7 +52,7 @@ static void _DumpErr(const char * msg)
         _DumpErr("ERROR: Context " #ptr ": Service is destroyed");  \
     }
 #else
-// release build
+// Logging disabled
 #define CHECK_OBJ_PTR(ptr)
 #define CHECK_AS_SERVICE_PTR(ptr)
 #define CHECK_SERVICE_PTR(ptr)

@@ -101,7 +101,7 @@ TimeInterval TimeService::localTimeAdjustmentPrecision() const noexcept
 TimeService::TaskId TimeService::startTimeSynchronizationTask() noexcept
 {
     auto task = _time_provider->getCurrentTime();
-    //CC7_LOG("TimeService: Sync task %f started", task);
+    CC7_LOG("TimeService: Sync task %f started", task);
     return task;
 }
 
@@ -111,7 +111,7 @@ bool TimeService::completeTimeSynchronizationTask(TaskId task_id, TimeInterval s
     auto now = _time_provider->getCurrentTime();
     auto start = task_id;
     auto elapsedTime = now - start;
-    //CC7_LOG("TimeService: Sync task %f ended at %f (elapsed %f)", task_id, now, elapsedTime);
+    CC7_LOG("TimeService: Sync task %f ended at %f (elapsed %f)", task_id, now, elapsedTime);
     if (elapsedTime < 0.0) {
         CC7_LOG("TimeService: Wrong task-id value used for the synchronization");
         return _is_synchronized;
@@ -218,4 +218,3 @@ bool TimeService::hasPendingSynchronizationRequest() const noexcept
 }
 
 } // namespace powerAuth
-

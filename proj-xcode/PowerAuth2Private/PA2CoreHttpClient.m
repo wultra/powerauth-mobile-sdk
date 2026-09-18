@@ -32,14 +32,16 @@
     static NSError * _GetSimulatedRequestFailure(NSString * basePath, NSString * relativePath);
     static NSArray * _GetSimulatedResponseFailure(NSString * basePath, NSString * relativePath);
     static id _GetNullableObjectFromArray(NSArray * array, NSUInteger index);
-    // LOG
+#endif // DEBUG
+
+#if defined(ENABLE_PA2_LOG)
     static void _LogHttpRequest(PowerAuthCoreRequest * coreRequest, NSURLRequest * request);
     static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLResponse * response, NSData * data, NSError * error);
 #else
     // Turn-Off request-response logging
     #define _LogHttpRequest(coreRequest, request)
     #define _LogHttpResponse(coreRequest, response, data, error)
-#endif // DEBUG
+#endif // ENABLE_PA2_LOG
 
 #pragma mark - Client implementation
 
@@ -406,18 +408,26 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
 
 #pragma mark - Debug Log
 
-#if defined(DEBUG)
+#if defined(ENABLE_PA2_LOG)
 // Functions implementing request-response logging.
+static NSString * _LogHttpBody(NSData * data)
+{
+    if (data.length == 0) {
+        return @"<empty>";
+    }
+    NSString * text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    return text ? text : [@"Base64: " stringByAppendingString:[data base64EncodedStringWithOptions:0]];
+}
+
 static void _LogHttpRequest(PowerAuthCoreRequest * coreRequest, NSURLRequest * request)
 {
     if (PowerAuthLogIsEnabled()) {
         // Warn if communication is not encrypted.
         if ([request.URL.scheme isEqualToString:@"http"]) {
-            static BOOL s_warning = YES;
-            if (s_warning) {
+            static dispatch_once_t warningToken;
+            dispatch_once(&warningToken, ^{
                 PowerAuthLog(@"Warning: Using HTTP for communication may create a serious security issue! Use HTTPS in production.");
-                s_warning = NO;
-            }
+            });
         }
         
         BOOL authCode = coreRequest.isAuthenticated;
@@ -427,10 +437,7 @@ static void _LogHttpRequest(PowerAuthCoreRequest * coreRequest, NSURLRequest * r
         NSString * msg = [NSString stringWithFormat:@"HTTP %@ request%@: → %@", request.HTTPMethod, signedEncrypted, request.URL.absoluteString];
         if (PowerAuthLogIsVerbose()) {
             msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", request.allHTTPHeaderFields];
-            if (!encrypted) {
-                NSString * jsonBody = request.HTTPBody.length > 0 ? [[NSString alloc] initWithData:request.HTTPBody encoding:NSUTF8StringEncoding] : @"<empty>";
-                msg = [msg stringByAppendingFormat:@"\n+ Body: %@", jsonBody];
-            }
+            msg = [msg stringByAppendingFormat:@"\n+ Body: %@", _LogHttpBody(request.HTTPBody)];
         }
         PowerAuthLog(@"%@", msg);
     }
@@ -439,15 +446,11 @@ static void _LogHttpRequest(PowerAuthCoreRequest * coreRequest, NSURLRequest * r
 static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLResponse * response, NSData * data, NSError * error)
 {
     if (PowerAuthLogIsEnabled()) {
-        BOOL encrypted = coreRequest.encryptorScope != PowerAuthCoreEncryptorScope_None;
         NSNumber * statusCode = @(response.statusCode);
         NSString * msg = [NSString stringWithFormat:@"HTTP %@ response %@: ← %@", coreRequest.httpMethod, statusCode, response.URL.absoluteString];
         if (PowerAuthLogIsVerbose()) {
             msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", response.allHeaderFields];
-            if (!encrypted) {
-                NSString * jsonData = data.length > 0 ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : @"<empty>";
-                msg = [msg stringByAppendingFormat:@"\n+ Body: %@", jsonData];
-            }
+            msg = [msg stringByAppendingFormat:@"\n+ Body: %@", _LogHttpBody(data)];
         }
         if (error) {
             msg = [msg stringByAppendingFormat:@"\n+ Error: %@", error];
@@ -455,7 +458,7 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
         PowerAuthLog(@"%@", msg);
     }
 }
-#endif // DEBUG
+#endif // ENABLE_PA2_LOG
 
 #pragma mark - Debug Failure Simulator
 

@@ -29,8 +29,8 @@ namespace common {
 
 // MARK: - Debug
 
-#define ENABLE_KDUMP 0  // set to 1 to enable full key access log
-#define ENABLE_EDUMP 0  // set to 1 to enable exception log
+#define ENABLE_KDUMP 1  // Includes passwords and raw cryptographic keys.
+#define ENABLE_EDUMP 1
 
 #if ENABLE_KDUMP
 static void _KDump(const std::string& name, const KT::KeyRef& key_material);
@@ -353,21 +353,21 @@ void SecretKeysPool::throwError(ErrorCode ec, const std::string & message)
 static void _KDump(const std::string& name, const KT::KeyRef& key_material)
 {
     // cached
-    fprintf(stdout, "    get %s: ~~> %s\n", name.c_str(), key_material.hexadecimal().c_str());
+    CC7_LOG("    get %s: ~~> %s", name.c_str(), key_material.hexadecimal().c_str());
 }
 
 static void _KDump(const std::string& name, const KT::INPUT& tr, bool is_set, const KT::KeyRef& key_material)
 {
     if (is_set) {
-        fprintf(stdout, "    set %s:  <- %s\n", name.c_str(), key_material.hexadecimal().c_str());
+        CC7_LOG("    set %s:  <- %s", name.c_str(), key_material.hexadecimal().c_str());
     } else {
-        fprintf(stdout, "    get %s:  -> %s\n", name.c_str(), key_material.hexadecimal().c_str());
+        CC7_LOG("    get %s:  -> %s", name.c_str(), key_material.hexadecimal().c_str());
     }
 }
 
 static void _KDump(const std::string& name, const KT::KDF& tr, const KT::KeyRef& src, const KT::KeyRef& out)
 {
-    fprintf(stdout, "    get %s:  -> %s\n"
+    CC7_LOG("    get %s:  -> %s\n"
                     "          = KDF\n"
                     "              K: %s\n"
                     "              L: %s\n", name.c_str(), out.hexadecimal().c_str(), src.hexadecimal().c_str(), tr.label.c_str());
@@ -375,7 +375,7 @@ static void _KDump(const std::string& name, const KT::KDF& tr, const KT::KeyRef&
 
 static void _KDump(const std::string& name, const KT::PKDF& tr, const KT::PKDFKeys& src, const KT::KeyRef& out)
 {
-    fprintf(stdout, "    get %s:  -> %s\n"
+    CC7_LOG("    get %s:  -> %s\n"
                     "          = PKDF\n"
                     "              P: %s\n"
                     "              S: %s\n", name.c_str(), out.hexadecimal().c_str(), src.password.hexadecimal().c_str(), src.salt.hexadecimal().c_str());
@@ -384,13 +384,13 @@ static void _KDump(const std::string& name, const KT::PKDF& tr, const KT::PKDFKe
 static void _KDump(const std::string& name, const KT::AEAD& tr, const KT::AEADKeys& src, const KT::KeyRef& out)
 {
     if (tr.mode == KT::ENCRYPT) {
-        fprintf(stdout, "    get %s:  -> %s\n"
+        CC7_LOG("    get %s:  -> %s\n"
                         "          = AEAD.seal\n"
                         "              K: %s\n"
                         "              D: %s\n"
                         "              A: %s\n", name.c_str(), out.hexadecimal().c_str(), src.kek.hexadecimal().c_str(), src.data.hexadecimal().c_str(), src.aad.hexadecimal().c_str());
     } else {
-        fprintf(stdout, "    get %s:  -> %s\n"
+        CC7_LOG("    get %s:  -> %s\n"
                         "          = AEAD.open\n"
                         "              K: %s\n"
                         "              D: %s\n"
@@ -401,13 +401,13 @@ static void _KDump(const std::string& name, const KT::AEAD& tr, const KT::AEADKe
 static void _KDump(const std::string& name, const KT::UKE& tr, const KT::UKEKeys& src, const KT::KeyRef& out)
 {
     if (tr.mode == KT::ENCRYPT) {
-        fprintf(stdout, "    get %s:  -> %s\n"
+        CC7_LOG("    get %s:  -> %s\n"
                         "          = UKE.wrap\n"
                         "              K: %s\n"
                         "              D: %s\n", name.c_str(), out.hexadecimal().c_str(), src.kek.hexadecimal().c_str(), src.data.hexadecimal().c_str());
 
     } else {
-        fprintf(stdout, "    get %s:  -> %s\n"
+        CC7_LOG("    get %s:  -> %s\n"
                         "          = UKE.unwrap\n"
                         "              K: %s\n"
                         "              D: %s\n", name.c_str(), out.hexadecimal().c_str(), src.kek.hexadecimal().c_str(), src.data.hexadecimal().c_str());
@@ -417,14 +417,14 @@ static void _KDump(const std::string& name, const KT::UKE& tr, const KT::UKEKeys
 static void _KDump(const std::string& name, const KT::Cipher& tr, const KT::CipherKeys& src, const KT::KeyRef& out)
 {
     if (tr.mode == KT::ENCRYPT) {
-        fprintf(stdout, "    get %s:  -> %s\n"
+        CC7_LOG("    get %s:  -> %s\n"
                         "          = %s.encrypt\n"
                         "              K: %s\n"
                         "              I: %s\n"
                         "              D: %s\n", name.c_str(), out.hexadecimal().c_str(), tr.cipher->getAlgorithmName().c_str(), src.key.hexadecimal().c_str(), src.iv.hexadecimal().c_str(), src.data.hexadecimal().c_str());
 
     } else {
-        fprintf(stdout, "    get %s:  -> %s\n"
+        CC7_LOG("    get %s:  -> %s\n"
                         "          = %s.decrypt\n"
                         "              K: %s\n"
                         "              I: %s\n"
@@ -434,7 +434,7 @@ static void _KDump(const std::string& name, const KT::Cipher& tr, const KT::Ciph
 
 static void _KDump(const std::string& name, const KT::CUSTOM& tr, const KT::KeyRef& out)
 {
-    fprintf(stdout, "    get %s: [#] -> %s\n", name.c_str(), out.hexadecimal().c_str());
+    CC7_LOG("    get %s: [#] -> %s", name.c_str(), out.hexadecimal().c_str());
 }
 
 // Legacy
@@ -442,13 +442,13 @@ static void _KDump(const std::string& name, const KT::CUSTOM& tr, const KT::KeyR
 static void _KDump(const std::string& name, const KT::LegacyUKE& tr, const KT::LegacyUKEKeys& src, const KT::KeyRef& out)
 {
     if (tr.mode == KT::ENCRYPT) {
-        fprintf(stdout, "    get %s:  -> %s\n"
+        CC7_LOG("    get %s:  -> %s\n"
                         "          = LegacyUKE.wrap\n"
                         "              K: %s\n"
                         "              D: %s\n", name.c_str(), out.hexadecimal().c_str(), src.kek.hexadecimal().c_str(), src.data.hexadecimal().c_str());
 
     } else {
-        fprintf(stdout, "    get %s:  -> %s\n"
+        CC7_LOG("    get %s:  -> %s\n"
                         "          = LegacyUKE.unwrap\n"
                         "              K: %s\n"
                         "              D: %s\n", name.c_str(), out.hexadecimal().c_str(), src.kek.hexadecimal().c_str(), src.data.hexadecimal().c_str());
@@ -457,7 +457,7 @@ static void _KDump(const std::string& name, const KT::LegacyUKE& tr, const KT::L
 
 static void _KDump(const std::string& name, const KT::LegacyKDF& tr, const KT::KeyRef& src, const KT::KeyRef& out)
 {
-    fprintf(stdout, "    get %s:  -> %s\n"
+    CC7_LOG("    get %s:  -> %s\n"
                     "          = LegacyKDF\n"
                     "              K: %s\n"
                     "              I: %lld\n", name.c_str(), out.hexadecimal().c_str(), src.hexadecimal().c_str(), tr.index);
@@ -465,7 +465,7 @@ static void _KDump(const std::string& name, const KT::LegacyKDF& tr, const KT::K
 
 static void _KDump(const std::string& name, const KT::LegacyKDFIntKeys& src, const KT::KeyRef& out)
 {
-    fprintf(stdout, "    get %s:  -> %s\n"
+    CC7_LOG("    get %s:  -> %s\n"
                     "          = LegacyKDFInternal\n"
                     "              K: %s\n"
                     "              I: %s\n", name.c_str(), out.hexadecimal().c_str(), src.key.hexadecimal().c_str(), src.index.hexadecimal().c_str());
@@ -473,7 +473,7 @@ static void _KDump(const std::string& name, const KT::LegacyKDFIntKeys& src, con
 
 static void _KDump(const std::string& name, const KT::LegacyPBKDF2Keys& src, const KT::KeyRef& out)
 {
-    fprintf(stdout, "    get %s:  -> %s\n"
+    CC7_LOG("    get %s:  -> %s\n"
                     "          = LegacyPBKDF2\n"
                     "              P: %s\n"
                     "              S: %s\n"
@@ -485,7 +485,7 @@ static void _KDump(const std::string& name, const KT::LegacyPBKDF2Keys& src, con
 #if ENABLE_EDUMP
 static void _EDump(const std::string& msg)
 {
-    fprintf(stdout, " ## Fail: %s\n", msg.c_str());
+    CC7_LOG(" ## Fail: %s", msg.c_str());
 }
 #endif
 

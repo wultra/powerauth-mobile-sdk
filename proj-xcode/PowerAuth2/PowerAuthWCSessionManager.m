@@ -488,7 +488,7 @@ static WCSession * _ValidateSession(WCSession * session)
             return session;
         }
     }
-#ifdef DEBUG
+#if defined(ENABLE_PA2_LOG)
     if (!session) {
         PowerAuthLog(@"PA2WCSessionManager: WCSession is not supported on this device.");
     } else {
@@ -498,7 +498,7 @@ static WCSession * _ValidateSession(WCSession * session)
             PowerAuthLog(@"PA2WCSessionManager: Warning: Watch App is not installed on the currently paired and active Apple Watch.");
         }
     }
-#endif // DEBUG
+#endif // ENABLE_PA2_LOG
     return nil;
 }
 

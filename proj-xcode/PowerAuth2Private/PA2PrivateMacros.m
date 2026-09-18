@@ -45,7 +45,7 @@ void PA2DictionarySafeSet(NSMutableDictionary * dict, NSString * key, id value)
     }
 }
 
-#if DEBUG
+#if defined(ENABLE_PA2_LOG)
 void PA2PrintErrno(NSString * location)
 {
     char buffer[256];
@@ -53,4 +53,4 @@ void PA2PrintErrno(NSString * location)
     NSString * error = [NSString stringWithUTF8String:buffer];
     PowerAuthLog(@"%@ failed: %@", location, error);
 }
-#endif // DEBUG
+#endif // ENABLE_PA2_LOG

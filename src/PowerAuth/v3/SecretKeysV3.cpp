@@ -657,7 +657,7 @@ void SecretKeysV3::throwNotSupported()
 
 std::string SecretKeysV3::keyNameResolver(int key_id) noexcept
 {
-#if DEBUG
+#if defined(ENABLE_CC7_LOG)
     switch (key_id) {
         case KEY_SHARED_SECRET: return "KEY_SHARED_SECRET";
         case KEK_AUTHENTICATION_KNOWLEDGE: return "KEK_AUTHENTICATION_KNOWLEDGE";

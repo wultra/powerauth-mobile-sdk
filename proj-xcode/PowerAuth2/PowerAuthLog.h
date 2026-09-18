@@ -21,7 +21,7 @@
 
 #pragma mark - SDK logging
 
-#if defined(DEBUG) && !defined(ENABLE_PA2_LOG)
+#if !defined(ENABLE_PA2_LOG)
 #define ENABLE_PA2_LOG
 #endif
 
@@ -38,9 +38,8 @@
     // Macros
 
     /**
-     PowerAuthLog(...) macro prints a debug information into the debug console and is used internally
-     in the PowerAuth SDK. For DEBUG builds, the macro is expanded to internal function which uses NSLog().
-     For RELEASE builds, the message is suppressed if `ENABLE_PA2_LOG` is not used.
+     Logs diagnostic information to PowerAuthLogDelegate and the system console.
+     Logging is compiled in and enabled by default in all build configurations.
      */
     #define PowerAuthLog(...)               PowerAuthLogImpl(__VA_ARGS__)
 
@@ -51,57 +50,51 @@
 #endif // ENABLE_PA2_LOG
 
 /**
- Function enables or disables internal PowerAuth SDK logging.
- Note that it's effective only when library is compiled in `DEBUG` build configuration or `ENABLE_PA2_LOG` compilation flag is set.
+ Enables or disables PowerAuth SDK, PowerAuthCore and cc7 logging.
+ Enabled by default in all build configurations. Critical warnings remain enabled.
  */
 PA2_EXTERN_C void PowerAuthLogSetEnabled(BOOL enabled);
 
 /**
- Function returns YES if internal PowerAuth SDK logging is enabled.
- Note that when library is compiled in `RELEASE` configuration and when `ENABLE_PA2_LOG` compilation flag is missing, then always returns NO.
+ Returns YES if internal PowerAuth SDK logging is enabled.
  */
 PA2_EXTERN_C BOOL PowerAuthLogIsEnabled(void);
 
 /**
- Function sets internal PowerAuth SDK logging to more verbose mode.
- Note that it's effective only when library is compiled in `DEBUG` build configuration or `ENABLE_PA2_LOG` compilation flag is set.
+ Enables or disables verbose PowerAuth SDK logging. Enabled by default.
+ Diagnostic logs may contain passwords, cryptographic keys and request or response data.
  */
 PA2_EXTERN_C void PowerAuthLogSetVerbose(BOOL verbose);
 
 /**
- Function returns YES if internal PowerAuth SDK logging is more talkative than usual.
- Note that when library is compiled in `RELEASE` configuration and when `ENABLE_PA2_LOG` compilation flag is missing, then always returns NO.
+ Returns YES if verbose PowerAuth SDK logging is enabled.
  */
 PA2_EXTERN_C BOOL PowerAuthLogIsVerbose(void);
 
 /**
- Function enables or disables logging to system console with NSLog.
- When turned off, you can leverage the `PowerAuthLogSetDelegate` to implement your own logic.
- Note that it's effective only when library is compiled in `DEBUG` build configuration or `ENABLE_PA2_LOG` compilation flag is set.
+ Enables or disables NSLog output for PowerAuth SDK, PowerAuthCore and cc7 logs.
+ Enabled by default. Delegate delivery is unaffected, and critical warnings always reach the console.
  */
 PA2_EXTERN_C void PowerAuthLogToConsoleSetEnabled(BOOL enabled);
 
 /**
- Function returns YES if internal logging to system console with NSLog is enabled.
- Note that when library is compiled in `RELEASE` configuration and when `ENABLE_PA2_LOG` compilation flag is missing, then always returns NO.
+ Returns YES if logging to the system console is enabled.
  */
 PA2_EXTERN_C BOOL PowerAuthLogToConsoleIsEnabled(void);
 
 /**
- PA2CriticalWarning(...) function prints a critical warning information into the debug console and
- is used internally in the PowerAuth SDK. This kind of warnings are always printed to the DEBUG
- console and cannot be supressed by configuration.
+ Reports a critical warning to the delegate and the system console.
+ Critical warnings are delivered even when logging or console output is disabled.
  */
 PA2_EXTERN_C void PowerAuthCriticalWarning(NSString * _Nonnull format, ...);
 
 /**
- Protocol that represents a delegate that can tap into the library logs and use them for example
- to report to a online system or to a logfile for user to send with some report.
- 
- Delegate will be called only when `ENABLE_PA2_LOG` copilation flag is set or the library is compiled
- in the `DEBUG` mode (can be verified with `PowerAuthLogIsEnabled()`.
- 
- By default, all logs are also logged via NSLog (can be turned off with the `PowerAuthLogToConsoleSetEnabled`).
+ Receives PowerAuth SDK, PowerAuthCore and cc7 diagnostic logs in all build configurations.
+ Native messages include a source prefix. Messages may contain sensitive data, including keys and passwords.
+ Calls are synchronous on the logging thread and may arrive concurrently; implementations must be thread-safe.
+ Messages emitted before registration are not replayed.
+
+ Logs also reach NSLog by default; PowerAuthLogToConsoleSetEnabled controls console output.
  */
 @protocol PowerAuthLogDelegate
 /**
@@ -111,7 +104,7 @@ PA2_EXTERN_C void PowerAuthCriticalWarning(NSString * _Nonnull format, ...);
 @end
 
 /**
- Function sets log delegate for further log processing.
- Note that it's effective only when library is compiled in `DEBUG` build configuration or `ENABLE_PA2_LOG` compilation flag is set.
+ Sets the retained delegate for SDK, PowerAuthCore and cc7 logs. Passing nil removes it.
+ Calls already in progress may still reach the previous delegate.
  */
 PA2_EXTERN_C void PowerAuthLogSetDelegate(id<PowerAuthLogDelegate> _Nullable delegate);

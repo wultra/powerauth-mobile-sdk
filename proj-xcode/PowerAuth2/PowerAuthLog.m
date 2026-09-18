@@ -26,13 +26,53 @@
 #endif
 
 #ifdef ENABLE_PA2_LOG
-static BOOL s_log_enabled = NO;
-static BOOL s_log_verbose = NO;
+static BOOL s_log_enabled = YES;
+static BOOL s_log_verbose = YES;
 static BOOL s_log_to_console = YES;
 static id<PowerAuthLogDelegate> s_log_delegate = nil;
+
+#if PA2_HAS_CORE_MODULE
+static void _ForwardCoreLog(NSString * message)
+{
+    PowerAuthLogImpl(@"%@", message);
+}
+#endif
+
+static NSObject * _LogLock(void)
+{
+    static NSObject * lock;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        lock = [[NSObject alloc] init];
+#if PA2_HAS_CORE_MODULE
+        PowerAuthCoreLogSetCallback(_ForwardCoreLog);
+#endif
+    });
+    return lock;
+}
+
+static void _WriteLog(NSString * message, BOOL critical)
+{
+    id<PowerAuthLogDelegate> delegate;
+    BOOL logToConsole;
+    @synchronized (_LogLock()) {
+        if (!critical && !s_log_enabled) {
+            return;
+        }
+        delegate = s_log_delegate;
+        logToConsole = critical || s_log_to_console;
+    }
+    if (delegate) {
+        [delegate powerAuthLog:message];
+    }
+    if (logToConsole) {
+        NSLog(@"[PowerAuth] %@", message);
+    }
+}
+
 void PowerAuthLogImpl(NSString * format, ...)
 {
-    if (!s_log_enabled || (!s_log_to_console && !s_log_delegate)) {
+    if (!PowerAuthLogIsEnabled()) {
         return;
     }
     va_list args;
@@ -40,13 +80,7 @@ void PowerAuthLogImpl(NSString * format, ...)
     NSString * message = [[NSString alloc] initWithFormat:format arguments:args];
     va_end(args);
     
-    if (s_log_delegate) {
-        [s_log_delegate powerAuthLog:message];
-    }
-    
-    if (s_log_to_console) {
-        NSLog(@"[PowerAuth] %@", message);
-    }
+    _WriteLog(message, NO);
 }
 #endif // ENABLE_PA2_LOG
 
@@ -54,16 +88,19 @@ void PowerAuthLogImpl(NSString * format, ...)
 void PowerAuthLogSetEnabled(BOOL enabled)
 {
 #ifdef ENABLE_PA2_LOG
-    s_log_enabled = enabled;
-    // Also apply to PowerAuthCoreLog (which internally uses CC7_LOG flag)
-    PowerAuthCoreLogSetEnabled(enabled);
+    @synchronized (_LogLock()) {
+        s_log_enabled = enabled;
+        PowerAuthCoreLogSetEnabled(enabled);
+    }
 #endif
 }
 
 BOOL PowerAuthLogIsEnabled(void)
 {
 #ifdef ENABLE_PA2_LOG
-    return s_log_enabled;
+    @synchronized (_LogLock()) {
+        return s_log_enabled;
+    }
 #else
     return NO;
 #endif
@@ -72,14 +109,18 @@ BOOL PowerAuthLogIsEnabled(void)
 void PowerAuthLogSetVerbose(BOOL verbose)
 {
 #ifdef ENABLE_PA2_LOG
-    s_log_verbose = verbose;
+    @synchronized (_LogLock()) {
+        s_log_verbose = verbose;
+    }
 #endif
 }
 
 BOOL PowerAuthLogIsVerbose(void)
 {
 #ifdef ENABLE_PA2_LOG
-    return s_log_verbose;
+    @synchronized (_LogLock()) {
+        return s_log_verbose;
+    }
 #else
     return NO;
 #endif
@@ -88,14 +129,18 @@ BOOL PowerAuthLogIsVerbose(void)
 void PowerAuthLogToConsoleSetEnabled(BOOL enabled)
 {
 #ifdef ENABLE_PA2_LOG
-    s_log_to_console = enabled;
+    @synchronized (_LogLock()) {
+        s_log_to_console = enabled;
+    }
 #endif
 }
 
 BOOL PowerAuthLogToConsoleIsEnabled(void)
 {
 #ifdef ENABLE_PA2_LOG
-    return s_log_to_console;
+    @synchronized (_LogLock()) {
+        return s_log_to_console;
+    }
 #else
     return NO;
 #endif
@@ -108,12 +153,22 @@ void PowerAuthCriticalWarning(NSString * format, ...)
     NSString * message = [[NSString alloc] initWithFormat:format arguments:args];
     va_end(args);
     
+#ifdef ENABLE_PA2_LOG
+    _WriteLog([@"CRITICAL WARNING: " stringByAppendingString:message], YES);
+#else
     NSLog(@"[PowerAuth] CRITICAL WARNING: %@", message);
+#endif
 }
 
 void PowerAuthLogSetDelegate(id<PowerAuthLogDelegate> delegate)
 {
 #ifdef ENABLE_PA2_LOG
-    s_log_delegate = delegate;
+    // Delegate destruction can itself log, so release it outside the logging lock.
+    __attribute__((objc_precise_lifetime)) id<PowerAuthLogDelegate> previousDelegate;
+    @synchronized (_LogLock()) {
+        previousDelegate = s_log_delegate;
+        s_log_delegate = delegate;
+    }
+    (void) previousDelegate;
 #endif
 }

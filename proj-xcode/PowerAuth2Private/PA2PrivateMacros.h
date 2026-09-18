@@ -96,8 +96,8 @@ PA2_EXTERN_C void PA2DictionarySafeSet(NSMutableDictionary * dict, NSString * ke
         }                                                   \
     } while (false);
 
-#if DEBUG
-/// Print error based on errno constant. Function is implemented only for DEBUG builds.
+#if defined(ENABLE_PA2_LOG)
+/// Logs the error described by errno.
 PA2_EXTERN_C void PA2PrintErrno(NSString * location);
 #else
 #define PA2PrintErrno(...)

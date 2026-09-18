@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "PowerAuth2", type: .dynamic, targets: ["PowerAuth2"])
     ],
     dependencies: [
-        .package(url: "https://github.com/wultra/cc7", from: "0.7.2")
+        .package(url: "https://github.com/wultra/cc7", branch: "logging-test")
     ],
     targets: [
         

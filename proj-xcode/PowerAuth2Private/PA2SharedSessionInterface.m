@@ -669,13 +669,13 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
 
 - (void) addOperation:(NSOperation*)operation toSharedQueue:(NSOperationQueue*)queue
 {
-#if DEBUG
+#if defined(ENABLE_PA2_LOG)
     [_localLock lock];
     if (_readWriteAccessCount > 0) {
         PowerAuthLog(@"ERROR: Adding operation to shared queue from session task can lead to interprocess deadlock.");
     }
     [_localLock unlock];
-#endif // DEBUG
+#endif // ENABLE_PA2_LOG
     NSBlockOperation * addOperation = [NSBlockOperation blockOperationWithBlock:^{
         if (!operation.cancelled) {
             NSBlockOperation * lockOp = [NSBlockOperation blockOperationWithBlock:^{ [_queueLock lock]; }];

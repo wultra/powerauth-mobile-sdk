@@ -254,7 +254,7 @@ if (![self unlockImpl:&lerr] || lerr) {         \
 
 - (void) addOperation:(NSOperation *)operation toSharedQueue:(NSOperationQueue *)queue
 {
-#if DEBUG
+#if defined(ENABLE_PA2_LOG)
     [_lock lock];
     if (_readWriteAccessCount > 0) {
         PowerAuthLog(@"ERROR: Adding operation to shared queue from session task can lead to interprocess deadlock.");

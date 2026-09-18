@@ -16,8 +16,33 @@
 
 #import <PowerAuthCore/PowerAuthCoreLog.h>
 #import <PowerAuth/Debug.h>
+#include <atomic>
 
 #ifdef ENABLE_POWERAUTH_CORE_LOG
+
+static std::atomic<PowerAuthCoreLogCallback> s_log_callback { nullptr };
+
+static void _WriteLog(NSString * message)
+{
+    auto callback = s_log_callback.load();
+    if (callback) {
+        callback(message);
+    } else {
+        NSLog(@"%@", message);
+    }
+}
+
+static void _ForwardCC7Log(void * context, const char * message)
+{
+    @autoreleasepool {
+        NSString * text = [NSString stringWithUTF8String:message];
+        if (!text) {
+            NSData * data = [NSData dataWithBytes:message length:strlen(message)];
+            text = [NSString stringWithFormat:@"<non-UTF-8 log, Base64: %@>", [data base64EncodedStringWithOptions:0]];
+        }
+        _WriteLog([@"[cc7] " stringByAppendingString:text]);
+    }
+}
 
 void PowerAuthCoreLogImpl(NSString * format, ...)
 {
@@ -29,10 +54,18 @@ void PowerAuthCoreLogImpl(NSString * format, ...)
     NSString * message = [[NSString alloc] initWithFormat:format arguments:args];
     va_end(args);
     
-    NSLog(@"[PowerAuthCore] %@", message);
+    _WriteLog([@"[PowerAuthCore] " stringByAppendingString:message]);
 }
 
 #endif // ENABLE_POWERAUTH_CORE_LOG
+
+void PowerAuthCoreLogSetCallback(PowerAuthCoreLogCallback callback)
+{
+#ifdef ENABLE_POWERAUTH_CORE_LOG
+    s_log_callback.store(callback);
+    cc7::debug::SetLogHandler({ _ForwardCC7Log, nullptr });
+#endif
+}
 
 void PowerAuthCoreLogSetEnabled(BOOL enabled)
 {

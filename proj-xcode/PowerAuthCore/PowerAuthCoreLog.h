@@ -18,17 +18,16 @@
 
 #pragma mark - Core logging
 
-#if defined(DEBUG) && !defined(ENABLE_POWERAUTH_CORE_LOG)
+#if !defined(ENABLE_POWERAUTH_CORE_LOG)
 #define ENABLE_POWERAUTH_CORE_LOG
 #endif
 
 #ifdef ENABLE_POWERAUTH_CORE_LOG
     /**
-     PowerAuthCoreLog(...) macro prints a debug information into the debug console and is used internally
-     in the PowerAuthCore library. For DEBUG builds, the macro is expanded to internal function which uses NSLog().
-     For RELEASE builds, the message is completely suppressed during the compilation.
+     Logs diagnostic information from PowerAuthCore in all build configurations.
+     Messages go to the registered callback, or to NSLog when no callback is set.
      */
-    POWERAUTH_EXTERN_C void PowerAuthCoreLogImpl(NSString * format, ...);
+    POWERAUTH_EXTERN_C void PowerAuthCoreLogImpl(NSString * _Nonnull format, ...);
     #define PowerAuthCoreLog(...) PowerAuthCoreLogImpl(__VA_ARGS__)
 
 #else
@@ -38,16 +37,27 @@
 #endif // ENABLE_POWERAUTH_CORE_LOG
 
 /**
- Function enables or disables internal PowerAuthCore logging.
- Note that it's effective only when library is compiled in DEBUG build configuration.
+ Enables or disables PowerAuthCore and cc7 logging. Enabled by default in all build configurations.
  */
 POWERAUTH_EXTERN_C void PowerAuthCoreLogSetEnabled(BOOL enabled);
 
 /**
- Function returns YES if internal PowerAuthCore logging is enabled.
- Note that when library is compiled in RELEASE configuration, then always returns NO.
+ Returns YES if PowerAuthCore and cc7 logging is enabled.
  */
 POWERAUTH_EXTERN_C BOOL PowerAuthCoreLogIsEnabled(void);
+
+/**
+ Receives a formatted PowerAuthCore or cc7 message, including its source prefix.
+ The callback runs synchronously on the logging thread and may be called concurrently.
+ */
+typedef void (*PowerAuthCoreLogCallback)(NSString * _Nonnull message);
+
+/**
+ Sets the callback for PowerAuthCore and cc7 logs, replacing their default console output.
+ Passing NULL restores console output. Calls already in progress may use the previous callback.
+ PowerAuth2 installs its own callback to forward these messages to PowerAuthLogDelegate.
+ */
+POWERAUTH_EXTERN_C void PowerAuthCoreLogSetCallback(PowerAuthCoreLogCallback _Nullable callback);
 
 /// Contain s YES if PowerAuthCore module was compiled with a debug features. It is highly recommended
 /// to check this flag and force application to crash if the production, final application

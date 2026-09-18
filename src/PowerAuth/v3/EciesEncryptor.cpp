@@ -144,6 +144,7 @@ EciesClientEncryptor::EciesClientEncryptor(EncryptorParametersPtr& parameters,
     // In ECIES, each reques/response key is different, so we don't need to use
     // nonce generator to generate sequence of unique nonces.
     _request_nonce(GetRandomData(EciesEnvelopeKey::NonceSize)),
+    _fail_on_nosync_time(true),
     _time_sync_task(-1)
 {
 }

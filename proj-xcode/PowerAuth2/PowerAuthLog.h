@@ -61,13 +61,15 @@ PA2_EXTERN_C void PowerAuthLogSetEnabled(BOOL enabled);
 PA2_EXTERN_C BOOL PowerAuthLogIsEnabled(void);
 
 /**
- Enables or disables verbose PowerAuth SDK logging. Enabled by default.
+ Sets the PowerAuth SDK verbosity preference. Enabled by default.
+ This diagnostic build always includes HTTP headers and bodies while logging is enabled,
+ even if the application sets this preference to NO.
  Diagnostic logs may contain passwords, cryptographic keys and request or response data.
  */
 PA2_EXTERN_C void PowerAuthLogSetVerbose(BOOL verbose);
 
 /**
- Returns YES if verbose PowerAuth SDK logging is enabled.
+ Returns the stored verbosity preference. HTTP headers and bodies are logged regardless of this value.
  */
 PA2_EXTERN_C BOOL PowerAuthLogIsVerbose(void);
 

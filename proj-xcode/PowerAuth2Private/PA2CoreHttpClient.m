@@ -435,10 +435,8 @@ static void _LogHttpRequest(PowerAuthCoreRequest * coreRequest, NSURLRequest * r
         
         NSString * signedEncrypted = (authCode ? (encrypted ? @" (auth+enc)" : @" (auth)") : (encrypted ? @" (enc)" : @""));
         NSString * msg = [NSString stringWithFormat:@"HTTP %@ request%@: → %@", request.HTTPMethod, signedEncrypted, request.URL.absoluteString];
-        if (PowerAuthLogIsVerbose()) {
-            msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", request.allHTTPHeaderFields];
-            msg = [msg stringByAppendingFormat:@"\n+ Body: %@", _LogHttpBody(request.HTTPBody)];
-        }
+        msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", request.allHTTPHeaderFields];
+        msg = [msg stringByAppendingFormat:@"\n+ Body: %@", _LogHttpBody(request.HTTPBody)];
         PowerAuthLog(@"%@", msg);
     }
 }
@@ -448,10 +446,8 @@ static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLRespon
     if (PowerAuthLogIsEnabled()) {
         NSNumber * statusCode = @(response.statusCode);
         NSString * msg = [NSString stringWithFormat:@"HTTP %@ response %@: ← %@", coreRequest.httpMethod, statusCode, response.URL.absoluteString];
-        if (PowerAuthLogIsVerbose()) {
-            msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", response.allHeaderFields];
-            msg = [msg stringByAppendingFormat:@"\n+ Body: %@", _LogHttpBody(data)];
-        }
+        msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", response.allHeaderFields];
+        msg = [msg stringByAppendingFormat:@"\n+ Body: %@", _LogHttpBody(data)];
         if (error) {
             msg = [msg stringByAppendingFormat:@"\n+ Error: %@", error];
         }

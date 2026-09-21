@@ -68,8 +68,6 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     PA2CoreHttpClient * _client;
     NSString * _biometryKeyIdentifier;
     PowerAuthKeychain * _statusKeychain;
-    // TODO: shared keychain is no longer in use for the possession factor key. We're using internal calculation in C++ core from provided device specific data.
-    //       Keep this for possible use in https://github.com/wultra/powerauth-mobile-sdk/issues/362
     PowerAuthKeychain * _sharedKeychain;
     PowerAuthKeychain * _biometryOnlyKeychain;
     PA2PrivateHttpTokenProvider * _remoteHttpTokenProvider;
@@ -177,26 +175,6 @@ static NSData * _BuildDeviceSpecificData(void)
     // Initialize token store with its own keychain as a backing storage and remote token provider.
     PowerAuthKeychain * tokenStoreKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_TokenStore
                                                                                accessGroup:keychainAccessGroup];
-    // Create session setup parameters
-    PowerAuthCoreConfig *coreConfig = [PowerAuthCoreConfig buildWithConfiguration:_configuration.configuration
-                                                               deviceSpecificData:_BuildDeviceSpecificData()
-                                                                       instanceId:_configuration.instanceId
-                                                                        algorithm:(PowerAuthCoreAlgorithm)_configuration.algorithm
-                                                                            error:&localError];
-    // TODO: EEK
-    //setup.externalEncryptionKey = _configuration.externalEncryptionKey;
-    // Create a new session
-    if (!coreConfig || localError) {
-        PA2WrapError(localError, error);
-        return NO;
-    }
-    // Build core session
-    PowerAuthCoreSession * coreSession = [PowerAuthCoreSession createWithConfiguration:coreConfig error:&localError];
-    if (!coreSession || localError) {
-        PA2WrapError(localError, error);
-        return NO;
-    }
-    
     // Make sure to reset keychain data after app re-install.
     // Important: This deletes all Keychain data in all PowerAuthSDK instances!
     // By default, the code uses standard user defaults, use `PowerAuthKeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` to use `NSUserDefaults` with a custom suite name.
@@ -218,6 +196,44 @@ static NSData * _BuildDeviceSpecificData(void)
         [userDefaults setBool:YES forKey:PowerAuthKeychain_Initialized];
         [userDefaults synchronize];
     }
+
+    // Read the possession cache only after reinstall cleanup.
+    NSData * deviceSpecificData = _BuildDeviceSpecificData();
+    NSData * possessionKeyV3 = [PowerAuthSDK possessionKeyWithDeviceSpecificData:deviceSpecificData
+                                                               protocolVersion:PowerAuthCoreProtocolVersion_V3
+                                                                      keychain:_sharedKeychain
+                                                                           key:_keychainConfiguration.keychainKey_Possession
+                                                                         error:error];
+    if (!possessionKeyV3) {
+        return NO;
+    }
+    NSData * possessionKeyV4 = [PowerAuthSDK possessionKeyWithDeviceSpecificData:deviceSpecificData
+                                                               protocolVersion:PowerAuthCoreProtocolVersion_V4
+                                                                      keychain:_sharedKeychain
+                                                                           key:_keychainConfiguration.keychainKey_Possession
+                                                                         error:error];
+    if (!possessionKeyV4) {
+        return NO;
+    }
+    PowerAuthCoreConfig * coreConfig = [PowerAuthCoreConfig buildWithConfiguration:_configuration.configuration
+                                                              deviceSpecificData:deviceSpecificData
+                                                                 possessionKeyV3:possessionKeyV3
+                                                                 possessionKeyV4:possessionKeyV4
+                                                                      instanceId:_configuration.instanceId
+                                                                       algorithm:(PowerAuthCoreAlgorithm)_configuration.algorithm
+                                                                           error:&localError];
+    // TODO: EEK
+    //setup.externalEncryptionKey = _configuration.externalEncryptionKey;
+    if (!coreConfig || localError) {
+        PA2WrapError(localError, error);
+        return NO;
+    }
+    PowerAuthCoreSession * coreSession = [PowerAuthCoreSession createWithConfiguration:coreConfig error:&localError];
+    if (!coreSession || localError) {
+        PA2WrapError(localError, error);
+        return NO;
+    }
+
     // Initialize session data provider and session interface.
     PA2SessionDataProvider * sessionDataProvider = [[PA2SessionDataProvider alloc] initWithKeychain:_statusKeychain statusKey:_configuration.instanceId];
     if (sharingConfiguration == nil) {
@@ -380,6 +396,60 @@ static NSData * _BuildDeviceSpecificData(void)
 }
 
 #pragma mark - Key management
+
++ (NSData*) possessionKeyWithDeviceSpecificData:(NSData*)deviceSpecificData
+                                protocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
+                                       keychain:(PowerAuthKeychain*)keychain
+                                            key:(NSString*)key
+                                          error:(NSError**)error
+{
+    NSUInteger keySize;
+    switch (protocolVersion) {
+        case PowerAuthCoreProtocolVersion_V3:
+            keySize = 16;
+            break;
+        case PowerAuthCoreProtocolVersion_V4:
+            keySize = 32;
+            // Preserve the SDK 1.x entry unchanged; V4 uses a different derivation and key length.
+            key = [key stringByAppendingString:@":v4"];
+            break;
+        default:
+            PA2SetError(error, PowerAuthErrorCode_WrongParameter, @"Unsupported possession key protocol version");
+            return nil;
+    }
+    OSStatus status = errSecSuccess;
+    NSData * possessionKey = [keychain dataForKey:key status:&status];
+    if (status == errSecItemNotFound) {
+        NSError * localError = nil;
+        possessionKey = [PowerAuthCoreConfig derivePossessionKeyFromDeviceSpecificData:deviceSpecificData
+                                                                      protocolVersion:protocolVersion
+                                                                                error:&localError];
+        if (!possessionKey) {
+            PA2WrapError(localError, error);
+            return nil;
+        }
+        PowerAuthKeychainStoreItemResult result = [keychain addValue:possessionKey forKey:key];
+        if (result == PowerAuthKeychainStoreItemResult_Duplicate) {
+            // Another SDK instance or app extension populated the cache first.
+            possessionKey = [keychain dataForKey:key status:&status];
+        } else if (result != PowerAuthKeychainStoreItemResult_Ok) {
+            PA2SetError(error, PowerAuthErrorCode_Other, @"Failed to cache the possession key");
+            return nil;
+        } else {
+            status = errSecSuccess;
+        }
+    }
+    if (status != errSecSuccess) {
+        NSString * message = [NSString stringWithFormat:@"Failed to read the V%d possession key (OSStatus %d)", (int)protocolVersion, (int)status];
+        PA2SetError(error, PowerAuthErrorCode_Other, message);
+        return nil;
+    }
+    if (possessionKey.length != keySize) {
+        PA2SetError(error, PowerAuthErrorCode_Other, @"Invalid cached possession key");
+        return nil;
+    }
+    return possessionKey;
+}
 
 - (PA2KeystoreService*) keystoreService
 {

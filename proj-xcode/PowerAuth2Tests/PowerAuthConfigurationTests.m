@@ -17,6 +17,45 @@
 #import <XCTest/XCTest.h>
 #import <PowerAuth2/PowerAuth2.h>
 #import <PowerAuthCore/PowerAuthCoreSession.h>
+#import <PowerAuthCore/PowerAuthCoreCryptoUtils.h>
+
+@interface PowerAuthSDK (PossessionCacheTests)
++ (NSData*) possessionKeyWithDeviceSpecificData:(NSData*)deviceSpecificData
+                                protocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
+                                       keychain:(PowerAuthKeychain*)keychain
+                                            key:(NSString*)key
+                                          error:(NSError**)error;
+@end
+
+@interface PA2PossessionTestKeychain : PowerAuthKeychain
+@property (nonatomic, strong) NSMutableDictionary<NSString*, NSData*> * storedKeys;
+@property (nonatomic, strong) NSData * concurrentKey;
+@property (nonatomic) OSStatus readError;
+@property (nonatomic) PowerAuthKeychainStoreItemResult writeResult;
+@property (nonatomic) NSUInteger writes;
+@end
+
+@implementation PA2PossessionTestKeychain
+- (NSData*) dataForKey:(NSString*)key status:(OSStatus*)status
+{
+    *status = _readError ?: (_storedKeys[key] ? errSecSuccess : errSecItemNotFound);
+    return _readError ? nil : _storedKeys[key];
+}
+
+- (PowerAuthKeychainStoreItemResult) addValue:(NSData*)data forKey:(NSString*)key
+{
+    _writes++;
+    if (!_storedKeys) {
+        _storedKeys = [NSMutableDictionary dictionary];
+    }
+    if (_writeResult == PowerAuthKeychainStoreItemResult_Ok) {
+        _storedKeys[key] = data;
+    } else if (_writeResult == PowerAuthKeychainStoreItemResult_Duplicate && _concurrentKey) {
+        _storedKeys[key] = _concurrentKey;
+    }
+    return _writeResult;
+}
+@end
 
 @interface PowerAuthConfigurationTests : XCTestCase
 @property (nonatomic, strong) NSString * goodSdkConfiguration;
@@ -26,6 +65,91 @@
 
 
 @implementation PowerAuthConfigurationTests
+
+- (void) testPossessionCache
+{
+    PA2PossessionTestKeychain * keychain = [[PA2PossessionTestKeychain alloc] initWithIdentifier:@"test"];
+    NSData * originalDevice = [@"original-device" dataUsingEncoding:NSUTF8StringEncoding];
+    NSData * changedDevice = [@"changed-device" dataUsingEncoding:NSUTF8StringEncoding];
+    const unsigned char sha3[] = {
+        0x87, 0x0f, 0xb7, 0xc9, 0xe2, 0x0c, 0x93, 0x68, 0x7d, 0x19, 0x81, 0x43, 0x97, 0x7f, 0x0b, 0xac,
+        0x0f, 0x25, 0xf0, 0xa4, 0x8c, 0xc4, 0x16, 0xa6, 0xf7, 0x27, 0xaf, 0x6c, 0x23, 0xf0, 0x82, 0x90
+    };
+    for (int version = PowerAuthCoreProtocolVersion_V3; version <= PowerAuthCoreProtocolVersion_V4; version++) {
+        NSString * entry = version == PowerAuthCoreProtocolVersion_V3 ? @"possession" : @"possession:v4";
+        NSData * expected = version == PowerAuthCoreProtocolVersion_V3
+            ? [[PowerAuthCoreCryptoUtils hashSha256:originalDevice] subdataWithRange:NSMakeRange(0, 16)]
+            : [NSData dataWithBytes:sha3 length:sizeof(sha3)];
+        NSError * error = nil;
+        NSData * key = [PowerAuthSDK possessionKeyWithDeviceSpecificData:originalDevice protocolVersion:version keychain:keychain key:@"possession" error:&error];
+        XCTAssertNil(error);
+        XCTAssertEqualObjects(key, expected);
+        XCTAssertEqualObjects(keychain.storedKeys[entry], expected);
+        NSUInteger writes = keychain.writes;
+        for (NSData * device in @[changedDevice, [@"changed-again" dataUsingEncoding:NSUTF8StringEncoding]]) {
+            PA2PossessionTestKeychain * reopened = [[PA2PossessionTestKeychain alloc] initWithIdentifier:@"test"];
+            reopened.storedKeys = keychain.storedKeys;
+            key = [PowerAuthSDK possessionKeyWithDeviceSpecificData:device protocolVersion:version keychain:reopened key:@"possession" error:&error];
+            XCTAssertNil(error);
+            XCTAssertEqualObjects(key, expected);
+            XCTAssertEqual(reopened.writes, 0u);
+            XCTAssertEqual(keychain.writes, writes);
+        }
+    }
+    XCTAssertEqual(keychain.writes, 2u);
+    XCTAssertEqual(keychain.storedKeys.count, 2u);
+
+    NSData * oldKey = [@"old-cached-key16" dataUsingEncoding:NSUTF8StringEncoding];
+    keychain.storedKeys[@"possession"] = oldKey;
+    NSError * error = nil;
+    XCTAssertEqualObjects([PowerAuthSDK possessionKeyWithDeviceSpecificData:changedDevice protocolVersion:PowerAuthCoreProtocolVersion_V3
+                                                                  keychain:keychain key:@"possession" error:&error], oldKey);
+    XCTAssertNil(error);
+    XCTAssertEqual(keychain.writes, 2u);
+}
+
+- (void) testPossessionCacheFailures
+{
+    NSData * device = [@"device" dataUsingEncoding:NSUTF8StringEncoding];
+    for (int version = PowerAuthCoreProtocolVersion_V3; version <= PowerAuthCoreProtocolVersion_V4; version++) {
+        NSString * entry = version == PowerAuthCoreProtocolVersion_V3 ? @"possession" : @"possession:v4";
+        NSUInteger keySize = version == PowerAuthCoreProtocolVersion_V3 ? 16 : 32;
+        for (NSUInteger scenario = 0; scenario < 6; scenario++) {
+            PA2PossessionTestKeychain * keychain = [[PA2PossessionTestKeychain alloc] initWithIdentifier:@"test"];
+            keychain.storedKeys = [NSMutableDictionary dictionary];
+            switch (scenario) {
+                case 0: keychain.readError = errSecInteractionNotAllowed; break;
+                case 1: keychain.storedKeys[entry] = [NSMutableData dataWithLength:keySize - 1]; break;
+                case 2: keychain.storedKeys[entry] = [NSMutableData dataWithLength:keySize + 1]; break;
+                case 3: keychain.writeResult = PowerAuthKeychainStoreItemResult_Other; break;
+                case 4: keychain.writeResult = PowerAuthKeychainStoreItemResult_Duplicate; break;
+                case 5: break;
+            }
+            NSDictionary * original = [keychain.storedKeys copy];
+            NSError * error = nil;
+            XCTAssertNil([PowerAuthSDK possessionKeyWithDeviceSpecificData:scenario == 5 ? [NSData data] : device
+                                                           protocolVersion:version keychain:keychain key:@"possession" error:&error]);
+            XCTAssertNotNil(error);
+            XCTAssertEqualObjects(original, keychain.storedKeys);
+            XCTAssertEqual(keychain.writes, scenario == 3 || scenario == 4 ? 1u : 0u);
+        }
+    }
+}
+
+- (void) testPossessionCacheConcurrentCreation
+{
+    for (int version = PowerAuthCoreProtocolVersion_V3; version <= PowerAuthCoreProtocolVersion_V4; version++) {
+        PA2PossessionTestKeychain * keychain = [[PA2PossessionTestKeychain alloc] initWithIdentifier:@"test"];
+        keychain.writeResult = PowerAuthKeychainStoreItemResult_Duplicate;
+        keychain.concurrentKey = [PowerAuthCoreCryptoUtils randomBytes:version == PowerAuthCoreProtocolVersion_V3 ? 16 : 32];
+        NSError * error = nil;
+        NSData * key = [PowerAuthSDK possessionKeyWithDeviceSpecificData:[@"device" dataUsingEncoding:NSUTF8StringEncoding]
+                                                        protocolVersion:version keychain:keychain key:@"possession" error:&error];
+        XCTAssertNil(error);
+        XCTAssertEqualObjects(key, keychain.concurrentKey);
+        XCTAssertEqual(keychain.writes, 1u);
+    }
+}
 
 - (void) setUp
 {

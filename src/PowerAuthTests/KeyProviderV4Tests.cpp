@@ -36,6 +36,7 @@ public:
     KeyProviderV4Tests()
     {
         CC7_REGISTER_TEST_METHOD(test_EC_P384)
+        CC7_REGISTER_TEST_METHOD(test_PossessionCache)
         CC7_REGISTER_TEST_METHOD(test_EC_P384_Bio)
         CC7_REGISTER_TEST_METHOD(test_EC_P384_ML_L3)
         CC7_REGISTER_TEST_METHOD(test_EC_P384_ML_L3_Bio)
@@ -160,6 +161,42 @@ public:
     {
         setUp(PowerAuthSpec::EC_P384, false);
         testKeyProvider();
+    }
+
+    void test_PossessionCache()
+    {
+        setUp(PowerAuthSpec::EC_P384, false);
+        createRegistrationData();
+        testInitialCredentials();
+        auto serialized = sessionData().serialize();
+        auto cached_key = algorithms().v4.sha3_256().digest(configGenerator->deviceSpecificData);
+        auto instance_id = configuration().instanceId();
+        auto secrets = keyProvider().unlockSecretKeys();
+        ByteArray local_key = secrets->keyLocalData();
+        keyProvider().lockSecretKeys(secrets);
+
+        for (const auto* identifier : { "changed-device-identifier", "changed-again" }) {
+            auto builder = Configuration::Builder(configGenerator->sdkConfiguration, PowerAuthSpec::EC_P384)
+                .withInstanceId(instance_id)
+                .withDeviceSpecificData(MakeRange(identifier));
+            auto uncached = Context::getInstance(builder.build());
+            secrets = uncached->keyProvider().unlockSecretKeys();
+            ccstAssertNotEqual(cached_key, secrets->keyDeviceSpecific());
+            ccstAssertNotEqual(local_key, secrets->keyLocalData());
+            uncached->keyProvider().lockSecretKeys(secrets);
+
+            context = Context::getInstance(builder.withPossessionKeys(cc7::crypto::GetRandomData(v3::FACTOR_KEY_SIZE), cached_key).build());
+            sessionData().deserialize(serialized);
+            testCredentials();
+            secrets = keyProvider().unlockSecretKeys();
+            ccstAssertEqual(cached_key, secrets->keyDeviceSpecific());
+            ccstAssertEqual(local_key, secrets->keyLocalData());
+            ccstAssertEqual(keyAuthenticationCodePossession, secrets->keyAuthenticationCodePossession());
+            keyProvider().lockSecretKeys(secrets);
+            keyProvider().asService()->clearSensitiveData();
+            keyProvider().asService()->restoreSensitiveData();
+            testCredentials();
+        }
     }
     
     void test_EC_P384_ML_L3_Bio()

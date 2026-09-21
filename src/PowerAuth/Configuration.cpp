@@ -29,6 +29,8 @@ namespace powerAuth {
 Configuration::Configuration(PowerAuthSpec::Algorithm algorithm,
                              const std::string& instance_id,
                              const cc7::ByteArray& device_specific_data,
+                             const cc7::ByteArray& possession_key_v3,
+                             const cc7::ByteArray& possession_key_v4,
                              const cc7::ByteArray& application_key,
                              const cc7::ByteArray& application_secret,
                              const cc7::ByteArray& p256_master_server_public_key,
@@ -38,6 +40,8 @@ Configuration::Configuration(PowerAuthSpec::Algorithm algorithm,
     _algorithm(algorithm),
     _instance_id(instance_id),
     _device_specific_data(device_specific_data),
+    _possession_key_v3(possession_key_v3),
+    _possession_key_v4(possession_key_v4),
     _application_key(application_key),
     _application_secret(application_secret),
     _application_key_string(application_key.base64()),
@@ -77,6 +81,34 @@ const cc7::ByteArray& Configuration::applicationKeyBytes() const noexcept
 const cc7::ByteArray& Configuration::deviceSpecificData() const noexcept
 {
     return _device_specific_data;
+}
+
+const cc7::ByteArray& Configuration::possessionKeyV3() const noexcept
+{
+    return _possession_key_v3;
+}
+
+const cc7::ByteArray& Configuration::possessionKeyV4() const noexcept
+{
+    return _possession_key_v4;
+}
+
+cc7::ByteArray Configuration::derivePossessionKey(const cc7::ByteRange& data, ProtocolVersion version)
+{
+    if (data.empty()) {
+        throw Exception(EC_WrongParameter, "Device specific data not provided");
+    }
+    switch (version) {
+        case Version_V3: {
+            auto key = algorithms().v3.sha256().digest(data);
+            key.resize(v3::FACTOR_KEY_SIZE);
+            return key;
+        }
+        case Version_V4:
+            return algorithms().v4.sha3_256().digest(data);
+        default:
+            throw Exception(EC_WrongParameter, "Unsupported possession key protocol version");
+    }
 }
 
 const cc7::ByteArray& Configuration::applicationSecretBytes() const noexcept
@@ -158,6 +190,19 @@ Configuration::Builder& Configuration::Builder::withDeviceSpecificData(const cc7
     return *this;
 }
 
+Configuration::Builder& Configuration::Builder::withPossessionKeys(const cc7::ByteRange& key_v3, const cc7::ByteRange& key_v4)
+{
+    if (!key_v3.empty() && key_v3.size() != v3::FACTOR_KEY_SIZE) {
+        throw Exception(EC_WrongParameter, "V3 possession key must contain 16 bytes");
+    }
+    if (!key_v4.empty() && key_v4.size() != v4::FACTOR_KEY_SIZE) {
+        throw Exception(EC_WrongParameter, "V4 possession key must contain 32 bytes");
+    }
+    _possession_key_v3 = key_v3;
+    _possession_key_v4 = key_v4;
+    return *this;
+}
+
 ConfigurationPtr Configuration::Builder::build() const
 {
     if (_instance_id.empty()) {
@@ -172,6 +217,8 @@ ConfigurationPtr Configuration::Builder::build() const
     auto instance = new Configuration(_algorithm,
                                       _instance_id,
                                       _device_specific_data,
+                                      _possession_key_v3,
+                                      _possession_key_v4,
                                       _application_key,
                                       _application_secret,
                                       _p256_master_server_public_key,

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuthCore/PowerAuthCoreMacros.h>
+#import <PowerAuthCore/PowerAuthCoreTypes.h>
 
 /// The `PowerAuthCoreAlgorithm` enumeration defines algorithms available for PowerAuth
 /// initialization.
@@ -61,6 +61,34 @@ typedef NS_ENUM(int, PowerAuthCoreAlgorithm) {
                                               instanceId:(nonnull NSString*)instanceId
                                                algorithm:(PowerAuthCoreAlgorithm)algorithm
                                                    error:(NSError*_Nullable*_Nullable)error;
+
+/// Create a configuration using cached device-specific keys for possession protection.
+/// - Parameters:
+///   - configuration: SDK configuration string.
+///   - deviceSpecificData: Device specific data used when a cached key is not supplied.
+///   - possessionKeyV3: Optional 16-byte V3 key. If nil or empty, it is derived from device specific data.
+///   - possessionKeyV4: Optional 32-byte V4 key. If nil or empty, it is derived from device specific data.
+///   - instanceId: Instance identifier.
+///   - algorithm: Algorithm to use in the PowerAuth instance.
+///   - error: Pointer to receive the construction error.
+/// - Returns: A configuration, or nil on failure.
++ (nullable PowerAuthCoreConfig*) buildWithConfiguration:(nonnull NSString*)configuration
+                                      deviceSpecificData:(nonnull NSData*)deviceSpecificData
+                                         possessionKeyV3:(nullable NSData*)possessionKeyV3
+                                         possessionKeyV4:(nullable NSData*)possessionKeyV4
+                                              instanceId:(nonnull NSString*)instanceId
+                                               algorithm:(PowerAuthCoreAlgorithm)algorithm
+                                                   error:(NSError*_Nullable*_Nullable)error;
+
+/// Derive a device-specific key for possession protection, ready for persistent caching.
+/// - Parameters:
+///   - deviceSpecificData: Non-empty device specific data.
+///   - protocolVersion: V3 or V4 protocol version.
+///   - error: Pointer to receive the derivation error.
+/// - Returns: A 16-byte V3 key or a 32-byte V4 key, or nil on failure.
++ (nullable NSData*) derivePossessionKeyFromDeviceSpecificData:(nonnull NSData*)deviceSpecificData
+                                              protocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
+                                                        error:(NSError*_Nullable*_Nullable)error;
 
 /// Validate SDK configuration string.
 /// - Parameters:

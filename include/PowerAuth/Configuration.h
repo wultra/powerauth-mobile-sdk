@@ -59,6 +59,19 @@ public:
     
     /// Contains device specific data.
     const cc7::ByteArray& deviceSpecificData() const noexcept;
+
+    /// Contains the cached V3 device-specific key protecting possession, or an empty array to derive it.
+    const cc7::ByteArray& possessionKeyV3() const noexcept;
+
+    /// Contains the cached V4 device-specific key protecting possession and local data, or an empty array to derive it.
+    const cc7::ByteArray& possessionKeyV4() const noexcept;
+
+    /// Derive the device-specific key for possession protection using the given protocol's algorithm.
+    /// - Parameter data: Non-empty device specific data.
+    /// - Parameter version: V3 or V4 protocol version.
+    /// - Returns: A 16-byte V3 key or a 32-byte V4 key.
+    /// - Throws: `Exception` with `EC_WrongParameter` for empty data or an unsupported protocol version.
+    static cc7::ByteArray derivePossessionKey(const cc7::ByteRange& data, ProtocolVersion version);
     
     /// Return master server public key with given key identifier. If key is not set,
     /// then returns reference to empty array.
@@ -86,6 +99,13 @@ public:
         /// - Parameter data: Required device specific data.
         /// - Returns: Builder reference.
         Builder& withDeviceSpecificData(const cc7::ByteRange& data);
+
+        /// Configure cached device-specific keys for possession protection.
+        /// - Parameter key_v3: A 16-byte V3 key, or an empty range to derive it.
+        /// - Parameter key_v4: A 32-byte V4 key, or an empty range to derive it.
+        /// - Returns: Builder reference.
+        /// - Throws: `Exception` with `EC_WrongParameter` if either key has an invalid size.
+        Builder& withPossessionKeys(const cc7::ByteRange& key_v3, const cc7::ByteRange& key_v4);
         
         /// Configure instance identifier for future `Configuration` object. If instance identifier
         /// is not specified, then `"default"` string is applied to future configuration.
@@ -120,6 +140,8 @@ public:
         const PowerAuthSpec::Algorithm _algorithm;
         std::string _instance_id;
         cc7::ByteArray _device_specific_data;
+        cc7::ByteArray _possession_key_v3;
+        cc7::ByteArray _possession_key_v4;
         cc7::ByteArray _application_key;
         cc7::ByteArray _application_secret;
         cc7::ByteArray _p256_master_server_public_key;
@@ -133,6 +155,8 @@ private:
     Configuration(PowerAuthSpec::Algorithm algorithm,
                   const std::string& instance_id,
                   const cc7::ByteArray& device_specific_data,
+                  const cc7::ByteArray& possession_key_v3,
+                  const cc7::ByteArray& possession_key_v4,
                   const cc7::ByteArray& application_key,
                   const cc7::ByteArray& application_secret,
                   const cc7::ByteArray& p256_master_server_public_key,
@@ -143,6 +167,8 @@ private:
     const PowerAuthSpec::Algorithm _algorithm;
     const std::string _instance_id;
     const cc7::ByteArray _device_specific_data;
+    const cc7::ByteArray _possession_key_v3;
+    const cc7::ByteArray _possession_key_v4;
     const cc7::ByteArray _application_key;
     const cc7::ByteArray _application_secret;
     const std::string _application_key_string;

@@ -431,10 +431,12 @@ cc7::ByteRange SecretKeysV3::keyDeviceSpecific()
 {
     static const KT::CUSTOM derivation { v3::FACTOR_KEY_SIZE };
     return _pool.getKey(KEY_DEVICE_SPECIFIC, derivation, [this]() -> KT::Key {
+        const auto& cached_key = _owner->configuration().possessionKeyV3();
+        if (!cached_key.empty()) {
+            return cached_key;
+        }
         auto data = _pool.getKey(IN_DEVICE_SPECIFIC_DATA, any_input);
-        auto digest = algorithms().v3.sha256().digest(data);
-        digest.resize(v3::FACTOR_KEY_SIZE);
-        return digest;
+        return Configuration::derivePossessionKey(data, Version_V3);
     });
 }
 

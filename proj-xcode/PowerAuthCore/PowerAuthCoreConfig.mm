@@ -77,13 +77,47 @@
                                                algorithm:(PowerAuthCoreAlgorithm)algorithm
                                                    error:(NSError*_Nullable*_Nullable)error
 {
+    return [self buildWithConfiguration:configuration
+                    deviceSpecificData:deviceSpecificData
+                       possessionKeyV3:nil
+                       possessionKeyV4:nil
+                            instanceId:instanceId
+                             algorithm:algorithm
+                                 error:error];
+}
+
++ (nullable PowerAuthCoreConfig*) buildWithConfiguration:(nonnull NSString*)configuration
+                                      deviceSpecificData:(nonnull NSData*)deviceSpecificData
+                                         possessionKeyV3:(nullable NSData*)possessionKeyV3
+                                         possessionKeyV4:(nullable NSData*)possessionKeyV4
+                                              instanceId:(nonnull NSString*)instanceId
+                                               algorithm:(PowerAuthCoreAlgorithm)algorithm
+                                                   error:(NSError*_Nullable*_Nullable)error
+{
     try {
         auto config = powerAuth::Configuration::Builder(cc7::objc::CopyFromNSString(configuration),
                                                         static_cast<powerAuth::PowerAuthSpec::Algorithm>(algorithm))
             .withInstanceId(cc7::objc::CopyFromNSString(instanceId))
             .withDeviceSpecificData(cc7::objc::CopyFromNSData(deviceSpecificData))
+            .withPossessionKeys(cc7::objc::CopyFromNSData(possessionKeyV3), cc7::objc::CopyFromNSData(possessionKeyV4))
             .build();
         return [[PowerAuthCoreConfig alloc] initWithConfig:config];
+    } catch (...) {
+        if (error) {
+            *error = powerAuth::BuildNSErrorFromException();
+        }
+        return nil;
+    }
+}
+
++ (nullable NSData*) derivePossessionKeyFromDeviceSpecificData:(nonnull NSData*)deviceSpecificData
+                                              protocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
+                                                        error:(NSError*_Nullable*_Nullable)error
+{
+    try {
+        auto key = powerAuth::Configuration::derivePossessionKey(cc7::objc::CopyFromNSData(deviceSpecificData),
+                                                                static_cast<powerAuth::ProtocolVersion>(protocolVersion));
+        return cc7::objc::CopyToNSData(key);
     } catch (...) {
         if (error) {
             *error = powerAuth::BuildNSErrorFromException();

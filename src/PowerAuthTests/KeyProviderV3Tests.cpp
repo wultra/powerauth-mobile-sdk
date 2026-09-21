@@ -38,6 +38,7 @@ public:
     {
         CC7_REGISTER_TEST_METHOD(test_LEGACY)
         CC7_REGISTER_TEST_METHOD(test_LEGACY_Bio)
+        CC7_REGISTER_TEST_METHOD(test_PossessionCache)
         CC7_REGISTER_TEST_METHOD(test_DerivedKeysVectors)
         CC7_REGISTER_TEST_METHOD(test_SharedSecretVectors)
     }
@@ -155,6 +156,35 @@ public:
     {
         setUp(false);
         testKeyProvider();
+    }
+
+    void test_PossessionCache()
+    {
+        setUp(false);
+        createRegistrationData();
+        testInitialCredentials();
+        auto serialized = sessionData().serialize();
+        auto cached_key = algorithms().v3.sha256().digest(configGenerator->deviceSpecificData);
+        cached_key.resize(v3::FACTOR_KEY_SIZE);
+
+        auto builder = Configuration::Builder(configGenerator->sdkConfiguration, PowerAuthSpec::LEGACY_P256)
+            .withInstanceId(configuration().instanceId())
+            .withDeviceSpecificData(MakeRange("changed-device-identifier"));
+        auto changed_context = Context::getInstance(builder.build());
+        changed_context->sessionData().deserialize(serialized);
+        auto secrets = changed_context->keyProvider().unlockSecretKeys(*Credentials::possession());
+        ccstAssertNotEqual(keyTransport, secrets->legacyKeyTransport());
+        ccstAssertNotEqual(keyAuthenticationCodePossession, secrets->keyAuthenticationCodePossession());
+        changed_context->keyProvider().lockSecretKeys(secrets);
+
+        context = Context::getInstance(builder.withPossessionKeys(cached_key, cc7::crypto::GetRandomData(v4::FACTOR_KEY_SIZE)).build());
+        sessionData().deserialize(serialized);
+        testCredentials();
+        secrets = keyProvider().unlockSecretKeys(*Credentials::possession());
+        ccstAssertEqual(cached_key, secrets->keyDeviceSpecific());
+        ccstAssertEqual(keyTransport, secrets->legacyKeyTransport());
+        ccstAssertEqual(keyAuthenticationCodePossession, secrets->keyAuthenticationCodePossession());
+        keyProvider().lockSecretKeys(secrets);
     }
     
     void testKeyProvider()

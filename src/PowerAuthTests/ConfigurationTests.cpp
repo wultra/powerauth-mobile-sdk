@@ -82,6 +82,26 @@ public:
         ccstAssertEqual("instance4", config->instanceId());
         ccstAssertEqual(MakeRange("device-specific-data"), config->deviceSpecificData());
         ccstAssertEqual(PowerAuthSpec::EC_P384, config->algorithm());
+
+        ccstAssertTrue(config->possessionKeyV3().empty());
+        ccstAssertTrue(config->possessionKeyV4().empty());
+        auto key_v3 = cc7::crypto::GetRandomData(16);
+        auto key_v4 = cc7::crypto::GetRandomData(32);
+        config = builder.withPossessionKeys(key_v3, key_v4).build();
+        ccstAssertEqual(key_v3, config->possessionKeyV3());
+        ccstAssertEqual(key_v4, config->possessionKeyV4());
+        ccstAssertEqual(MakeRange("specific-data"), config->deviceSpecificData());
+        ccstMustThrow(Exception, builder.withPossessionKeys(cc7::crypto::GetRandomData(15), key_v4));
+        ccstMustThrow(Exception, builder.withPossessionKeys(cc7::crypto::GetRandomData(17), key_v4));
+        ccstMustThrow(Exception, builder.withPossessionKeys(key_v3, cc7::crypto::GetRandomData(31)));
+        ccstMustThrow(Exception, builder.withPossessionKeys(key_v3, cc7::crypto::GetRandomData(33)));
+        config = builder.withPossessionKeys(ByteRange(), ByteRange()).build();
+        ccstAssertTrue(config->possessionKeyV3().empty());
+        ccstAssertTrue(config->possessionKeyV4().empty());
+
+        ccstMustThrow(Exception, Configuration::derivePossessionKey(ByteRange(), Version_V3));
+        ccstMustThrow(Exception, Configuration::derivePossessionKey(ByteRange(), Version_V4));
+        ccstMustThrow(Exception, Configuration::derivePossessionKey(MakeRange("device"), Version_NA));
         
         // Wrong params
         ccstMustThrow(Exception, Configuration::Builder(data["config"].asString())

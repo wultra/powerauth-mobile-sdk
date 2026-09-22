@@ -431,6 +431,12 @@ cc7::ByteRange SecretKeysV3::keyDeviceSpecific()
 {
     static const KT::CUSTOM derivation { v3::FACTOR_KEY_SIZE };
     return _pool.getKey(KEY_DEVICE_SPECIFIC, derivation, [this]() -> KT::Key {
+        // Use the legacy possession key cached by SDK 1.9.x as-is, so existing V3 activations keep using
+        // exactly the key they were created with, regardless of changes to the device specific data.
+        const auto& legacy_key = _owner->configuration().legacyKeyPossession();
+        if (!legacy_key.empty()) {
+            return legacy_key;
+        }
         auto data = _pool.getKey(IN_DEVICE_SPECIFIC_DATA, any_input);
         auto digest = algorithms().v3.sha256().digest(data);
         digest.resize(v3::FACTOR_KEY_SIZE);

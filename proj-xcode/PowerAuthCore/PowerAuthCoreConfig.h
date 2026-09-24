@@ -62,6 +62,29 @@ typedef NS_ENUM(int, PowerAuthCoreAlgorithm) {
                                                algorithm:(PowerAuthCoreAlgorithm)algorithm
                                                    error:(NSError*_Nullable*_Nullable)error;
 
+/// Create instance of `PowerAuthCoreConfig` object from the provided parameters, including an optional legacy
+/// possession factor key cached by SDK 1.9.x.
+///
+/// When `legacyKeyPossession` is provided, it's used as-is for the V3 device-specific key protecting the
+/// possession factor, so existing V3 activations keep working regardless of changes to `deviceSpecificData`.
+/// The parameter doesn't affect V4 or newer protocol derivation.
+///
+/// - Parameters:
+///   - configuration: SDK configuration string.
+///   - deviceSpecificData: Device specific data.
+///   - legacyKeyPossession: Optional legacy possession factor key. If `nil` or empty, the V3 key is derived from device specific data.
+///   - instanceId: Instance identifier.
+///   - algorithm: Algorithm to use in the PowerAuth instance.
+///   - error: Pointer to error. If provided, then contains reason of failure in case the construction fails.
+///
+/// - Returns: New instance of `PowerAuthCoreConfig` class or `nil` in case of failure.
++ (nullable PowerAuthCoreConfig*) buildWithConfiguration:(nonnull NSString*)configuration
+                                      deviceSpecificData:(nonnull NSData*)deviceSpecificData
+                                     legacyKeyPossession:(nullable NSData*)legacyKeyPossession
+                                              instanceId:(nonnull NSString*)instanceId
+                                               algorithm:(PowerAuthCoreAlgorithm)algorithm
+                                                   error:(NSError*_Nullable*_Nullable)error;
+
 /// Validate SDK configuration string.
 /// - Parameters:
 ///   - configuration: SDK configuration string to validate.

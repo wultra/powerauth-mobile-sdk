@@ -29,6 +29,7 @@ namespace powerAuth {
 Configuration::Configuration(PowerAuthSpec::Algorithm algorithm,
                              const std::string& instance_id,
                              const cc7::ByteArray& device_specific_data,
+                             const cc7::ByteArray& legacy_key_possession,
                              const cc7::ByteArray& application_key,
                              const cc7::ByteArray& application_secret,
                              const cc7::ByteArray& p256_master_server_public_key,
@@ -38,6 +39,7 @@ Configuration::Configuration(PowerAuthSpec::Algorithm algorithm,
     _algorithm(algorithm),
     _instance_id(instance_id),
     _device_specific_data(device_specific_data),
+    _legacy_key_possession(legacy_key_possession),
     _application_key(application_key),
     _application_secret(application_secret),
     _application_key_string(application_key.base64()),
@@ -77,6 +79,11 @@ const cc7::ByteArray& Configuration::applicationKeyBytes() const noexcept
 const cc7::ByteArray& Configuration::deviceSpecificData() const noexcept
 {
     return _device_specific_data;
+}
+
+const cc7::ByteArray& Configuration::legacyKeyPossession() const noexcept
+{
+    return _legacy_key_possession;
 }
 
 const cc7::ByteArray& Configuration::applicationSecretBytes() const noexcept
@@ -158,6 +165,12 @@ Configuration::Builder& Configuration::Builder::withDeviceSpecificData(const cc7
     return *this;
 }
 
+Configuration::Builder& Configuration::Builder::withLegacyKeyPossession(const cc7::ByteRange& key)
+{
+    _legacy_key_possession = key;
+    return *this;
+}
+
 ConfigurationPtr Configuration::Builder::build() const
 {
     if (_instance_id.empty()) {
@@ -166,12 +179,16 @@ ConfigurationPtr Configuration::Builder::build() const
     if (_device_specific_data.empty()) {
         throw Exception(EC_WrongParameter, "Device specific data not provided");
     }
+    if (!_legacy_key_possession.empty() && _legacy_key_possession.size() != v3::FACTOR_KEY_SIZE) {
+        throw Exception(EC_WrongParameter, "Legacy possession key has invalid size");
+    }
     if (!PowerAuthSpec::specForAlgorithm(_algorithm)->isActivationSupported()) {
         throw Exception(EC_WrongParameter, "Selected algorithm doesn't support activation process");
     }
     auto instance = new Configuration(_algorithm,
                                       _instance_id,
                                       _device_specific_data,
+                                      _legacy_key_possession,
                                       _application_key,
                                       _application_secret,
                                       _p256_master_server_public_key,

@@ -3621,4 +3621,72 @@
     XCTAssertFalse(_sdk.hasValidActivation);
 }
 
+- (PowerAuthKeychain*) possessionKeychain
+{
+    NSString * keychainId = _sdk.keychainConfiguration.keychainInstanceName_Possession;
+    NSString * accessGroup = _sdk.configuration.sharingConfiguration.appGroup;
+    return [[PowerAuthKeychain alloc] initWithIdentifier:keychainId accessGroup:accessGroup];
+}
+
+- (void) testLegacyPossessionKey
+{
+    CHECK_TEST_CONFIG();
+    
+    // Test legacy possession key is used when available in the keychain
+    // and identifierForVendor is stored in the keychain.
+    
+    PowerAuthKeychain * keychain = [self possessionKeychain];
+    [keychain deleteDataForKey:_sdk.keychainConfiguration.keychainKey_Possession];
+    _sdk = [_helper reCreateSdkInstance];
+    
+    // Keychain should now contain the `identifierForVendor`
+    XCTAssertTrue([keychain containsDataForKey:PowerAuthKeychainKey_DeviceSpecificData]);
+    
+    NSData * data = [@"data" dataUsingEncoding:NSUTF8StringEncoding];
+    NSString * uriId = @"/hello/there";
+
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithCorePassword
+                                                               activationOtp:nil];
+    XCTAssertTrue(activation.success);
+    
+    BOOL authenticationValid = [_helper validateAuthentication:_helper.authPossession
+                                                          data:data
+                                                        method:@"POST"
+                                                         uriId:uriId
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertTrue(authenticationValid);
+    
+    // Inject wrong legacy possession key. V3 must use it (breaking the signature),
+    [keychain addValue:[PowerAuthCoreCryptoUtils randomBytes:16] forKey:_sdk.keychainConfiguration.keychainKey_Possession];
+    _sdk = [_helper reCreateSdkInstance];
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        NSArray * sig = [_helper calculateOnlineSignature:data method:@"POST" uriId:uriId auth:_helper.authPossession];
+        NSString * normalized = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:uriId nonce:sig[1] data:data];
+        PATSVerifySignatureResponse * response = [_helper.testServerApi verifyAuthHeader:_sdk.activationIdentifier data:normalized authCode:sig[0] factors:[_helper authToString:_helper.authPossession] version:_helper.paVer];
+        XCTAssertFalse(response.signatureValid);
+    } else {
+        authenticationValid = [_helper validateAuthentication:_helper.authPossession
+                                                              data:data
+                                                            method:@"POST"
+                                                             uriId:uriId
+                                                            online:YES
+                                                           cripple:0];
+        XCTAssertTrue(authenticationValid);
+    }
+    
+    // When no legacy 1.9.x possession key is available, derive it.
+    [keychain deleteDataForKey:_sdk.keychainConfiguration.keychainKey_Possession];
+    _sdk = [_helper reCreateSdkInstance];
+    authenticationValid = [_helper validateAuthentication:_helper.authPossession
+                                                          data:data
+                                                        method:@"POST"
+                                                         uriId:uriId
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertTrue(authenticationValid);
+    
+    [_helper cleanup];
+}
+
 @end

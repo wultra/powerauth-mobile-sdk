@@ -31,9 +31,10 @@ extern NSString * __nonnull const PowerAuthKeychain_Initialized;
 extern NSString * __nonnull const PowerAuthKeychain_Status;
 
 /**
- Default name of the keychain service used to cache possession factor unlock key. This keychain is required because
- enterprise distribution (for example Testflight) changes 'identifierForVendor' used for the key ad-hoc calculation
- on each install - hence the value is cached.
+ Default name of the keychain service used to store possession-related data, including the legacy possession key
+ created by SDK 1.9.x and device-specific data. This keychain is required because enterprise distribution
+ (for example Testflight) changes 'identifierForVendor' used for the key ad-hoc calculation on each install -
+ hence the value is cached.
  */
 extern NSString * __nonnull const PowerAuthKeychain_Possession;
 
@@ -46,9 +47,14 @@ extern NSString * __nonnull const PowerAuthKeychain_Biometry;
  */
 extern NSString * __nonnull const PowerAuthKeychain_TokenStore;
 
-/** Constant specifying the default name of the 'key' used to store the possession key in the possession key keychain.
+/** Constant specifying the default name of the key used to store the legacy possession key created by SDK 1.9.x.
  */
 extern NSString * __nonnull const PowerAuthKeychainKey_Possession;
+
+/**
+ Constant specifying the key used to store device-specific data, including the value derived from 'identifierForVendor'.
+ */
+extern NSString * __nonnull const PowerAuthKeychainKey_DeviceSpecificData;
 
 
 /**

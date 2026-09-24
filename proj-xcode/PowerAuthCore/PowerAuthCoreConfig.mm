@@ -77,11 +77,27 @@
                                                algorithm:(PowerAuthCoreAlgorithm)algorithm
                                                    error:(NSError*_Nullable*_Nullable)error
 {
+    return [self buildWithConfiguration:configuration
+                     deviceSpecificData:deviceSpecificData
+                    legacyKeyPossession:nil
+                             instanceId:instanceId
+                              algorithm:algorithm
+                                  error:error];
+}
+
++ (nullable PowerAuthCoreConfig*) buildWithConfiguration:(nonnull NSString*)configuration
+                                      deviceSpecificData:(nonnull NSData*)deviceSpecificData
+                                     legacyKeyPossession:(nullable NSData*)legacyKeyPossession
+                                              instanceId:(nonnull NSString*)instanceId
+                                               algorithm:(PowerAuthCoreAlgorithm)algorithm
+                                                   error:(NSError*_Nullable*_Nullable)error
+{
     try {
         auto config = powerAuth::Configuration::Builder(cc7::objc::CopyFromNSString(configuration),
                                                         static_cast<powerAuth::PowerAuthSpec::Algorithm>(algorithm))
             .withInstanceId(cc7::objc::CopyFromNSString(instanceId))
             .withDeviceSpecificData(cc7::objc::CopyFromNSData(deviceSpecificData))
+            .withLegacyKeyPossession(cc7::objc::CopyFromNSData(legacyKeyPossession))
             .build();
         return [[PowerAuthCoreConfig alloc] initWithConfig:config];
     } catch (...) {

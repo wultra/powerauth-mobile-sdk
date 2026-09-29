@@ -68,8 +68,6 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     PA2CoreHttpClient * _client;
     NSString * _biometryKeyIdentifier;
     PowerAuthKeychain * _statusKeychain;
-    // TODO: shared keychain is no longer in use for the possession factor key. We're using internal calculation in C++ core from provided device specific data.
-    //       Keep this for possible use in https://github.com/wultra/powerauth-mobile-sdk/issues/362
     PowerAuthKeychain * _sharedKeychain;
     PowerAuthKeychain * _biometryOnlyKeychain;
     PA2PrivateHttpTokenProvider * _remoteHttpTokenProvider;
@@ -177,26 +175,6 @@ static NSData * _BuildDeviceSpecificData(void)
     // Initialize token store with its own keychain as a backing storage and remote token provider.
     PowerAuthKeychain * tokenStoreKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_TokenStore
                                                                                accessGroup:keychainAccessGroup];
-    // Create session setup parameters
-    PowerAuthCoreConfig *coreConfig = [PowerAuthCoreConfig buildWithConfiguration:_configuration.configuration
-                                                               deviceSpecificData:_BuildDeviceSpecificData()
-                                                                       instanceId:_configuration.instanceId
-                                                                        algorithm:(PowerAuthCoreAlgorithm)_configuration.algorithm
-                                                                            error:&localError];
-    // TODO: EEK
-    //setup.externalEncryptionKey = _configuration.externalEncryptionKey;
-    // Create a new session
-    if (!coreConfig || localError) {
-        PA2WrapError(localError, error);
-        return NO;
-    }
-    // Build core session
-    PowerAuthCoreSession * coreSession = [PowerAuthCoreSession createWithConfiguration:coreConfig error:&localError];
-    if (!coreSession || localError) {
-        PA2WrapError(localError, error);
-        return NO;
-    }
-    
     // Make sure to reset keychain data after app re-install.
     // Important: This deletes all Keychain data in all PowerAuthSDK instances!
     // By default, the code uses standard user defaults, use `PowerAuthKeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` to use `NSUserDefaults` with a custom suite name.
@@ -218,6 +196,38 @@ static NSData * _BuildDeviceSpecificData(void)
         [userDefaults setBool:YES forKey:PowerAuthKeychain_Initialized];
         [userDefaults synchronize];
     }
+    
+    // Read cached device-specific data to preserve the value derived from `identifierForVendor`.
+    NSData * deviceSpecificData = [_sharedKeychain dataForKey:PowerAuthKeychainKey_DeviceSpecificData status:nil];
+    if (nil == deviceSpecificData) {
+        deviceSpecificData = _BuildDeviceSpecificData();
+        [_sharedKeychain addValue:deviceSpecificData forKey:PowerAuthKeychainKey_DeviceSpecificData];
+    }
+
+    // Read the legacy possession key cached by SDK 1.9.x - may not be present.
+    NSData * legacyKeyPossession = [_sharedKeychain dataForKey:_keychainConfiguration.keychainKey_Possession status:nil];
+    
+    // Create session setup parameters
+    PowerAuthCoreConfig *coreConfig = [PowerAuthCoreConfig buildWithConfiguration:_configuration.configuration
+                                                               deviceSpecificData:deviceSpecificData
+                                                              legacyKeyPossession:legacyKeyPossession
+                                                                       instanceId:_configuration.instanceId
+                                                                        algorithm:(PowerAuthCoreAlgorithm)_configuration.algorithm
+                                                                            error:&localError];
+    // TODO: EEK
+    //setup.externalEncryptionKey = _configuration.externalEncryptionKey;
+    // Create a new session
+    if (!coreConfig || localError) {
+        PA2WrapError(localError, error);
+        return NO;
+    }
+    // Build core session
+    PowerAuthCoreSession * coreSession = [PowerAuthCoreSession createWithConfiguration:coreConfig error:&localError];
+    if (!coreSession || localError) {
+        PA2WrapError(localError, error);
+        return NO;
+    }
+    
     // Initialize session data provider and session interface.
     PA2SessionDataProvider * sessionDataProvider = [[PA2SessionDataProvider alloc] initWithKeychain:_statusKeychain statusKey:_configuration.instanceId];
     if (sharingConfiguration == nil) {

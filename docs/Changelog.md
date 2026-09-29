@@ -8,6 +8,10 @@
 - End-to-end request encryption no longer fails immediately when local time is not synchronized. The SDK now logs a warning and continues with request encryption ([936](https://github.com/wultra/powerauth-mobile-sdk/issues/936)).
 - Restored activation state enum ordinal values for compatibility with PowerAuth SDK 1.9.x ([941](https://github.com/wultra/powerauth-mobile-sdk/issues/941)).
 
+### Apple
+
+- Device specific data is now stored in the keychain, to avoid changes of the possession factor key when TestFlight distribution is used. Possession factor key cached by SDK 1.9.x is now reused ([944](https://github.com/wultra/powerauth-mobile-sdk/issues/944)).
+
 <!--------------------------------------------------->
 ## 2.0.0 (August 2026)
 

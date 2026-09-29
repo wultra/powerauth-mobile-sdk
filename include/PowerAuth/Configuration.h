@@ -60,6 +60,13 @@ public:
     /// Contains device specific data.
     const cc7::ByteArray& deviceSpecificData() const noexcept;
     
+    /// Contains the legacy possession factor key cached by SDK 1.9.x, or an empty array when not available.
+    ///
+    /// When present, this key is used as-is for the V3 device-specific key protecting the possession factor,
+    /// so existing V3 activations keep working regardless of changes to the device specific data. When empty,
+    /// the V3 device-specific key is derived from `deviceSpecificData()`.
+    const cc7::ByteArray& legacyKeyPossession() const noexcept;
+    
     /// Return master server public key with given key identifier. If key is not set,
     /// then returns reference to empty array.
     /// - Parameter key_id: Key identifier.
@@ -86,6 +93,16 @@ public:
         /// - Parameter data: Required device specific data.
         /// - Returns: Builder reference.
         Builder& withDeviceSpecificData(const cc7::ByteRange& data);
+        
+        /// Configure the legacy possession factor key stored by SDK 1.9.x.
+        ///
+        /// When a non-empty key is provided, it's used as-is for the V3 device-specific key protecting the
+        /// possession factor, so existing V3 activations keep working regardless of changes to the device
+        /// specific data. This parameter is optional and doesn't affect V4 or newer protocol derivation.
+        ///
+        /// - Parameter key: Legacy possession factor key, or an empty range to derive it from device specific data.
+        /// - Returns: Builder reference.
+        Builder& withLegacyKeyPossession(const cc7::ByteRange& key);
         
         /// Configure instance identifier for future `Configuration` object. If instance identifier
         /// is not specified, then `"default"` string is applied to future configuration.
@@ -120,6 +137,7 @@ public:
         const PowerAuthSpec::Algorithm _algorithm;
         std::string _instance_id;
         cc7::ByteArray _device_specific_data;
+        cc7::ByteArray _legacy_key_possession;
         cc7::ByteArray _application_key;
         cc7::ByteArray _application_secret;
         cc7::ByteArray _p256_master_server_public_key;
@@ -133,6 +151,7 @@ private:
     Configuration(PowerAuthSpec::Algorithm algorithm,
                   const std::string& instance_id,
                   const cc7::ByteArray& device_specific_data,
+                  const cc7::ByteArray& legacy_key_possession,
                   const cc7::ByteArray& application_key,
                   const cc7::ByteArray& application_secret,
                   const cc7::ByteArray& p256_master_server_public_key,
@@ -143,6 +162,7 @@ private:
     const PowerAuthSpec::Algorithm _algorithm;
     const std::string _instance_id;
     const cc7::ByteArray _device_specific_data;
+    const cc7::ByteArray _legacy_key_possession;
     const cc7::ByteArray _application_key;
     const cc7::ByteArray _application_secret;
     const std::string _application_key_string;

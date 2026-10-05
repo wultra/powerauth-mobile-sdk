@@ -170,7 +170,7 @@ Notable changes on Android:
 
 ### Other changes
 
-- TBA
+- `PowerAuthSDK.hasBiometryFactor(context)` now returns `false` after the user changes biometry on the device (for example, adds or removes a fingerprint or re-enrolls a face). See [Biometry Factor-Related Key Lifetime](PowerAuth-SDK-for-Android.md#biometry-factor-related-key-lifetime).
 
 ## iOS & tvOS
 

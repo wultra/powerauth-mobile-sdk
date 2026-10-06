@@ -806,7 +806,7 @@
     PATSActivationStatus * serverStatus = [_helper.testServerApi getActivationStatus:activation.activationId];
     XCTAssertEqual(serverStatus.timestampBlockExpire != nil, expiration != nil);
     if (!expiration) {
-        NSLog(@"WARNING: Temporary block feature is not turned on the server");
+        NSLog(@"WARNING: Temporary block feature is not enabled on the server");
         return;
     }
     NSISO8601DateFormatter * formatter = [[NSISO8601DateFormatter alloc] init];

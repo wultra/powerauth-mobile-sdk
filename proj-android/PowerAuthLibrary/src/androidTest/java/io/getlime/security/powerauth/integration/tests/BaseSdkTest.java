@@ -31,6 +31,7 @@ import io.getlime.security.powerauth.networking.response.*;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -629,6 +630,12 @@ public class BaseSdkTest extends BaseTest {
         assertTrue(powerAuthSDK.hasValidActivation());
     }
 
+    /**
+     * Test temporary activation block. To test the whole unblock cycle, the server must have
+     * {@code powerauth.service.crypto.temporaryActivationBlock.enabled=true} and
+     * {@code powerauth.service.crypto.temporaryActivationBlock.periodInMilliseconds} set to 2000 or less.
+     * Otherwise, the test only verifies that the SDK reports the same block expiration as the server.
+     */
     @Test
     public void testTemporaryBlock() throws Exception {
         if (getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256) {
@@ -647,8 +654,11 @@ public class BaseSdkTest extends BaseTest {
             }
         }
         Long expiration = status.getBlockExpirationTime();
+        // Temporary block is supported on server 2.2+ and is optional (disabled by default)
+        final Date serverExpiration = testHelper.getServerApi().getActivationDetail(activationHelper.getActivation()).getTimestampBlockExpire();
+        assertEquals(serverExpiration != null ? serverExpiration.getTime() : null, expiration);
         if (expiration == null) {
-            PowerAuthLog.w("Temporary block feature is not turned on the server");
+            PowerAuthLog.w("Temporary block feature is not enabled on the server");
             return;
         }
         long remainingWait = expiration - powerAuthSDK.getTimeSynchronizationService().getCurrentTime();

@@ -14,6 +14,7 @@
             "applicationId":                { "class": "string" },
             "timestampCreated":             { "class": "string" },
             "timestampLastUsed":            { "class": "string" },
+            "timestampBlockExpire":         { "class": "string" },
             "encryptedStatusBlob":          { "class": "string" },
             "devicePublicKeyFingerprint":   { "class": "string" },
             "encryptedStatusBlobNonce":     { "class": "string" },

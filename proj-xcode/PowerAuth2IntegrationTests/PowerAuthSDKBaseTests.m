@@ -773,7 +773,10 @@
     
     //
     // This test checks whether time of temporary block expiration is propagated to application.
-    // The test requires protocol V4 and temporary block feature turned on on the server.
+    // The test requires protocol V4 and server 2.2+ with
+    // `powerauth.service.crypto.temporaryActivationBlock.enabled=true`, otherwise it only checks
+    // that no expiration is reported. To also test the activation unblock, set
+    // `powerauth.service.crypto.temporaryActivationBlock.periodInMilliseconds` to 2000 or less.
     //
     
     if ([self powerAuthAlgorithm] == PowerAuthAlgorithm_LEGACY_P256) {
@@ -798,10 +801,18 @@
     }
     
     NSDate * expiration = status.blockExpirationTime;
+    // Temporary block is supported on server 2.2+ and is optional (disabled by default),
+    // so the server's activation status is the source of truth for whether the block expires.
+    PATSActivationStatus * serverStatus = [_helper.testServerApi getActivationStatus:activation.activationId];
+    XCTAssertEqual(serverStatus.timestampBlockExpire != nil, expiration != nil);
     if (!expiration) {
         NSLog(@"WARNING: Temporary block feature is not turned on the server");
         return;
     }
+    NSISO8601DateFormatter * formatter = [[NSISO8601DateFormatter alloc] init];
+    formatter.formatOptions = NSISO8601DateFormatWithInternetDateTime | NSISO8601DateFormatWithFractionalSeconds;
+    NSDate * serverExpiration = [formatter dateFromString:serverStatus.timestampBlockExpire];
+    XCTAssertEqualWithAccuracy(serverExpiration.timeIntervalSince1970, expiration.timeIntervalSince1970, 0.001);
     
     NSTimeInterval remainingWait = expiration.timeIntervalSince1970 - _sdk.timeSynchronizationService.currentTime;
     

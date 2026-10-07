@@ -22,8 +22,8 @@ Pod::Spec.new do |s|
         :submodules => true
     }
     
-    s.ios.deployment_target  = '13.0'
-    s.tvos.deployment_target = '13.0'
+    s.ios.deployment_target  = '15.0'
+    s.tvos.deployment_target = '15.0'
     
     # XCFramework  build    
     s.prepare_command = <<-CMD

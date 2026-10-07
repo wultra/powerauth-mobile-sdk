@@ -44,7 +44,7 @@ import PackageDescription
 let package = Package(
     name: "YourLibrary",
     platforms: [
-        .watchOS(.v4)
+        .watchOS(.v9)
     ],
     products: [
         .library(
@@ -53,7 +53,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/wultra/powerauth-mobile-watch-sdk", from: "2.0.0")
+        .package(url: "https://github.com/wultra/powerauth-mobile-watch-sdk", from: "2.1.0")
     ],
     targets: [
         .target(

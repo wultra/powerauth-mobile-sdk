@@ -1,12 +1,16 @@
 # Changelog
 
 <!--------------------------------------------------->
-## TBA - Not released yet
+## 2.1.0 (October 2026)
 
 ### Both platforms
 
 - Added authenticated activation rename API for Apple and Android SDKs ([748](https://github.com/wultra/powerauth-mobile-sdk/issues/748))
 - Activation status now includes the optional expiration time of a temporary activation block ([900](https://github.com/wultra/powerauth-mobile-sdk/issues/900))
+
+### Apple
+
+- Minimum deployment targets raised to iOS 15.0, tvOS 15.0 and watchOS 9.0 to support Xcode 27 ([947](https://github.com/wultra/powerauth-mobile-sdk/issues/947)).
 
 <!--------------------------------------------------->
 ## 2.0.1 (September 2026)

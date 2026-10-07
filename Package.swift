@@ -4,9 +4,9 @@ import PackageDescription
 let package = Package(
     name: "PowerAuth",
     platforms: [
-        .iOS(.v13),
-        .tvOS(.v13),
-        .macCatalyst(.v13)
+        .iOS(.v15),
+        .tvOS(.v15),
+        .macCatalyst(.v15)
     ],
     products: [
         .library(name: "PowerAuth2", type: .dynamic, targets: ["PowerAuth2"])

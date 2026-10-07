@@ -149,6 +149,9 @@ public:
     /// ```
     cc7::byte remainingAttempts() const noexcept;
     
+    /// If the activation is temporarily blocked, contains the time when it will be unblocked.
+    /// The value is in milliseconds since Unix epoch.
+    const std::optional<Timestamp>& blockExpirationTime() const noexcept;
     
     struct BinaryData
     {
@@ -181,11 +184,13 @@ public:
     ///   - activation_state: State of activation.
     ///   - counter_state: State of counter.
     ///   - data: Parsed blob structure.
+    ///   - block_expiration_time: If set, then contains Unix timestamp with milliseconds precision when the activation will be unblocked.
     ///   - custom_object: Custom object received together with the status blob.
     ActivationStatus(ProtocolVersion version,
                      ActivationState activation_state,
                      CounterState counter_state,
                      const BinaryData& data,
+                     const std::optional<Timestamp>& block_expiration_time,
                      const cc7::json::JsonValue& custom_object);
 private:
     
@@ -214,6 +219,7 @@ private:
     bool _is_protocol_upgrade_available;
     bool _is_remove_biometric_kek_recommended;
     
+    std::optional<Timestamp> _block_expiration_time;
     cc7::json::JsonValue _custom_object;
 };
 

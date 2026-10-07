@@ -69,6 +69,18 @@ public class PowerAuthActivationStatus {
     }
 
     /**
+     * If the activation is temporarily blocked, function returns the time when it will be unblocked.
+     * <p>
+     * Be aware that if you want to compare this date to the current date, you must use {@link IPowerAuthTimeSynchronizationService} to get the synchronized current time.
+     *
+     * @return The time when the temporarily blocked activation will be unblocked, otherwise {@code null}.
+     */
+    @Nullable
+    public Long getBlockExpirationTime() {
+        return coreStatus.getBlockExpirationTime();
+    }
+
+    /**
      * @return true if upgrade to a newer protocol version is available.
      */
     public boolean isProtocolUpgradeAvailable() {

@@ -67,7 +67,7 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 
 static int s_KnownVersions[] = {
     PATS_V1_0, PATS_V1_1, PATS_V1_2, PATS_V1_2_5, PATS_V1_3, PATS_V1_4, PATS_V1_5, PATS_V1_6, PATS_V1_7, PATS_V1_8, PATS_V1_9, PATS_V1_10,
-    PATS_V2_0
+    PATS_V2_0, PATS_V2_1, PATS_V2_2
     ,
     0
 };

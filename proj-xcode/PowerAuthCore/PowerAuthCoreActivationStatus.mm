@@ -17,6 +17,7 @@
 
 #import "PowerAuthCoreActivationStatus.h"
 #include <PowerAuth/ActivationStatus.h>
+#include <PowerAuth/TimeService.h>
 #include <cc7/objc/ObjcJson.h>
 
 @implementation PowerAuthCoreActivationStatus
@@ -30,6 +31,9 @@
     if (self) {
         _status = status;
         _customObject = cc7::objc::JsonValueToObjC(status->customObject());
+        if (status->blockExpirationTime().has_value()) {
+            _blockExpirationTime = [NSDate dateWithTimeIntervalSince1970:powerAuth::TimestampToTimeInterval(status->blockExpirationTime().value())];
+        }
     }
     return self;
 }

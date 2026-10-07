@@ -36,6 +36,8 @@ public class CoreActivationStatus {
     private final boolean isSessionSerializationNeeded;
     private final boolean isRemoveBiometricKekRecommended;
     @Nullable
+    private final Long blockExpirationTime;
+    @Nullable
     private final Map<String, Object> customObject;
 
     /**
@@ -48,6 +50,7 @@ public class CoreActivationStatus {
      * @param isCounterSynchronizationRecommended Contains true if dummy authentication code calculation is recommended to prevent the counter's de-synchronization.
      * @param isSessionSerializationNeeded Contains true if session's state should be serialized after the successful activation status decryption.
      * @param isRemoveBiometricKekRecommended Contains true if biometric KEK should be removed from Android Keystore.
+     * @param blockExpirationTime If the activation is temporarily blocked, contains the time when it will be unblocked.
      * @param customObject Contains custom object returned from the server.
      */
     public CoreActivationStatus(int state,
@@ -58,6 +61,7 @@ public class CoreActivationStatus {
                                 boolean isCounterSynchronizationRecommended,
                                 boolean isSessionSerializationNeeded,
                                 boolean isRemoveBiometricKekRecommended,
+                                @Nullable Long blockExpirationTime,
                                 @Nullable Map<String, Object> customObject) {
         this.state = state;
         this.failCount = failCount;
@@ -67,6 +71,7 @@ public class CoreActivationStatus {
         this.isCounterSynchronizationRecommended = isCounterSynchronizationRecommended;
         this.isSessionSerializationNeeded = isSessionSerializationNeeded;
         this.isRemoveBiometricKekRecommended = isRemoveBiometricKekRecommended;
+        this.blockExpirationTime = blockExpirationTime;
         this.customObject = customObject;
     }
 
@@ -126,6 +131,14 @@ public class CoreActivationStatus {
      */
     public boolean isRemoveBiometricKekRecommended() {
         return isRemoveBiometricKekRecommended;
+    }
+
+    /**
+     * @return  If the activation is temporarily blocked, returns the time when it will be unblocked.
+     */
+    @Nullable
+    public Long getBlockExpirationTime() {
+        return blockExpirationTime;
     }
 
     /**

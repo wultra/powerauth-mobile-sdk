@@ -45,6 +45,8 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
 /// Contains (maxFailCount - failCount) if state is `PowerAuthCoreActivationState_Active`,
 /// otherwise `0`.
 @property (nonatomic, assign, readonly) UInt32 remainingAttempts;
+/// If activation is temporarily blocked, then contains time when the activation will be unblocked.
+@property (nonatomic, strong, nullable, readonly) NSDate * blockExpirationTime;
 
 // SDK-private (application should not use such interface)
 

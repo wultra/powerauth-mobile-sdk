@@ -31,6 +31,7 @@ import io.getlime.security.powerauth.networking.response.*;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -45,6 +46,7 @@ import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 import static org.junit.Assert.*;
 
@@ -626,6 +628,54 @@ public class BaseSdkTest extends BaseTest {
             });
         });
         assertTrue(powerAuthSDK.hasValidActivation());
+    }
+
+    /**
+     * Test temporary activation block. To test the whole unblock cycle, the server must have
+     * {@code powerauth.service.crypto.temporaryActivationBlock.enabled=true} and
+     * {@code powerauth.service.crypto.temporaryActivationBlock.periodInMilliseconds} set to 2000 or less.
+     * Otherwise, the test only verifies that the SDK reports the same block expiration as the server.
+     */
+    @Test
+    public void testTemporaryBlock() throws Exception {
+        if (getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256) {
+            return;
+        }
+        activationHelper.createStandardActivation(true, null);
+        PowerAuthActivationStatus status = activationHelper.fetchActivationStatus();
+        for (int i = 0; i < status.getMaxFailCount(); i++) {
+            activationHelper.validateUserPassword(activationHelper.getInvalidPassword());
+            status = activationHelper.fetchActivationStatus();
+            assertEquals(i + 1, status.getFailCount());
+            if (status.getRemainingAttempts() == 0) {
+                assertEquals(PowerAuthActivationState.BLOCKED, status.getState());
+            } else {
+                assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
+            }
+        }
+        Long expiration = status.getBlockExpirationTime();
+        // Temporary block is supported on server 2.2+ and is optional (disabled by default)
+        final Date serverExpiration = testHelper.getServerApi().getActivationDetail(activationHelper.getActivation()).getTimestampBlockExpire();
+        assertEquals(serverExpiration != null ? serverExpiration.getTime() : null, expiration);
+        if (expiration == null) {
+            PowerAuthLog.w("Temporary block feature is not enabled on the server");
+            return;
+        }
+        long remainingWait = expiration - powerAuthSDK.getTimeSynchronizationService().getCurrentTime();
+        assertTrue(remainingWait >= 0);
+        if (remainingWait < 2000) {
+            PowerAuthLog.d("Waiting for activation unblock " + remainingWait + "ms");
+            Thread.sleep(remainingWait + 100);
+            status = activationHelper.fetchActivationStatus();
+            assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
+            assertEquals(1, status.getRemainingAttempts());
+            activationHelper.validateUserPassword(activationHelper.getInvalidPassword());
+            status = activationHelper.fetchActivationStatus();
+            assertEquals(PowerAuthActivationState.BLOCKED, status.getState());
+            assertNotNull(status.getBlockExpirationTime());
+        } else {
+            PowerAuthLog.d("We'll not wait for unblock the activation.");
+        }
     }
 
     // User Info

@@ -554,7 +554,15 @@ if powerAuthSDK.hasValidActivation() {
             if status.isProtocolUpgradeAvailable {
                 // Upgrade to new protocol version is available
             }
-
+            if let unblockTime = status.blockExpirationTime {
+                // Activation is temporarily blocked. Use synchronized time to compare
+                // the timestamp received from the server.
+                let currentTime = powerAuthSDK.timeSynchronizationService.currentTime()
+                let remainingBlockTime = unblockTime.timeIntervalSince1970 - currentTime
+                if remainingBlockTime > 0 {
+                    print("Seconds to activation unblock \(remainingBlockTime)")
+                }
+            }
         } else {
             // Network error occurred, report it to the user
         }

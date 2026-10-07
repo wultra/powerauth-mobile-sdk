@@ -590,6 +590,7 @@
     
     status = [_helper fetchActivationStatus];
     XCTAssertEqual(status.state, PowerAuthActivationState_Blocked);
+    XCTAssertNil(status.blockExpirationTime);   // activation was manually blocked
 
     // 3) Unblock activation & fetch status
     serverStatus = [testServerApi unblockActivation:activation.activationId];
@@ -763,6 +764,72 @@
             // blocked
             XCTAssertTrue(after.state == PowerAuthActivationState_Blocked, @"Activation should be blocked");
         }
+    }
+}
+
+- (void) testTemporaryBlock
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test checks whether time of temporary block expiration is propagated to application.
+    // The test requires protocol V4 and server 2.2+ with
+    // `powerauth.service.crypto.temporaryActivationBlock.enabled=true`, otherwise it only checks
+    // that no expiration is reported. To also test the activation unblock, set
+    // `powerauth.service.crypto.temporaryActivationBlock.periodInMilliseconds` to 2000 or less.
+    //
+    
+    if ([self powerAuthAlgorithm] == PowerAuthAlgorithm_LEGACY_P256) {
+        return;
+    }
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+    for (UInt32 i = 0; i < status.maxFailCount; i++) {
+        XCTAssertFalse([_helper checkForPassword:@"MustBeWrong"]);
+        status = [_helper fetchActivationStatus];
+        XCTAssertEqual(status.failCount, i + 1);
+        if (status.failCount == status.maxFailCount) {
+            XCTAssertEqual(PowerAuthActivationState_Blocked, status.state);
+        } else {
+            XCTAssertEqual(PowerAuthActivationState_Active, status.state);
+        }
+    }
+    
+    NSDate * expiration = status.blockExpirationTime;
+    // Temporary block is supported on server 2.2+ and is optional (disabled by default),
+    // so the server's activation status is the source of truth for whether the block expires.
+    PATSActivationStatus * serverStatus = [_helper.testServerApi getActivationStatus:activation.activationId];
+    XCTAssertEqual(serverStatus.timestampBlockExpire != nil, expiration != nil);
+    if (!expiration) {
+        NSLog(@"WARNING: Temporary block feature is not enabled on the server");
+        return;
+    }
+    NSISO8601DateFormatter * formatter = [[NSISO8601DateFormatter alloc] init];
+    formatter.formatOptions = NSISO8601DateFormatWithInternetDateTime | NSISO8601DateFormatWithFractionalSeconds;
+    NSDate * serverExpiration = [formatter dateFromString:serverStatus.timestampBlockExpire];
+    XCTAssertEqualWithAccuracy(serverExpiration.timeIntervalSince1970, expiration.timeIntervalSince1970, 0.001);
+    
+    NSTimeInterval remainingWait = expiration.timeIntervalSince1970 - _sdk.timeSynchronizationService.currentTime;
+    
+    if (remainingWait >= 0 && remainingWait < 2) {
+        NSLog(@"Waiting for activation unblock: %@", @(remainingWait));
+        [NSThread sleepForTimeInterval:remainingWait + 0.1];
+        status = [_helper fetchActivationStatus];
+        XCTAssertEqual(PowerAuthActivationState_Active, status.state);
+        XCTAssertNil(status.blockExpirationTime);
+        XCTAssertEqual(1, status.remainingAttempts);
+        XCTAssertFalse([_helper checkForPassword:@"MustBeWrong"]);
+        status = [_helper fetchActivationStatus];
+        XCTAssertEqual(PowerAuthActivationState_Blocked, status.state);
+        XCTAssertNotNil(status.blockExpirationTime);
+    } else {
+        XCTAssertTrue(remainingWait >= 0);
+        NSLog(@"We'll not wait for unblock the activation.");
     }
 }
 

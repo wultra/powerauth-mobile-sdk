@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5E5510022E26C03C00A1B2C3 /* SessionResetStateTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5E5510012E26C03C00A1B2C3 /* SessionResetStateTests.cpp */; };
+		5E5510032E26C03C00A1B2C3 /* SessionResetStateTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5E5510012E26C03C00A1B2C3 /* SessionResetStateTests.cpp */; };
 		8F00060C2E65794700C57A29 /* TokenServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F0006052E65794000C57A29 /* TokenServiceV3.cpp */; };
 		8F00060D2E65794700C57A29 /* TokenServiceV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F0006052E65794000C57A29 /* TokenServiceV3.cpp */; };
 		8F00064F2E70727600C57A29 /* UpgradeData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8F00064E2E70726D00C57A29 /* UpgradeData.cpp */; };
@@ -251,8 +253,6 @@
 		BFCA38402E255A18002F595F /* KeyProviderV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA383E2E255A18002F595F /* KeyProviderV3.cpp */; };
 		BFCA38442E26C03C002F595F /* KeyProviderV3Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38432E26C03C002F595F /* KeyProviderV3Tests.cpp */; };
 		BFCA38452E26C03C002F595F /* KeyProviderV3Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38432E26C03C002F595F /* KeyProviderV3Tests.cpp */; };
-		5E5510022E26C03C00A1B2C3 /* SessionResetStateTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5E5510012E26C03C00A1B2C3 /* SessionResetStateTests.cpp */; };
-		5E5510032E26C03C00A1B2C3 /* SessionResetStateTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5E5510012E26C03C00A1B2C3 /* SessionResetStateTests.cpp */; };
 		BFCA38492E295176002F595F /* ActivationServiceV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38482E295176002F595F /* ActivationServiceV4.cpp */; };
 		BFCA384A2E295176002F595F /* ActivationServiceV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38482E295176002F595F /* ActivationServiceV4.cpp */; };
 		BFEEEBE12A3ADEA8007C6737 /* ByteUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */; };
@@ -504,6 +504,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5E5510012E26C03C00A1B2C3 /* SessionResetStateTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SessionResetStateTests.cpp; sourceTree = "<group>"; };
 		8F0006022E6578C900C57A29 /* TokenServiceV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TokenServiceV3.h; sourceTree = "<group>"; };
 		8F0006052E65794000C57A29 /* TokenServiceV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TokenServiceV3.cpp; sourceTree = "<group>"; };
 		8F00063F2E70683700C57A29 /* UpgradeData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpgradeData.h; sourceTree = "<group>"; };
@@ -709,7 +710,6 @@
 		BFCA383D2E255A18002F595F /* KeyProviderV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KeyProviderV3.h; sourceTree = "<group>"; };
 		BFCA383E2E255A18002F595F /* KeyProviderV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KeyProviderV3.cpp; sourceTree = "<group>"; };
 		BFCA38432E26C03C002F595F /* KeyProviderV3Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KeyProviderV3Tests.cpp; sourceTree = "<group>"; };
-		5E5510012E26C03C00A1B2C3 /* SessionResetStateTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SessionResetStateTests.cpp; sourceTree = "<group>"; };
 		BFCA38462E293E13002F595F /* ActivationService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActivationService.h; sourceTree = "<group>"; };
 		BFCA38472E295176002F595F /* ActivationServiceV4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActivationServiceV4.h; sourceTree = "<group>"; };
 		BFCA38482E295176002F595F /* ActivationServiceV4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ActivationServiceV4.cpp; sourceTree = "<group>"; };
@@ -2393,6 +2393,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KTT9G859MR;
 				INFOPLIST_FILE = PowerAuthCoreTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2415,6 +2416,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KTT9G859MR;
 				INFOPLIST_FILE = PowerAuthCoreTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2447,6 +2449,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.wultra.lib.PowerAuthCoreTests-tvos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
 			};
 			name = Debug;
 		};
@@ -2469,6 +2472,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.wultra.lib.PowerAuthCoreTests-tvos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
 			};
 			name = Release;
 		};

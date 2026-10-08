@@ -789,8 +789,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BF86E641263953B3004C8AE5 /* PowerAuthCore.framework in Frameworks */,
 				BF5EB58424C8659C00F9DDB2 /* PowerAuth2.framework in Frameworks */,
+				BF86E641263953B3004C8AE5 /* PowerAuthCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -807,8 +807,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BF667EB628359C93006E97F8 /* PowerAuthCore.framework in Frameworks */,
 				BF667EB728359C93006E97F8 /* PowerAuth2.framework in Frameworks */,
+				BF667EB628359C93006E97F8 /* PowerAuthCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2334,6 +2334,7 @@
 					"$(PROJECT_DIR)/PowerAuth2Private",
 				);
 				INFOPLIST_FILE = PowerAuth2Tests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2358,6 +2359,7 @@
 					"$(PROJECT_DIR)/PowerAuth2Private",
 				);
 				INFOPLIST_FILE = PowerAuth2Tests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2473,6 +2475,7 @@
 				SDKROOT = appletvos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
 			};
 			name = Debug;
 		};
@@ -2497,6 +2500,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SWIFT_VERSION = 5.0;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
 			};
 			name = Release;
 		};
@@ -2510,6 +2514,7 @@
 					"$(PROJECT_DIR)/PowerAuth2Private",
 				);
 				INFOPLIST_FILE = PowerAuth2IntegrationTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2531,6 +2536,7 @@
 					"$(PROJECT_DIR)/PowerAuth2Private",
 				);
 				INFOPLIST_FILE = PowerAuth2IntegrationTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2561,6 +2567,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2IntegrationTests-tvos";
 				SDKROOT = appletvos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-tvos.app/PowerAuth2TestsHostApp-tvos";
+				TVOS_DEPLOYMENT_TARGET = 17.0;
 			};
 			name = Debug;
 		};
@@ -2583,6 +2590,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2IntegrationTests-tvos";
 				SDKROOT = appletvos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-tvos.app/PowerAuth2TestsHostApp-tvos";
+				TVOS_DEPLOYMENT_TARGET = 17.0;
 			};
 			name = Release;
 		};

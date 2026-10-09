@@ -289,7 +289,9 @@ The upgrade can be performed in the background without the user even noticing th
 ![Upgrade in the background](./images/protocol-upgrade/protocol-upgrade-background.png)
 
 1. **Log in with PIN** - The user opens the application and logs in. If the upgrade is available, the application asks for the PIN, even if biometry is enabled, so the upgrade can be performed with the same PIN.
-2. **Mobile bank dashboard** - The application logs the user in first and displays the dashboard. After the login succeeds, the application starts the upgrade in sequence. Nothing about the upgrade is displayed. If the upgrade fails, no error is reported to the user and the upgrade is tried again next time.
+2. **Mobile bank dashboard** - The application logs the user in first. After the login succeeds, the application performs the upgrade, and only then displays the dashboard. Nothing about the upgrade is displayed. If the upgrade fails, no error is reported to the user, the dashboard is displayed as usual, and the upgrade is tried again next time.
+
+Performing the upgrade before the dashboard is displayed can prolong the login by a few moments. On the other hand, it ensures that the upgrade is completed before the application starts making other requests. While the upgrade is pending, the SDK doesn't allow you to calculate PowerAuth authentication codes, so requests made from the dashboard could fail.
 
 The same approach can be applied to other flows that require the PIN, for example approving an operation.
 
@@ -311,10 +313,12 @@ fun onPinEntered(pin: Password) {
     val authentication = PowerAuthAuthentication.possessionWithPassword(pin)
     logIn(authentication) { success, wrongPin ->
         if (success) {
-            showDashboard()
             if (upgradeInBackground) {
-                // Start the upgrade only after the login succeeds.
-                startUpgradeInBackground(pin)
+                // Perform the upgrade after the login succeeds,
+                // but before the dashboard is displayed.
+                performUpgrade(pin) { showDashboard() }
+            } else {
+                showDashboard()
             }
         } else if (wrongPin) {
             // Disable the background upgrade and offer biometry again.
@@ -323,19 +327,23 @@ fun onPinEntered(pin: Password) {
     }
 }
 
-fun startUpgradeInBackground(pin: Password) {
+fun performUpgrade(pin: Password, completion: () -> Unit) {
     powerAuthSDK.startProtocolUpgrade(context, pin, object : IProtocolUpgradeListener {
         override fun onProtocolUpgradeSucceed(result: ProtocolUpgradeResult) {
             if (result.isActivationStatusFetchRequired()) {
+                // Complete the upgrade before the dashboard is displayed.
                 powerAuthSDK.fetchActivationStatusWithCallback(context, object : IActivationStatusListener {
-                    override fun onActivationStatusSucceed(status: PowerAuthActivationStatus) {}
-                    override fun onActivationStatusFailed(t: Throwable) {}
+                    override fun onActivationStatusSucceed(status: PowerAuthActivationStatus) = completion()
+                    override fun onActivationStatusFailed(t: Throwable) = completion()
                 })
+            } else {
+                completion()
             }
         }
 
         override fun onProtocolUpgradeFailed(t: Throwable) {
             // Ignore the failure, the upgrade will be tried next time.
+            completion()
         }
     })
 }
@@ -349,10 +357,12 @@ func onPinEntered(_ pin: PowerAuthPassword) {
     let authentication = PowerAuthAuthentication.possessionWithPassword(password: pin)
     logIn(authentication) { success, wrongPin in
         if success {
-            showDashboard()
             if upgradeInBackground {
-                // Start the upgrade only after the login succeeds.
-                startUpgradeInBackground(pin)
+                // Perform the upgrade after the login succeeds,
+                // but before the dashboard is displayed.
+                performUpgrade(pin) { showDashboard() }
+            } else {
+                showDashboard()
             }
         } else if wrongPin {
             // Disable the background upgrade and offer biometry again.
@@ -361,11 +371,14 @@ func onPinEntered(_ pin: PowerAuthPassword) {
     }
 }
 
-func startUpgradeInBackground(_ pin: PowerAuthPassword) {
+func performUpgrade(_ pin: PowerAuthPassword, completion: @escaping () -> Void) {
     powerAuthSDK.startProtocolUpgrade(password: pin) { result, error in
-        // Ignore the failure, the upgrade will be tried next time.
         if result?.activationStatusFetchRequired == true {
-            powerAuthSDK.fetchActivationStatus { _, _ in }
+            // Complete the upgrade before the dashboard is displayed.
+            powerAuthSDK.fetchActivationStatus { _, _ in completion() }
+        } else {
+            // On failure, ignore the error, the upgrade will be tried next time.
+            completion()
         }
     }
 }

@@ -264,9 +264,9 @@ Both scenarios describe the "happy path" to explain the concept. In your impleme
 
 In this scenario, the application offers the upgrade via a dedicated screen. The user stays in control of what's happening and decides when to upgrade. Be aware that some users will never upgrade on their own. To migrate them as well, you'll need to force the upgrade in your application, or combine this scenario with [Scenario B](#scenario-b-upgrade-in-the-background).
 
-![Dedicated upgrade screen, steps 1 to 3](./images/protocol-upgrade/protocol-upgrade-dedicated-1.png)
+<p align="center"><img src="./images/protocol-upgrade/protocol-upgrade-dedicated-1.png" alt="Dedicated upgrade screen, steps 1 to 3" width="700" /></p>
 
-![Dedicated upgrade screen, steps 4 and 5](./images/protocol-upgrade/protocol-upgrade-dedicated-2.png)
+<p align="center"><img src="./images/protocol-upgrade/protocol-upgrade-dedicated-2.png" alt="Dedicated upgrade screen, steps 4 and 5" width="700" /></p>
 
 1. **Upgrade hint** - When the upgrade is available, the application shows a subtle hint, for example a badge on the settings icon.
 2. **Dedicated entry** - The settings screen contains a dedicated "Security upgrade" call to action.
@@ -286,10 +286,11 @@ In this scenario, the upgrade is integrated into an existing flow. Whenever the 
 The upgrade can be performed in the background without the user even noticing that something happened. However, the user is not explicitly informed about the change to their credentials. This approach can have legal implications, so discuss it with your compliance department before you implement it.
 <!-- end -->
 
-![Upgrade in the background](./images/protocol-upgrade/protocol-upgrade-background.png)
+<p align="center"><img src="./images/protocol-upgrade/protocol-upgrade-background.png" alt="Upgrade in the background" width="700" /></p>
 
 1. **Log in with PIN** - The user opens the application and logs in. If the upgrade is available, the application asks for the PIN, even if biometry is enabled, so the upgrade can be performed with the same PIN.
-2. **Mobile bank dashboard** - The application logs the user in first. After the login succeeds, the application performs the upgrade, and only then displays the dashboard. Nothing about the upgrade is displayed. If the upgrade fails, no error is reported to the user, the dashboard is displayed as usual, and the upgrade is tried again next time.
+2. **Log in and upgrade** - The application logs the user in first. After the login succeeds, the application performs the upgrade in sequence, while the user still sees the loading screen. If the upgrade fails, no error is reported to the user and the upgrade is tried again next time.
+3. **Mobile bank dashboard** - The application displays the dashboard only after the upgrade is finished, or after it failed. Nothing about the upgrade is displayed.
 
 Performing the upgrade before the dashboard is displayed can prolong the login by a few moments. On the other hand, it ensures that the upgrade is completed before the application starts making other requests. While the upgrade is pending, the SDK doesn't allow you to calculate PowerAuth authentication codes, so requests made from the dashboard could fail.
 

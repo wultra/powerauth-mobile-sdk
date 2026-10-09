@@ -188,8 +188,12 @@ class InterfaceController: WKInterfaceController {
     }()
 
     private static func setupPowerAuth() -> PowerAuthWatchSDK {
-        let config = PowerAuthConfiguration(instanceId: "your.ios.app.instanceId")
-        return PowerAuthWatchSDK(configuration: config)!
+        do {
+            let config = PowerAuthConfiguration(instanceId: "your.ios.app.instanceId")
+            return try PowerAuthWatchSDK(configuration: config)
+        } catch {
+            // Failed to create PowerAuthWatchSDK
+        }
     }
 
     // ... the rest of the controller's code ...

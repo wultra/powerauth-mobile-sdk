@@ -14,6 +14,10 @@ PowerAuth Mobile SDK in version `2.0.0` provides the following improvements:
 - External encryption key feature is discontinued and will be removed in the next SDK release.
 - Custom possession factor key provided in `PowerAuthAuthentication` is no longer supported.
 
+<!-- begin box info -->
+Before you start the migration, decide how your existing users should transition to the new protocol. The [Upgrading to Post-Quantum Cryptography](Upgrading-to-Post-Quantum-Cryptography.md) document describes the available strategies and helps you choose the right one.
+<!-- end -->
+
 ### Compatibility with PowerAuth Server
 
 - This release is fully compatible with PowerAuth Server version `2.0.0` and later.

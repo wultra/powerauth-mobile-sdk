@@ -2,10 +2,10 @@
 
 We currently support the following versions of mobile OS:
 
-- iOS 13.0
-- tvOS: 13.0
-- watchOS 4.0
-- macOS Catalyst: 13.5
+- iOS 15.0
+- tvOS: 15.0
+- watchOS 9.0
+- macOS Catalyst: 15.0
 - Android 6.0 (API level 23)
 
 ## Feature Limitations

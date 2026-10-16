@@ -44,7 +44,7 @@ import PackageDescription
 let package = Package(
     name: "YourLibrary",
     platforms: [
-        .watchOS(.v4)
+        .watchOS(.v9)
     ],
     products: [
         .library(
@@ -53,7 +53,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/wultra/powerauth-mobile-watch-sdk", from: "2.0.0")
+        .package(url: "https://github.com/wultra/powerauth-mobile-watch-sdk", from: "2.1.0")
     ],
     targets: [
         .target(
@@ -82,12 +82,12 @@ To integrate the PowerAuth library into your Xcode project using CocoaPods, spec
 
 ```ruby
 target 'YourAppTarget' do
-  platform :ios, '11.0'
+  platform :ios, '15.0'
   pod 'PowerAuth2'
 end
 
 target 'YourWatchAppTarget' do
-  platform :watchos, '4.0'
+  platform :watchos, '9.0'
   pod 'PowerAuth2ForWatch'
 end
 ```

@@ -122,7 +122,7 @@ $ gem install cocoapods
 To integrate the PowerAuth library into your Xcode project using CocoaPods, specify it in your `Podfile`:
 
 ```ruby
-platform :ios, '13.0'
+platform :ios, '15.0'
 target '<Your Target App>' do
   pod 'PowerAuth2'
 end

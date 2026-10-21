@@ -68,9 +68,9 @@ This chapter describes how to get PowerAuth SDK for iOS and tvOS up and running 
 
 The library is available for the following Apple platforms:
 
-- **iOS** 13.0+
-- **mac Catalyst** 13.5+
-- **tvOS** 13.0+
+- **iOS** 15.0+
+- **mac Catalyst** 15.0+
+- **tvOS** 15.0+
 
 To simplify the documentation, we'll use **iOS** for the rest of the documentation and highlight the exceptions only. For example, **tvOS** doesn't support biometry and watch connectivity.
 
@@ -86,7 +86,7 @@ import PackageDescription
 let package = Package(
     name: "YourLibrary",
     platforms: [
-        .iOS(.v13)
+        .iOS(.v15)
     ],
     products: [
         .library(
@@ -95,7 +95,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/wultra/powerauth-mobile-sdk", from: "2.0.0")
+        .package(url: "https://github.com/wultra/powerauth-mobile-sdk", from: "2.1.0")
     ],
     targets: [
         .target(
@@ -122,7 +122,7 @@ $ gem install cocoapods
 To integrate the PowerAuth library into your Xcode project using CocoaPods, specify it in your `Podfile`:
 
 ```ruby
-platform :ios, '13.0'
+platform :ios, '15.0'
 target '<Your Target App>' do
   pod 'PowerAuth2'
 end

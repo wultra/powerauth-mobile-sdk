@@ -3,12 +3,17 @@
 - [Home](./Readme.md)
 - [Supported Versions](./Supported-Versions.md)
 - [Migration Guides](./Readme.md#migration-guides)
+- [Cross Platform Support](./Readme.md#cross-platform-support)
 
-**Integration Tutorials**
+**SDK Documentation**
 
-- [iOS Applications](./PowerAuth-SDK-for-iOS.md)
-- [watchOS Applications](./PowerAuth-SDK-for-watchOS.md)
-- [Android Applications](./PowerAuth-SDK-for-Android.md)
+- [Android](./PowerAuth-SDK-for-Android.md)
+- [iOS and tvOS](./PowerAuth-SDK-for-iOS.md)
+- [watchOS](./PowerAuth-SDK-for-watchOS.md)
+
+**Tutorials**
+
+- [Upgrading to Post-Quantum Cryptography](./Upgrading-to-Post-Quantum-Cryptography.md)
 
 **Other Links**
 

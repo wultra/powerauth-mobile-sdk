@@ -169,10 +169,6 @@ extension PowerAuthPassword {
 }
 ```
 
-<!-- begin box info -->
-You can use our [Passphrase meter](https://github.com/wultra/passphrase-meter) library as a proper password validation solution.
-<!-- end -->
-
 ## Read Next
 
 - [Working with sensitive data](Working-With-Sensitive-Data.md)

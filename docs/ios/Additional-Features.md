@@ -87,10 +87,6 @@ If the `address` is provided, then `PowerAuthUserAddress` contains the following
 Be aware that all properties in the `PowerAuthUserInfo` and `PowerAuthUserAddress` objects are optional and the availability of information depends on actual implementation on the server.
 <!-- end -->
 
-## Password Strength Indicator
-
-Choosing a weak passphrase in applications with high-security demands can be potentially dangerous. You can use our [Wultra Passphrase Meter](https://github.com/wultra/passphrase-meter) library to estimate the strength of the passphrase and warn the user when he tries to use such a passphrase in your application.
-
 ## Debug Build Detection
 
 It is sometimes useful to switch PowerAuth SDK to a DEBUG build configuration to get more logs from the library:

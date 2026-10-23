@@ -1,5 +1,7 @@
 # Installation
 
+<!-- SIDEBAR _Sidebar_watchOS.md -->
+
 This chapter describes how to get PowerAuth SDK for watchOS up and running in your app. In the current version, you can choose between Swift Package Manager and CocoaPods library integration.
 
 To distinguish between SDKs, the following short terms will be used in this document:

@@ -1,5 +1,7 @@
 # Authentication Codes
 
+<!-- SIDEBAR _Sidebar_Android.md -->
+
 ## Symmetric Multi-Factor Authentication Code
 
 To authenticate the request data, you need to first obtain user credentials (password, PIN code, biometric image) from the user. The task of obtaining the user credentials is used in more use-cases covered by the SDK. The core class is `PowerAuthAuthentication` that holds information about the used authentication factors:

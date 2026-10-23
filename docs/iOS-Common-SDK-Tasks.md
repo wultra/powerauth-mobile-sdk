@@ -1,5 +1,7 @@
 # Common SDK Tasks
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 ## Error Handling
 
 Most of the SDK methods return an error object of an `NSError` class in case something goes wrong. Of course, it is your responsibility to handle the errors these objects represent. There are two ways how you can obtain an error object from PowerAuth SDK for iOS.

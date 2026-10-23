@@ -1,5 +1,7 @@
 # Share Activation Data
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 This chapter explains how to share the `PowerAuthSDK` activation state between application and its extensions, or between multiple applications from the same vendor.
 
 <!-- begin box warning -->

@@ -1,5 +1,7 @@
 # Digital Signatures
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 Digital signatures are another form of data authentication supported in the PowerAuth protocol. The PowerAuth Mobile SDK provides a unified interface for digital signatures, allowing you to compute or verify digital signatures or MAC tokens.
 
 ## Signature Key Identifiers

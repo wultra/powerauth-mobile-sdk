@@ -1,5 +1,7 @@
 # SDK Configuration
 
+<!-- SIDEBAR _Sidebar_watchOS.md -->
+
 The Watch SDK shares several source codes and configuration principles with the main iOS SDK. So, you can prepare similar set of constants as you're already using in your main iOS application. The SDK provides just a limited functionality for the watch app (for example, you cannot create an activation or calculate a full PowerAuth authentication code from a watch application) and to do that it requires that your application's code will participate in data synchronization.
 
 ## Prepare Watch Connectivity

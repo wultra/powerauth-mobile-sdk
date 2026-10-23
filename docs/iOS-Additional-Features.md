@@ -1,5 +1,7 @@
 # Additional Features
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 PowerAuth SDK for iOS contains multiple additional features that are useful for mobile apps.
 
 ## Obtaining User's Claims

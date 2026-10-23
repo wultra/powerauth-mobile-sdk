@@ -1,5 +1,7 @@
 # Common SDK Tasks
 
+<!-- SIDEBAR _Sidebar_Android.md -->
+
 ## Error Handling
 
 The PowerAuth SDK uses the following types of exceptions:

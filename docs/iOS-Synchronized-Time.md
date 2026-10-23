@@ -1,5 +1,7 @@
 # Synchronized Time
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 The PowerAuth mobile SDK internally uses time synchronized with the PowerAuth Server for its cryptographic functions, such as [End-To-End Encryption](iOS-End-To-End-Encryption.md) or [Token-Based Authentication](iOS-Token-Based-Authentication.md). The synchronized time can also be beneficial for your application. For example, if you want to display a time-sensitive message or countdown to your users, you can take advantage of this service.
 
 Use the following code to get the service responsible for the time synchronization: 

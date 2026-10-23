@@ -1,5 +1,7 @@
 # External Encryption Key
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 <!-- begin box warning -->
 Support for the External Encryption Key (EEK) was discontinued in PowerAuth Mobile SDK version 2.0.
 <!-- end -->

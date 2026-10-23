@@ -1,5 +1,7 @@
 # Installation
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 This chapter describes how to get PowerAuth SDK for iOS and tvOS up and running in your app. In the current version, you can choose between Swift Package Manager and CocoaPods library integration.
 
 ## Supported Platforms

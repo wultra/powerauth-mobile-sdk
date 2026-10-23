@@ -1,5 +1,7 @@
 # Requesting Device Activation Status
 
+<!-- SIDEBAR _Sidebar_Android.md -->
+
 To obtain detailed activation status information, use the following code:
 
 ```kotlin

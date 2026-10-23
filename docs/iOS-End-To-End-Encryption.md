@@ -1,5 +1,7 @@
 # End-To-End Encryption
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 Currently, PowerAuth SDK supports two basic modes of end-to-end encryption:
 
 - In an "application" scope, the encryptor can be acquired and used during the whole lifetime of the application.

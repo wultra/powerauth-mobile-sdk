@@ -1,5 +1,7 @@
 # Troubleshooting
 
+<!-- SIDEBAR _Sidebar_watchOS.md -->
+
 This section of the document contains various workarounds and tips for Watch SDK usage.
 
 ## WCSession Activation Sequence on iOS

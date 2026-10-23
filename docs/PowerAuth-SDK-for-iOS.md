@@ -1,5 +1,7 @@
 # PowerAuth Mobile SDK for iOS and tvOS Apps
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 - [Installation](iOS-Installation.md)
 - [SDK Configuration](iOS-Configuration.md)
 - [Device Activation](iOS-Device-Activation.md)

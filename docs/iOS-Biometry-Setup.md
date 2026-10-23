@@ -1,5 +1,7 @@
 # Biometry Setup
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 PowerAuth SDK for iOS provides an abstraction on top of the base Touch and Face ID support. While the authentication / data signing itself is nicely and transparently embedded in the `PowerAuthAuthentication` object used in [regular request signing](iOS-Data-Signing.md), other biometry-related processes require their own API. This part of the documentation is not relevant to the **tvOS** platform.
 
 ## Check Biometry Status

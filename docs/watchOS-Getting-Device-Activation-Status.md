@@ -1,5 +1,7 @@
 # Getting Device Activation Status
 
+<!-- SIDEBAR _Sidebar_watchOS.md -->
+
 Unlike the iOS SDK, the Watch SDK provides only limited information about activation status. You can actually check only whether there's locally stored activation on iPhone, or not:
 
 ```swift

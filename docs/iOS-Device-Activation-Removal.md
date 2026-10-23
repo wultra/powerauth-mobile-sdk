@@ -1,5 +1,7 @@
 # Device Activation Removal
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 You can remove activation using several ways - the choice depends on the desired behavior.
 
 ## Simple Device-Only Removal

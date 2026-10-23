@@ -1,5 +1,7 @@
 # Working with sensitive data
 
+<!-- SIDEBAR _Sidebar_Android.md -->
+
 The PowerAuth mobile SDK is using `SecureData` class for manage the cryptographically sensitive data, such as encryption keys. You can encounter this class in several public API functions, such as functions for [Secure Vault](Android-Secure-Vault.md). This chapter explains how to use the `SecureData` object properly.
 
 ## Create instance of `SecureData`

@@ -1,5 +1,7 @@
 # PowerAuth Mobile SDK for watchOS
 
+<!-- SIDEBAR _Sidebar_watchOS.md -->
+
 - [Installation](watchOS-Installation.md)
 - [SDK Configuration](watchOS-Configuration.md)
 - [Getting Device Activation Status](watchOS-Getting-Device-Activation-Status.md)

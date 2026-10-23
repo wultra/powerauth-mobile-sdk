@@ -1,5 +1,7 @@
 # Apple Watch Support
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 This part of the documentation describes how to add support for Apple Watch to your PowerAuth-powered iOS application. This part of the documentation is not relevant to the **tvOS** platform.
 
 ## Prepare Watch Connectivity

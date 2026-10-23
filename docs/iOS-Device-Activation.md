@@ -1,5 +1,7 @@
 # Device Activation
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 After you configure the SDK instance, you are ready to make your first activation.
 
 ## Activation via Activation Code

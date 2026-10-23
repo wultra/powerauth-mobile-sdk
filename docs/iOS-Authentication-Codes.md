@@ -1,5 +1,7 @@
 # Authentication Codes
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 ## Symmetric Multi-Factor Authentication Code
 
 This type of data authentication is suitable for online operations, such as login, new payment, or confirming changes in settings, and allows you to sign data in HTTP request.

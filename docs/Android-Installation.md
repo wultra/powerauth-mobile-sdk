@@ -1,5 +1,7 @@
 # SDK Installation
 
+<!-- SIDEBAR _Sidebar_Android.md -->
+
 To get PowerAuth SDK for Android up and running in your app, add the following dependency in your `gradle.build` file:
 
 ```gradle

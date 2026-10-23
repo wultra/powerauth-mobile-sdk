@@ -1,5 +1,7 @@
 # Secure Vault
 
+<!-- SIDEBAR _Sidebar_Android.md -->
+
 Secure Vault lets an application obtain **a base KDK** (Key Derivation Key) after a successful strong user authentication.
 The base KDK is not an encryption or MAC key and cannot be used directly — instead, the application can derive purpose-specific keys from it.
 This functionality is available only when the activation is already on **protocol version 4.0**.

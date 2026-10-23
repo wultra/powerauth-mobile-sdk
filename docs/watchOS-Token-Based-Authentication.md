@@ -1,5 +1,7 @@
 # Token-Based Authentication
 
+<!-- SIDEBAR _Sidebar_watchOS.md -->
+
 WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature. You can also visit the documentation about tokens available in [PowerAuth SDK for iOS](iOS-Token-Based-Authentication.md).
 
 The basic principles for working with tokens on watchOS are the same as for iOS applications, so the interface is practically identical to what you know from PowerAuth SDK for iOS. The main difference is that the watchOS application cannot ask the PowerAuth server to create a new token, but as a replacement, it can ask for a token already stored on the iPhone. In fact, from the point of the watchOS application's view, the iOS application is just a kind of "remote server" providing tokens.

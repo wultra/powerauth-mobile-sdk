@@ -1,5 +1,7 @@
 # Data Signing
 
+<!-- SIDEBAR _Sidebar_Android.md -->
+
 The main feature of the PowerAuth protocol is data signing. PowerAuth has the following types of signatures:
 
 - [Symmetric Multi-Factor Authentication Code](Android-Authentication-Codes.md#symmetric-multi-factor-authentication-code): Suitable for most operations, such as login, new payment, or confirming changes in settings.

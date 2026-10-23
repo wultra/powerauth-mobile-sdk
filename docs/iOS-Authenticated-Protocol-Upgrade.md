@@ -1,5 +1,7 @@
 # Authenticated Protocol Upgrade
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 The authenticated protocol upgrade procedure enables an existing activation to
 migrate to a newer algorithm for communication with the PowerAuth Server.
 Following conditions must be satisfied before the upgrade can proceed:

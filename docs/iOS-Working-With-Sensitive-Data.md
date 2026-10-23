@@ -1,5 +1,7 @@
 # Working with sensitive data
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 The PowerAuth mobile SDK is using the `PowerAuthSecureData` object to manage the cryptographically sensitive data, such as encryption keys. You can encounter this object in several public API functions, such as functions for [Secure Vault](iOS-Secure-Vault.md). This chapter explains how to use the `PowerAuthSecureData` object properly.
 
 ## Create an instance of `PowerAuthSecureData`

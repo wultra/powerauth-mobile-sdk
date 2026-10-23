@@ -1,5 +1,7 @@
 # Troubleshooting
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 ## tvOS support in CocoaPods
 
 The tvOS SDK is not required by default since the SDK version 1.7.7. If your build or development machine doesn't have tvOS SDK installed, then the `PowerAuth2` module is precompiled with no tvOS platform included in the final xcframework. Since CocoaPods keep various build artifacts in its cache, then this might be problematic in case you'll add support for tvOS later, during the development. To fix such possible issues, please remove the `PowerAuth2` pod from the cache:

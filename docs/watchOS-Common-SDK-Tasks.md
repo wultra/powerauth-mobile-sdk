@@ -1,5 +1,7 @@
 # Common SDK Tasks
 
+<!-- SIDEBAR _Sidebar_watchOS.md -->
+
 ## Error Handling
 
 You can follow the same practices as for iOS SDK because the Watch SDK codebase shares the same error constants with a full PowerAuth SDK for iOS.

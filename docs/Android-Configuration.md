@@ -1,5 +1,7 @@
 # SDK Configuration
 
+<!-- SIDEBAR _Sidebar_Android.md -->
+
 In order to be able to configure your `PowerAuthSDK` instance, you need the following values from the PowerAuth Server:
 
 - `MOBILE_SDK_CONFIG` - String that contains cryptographic configuration.

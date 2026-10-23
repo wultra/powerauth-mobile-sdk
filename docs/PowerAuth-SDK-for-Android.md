@@ -1,5 +1,7 @@
 # PowerAuth Mobile SDK for Android
 
+<!-- SIDEBAR _Sidebar_Android.md -->
+
 - [SDK Installation](Android-Installation.md)
 - [SDK Configuration](Android-Configuration.md)
 - [Device Activation](Android-Device-Activation.md)

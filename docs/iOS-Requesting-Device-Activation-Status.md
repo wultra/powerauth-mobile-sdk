@@ -1,5 +1,7 @@
 # Requesting Device Activation Status
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 To obtain detailed activation status information, use the following code:
 
 ```swift

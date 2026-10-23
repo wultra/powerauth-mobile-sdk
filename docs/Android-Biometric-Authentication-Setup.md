@@ -1,5 +1,7 @@
 # Biometric Authentication Setup
 
+<!-- SIDEBAR _Sidebar_Android.md -->
+
 PowerAuth SDK for Android provides an abstraction on top of the base Biometric Authentication support. While the authentication / data signing itself is handled using the `PowerAuthAuthentication` object used in [regular request signing](Android-Data-Signing.md), other biometry-related processes require their own API.
 
 ## Check Biometric Authentication Status

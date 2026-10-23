@@ -1,5 +1,7 @@
 # Biometry Troubleshooting
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 ## Biometry lockout
 
 <!-- begin box warning -->

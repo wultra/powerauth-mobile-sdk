@@ -1,5 +1,7 @@
 # Password Change
 
+<!-- SIDEBAR _Sidebar_iOS.md -->
+
 The typical password-change flow in a mobile application consists of the following steps:
 
 1. **Prompt the user for their current password.**

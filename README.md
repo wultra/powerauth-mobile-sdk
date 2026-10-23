@@ -1,43 +1,27 @@
 # PowerAuth Mobile SDK
 
-To connect to the [PowerAuth](https://www.wultra.com/product/powerauth-mobile-security-suite) service, mobile applications need to perform the required network and cryptographic processes, as described in the PowerAuth documentation. To simplify the implementation of these processes, developers can use iOS and Android libraries from this repository.
+[![Documentation](https://img.shields.io/badge/Documentation-Public-orange)](https://developers.wultra.com/components/powerauth-mobile-sdk/)
+[![Android Build](https://github.com/wultra/powerauth-mobile-sdk/actions/workflows/android.yml/badge.svg)](https://github.com/wultra/powerauth-mobile-sdk/actions/workflows/android.yml)
+[![iOS Build](https://github.com/wultra/powerauth-mobile-sdk/actions/workflows/ios.yml/badge.svg)](https://github.com/wultra/powerauth-mobile-sdk/actions/workflows/ios.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/com.wultra.android.powerauth/powerauth-sdk)](https://mvnrepository.com/artifact/com.wultra.android.powerauth/powerauth-sdk)
+[![GitHub Release](https://img.shields.io/github/v/release/wultra/powerauth-mobile-sdk)](https://github.com/wultra/powerauth-mobile-sdk/releases)
+![Release Date](https://img.shields.io/github/release-date/wultra/powerauth-mobile-sdk)
+![SPM](https://img.shields.io/badge/Swift_Package_Manager-%F0%9F%91%8D-F4412B)
+[![CocoaPods](https://img.shields.io/badge/CocoaPods-%F0%9F%91%8D-fb0006)](https://cocoapods.org/pods/PowerAuth2)
+[![License](https://img.shields.io/github/license/wultra/powerauth-mobile-sdk)](LICENSE)
 
-## Integration Tutorials
+Add bank-grade mobile security to your iOS, tvOS, watchOS and Android apps with the PowerAuth Mobile SDK. It is the client-side part of Wultra's [Mobile-First Authentication](https://www.wultra.com/products/mobile-first-authentication) and the [PowerAuth](https://www.wultra.com/product/powerauth-mobile-security-suite) platform. It takes care of the demanding network and cryptographic processes behind secure device activation, request signing and strong customer authentication, so you can ship a secure, frictionless user experience faster, with no need to build your own security layer.
 
-- [PowerAuth SDK for iOS and tvOS Apps](./docs/PowerAuth-SDK-for-iOS.md)
-- [PowerAuth SDK for watchOS](./docs/PowerAuth-SDK-for-watchOS.md)
-- [PowerAuth SDK for Android Apps](./docs/PowerAuth-SDK-for-Android.md)
+> [!NOTE]
+> We also provide [React Native and Cordova](https://github.com/wultra/react-native-powerauth-mobile-sdk) and [Flutter](https://github.com/wultra/flutter-powerauth-mobile-sdk) versions of this SDK.
 
-Related projects
+## Documentation
 
-- [PowerAuth SDK for React Native](https://github.com/wultra/react-native-powerauth-mobile-sdk)
-
-## Migration guides
-
-If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check following migration guides:
-
-- [Migration from version `1.9.x` to `2.0.x`](docs/Migration-from-1.9-to-2.0.md)
-  - [Upgrading to Post-Quantum Cryptography](docs/Upgrading-to-Post-Quantum-Cryptography.md)
-- [Migration from version `1.8.x` to `1.9.x`](docs/Migration-from-1.8-to-1.9.md)
-- [Migration from version `1.7.x` to `1.8.x`](docs/Migration-from-1.7-to-1.8.md)
-- [Migration from version `1.6.x` to `1.7.x`](docs/Migration-from-1.6-to-1.7.md)
-- [Older Migration Guides](docs/Older-Migration-Guides.md)
-
-## Support and Compatibility
-
-| Mobile SDK | Protocol         | PowerAuth Server              | Support Status                    |
-|------------|------------------|-------------------------------|-----------------------------------|
-| `2.0.x`    | `V4.0` or `V3.3` | `2.0+` or `1.9+`<sup>1</sup>  | Fully supported                   |
-| `1.9.x`    | `V3.3`           | `1.9+`                        | Security & Functionality bugfixes |
-| `1.8.x`    | `V3.2`           | `1.5+`                        | Security bugfixes                 |
-| `1.7.x`    | `V3.1`           | `0.24+`                       | Security bugfixes                 |
-| `1.6.x`    | `V3.1`           | `0.24+`                       | Not supported                     |
-
-> **Note 1:** Protocol and server compatibility depend on the SDK configuration. If you choose to remain on protocol V3.3, PowerAuth Server version 1.9+ is required.
+The documentation is available at the [Wultra Developer Portal](https://developers.wultra.com/components/powerauth-mobile-sdk/) or inside the [docs](docs) folder.
 
 ## License
 
-All sources are licensed using Apache 2.0 license, you can use them with no restriction. If you are using PowerAuth 2.0, please let us know. We will be happy to share and promote your project.
+All sources are licensed using the Apache 2.0 license, you can use them with no restriction. If you are using PowerAuth 2.0, please let us know. We will be happy to share and promote your project.
 
 ## Contact
 

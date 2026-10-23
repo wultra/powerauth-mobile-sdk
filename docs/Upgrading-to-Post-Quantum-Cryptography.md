@@ -44,10 +44,10 @@ You can read more in the [5 Proof Points That the Timing Is Right for Post-Quant
 | **PQC** | Post-Quantum Cryptography. Cryptographic algorithms designed to resist attacks by quantum computers, such as ML-KEM (key encapsulation, FIPS 203) and ML-DSA (digital signatures, FIPS 204). |
 | **PQA** | Post-Quantum Authentication. User authentication protected by post-quantum cryptography. In PowerAuth, it's achieved by using protocol 4.0 with a hybrid algorithm. |
 | **Hybrid scheme** | A combination of classical and post-quantum algorithms. An attacker must break both of them to compromise the protection. |
-| **Algorithm** | A set of cryptographic algorithms used by the SDK, configured via `PowerAuthAlgorithm`. `DEFAULT` maps to `EC_P384_ML_L3` (hybrid, post-quantum). See [Algorithms for Communication](PowerAuth-SDK-for-Android.md#algorithms-for-communication). |
+| **Algorithm** | A set of cryptographic algorithms used by the SDK, configured via `PowerAuthAlgorithm`. `DEFAULT` maps to `EC_P384_ML_L3` (hybrid, post-quantum). See [Algorithms for Communication](Android-Configuration.md#algorithms-for-communication). |
 | **Legacy (legacy mode)** | SDK 2.x configured with the `LEGACY_P256` algorithm. In this mode, the SDK uses protocol 3.3, so it's fully compatible with PowerAuth Server `1.9.x` and doesn't provide post-quantum protection. |
 | **Activation** | Enrollment of the mobile application (device) to a user account. An activation is always bound to the protocol version that was used to create it, or to which it was upgraded. |
-| **Protocol upgrade** | An authenticated process that migrates an existing activation from protocol 3.3 to protocol 4.0. See [Authenticated Protocol Upgrade](PowerAuth-SDK-for-Android.md#authenticated-protocol-upgrade). |
+| **Protocol upgrade** | An authenticated process that migrates an existing activation from protocol 3.3 to protocol 4.0. See [Authenticated Protocol Upgrade](Android-Authenticated-Protocol-Upgrade.md). |
 | **Mobile SDK configuration** | The `MOBILE_SDK_CONFIG` string provided by PowerAuth Server. It contains the application credentials and master public keys required by the configured algorithm. |
 | **Knowledge factor** | Something the user knows, typically a PIN or password. The protocol upgrade must always be authenticated with the knowledge factor. |
 
@@ -93,7 +93,7 @@ In this strategy, your whole user base is migrated to protocol 4.0:
 To support both existing activations on protocol 3.3 and new activations on protocol 4.0, the `PowerAuthSDK` instance must be configured with:
 
 - The **mobile SDK configuration** obtained from PowerAuth Server `2.0.0` or later. This configuration contains master public keys for both the legacy and the new algorithms. The configuration string from PowerAuth Server `1.9.x` contains only the legacy key and cannot be used with the new algorithms.
-- The **`DEFAULT` algorithm**, or any other non-legacy algorithm. See [Algorithms for Communication](PowerAuth-SDK-for-Android.md#algorithms-for-communication) for the list of available algorithms.
+- The **`DEFAULT` algorithm**, or any other non-legacy algorithm. See [Algorithms for Communication](Android-Configuration.md#algorithms-for-communication) for the list of available algorithms.
 
 <!-- begin box warning -->
 Post-quantum keys are much larger than classical elliptic curve keys. For example, an ML-DSA-65 public key has 1952 bytes and an ML-DSA-87 public key has 2592 bytes, while a P-256 public key has only 65 bytes. As a result, the new mobile SDK configuration string grows from about a hundred characters to several thousand characters. Make sure that every place where you store the configuration can handle it, such as build scripts, environment variables, or resource files.
@@ -161,7 +161,7 @@ We recommend using the `DEFAULT` algorithm. The following table compares the alg
 
 The configured algorithm applies to new activations and to the protocol upgrade of activations on protocol 3.3. An activation that already uses protocol 4.0 keeps the algorithm it was created with, even if you change the configuration later. The protocol upgrade only migrates activations from protocol 3.3 to protocol 4.0, so choose the algorithm carefully before you start the rollout. If you expect to change the algorithm in the future, contact Wultra support first.
 
-See [Algorithms for Communication](PowerAuth-SDK-for-Android.md#algorithms-for-communication) for more details.
+See [Algorithms for Communication](Android-Configuration.md#algorithms-for-communication) for more details.
 
 ### Protocol Upgrade
 
@@ -171,7 +171,7 @@ The protocol upgrade is available for an existing activation if all the followin
 - The `PowerAuthSDK` instance is configured with a non-legacy algorithm.
 - PowerAuth Server `2.0.0` or later reports in the activation status that the upgrade is available.
 
-The availability is derived from the last fetched activation status, so make sure your application [fetches the activation status](PowerAuth-SDK-for-Android.md#requesting-activation-status) before it checks for the upgrade. The upgrade itself must be authenticated with the user's knowledge factor (PIN or password). Biometry can't be used to authenticate the upgrade.
+The availability is derived from the last fetched activation status, so make sure your application [fetches the activation status](Android-Requesting-Device-Activation-Status.md) before it checks for the upgrade. The upgrade itself must be authenticated with the user's knowledge factor (PIN or password). Biometry can't be used to authenticate the upgrade.
 
 <!-- begin codetabs Android iOS -->
 ```kotlin
@@ -236,21 +236,21 @@ powerAuthSDK.startProtocolUpgrade(password: pin) { result, error in
 <!-- end -->
 
 <!-- begin box warning -->
-On Android, the biometry factor is removed during the upgrade if `authenticateOnBiometricKeySetup` is enabled in `PowerAuthBiometricConfiguration`, which is the default. If you want to keep the biometry factor, disable this option and use the `startProtocolUpgrade()` variant with `PowerAuthBiometricPrompt`. On iOS, the biometry factor is preserved during the upgrade automatically. See [Authenticated Protocol Upgrade](PowerAuth-SDK-for-Android.md#authenticated-protocol-upgrade) for more details.
+On Android, the biometry factor is removed during the upgrade if `authenticateOnBiometricKeySetup` is enabled in `PowerAuthBiometricConfiguration`, which is the default. If you want to keep the biometry factor, disable this option and use the `startProtocolUpgrade()` variant with `PowerAuthBiometricPrompt`. On iOS, the biometry factor is preserved during the upgrade automatically. See [Authenticated Protocol Upgrade](Android-Authenticated-Protocol-Upgrade.md) for more details.
 <!-- end -->
 
-Until the upgrade is fully completed, the SDK doesn't allow you to calculate PowerAuth authentication codes. You can check whether the upgrade is still pending with the `hasPendingProtocolUpgrade()` method. For full details, see the Authenticated Protocol Upgrade chapter for [Android](PowerAuth-SDK-for-Android.md#authenticated-protocol-upgrade) and [iOS](PowerAuth-SDK-for-iOS.md#authenticated-protocol-upgrade), and the list of API changes in the [migration guide](Migration-from-1.9-to-2.0.md).
+Until the upgrade is fully completed, the SDK doesn't allow you to calculate PowerAuth authentication codes. You can check whether the upgrade is still pending with the `hasPendingProtocolUpgrade()` method. For full details, see the Authenticated Protocol Upgrade chapter for [Android](Android-Authenticated-Protocol-Upgrade.md) and [iOS](iOS-Authenticated-Protocol-Upgrade.md), and the list of API changes in the [migration guide](Migration-from-1.9-to-2.0.md).
 
 ### Handling Upgrade Errors
 
 The protocol upgrade is a regular authenticated request, so handle its errors in the same way as in other PIN-protected flows in your application:
 
-- **Wrong PIN** - The upgrade request is signed with the possession and knowledge factors, and the PowerAuth Server verifies it like any other authenticated request. If the PIN is wrong, the request fails with HTTP status `401` and **counts as a failed authentication attempt**. Repeated failures can block the activation. Don't retry the upgrade automatically with the same PIN. Instead, [fetch the activation status](PowerAuth-SDK-for-Android.md#requesting-activation-status), show the remaining attempts, and let the user enter the PIN again.
+- **Wrong PIN** - The upgrade request is signed with the possession and knowledge factors, and the PowerAuth Server verifies it like any other authenticated request. If the PIN is wrong, the request fails with HTTP status `401` and **counts as a failed authentication attempt**. Repeated failures can block the activation. Don't retry the upgrade automatically with the same PIN. Instead, [fetch the activation status](Android-Requesting-Device-Activation-Status.md), show the remaining attempts, and let the user enter the PIN again.
 - **Network or server failure** - The SDK reverts the activation to its previous state. The user can keep using the application on protocol 3.3, and the upgrade can be retried later.
 - **Failed activation status fetch after the upgrade** - If the result requires the activation status fetch and the fetch fails, the upgrade stays pending. Until it's completed, the SDK refuses to calculate PowerAuth authentication codes and reports the `PENDING_PROTOCOL_UPGRADE` error on Android, or `.pendingProtocolUpgrade` on iOS. Check `hasPendingProtocolUpgrade()`, for example when the application starts or before an operation is approved, and fetch the activation status to complete the upgrade.
 - **Activation is blocked or removed** - The upgrade is not available. Handle the activation state in the same way as in other parts of your application.
 
-See the Error Handling chapter for [Android](PowerAuth-SDK-for-Android.md#error-handling) and [iOS](PowerAuth-SDK-for-iOS.md#error-handling) for details about the reported errors.
+See the Error Handling chapter for [Android](Android-Common-SDK-Tasks.md#error-handling) and [iOS](iOS-Common-SDK-Tasks.md#error-handling) for details about the reported errors.
 
 ### Upgrade Scenarios
 
@@ -502,7 +502,7 @@ Keep the following in mind:
 Even in legacy mode, you still need to integrate the API changes described in the [Migration from 1.9.x to 2.0.x](Migration-from-1.9-to-2.0.md) guide. Also note that the SDK may behave slightly differently in legacy mode in some rare cases. Such situations are highlighted in the [Android](PowerAuth-SDK-for-Android.md) and [iOS](PowerAuth-SDK-for-iOS.md) documentation.
 
 <!-- begin box info -->
-If you use the [Activation Data Sharing](PowerAuth-SDK-for-iOS.md#share-activation-data) feature on iOS, legacy mode is also used temporarily during the rollout of SDK `2.0.0` to all your applications. See [Upgrade from older SDKs](PowerAuth-SDK-for-iOS.md#upgrade-from-older-sdks) for more details.
+If you use the [Activation Data Sharing](iOS-Share-Activation-Data.md) feature on iOS, legacy mode is also used temporarily during the rollout of SDK `2.0.0` to all your applications. See [Upgrade from older SDKs](iOS-Troubleshooting.md#upgrade-from-older-sdks) for more details.
 <!-- end -->
 
 <!-- begin box warning -->

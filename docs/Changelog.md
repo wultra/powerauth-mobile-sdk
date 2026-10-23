@@ -91,7 +91,7 @@
 ### Apple
 
 - Fixed build problems on Xcode 16.3 ([689](https://github.com/wultra/powerauth-mobile-sdk/issues/689))
-- Improved logging - check [documentation for details](PowerAuth-SDK-for-iOS.md#logs) (PR [685](https://github.com/wultra/powerauth-mobile-sdk/pull/685))
+- Improved logging - check [documentation for details](iOS-Common-SDK-Tasks.md#logs) (PR [685](https://github.com/wultra/powerauth-mobile-sdk/pull/685))
 
 <!--------------------------------------------------->
 ## 1.9.3 (February 2025)

@@ -145,7 +145,7 @@ Notable changes on Android:
   - `PowerAuthSDK.addExternalEncryptionKey()` method has been removed.
   - `PowerAuthSDK.removeExternalEncryptionKey()` method now takes EEK as parameter and allows you to remove the key from the activation.
   - `PowerAuthConfiguration.Builder.externalEncryptionKey()` property is deprecated and no longer used in SDK.
-  - Check [External Encryption Key](PowerAuth-SDK-for-Android.md#external-encryption-key) documentation for the migration.
+  - Check [External Encryption Key](Android-External-Encryption-Key.md) documentation for the migration.
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:
@@ -174,7 +174,7 @@ Notable changes on Android:
 
 ### Other changes
 
-- `PowerAuthSDK.hasBiometryFactor(context)` now returns `false` after the user changes biometry on the device (for example, adds or removes a fingerprint or re-enrolls a face). See [Biometry Factor-Related Key Lifetime](PowerAuth-SDK-for-Android.md#biometry-factor-related-key-lifetime).
+- `PowerAuthSDK.hasBiometryFactor(context)` now returns `false` after the user changes biometry on the device (for example, adds or removes a fingerprint or re-enrolls a face). See [Biometry Factor-Related Key Lifetime](Android-Biometric-Authentication-Setup.md#biometry-factor-related-key-lifetime).
 
 ## iOS & tvOS
 
@@ -269,7 +269,7 @@ Notable changes on iOS:
   - `PowerAuthSDK.addExternalEncryptionKey()` method has been removed.
   - `PowerAuthSDK.removeExternalEncryptionKey()` method now takes EEK as parameter and allows you to remove the key from the activation.
   - `PowerAuthConfiguration.externalEncryptionKey` property is deprecated and no longer used in SDK.
-  - Check [External Encryption Key](PowerAuth-SDK-for-iOS.md#external-encryption-key) documentation for the migration.
+  - Check [External Encryption Key](iOS-External-Encryption-Key.md) documentation for the migration.
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:
@@ -293,7 +293,7 @@ Notable changes on iOS:
 
 ### Other changes
 
-If you're using [Activation Data Sharing](PowerAuth-SDK-for-iOS.md#share-activation-data) feature, then please refer to the [Upgrade from older SDKs](PowerAuth-SDK-for-iOS.md#upgrade-from-older-sdks) section for more information.
+If you're using [Activation Data Sharing](iOS-Share-Activation-Data.md) feature, then please refer to the [Upgrade from older SDKs](iOS-Troubleshooting.md#upgrade-from-older-sdks) section for more information.
 
 ## watchOS
 

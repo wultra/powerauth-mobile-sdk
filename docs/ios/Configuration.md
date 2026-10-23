@@ -5,13 +5,7 @@
 To use PowerAuth SDK, simply add the following imports into your code:
 
 ```swift
-// swift
 import PowerAuth2
-```
-
-```objc
-// Objective-C
-@import PowerAuth2;
 ```
 
 From now on, you can use `PowerAuthSDK` and other classes in your project. To configure your `PowerAuthSDK` instance, you need the following values from the PowerAuth Server:

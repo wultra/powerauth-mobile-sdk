@@ -236,7 +236,7 @@ powerAuthSDK.startProtocolUpgrade(password: pin) { result, error in
 <!-- end -->
 
 <!-- begin box warning -->
-On Android, the biometry factor is removed during the upgrade if `authenticateOnBiometricKeySetup` is enabled in `PowerAuthBiometricConfiguration`, which is the default. If you want to keep the biometry factor, disable this option and use the `startProtocolUpgrade()` variant with `PowerAuthBiometricPrompt`. On iOS, the biometry factor is preserved during the upgrade automatically. See [Authenticated Protocol Upgrade](android/Authenticated-Protocol-Upgrade.md) for more details.
+On Android, the biometry factor is removed during the upgrade if `authenticateOnBiometricKeySetup` is enabled in `PowerAuthBiometricConfiguration`, which is the default. See [Authenticated Protocol Upgrade](android/Authenticated-Protocol-Upgrade.md) for more details.
 <!-- end -->
 
 Until the upgrade is fully completed, the SDK doesn't allow you to calculate PowerAuth authentication codes. You can check whether the upgrade is still pending with the `hasPendingProtocolUpgrade()` method. For full details, see the Authenticated Protocol Upgrade chapter for [Android](android/Authenticated-Protocol-Upgrade.md) and [iOS](ios/Authenticated-Protocol-Upgrade.md), and the list of API changes in the [migration guide](Migration-from-1.9-to-2.0.md).

@@ -17,7 +17,7 @@ Add bank-grade mobile security to your iOS, tvOS, watchOS and Android apps with 
 
 ## Documentation
 
-The documentation is available at the [Wultra Developer Portal](https://developers.wultra.com/components/powerauth-mobile-sdk/) or inside the [docs](docs) folder.
+The documentation is available at the [Wultra Developer Portal](https://developers.wultra.com/components/powerauth-mobile-sdk/) or inside the [docs](docs/Readme.md) folder.
 
 ## License
 

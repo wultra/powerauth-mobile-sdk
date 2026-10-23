@@ -5,13 +5,13 @@
 
 **watchOS SDK Documentation**
 
-- [Installation](./watchOS-Installation.md)
-- [SDK Configuration](./watchOS-Configuration.md)
-- [Getting Device Activation Status](./watchOS-Getting-Device-Activation-Status.md)
-- [Token-Based Authentication](./watchOS-Token-Based-Authentication.md)
-- [Synchronized Time](./watchOS-Synchronized-Time.md)
-- [Common SDK Tasks](./watchOS-Common-SDK-Tasks.md)
-- [Troubleshooting](./watchOS-Troubleshooting.md)
+- [Installation](watchos/Installation.md)
+- [SDK Configuration](watchos/Configuration.md)
+- [Getting Device Activation Status](watchos/Getting-Device-Activation-Status.md)
+- [Token-Based Authentication](watchos/Token-Based-Authentication.md)
+- [Synchronized Time](watchos/Synchronized-Time.md)
+- [Common SDK Tasks](watchos/Common-SDK-Tasks.md)
+- [Troubleshooting](watchos/Troubleshooting.md)
 
 **Tutorials**
 

@@ -20,7 +20,7 @@ Fortunately, we have achieved that those both versions are API compatible, as mu
   - `PA2ErrorCodeTouchIDCancel` is now replaced with `PA2ErrorCodeBiometryCancel`
 
 - We have removed all interfaces related to our "V2" E2E encryption (e.g. classes like `Encryptor`, `PA2EncryptorFactory`...). You can now use following interfaces as a replacement:
-  - `EciesEncryptor` as a common object for custom request encryption and decryption. You can acquire a right encryptor object from `PowerAuthSDK` instance. Check [SDK documentation for details](Android-End-To-End-Encryption.md).
+  - `EciesEncryptor` as a common object for custom request encryption and decryption. You can acquire a right encryptor object from `PowerAuthSDK` instance. Check [SDK documentation for details](android/End-To-End-Encryption.md).
   - `EciesCryptogram` is now a common representation for encrypted request and response.
 
 - We have changed interface for custom activations, which is now much simpler. The custom activation is now fully supported in SDK, so you don't need to provide a custom URL, or other parameters.
@@ -35,7 +35,7 @@ Fortunately, we have achieved that those both versions are API compatible, as mu
 - You should handle following new error constants in your application:
   - `PA2ErrorCodeProtocolUpgrade` - unrecoverable protocol upgrade error
   - `PA2ErrorCodePendingProtocolUpgrade` - operation is temporarily unavailable due to protocol upgrade.
-  - Check [Error handling](Android-Common-SDK-Tasks.md#error-handling) for more details
+  - Check [Error handling](android/Common-SDK-Tasks.md#error-handling) for more details
   
 - Now it's possible to detect a typing errors in the manually entered activation code. If your application is using some form of custom validation, like test for Base32 characters, then you should replace it with a function provided by SDK: `OtpUtil.validateActivationCode()`. If the length of the provided code is correct, but SDK validation returns false, then the code contains a typing error. For more information check our documentation about the [new activation code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md). 
 
@@ -48,7 +48,7 @@ Fortunately, we have achieved that those both versions are API compatible, as mu
   - `PA2ErrorCodeKeychain` removed (unused)
 
 - We have removed all interfaces related to our "V2" E2E encryption (e.g. classes like `PA2EncryptorFactory`). You can now use following interfaces as a replacement:
-  - `PA2ECIESEncryptor` as a common object for custom request encryption and decryption. You can acquire a right encryptor object from `PowerAuthSDK` instance. Check [SDK documentation for details](iOS-End-To-End-Encryption.md).
+  - `PA2ECIESEncryptor` as a common object for custom request encryption and decryption. You can acquire a right encryptor object from `PowerAuthSDK` instance. Check [SDK documentation for details](ios/End-To-End-Encryption.md).
   - `PA2ECIESCryptogram` is now a common representation for encrypted request and response.
 
 - We have changed interface for custom activations, which is now much simpler. The custom activation is now fully supported in SDK, so you don't need to provide a custom URL, or other parameters.
@@ -59,6 +59,6 @@ Fortunately, we have achieved that those both versions are API compatible, as mu
 - You should handle following new error constants in your application:
   - `PA2ErrorCodeProtocolUpgrade` - unrecoverable protocol upgrade error
   - `PA2ErrorCodePendingProtocolUpgrade` - operation is temporarily unavailable due to protocol upgrade.
-  - Check [Error handling](iOS-Common-SDK-Tasks.md#error-handling) for more details
+  - Check [Error handling](ios/Common-SDK-Tasks.md#error-handling) for more details
 
 - Now it's possible to detect a typing errors in the manually entered activation code. If your application is using some form of custom validation, like test for Base32 characters, then you should replace it with a function provided by SDK: `PA2OtpUtil.validateActivationCode()`. If the length of the provided code is correct, but SDK validation returns false, then the code contains a typing error. For more information check our documentation about the [new activation code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md). 

@@ -29,7 +29,7 @@
 
 ### Important notice
 
-- If you already using older versions of SDK, then please read our [Migration guide from 1.9.x to 2.0.x version](Migration-from-1.9-to-2.0)
+- If you already using older versions of SDK, then please read our [Migration guide from 1.9.x to 2.0.x version](Migration-from-1.9-to-2.0.md)
 - This version of SDK requires PowerAuth Server version `1.9.0+` or `2.0.0+`, depending on PowerAuth Mobile SDK configuration. Check [Support and Compatibility](Readme.md#support-and-compatibility) for more details.
 
 ### Both platforms
@@ -91,7 +91,7 @@
 ### Apple
 
 - Fixed build problems on Xcode 16.3 ([689](https://github.com/wultra/powerauth-mobile-sdk/issues/689))
-- Improved logging - check [documentation for details](iOS-Common-SDK-Tasks.md#logs) (PR [685](https://github.com/wultra/powerauth-mobile-sdk/pull/685))
+- Improved logging - check [documentation for details](ios/Common-SDK-Tasks.md#logs) (PR [685](https://github.com/wultra/powerauth-mobile-sdk/pull/685))
 
 <!--------------------------------------------------->
 ## 1.9.3 (February 2025)
@@ -121,7 +121,7 @@
 <!--------------------------------------------------->
 ## 1.9.0 (October 2024)
 
-- If you already using older versions of SDK, then please read our [Migration guide from 1.8.x to 1.9.x version](Migration-from-1.8-to-1.9)
+- If you already using older versions of SDK, then please read our [Migration guide from 1.8.x to 1.9.x version](Migration-from-1.8-to-1.9.md)
 - This version of SDK requires PowerAuth Server version `1.9.0` and newer. Check [Support and Compatibility](Readme.md#support-and-compatibility) for more details.
 
 ### Both platforms

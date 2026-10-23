@@ -102,7 +102,7 @@ powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the 
 })
 ```
 
-See also the [Disable Error Dialog After Failed Biometry](PowerAuth-SDK-for-Android.md#disable-error-dialog-after-failed-biometry) chapter for more details.
+See also the [Disable Error Dialog After Failed Biometry](android/Biometric-Authentication-Setup.md#disable-error-dialog-after-failed-biometry) chapter for more details.
 
 #### Synchronized time
 
@@ -138,7 +138,7 @@ The requirement for the time synchronized with the server has the following impa
   })
   ```
 
-Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mobile-sdk/develop/documentation/PowerAuth-SDK-for-Android#synchronized-time) chapter in our documentation for more details.
+Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mobile-sdk/develop/documentation/android/Synchronized-Time) chapter in our documentation for more details.
 
 #### End-To-End Encryption
 
@@ -225,7 +225,7 @@ The requirement for the time synchronized with the server has the following impa
   }
   ``` 
 
-Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mobile-sdk/develop/documentation/PowerAuth-SDK-for-iOS#synchronized-time) chapter in our documentation for more details.
+Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mobile-sdk/develop/documentation/ios/Synchronized-Time) chapter in our documentation for more details.
 
 #### End-To-End Encryption
 

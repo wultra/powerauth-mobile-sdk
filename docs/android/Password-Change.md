@@ -1,6 +1,7 @@
 # Password Change
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB Android href=../PowerAuth-SDK-for-Android -->
 
 The typical password-change flow in a mobile application consists of the following steps:
 

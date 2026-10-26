@@ -1,6 +1,7 @@
 # External Encryption Key
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB Android href=../PowerAuth-SDK-for-Android -->
 
 <!-- begin box warning -->
 Support for the External Encryption Key (EEK) was discontinued in PowerAuth Mobile SDK version 2.0.

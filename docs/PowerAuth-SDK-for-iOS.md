@@ -1,9 +1,13 @@
-# PowerAuth iOS and tvOS SDK
+# iOS and tvOS Documentation
 
 <!-- SIDEBAR _Sidebar_iOS.md -->
+<!-- BREADCRUMB iOS -->
 
 This guide covers integrating PowerAuth into iOS and tvOS applications, from SDK setup and device activation to authentication and other security features.
 
+The chapters include Swift-based integration examples, with platform-specific limitations called out where relevant. They also cover iOS features such as biometry, Keychain configuration, activation sharing, and communication with Apple Watch.
+
+<!-- begin remove -->
 ## Table of Contents
 
 - [SDK Installation](ios/Installation.md)
@@ -30,7 +34,4 @@ This guide covers integrating PowerAuth into iOS and tvOS applications, from SDK
 - [Common SDK Tasks](ios/Common-SDK-Tasks.md)
 - [Additional Features](ios/Additional-Features.md)
 - [Troubleshooting](ios/Troubleshooting.md)
-
-Related documents:
-
-- [PowerAuth SDK for watchOS](./PowerAuth-SDK-for-watchOS.md)
+<!-- end -->

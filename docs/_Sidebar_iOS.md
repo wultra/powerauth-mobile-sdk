@@ -1,9 +1,9 @@
 **Quicklinks**
 
 - [Home](./Readme.md)
-- [Android SDK Documentation](./PowerAuth-SDK-for-Android.md)
+- [Android Documentation](./PowerAuth-SDK-for-Android.md)
 
-**iOS and tvOS SDK Documentation**
+**iOS and tvOS Documentation**
 
 - [SDK Installation](ios/Installation.md)
 - [SDK Configuration](ios/Configuration.md)

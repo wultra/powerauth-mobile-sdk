@@ -1,6 +1,7 @@
 # Additional Features
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB Android href=../PowerAuth-SDK-for-Android -->
 
 PowerAuth SDK for Android contains multiple additional features that are useful for mobile apps.
 

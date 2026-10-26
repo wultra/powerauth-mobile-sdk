@@ -1,6 +1,7 @@
 # Authentication Codes
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 ## Symmetric Multi-Factor Authentication Code
 

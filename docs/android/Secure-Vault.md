@@ -1,6 +1,7 @@
 # Secure Vault
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB Android href=../PowerAuth-SDK-for-Android -->
 
 Secure Vault lets an application obtain **a base KDK** (Key Derivation Key) after a successful strong user authentication.
 The base KDK is not an encryption or MAC key and cannot be used directly — instead, the application can derive purpose-specific keys from it.

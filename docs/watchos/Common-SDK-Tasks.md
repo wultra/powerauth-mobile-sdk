@@ -1,6 +1,7 @@
 # Common SDK Tasks
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB watchOS href=../PowerAuth-SDK-for-watchOS -->
 
 ## Error Handling
 

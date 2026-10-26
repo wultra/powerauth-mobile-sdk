@@ -1,6 +1,7 @@
 # Authentication Codes
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB Android href=../PowerAuth-SDK-for-Android -->
 
 ## Symmetric Multi-Factor Authentication Code
 

@@ -1,6 +1,7 @@
 # Data Signing
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB Android href=../PowerAuth-SDK-for-Android -->
 
 The main feature of the PowerAuth protocol is data signing. PowerAuth has the following types of signatures:
 

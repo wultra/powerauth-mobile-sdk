@@ -1,6 +1,7 @@
 # Synchronized Time
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB watchOS href=../PowerAuth-SDK-for-watchOS -->
 
 The PowerAuth mobile SDK internally uses time synchronized with the PowerAuth Server for its cryptographic functions, such as [Generating Authentication Header](Token-Based-Authentication.md#generating-authentication-header). The synchronized time can also be beneficial for your application. For example, if you want to display a time-sensitive message or countdown to your users, you can take advantage of this service.
 

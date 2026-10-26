@@ -1,6 +1,7 @@
 # Troubleshooting
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB watchOS href=../PowerAuth-SDK-for-watchOS -->
 
 This section of the document contains various workarounds and tips for Watch SDK usage.
 

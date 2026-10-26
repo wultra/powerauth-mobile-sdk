@@ -1,6 +1,7 @@
 # Device Activation Removal
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB Android href=../PowerAuth-SDK-for-Android -->
 
 You can remove activation using several ways - the choice depends on the desired behavior.
 

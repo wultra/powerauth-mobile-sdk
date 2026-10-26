@@ -1,6 +1,7 @@
 # Working with passwords securely
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 PowerAuth mobile SDK uses the `PowerAuthPassword` object behind the scene, to store the user's password or PIN securely. The object automatically wipes out the plaintext password on its destroy, so there are no traces of sensitive data left in the memory. You can easily enhance your application's runtime security by adopting this object in your code and this chapter explains in detail how to do it.
 

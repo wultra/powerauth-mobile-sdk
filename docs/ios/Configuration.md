@@ -1,6 +1,7 @@
 # SDK Configuration
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 To use PowerAuth SDK, simply add the following imports into your code:
 

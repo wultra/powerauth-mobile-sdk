@@ -1,6 +1,7 @@
 # Device Activation
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 After you configure the SDK instance, you are ready to make your first activation.
 

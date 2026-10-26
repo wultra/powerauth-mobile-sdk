@@ -1,6 +1,7 @@
 # Device Activation
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB Android href=../PowerAuth-SDK-for-Android -->
 
 After you configure the SDK instance, you are ready to make your first activation.
 

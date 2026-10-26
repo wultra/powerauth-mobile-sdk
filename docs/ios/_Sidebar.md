@@ -1,9 +1,9 @@
 **Quicklinks**
 
 - <a href="../index">Home</a>
-- <a href="../PowerAuth-SDK-for-Android">Android SDK Documentation</a>
+- <a href="../PowerAuth-SDK-for-Android">Android Documentation</a>
 
-**iOS and tvOS SDK Documentation**
+**iOS and tvOS Documentation**
 
 - [SDK Installation](Installation.md)
 - [SDK Configuration](Configuration.md)

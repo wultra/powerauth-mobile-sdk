@@ -1,9 +1,13 @@
-# PowerAuth Android SDK
+# Android Documentation
 
 <!-- SIDEBAR _Sidebar_Android.md -->
+<!-- BREADCRUMB Android -->
 
 This guide covers integrating PowerAuth into Android applications, from SDK setup and device activation to authentication and other security features.
 
+It starts with installation and configuration, then covers activation, request signing, and authentication workflows. Android-specific chapters also explain biometric setup and protecting locally stored activation data.
+
+<!-- begin remove -->
 ## Table of Contents
 
 - [SDK Installation](android/Installation.md)
@@ -26,3 +30,4 @@ This guide covers integrating PowerAuth into Android applications, from SDK setu
 - [Synchronized Time](android/Synchronized-Time.md)
 - [Common SDK Tasks](android/Common-SDK-Tasks.md)
 - [Additional Features](android/Additional-Features.md)
+<!-- end -->

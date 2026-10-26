@@ -1,9 +1,9 @@
 **Quicklinks**
 
 - [Home](./Readme.md)
-- [iOS and tvOS SDK Documentation](./PowerAuth-SDK-for-iOS.md)
+- [iOS and tvOS Documentation](./PowerAuth-SDK-for-iOS.md)
 
-**watchOS SDK Documentation**
+**watchOS Documentation**
 
 - [Installation](watchos/Installation.md)
 - [SDK Configuration](watchos/Configuration.md)

@@ -1,6 +1,7 @@
 # Additional Features
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 PowerAuth SDK for iOS contains multiple additional features that are useful for mobile apps.
 

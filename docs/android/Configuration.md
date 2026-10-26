@@ -1,6 +1,7 @@
 # SDK Configuration
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB Android href=../PowerAuth-SDK-for-Android -->
 
 In order to be able to configure your `PowerAuthSDK` instance, you need the following values from the PowerAuth Server:
 

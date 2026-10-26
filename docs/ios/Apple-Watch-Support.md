@@ -1,6 +1,7 @@
 # Apple Watch Support
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 This part of the documentation describes how to add support for Apple Watch to your PowerAuth-powered iOS application. This part of the documentation is not relevant to the **tvOS** platform.
 

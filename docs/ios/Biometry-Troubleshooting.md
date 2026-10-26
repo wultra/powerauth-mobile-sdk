@@ -1,6 +1,7 @@
 # Biometry Troubleshooting
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 ## Biometry lockout
 

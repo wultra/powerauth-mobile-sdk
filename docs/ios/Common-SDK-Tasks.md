@@ -1,6 +1,7 @@
 # Common SDK Tasks
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 ## Error Handling
 

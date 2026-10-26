@@ -1,9 +1,9 @@
 **Quicklinks**
 
 - <a href="../index">Home</a>
-- <a href="../PowerAuth-SDK-for-iOS">iOS and tvOS SDK Documentation</a>
+- <a href="../PowerAuth-SDK-for-iOS">iOS and tvOS Documentation</a>
 
-**watchOS SDK Documentation**
+**watchOS Documentation**
 
 - [Installation](Installation.md)
 - [SDK Configuration](Configuration.md)

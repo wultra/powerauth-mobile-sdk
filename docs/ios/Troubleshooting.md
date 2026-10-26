@@ -1,6 +1,7 @@
 # Troubleshooting
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 ## tvOS support in CocoaPods
 

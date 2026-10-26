@@ -1,6 +1,7 @@
 # Password Change
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 The typical password-change flow in a mobile application consists of the following steps:
 

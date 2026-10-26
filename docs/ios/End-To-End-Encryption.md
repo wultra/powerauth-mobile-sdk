@@ -1,6 +1,7 @@
 # End-To-End Encryption
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 Currently, PowerAuth SDK supports two basic modes of end-to-end encryption:
 

@@ -1,6 +1,7 @@
 # Working with passwords securely
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB Android href=../PowerAuth-SDK-for-Android -->
 
 PowerAuth mobile SDK uses the `io.getlime.security.powerauth.core.Password` object behind the scenes, to store the user's password or PIN securely. The object automatically wipes out the plaintext password on its destroy, so there are no traces of sensitive data left in the memory. You can easily enhance your application's runtime security by adopting this object in your code and this chapter explains in detail how to do it.
 

@@ -1,6 +1,7 @@
 # Requesting Device Activation Status
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB iOS href=../PowerAuth-SDK-for-iOS -->
 
 To obtain detailed activation status information, use the following code:
 

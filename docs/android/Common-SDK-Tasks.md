@@ -1,6 +1,7 @@
 # Common SDK Tasks
 
 <!-- SIDEBAR _Sidebar.md -->
+<!-- BREADCRUMB Android href=../PowerAuth-SDK-for-Android -->
 
 ## Error Handling
 

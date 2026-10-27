@@ -32,8 +32,8 @@ val secureData = SecureData.capture(yourKey)
 
 To get reference to stored bytes, use the following code:
 
-```swift
-func processSecureData(secureData: SecureData) {
+```kotlin
+fun processSecureData(secureData: SecureData) {
     doSomethingWitBytes(secureData.sensitiveData)
 }
 ```

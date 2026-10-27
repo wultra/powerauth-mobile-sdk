@@ -75,7 +75,7 @@ let index = UInt64(1000)
 
 // Fetch the encryption key with the given index
 powerAuthSDK.fetchEncryptionKey(auth, index: index) { (encryptionKey, error) in
-    if error == nil {
+    if let encryptionKey {
         // ... use the encryption key to encrypt or decrypt data
         let keyData = encryptionKey.sensitiveData
     } else {

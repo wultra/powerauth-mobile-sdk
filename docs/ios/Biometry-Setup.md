@@ -143,8 +143,10 @@ By default, the biometry factor-related key is **NOT** invalidated after the bio
 
 ```swift
 // Prepare your PA config
-let configuration = PowerAuthConfiguration()
-// ...
+let configuration = PowerAuthConfiguration(
+    instanceId: Bundle.main.bundleIdentifier!,
+    baseEndpointUrl: "https://<your-domain>/enrollment-server",
+    configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 
 // Prepare PowerAuthBiometricConfiguration
 // Set true to the 'invalidateBiometricFactorAfterChange' property.
@@ -165,8 +167,10 @@ By default, the fallback from biometric authentication to authenticate with the 
 
 ```swift
 // Prepare your PA config
-let configuration = PowerAuthConfiguration()
-// ...
+let configuration = PowerAuthConfiguration(
+    instanceId: Bundle.main.bundleIdentifier!,
+    baseEndpointUrl: "https://<your-domain>/enrollment-server",
+    configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 
 // Prepare PowerAuthBiometricConfiguration
 // Set true to the 'allowFallbackToDevicePasscode' property.

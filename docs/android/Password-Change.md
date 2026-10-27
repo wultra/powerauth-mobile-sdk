@@ -28,7 +28,7 @@ The typical password-change flow in a mobile application consists of the followi
 
 4. **Submit the new password to the server:**
     ```kotlin
-    powerAuthSDK.finishPasswordChange(context, "newPassword", changeData: PowerAuthPasswordChangeData, object: IFinishPasswordChangeListener {
+    powerAuthSDK.finishPasswordChange(context, "newPassword", changeData, object: IFinishPasswordChangeListener {
         override fun onFinishPasswordChangeSucceed() {
             // Password was changed.
         }

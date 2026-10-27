@@ -26,7 +26,7 @@ The following steps are typically required for a full E2EE request and response 
         }
    });
    // ...or similar, for an "activation" scope.
-   val cancelable = powerAuthSDK.getEncryptorForActivationScope(context, object : IGetEncryptorListener {
+   val cancelable = powerAuthSDK.getEncryptorForActivationScope(object : IGetEncryptorListener {
         override fun onGetEncryptorSuccess(encryptor: CoreEncryptor) {
             // Success
         }

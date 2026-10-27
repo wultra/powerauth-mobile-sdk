@@ -18,12 +18,14 @@ val INSTANCE_ID = applicationContext.packageName
 val MOBILE_SDK_CONFIG = "MTIzNDU2Nz...jc4OTAxMg=="
 val API_SERVER = "https://<your-domain>/enrollment-server"
 
+// Throws PowerAuthErrorException with PowerAuthErrorCodes.WRONG_PARAMETER for an invalid configuration
+val configuration = PowerAuthConfiguration.Builder(
+    INSTANCE_ID,
+    API_SERVER,
+    MOBILE_SDK_CONFIG)
+    .build()
+
 try {
-    val configuration = PowerAuthConfiguration.Builder(
-        INSTANCE_ID,
-        API_SERVER,
-        MOBILE_SDK_CONFIG)
-        .build()
     val powerAuthSDK = PowerAuthSDK.Builder(configuration)
         .build(applicationContext)
 } catch (exception: PowerAuthErrorException) {
@@ -198,7 +200,7 @@ try {
 }
 ```
 
-The selected algorithm cannot be changed after a `PowerAuthSDK` instance is created, but it can be updated across the lifetime of your application. If the selected algorithm does not match the one used for the activation currently present on the device, the [authenticated protocol upgrade](Authenticated-Protocol-Upgrade.md) process must be performed to switch to the new algorithm.
+The selected algorithm cannot be changed after a `PowerAuthSDK` instance is created. It applies to new activations and to the authenticated protocol upgrade of activations that still use protocol 3.3; an activation that already uses protocol 4.0 keeps the algorithm it was created with. If the activation currently present on the device uses protocol 3.3 and a non-legacy algorithm is configured, the [authenticated protocol upgrade](Authenticated-Protocol-Upgrade.md) process must be performed to migrate it to the configured algorithm.
 
 ## Read Next
 

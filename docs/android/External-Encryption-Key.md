@@ -13,7 +13,7 @@ If the activation in your application is still using EEK, please use the followi
 
 ```kotlin
 if (powerAuthSDK.hasExternalEncryptionKey()) {
-    val eek = SecureData(eekBytes)
+    val eek = SecureData.copy(eekBytes)
     powerAuthSDK.removeExternalEncryptionKey(eek)
 }
 ```

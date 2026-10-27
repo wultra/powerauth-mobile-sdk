@@ -43,7 +43,7 @@ when (t) {
             PowerAuthErrorCodes.OTHER -> Log.d(TAG, "Unspecified error.")
         }
         // Process additional information
-        val additionalInfo = error.additionalInformation
+        val additionalInfo = t.additionalInformation
         when (additionalInfo) {
             is BiometricErrorInfo -> {
                 if (additionalInfo.isErrorPresentationRequired) {

@@ -62,9 +62,10 @@ powerAuthSDK.startProtocolUpgrade(context, "password", object: IProtocolUpgradeL
 ```
 
 The method variant with `PowerAuthBiometricPrompt` allows the biometric key to
-be upgraded during the protocol upgrade, if the SDK configuration has the
-`authenticateOnBiometricKeySetup` disabled or external biometric key is not
-used. Following call is recommended in that case:
+be upgraded during the protocol upgrade, but only if the SDK configuration has
+`authenticateOnBiometricKeySetup` disabled **and** the activation uses a locally
+managed biometric key (not an external one). Otherwise, the call fails with
+`PowerAuthErrorCodes.WRONG_PARAMETER`. Following call is recommended in that case:
 
 ```kotlin
 // Prepare biometric prompt.

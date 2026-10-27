@@ -63,9 +63,10 @@ To share the activation's state just assign an instance of the `PowerAuthSharing
 // Keychain sharing and App Group constants
 let keychainSharing = "KTT00000MR.com.powerauth.demo.App"   // KEYCHAIN_GROUP_IDENTIFIER constant
 let appGroup = "group.your.app.group"                       // APP_GROUP_IDENTIFIER constant
+let sharedInstanceId = "com.powerauth.demo.shared"          // The same constant in all participating targets
 // Prepare the configuration
 let configuration = PowerAuthConfiguration(
-        instanceId: Bundle.main.bundleIdentifier!,
+        instanceId: sharedInstanceId,
         baseEndpointUrl: "https://<your-domain>/enrollment-server",
         configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 // Assign sharing configuration

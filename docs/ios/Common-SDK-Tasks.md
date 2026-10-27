@@ -147,7 +147,7 @@ Sometimes, you may need to develop or test your application against a service th
 let clientConfig = PowerAuthClientConfiguration()
 clientConfig.sslValidationStrategy = PowerAuthClientSslNoValidationStrategy()
 // configure the PowerAuthSDK object
-let powerAuthSDK = PowerAuthSDK(
+let powerAuthSDK = try PowerAuthSDK(
     configuration: PowerAuthConfiguration(...),
     biometricConfiguration: nil, // optional, default will be used when nil
     clientConfiguration: clientConfig
@@ -179,7 +179,7 @@ import PowerAuth2
 
 class MyClass: PowerAuthLogDelegate {
 
-    init {
+    init() {
         // Only works in DEBUG build or when 
         // ENABLE_PA2_LOG compilation flag is set
         PowerAuthLogSetEnabled(true)

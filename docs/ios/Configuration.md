@@ -20,7 +20,7 @@ Finally, you need to know the location of your [PowerAuth Standard RESTful API](
 To sum it up, in order to configure the `PowerAuthSDK` instance, add the following code to your application delegate:
 
 ```swift
-func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
     // Prepare the configuration
     let configuration = PowerAuthConfiguration(
@@ -141,7 +141,7 @@ let configuration = PowerAuthConfiguration(
 let powerAuth = try PowerAuthSDK(configuration: configuration)
 ```
 
-The selected algorithm cannot be changed after a `PowerAuthSDK` instance is created, but it can be updated across the lifetime of your application. If the selected algorithm does not match the one used for the activation currently present on the device, the [authenticated protocol upgrade](Authenticated-Protocol-Upgrade.md) process must be performed to switch to the new algorithm.
+The selected algorithm cannot be changed after a `PowerAuthSDK` instance is created. It applies to new activations and to the authenticated protocol upgrade of activations that still use protocol 3.3; an activation that already uses protocol 4.0 keeps the algorithm it was created with. If the activation currently present on the device uses protocol 3.3 and a non-legacy algorithm is configured, the [authenticated protocol upgrade](Authenticated-Protocol-Upgrade.md) process must be performed to migrate it to the configured algorithm.
 
 ## Read Next
 

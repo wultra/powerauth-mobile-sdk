@@ -30,7 +30,7 @@ The table below lists all available key identifiers defined in the `PowerAuthSig
 | `MAC_PERSONALIZED` | MAC       | KMAC            | Yes         | No   | Yes    | Use the KMAC-based symmetric key for MAC verification. |
 
 <!-- begin box info -->
-If you're interested in more technical details, such as the exact algorithms used for digital signatures, see the [Digital-Signatures.md](Digital-Signatures.md) document.
+If you're interested in more technical details, such as the exact algorithms used for digital signatures, see the [Digital-Signatures.md](../Digital-Signatures.md) document.
 <!-- end -->
 
 ### Signature Key Availability
@@ -56,7 +56,7 @@ val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
 // and therefore an ML-DSA signature will be produced.
 val signingKey = PowerAuthSignatureKeyId.DEVICE_ML_DSA
 // Data to sign
-val data = "hello".getBytes()
+val data = "hello".toByteArray()
 // Calculate signature
 powerAuthSDK.calculateDigitalSignature(context, authentication, data, signingKey, object: IDigitalSignatureListener {
     override fun onDigitalSignatureSucceed(signature: ByteArray) {
@@ -84,7 +84,7 @@ val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
 // and therefore an ML-DSA signature will be produced.
 val signingKey = PowerAuthSignatureKeyId.DEVICE_ML_DSA
 // Data to sign
-val data = "hello".getBytes()
+val data = "hello".toByteArray()
 // Unlock the device private key after successful authentication and perform data signing.
 // - The dataType parameter is added to the JWS Protected Header under the "typ" key.
 //   A null parameter means that no "typ" value is included in the header.
@@ -134,7 +134,7 @@ This task is useful when you receive arbitrary data from the server and need to 
 
 ```kotlin
 try {
-    verifyDigitalSignature(signature, signedData, PowerAuthSignatureKeyId.SERVER_ML_DSA)
+    powerAuthSDK.verifyDigitalSignature(signature, signedData, PowerAuthSignatureKeyId.SERVER_ML_DSA)
     // success, signature is valid
 } catch (exception: PowerAuthErrorException) {
     // failure
@@ -152,7 +152,7 @@ In cases where you need to verify the authenticity of a QR code created on the s
 
 ```kotlin
 try {
-    verifyDigitalSignature(signature, signedData, PowerAuthSignatureKeyId.MAC_PERSONALIZED)
+    powerAuthSDK.verifyDigitalSignature(signature, signedData, PowerAuthSignatureKeyId.MAC_PERSONALIZED)
     // success, MAC is valid
 } catch (exception: PowerAuthErrorException) {
     // failure
@@ -170,7 +170,7 @@ To verify a JSON Web Signature (JWS) created on the server, use the following co
 
 ```kotlin
 try {
-    verifyJwsSignature(jws, false, true, PowerAuthSignatureKeyId.SERVER)
+    powerAuthSDK.verifyJwsSignature(jws, false, true, PowerAuthSignatureKeyId.SERVER)
     // success, JWS is valid
 } catch (exception: PowerAuthErrorException) {
     // failure
@@ -240,9 +240,9 @@ If the `PowerAuthSDK` instance is not configured for the legacy mode (that is, t
 
 Use the following code to retrieve device public keys associated with the activation:
 
-```swift
+```kotlin
 try {
-    val keys = exportDevicePublicKeys(PowerAuthDevicePublicKeyFormat.DER)
+    val keys = powerAuthSDK.exportDevicePublicKeys(PowerAuthDevicePublicKeyFormat.DER)
     for (key in keys) {
         if (key.keyType == PowerAuthSignatureKeyType.EC) {
             println("EC key algorithm: ${key.keyAlgorithm}")

@@ -49,7 +49,7 @@ The following steps are typically required for a full E2EE request and response 
    ```swift
     var httpRequest = URLRequest(url: URL(string: "https://example.org/encrypted-request")!)
     requestHeaders.forEach { header in
-        httpRequest.addValue(header.headerValue, forHTTPHeaderField: header.headerName)
+        httpRequest.addValue(header.value, forHTTPHeaderField: header.key)
     }
    ```
    Note that if an "activation" scoped encryptor is combined with PowerAuth Symmetric Multi-Factor Authentication Code, then this step is not required. The authentication header already contains all the information required for proper request decryption on the server.
@@ -59,7 +59,7 @@ The following steps are typically required for a full E2EE request and response 
 
 1. In case of success, decrypt the response:
    ```swift
-   let encryptedResponse = PowerAuthEncryptedResponse(responseBody: responseBody)
+   let encryptedResponse = try PowerAuthEncryptedResponse(responseBody: responseBody)
    let response = try encryptor.decryptResponse(encryptedResponse)
    ```
 

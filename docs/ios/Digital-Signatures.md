@@ -30,7 +30,7 @@ The table below lists all available key identifiers defined in the `PowerAuthSig
 | `macPersonalized` | MAC       | KMAC            | Yes         | No   | Yes    | Use the KMAC-based symmetric key for MAC verification. |
 
 <!-- begin box info -->
-If you're interested in more technical details, such as the exact algorithms used for digital signatures, see the [Digital-Signatures.md](Digital-Signatures.md) document.
+If you're interested in more technical details, such as the exact algorithms used for digital signatures, see the [Digital-Signatures.md](../Digital-Signatures.md) document.
 <!-- end -->
 
 ### Signature Key Availability

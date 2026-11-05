@@ -16,6 +16,7 @@ However, the SDK can protect only what it receives. If your application collects
 This tutorial builds on the platform-specific documentation. For the full API description, see [Working with Passwords Securely on iOS](ios/Working-With-Passwords-Securely.md) and [Working with Passwords Securely on Android](android/Working-With-Passwords-Securely.md).
 <!-- end -->
 
+<!-- begin remove -->
 ## Table of Contents
 
 - [Working With the Password Object](#working-with-the-password-object)
@@ -26,6 +27,7 @@ This tutorial builds on the platform-specific documentation. For the full API de
 - [Handling Wrong PIN](#handling-wrong-pin)
 - [Changing the PIN](#changing-the-pin)
 - [Reacting on Application Lifecycle](#reacting-on-application-lifecycle)
+<!-- end -->
 
 ## Working With the Password Object
 

@@ -8,6 +8,7 @@ This document complements the [Migration from 1.9.x to 2.0.x](Migration-from-1.9
 Choosing the right strategy depends on your business, security, regulatory, and infrastructure requirements. If you have any questions or need help deciding which strategy fits your situation, do not hesitate to contact Wultra support at [support@wultra.com](mailto:support@wultra.com) (or any other channel you have).
 <!-- end -->
 
+<!-- begin remove -->
 ## Table of Contents
 
 - [Why Move to Post-Quantum Cryptography](#why-move-to-post-quantum-cryptography)
@@ -18,6 +19,7 @@ Choosing the right strategy depends on your business, security, regulatory, and 
 - [Strategy 2: Organic Migration](#strategy-2-organic-migration)
 - [Strategy 3: Legacy Mode](#strategy-3-legacy-mode)
 - [Frequently Asked Questions](#frequently-asked-questions)
+<!-- end -->
 
 ## Why Move to Post-Quantum Cryptography
 

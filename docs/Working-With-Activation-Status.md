@@ -6,10 +6,12 @@ The activation status tells your application whether the activation on the devic
 PowerAuth Mobile SDK **never fetches the activation status on its own**. It's up to your application to decide when to fetch it. For the full API description, see Requesting Device Activation Status on [iOS](ios/Requesting-Device-Activation-Status.md) and [Android](android/Requesting-Device-Activation-Status.md).
 <!-- end -->
 
+<!-- begin remove -->
 ## Table of Contents
 
 - [When to Fetch the Status](#when-to-fetch-the-status)
 - [Reacting to the Status](#reacting-to-the-status)
+<!-- end -->
 
 ## When to Fetch the Status
 

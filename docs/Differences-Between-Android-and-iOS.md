@@ -4,6 +4,7 @@ PowerAuth Mobile SDK implements the same protocol and offers the same set of fea
 
 This document is intended for teams that develop the same application for both platforms, or that build a cross-platform wrapper on top of the native SDKs. It does not describe API differences. Instead, it focuses on differences in concepts, default behavior, and usage that may lead to inconsistent user experience if you are not aware of them. For API details, follow the links to the platform-specific documentation.
 
+<!-- begin remove -->
 ## Table of Contents
 
 - [Summary](#summary)
@@ -13,6 +14,7 @@ This document is intended for teams that develop the same application for both p
 - [Activation Data Storage](#activation-data-storage)
 - [Platform-Specific Features](#platform-specific-features)
 - [SDK Setup, Lifecycle, and Threading](#sdk-setup-lifecycle-and-threading)
+<!-- end -->
 
 ## Summary
 

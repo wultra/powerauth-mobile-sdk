@@ -15,7 +15,6 @@ PowerAuth Mobile SDK in version `1.2.0` introduces following important changes:
 ### API changes
 
 - Removed deprecated `PasswordUtil`, 
-  - We recommend you to use our [Passphrase Meter](https://github.com/wultra/passphrase-meter) library as a replacement.
   - The removed interface is still available in [0.20.x branch](https://github.com/wultra/powerauth-mobile-sdk/tree/release/0.20.x/proj-android/PowerAuthLibrary/src/main/java/io/getlime/security/powerauth/util/password), so you can copy that files directly into your project.
 
 - Removed ALL classes from package `io.getlime.security.powerauth.keychain.fingerprint`
@@ -87,7 +86,6 @@ The biometric support on Android platform is kind of mess right now (August 2019
 ### API changes
 
 - Removed deprecated `PA2PasswordUtil`
-  - We recommend you to use our [Passphrase Meter](https://github.com/wultra/passphrase-meter) library as a replacement.
   - The removed interface is still available in [0.20.x branch](https://github.com/wultra/powerauth-mobile-sdk/tree/release/0.20.x/proj-xcode/Classes/util), so you can copy that files directly into your project.
 - Added a new activation state `PA2ActivationState_Deadlock`
   - This may produce a swift warning that `switch must be exhaustive` and `note: add missing case: '.deadlock'`. You can ignore this warning or add a similar processing than you already have for `.removed` state.

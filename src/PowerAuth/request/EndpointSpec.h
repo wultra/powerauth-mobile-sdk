@@ -37,9 +37,7 @@ struct EndpointSpec
         /// If set, then encryption header is enforced in request.
         FL_FORCE_ENCRYPTION_HEADER  = 1 << 5,
         /// If set, then response JSON is marshaled to managed environments, such as Java or Objective-C.
-        FL_PUBLIC_RESPONSE_JSON     = 1 << 6,
-        /// If set, then the authentication code is calculated before request encryption.
-        FL_AUTHENTICATE_BEFORE_ENCRYPTION = 1 << 7
+        FL_PUBLIC_RESPONSE_JSON     = 1 << 6
     };
     
     ProtocolVersion version;
@@ -93,11 +91,6 @@ struct EndpointSpec
     {
         return (flags & FL_FORCE_ENCRYPTION_HEADER) == FL_FORCE_ENCRYPTION_HEADER;
     }
-
-    bool authenticateBeforeEncryption() const noexcept
-    {
-        return (flags & FL_AUTHENTICATE_BEFORE_ENCRYPTION) == FL_AUTHENTICATE_BEFORE_ENCRYPTION;
-    }
 };
 
 namespace v4 {
@@ -108,7 +101,6 @@ extern const EndpointSpec Endpoint_ActivationCreate;
 extern const EndpointSpec Endpoint_ActivationConfirm;
 extern const EndpointSpec Endpoint_ActivationStatus;
 extern const EndpointSpec Endpoint_ActivationRemove;
-extern const EndpointSpec Endpoint_ActivationRename;
 extern const EndpointSpec Endpoint_PasswordChange;
 extern const EndpointSpec Endpoint_BiometryAdd;
 extern const EndpointSpec Endpoint_BiometryRemove;
@@ -129,7 +121,6 @@ extern const EndpointSpec Endpoint_TemporaryKey;
 extern const EndpointSpec Endpoint_ActivationCreate;
 extern const EndpointSpec Endpoint_ActivationStatus;
 extern const EndpointSpec Endpoint_ActivationRemove;
-extern const EndpointSpec Endpoint_ActivationRename;
 extern const EndpointSpec Endpoint_SignatureValidate;
 extern const EndpointSpec Endpoint_VaultUnlock;
 extern const EndpointSpec Endpoint_TokenCreate;

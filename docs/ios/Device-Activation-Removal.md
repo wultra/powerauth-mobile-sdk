@@ -59,22 +59,6 @@ powerAuthSDK.removeActivation(with: auth) { (error) in
 Depending on server support and configuration, it's possible to remove the activation with 1FA authentication (e.g. using `PowerAuthAuthentication.possession()`).
 <!-- end -->
 
-## Rename via Signed Request
-
-PowerAuth Standard RESTful API also provides an activation rename endpoint. The SDK signs the request before encrypting it in the activation scope. The operation requires 2FA, so use possession with password or possession with biometry; possession-only authentication is rejected locally. The callback returns the server-confirmed activation name.
-
-```swift
-let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
-
-powerAuthSDK.renameActivation(name: "John's iPhone", authentication: auth) { activationName, error in
-    if let activationName = activationName {
-        // Server-confirmed activation name
-    } else {
-        // Report error to user
-    }
-}
-```
-
 ## Read Next
 
 - [End-To-End Encryption](End-To-End-Encryption.md)

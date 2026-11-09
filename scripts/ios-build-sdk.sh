@@ -397,8 +397,10 @@ function FIND_TVOS_SDK
     # This is quite hardcore, but unfortunatelly there's no command line option to test whether SDK is really installed.
     # The idea behind this is that when tvOS SDK is installed, then there are already a some run or build destinations for it.
     # If tvOS SDK is not installed, then the placeholder SDK is reported, with "not installed" error in the description. 
+    # On newer Xcode versions (verified on Xcode 26.6) the error is reported on stderr in the "Ineligible
+    # destinations" section, so stderr must be included in the search.
     set +e
-    xcodebuild -showdestinations -project $project -scheme $scheme -quiet 2>/dev/null | grep 'not installed' > /dev/null 2>&1;
+    xcodebuild -showdestinations -project $project -scheme $scheme -quiet 2>&1 | grep 'not installed' > /dev/null 2>&1;
     if (($? == 0)); then
         echo "0"    # Grep found 'not installed' so SDK is not available
     else

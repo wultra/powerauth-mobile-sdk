@@ -190,7 +190,7 @@ The activation is ready to use. Show the regular application content, such as th
 
 The activation is blocked and can't be used right now. Show an error screen. The flow of this screen depends on your implementation:
 
-- **Temporary block.** If the status contains `blockExpirationTime`, the activation is unblocked automatically once the time expires. See Requesting Device Activation Status on [iOS](ios/Requesting-Device-Activation-Status.md) and [Android](android/Requesting-Device-Activation-Status.md) for how to calculate the remaining time.
+- **Temporary block.** If the status contains `blockExpirationTime`, the activation is unblocked automatically once the time expires. The value is provided only by PowerAuth Server `2.2.0` and newer, with protocol V4.0. See Requesting Device Activation Status on [iOS](ios/Requesting-Device-Activation-Status.md) and [Android](android/Requesting-Device-Activation-Status.md) for how to calculate the remaining time.
 - **Permanent block.** The activation can be unblocked only through an external system, such as the internet banking or the back office. It depends on your business scenario. We recommend a "How to unblock" button that leads to the unblock instructions, for example, with buttons to call the support or send an email. Put the "Activate again" option to a secondary context menu. It removes the activation locally and starts a new enrollment.
 
 <p align="center"><img src="./images/activation-status/status-blocked-mockup.png" alt="Mockup of the blocked activation screen" width="700" /></p>

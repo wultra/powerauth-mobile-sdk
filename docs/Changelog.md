@@ -5,7 +5,6 @@
 
 ### Both platforms
 
-- Added authenticated activation rename API for Apple and Android SDKs ([748](https://github.com/wultra/powerauth-mobile-sdk/issues/748))
 - Activation status now includes the optional expiration time of a temporary activation block ([900](https://github.com/wultra/powerauth-mobile-sdk/issues/900))
 
 ### Apple

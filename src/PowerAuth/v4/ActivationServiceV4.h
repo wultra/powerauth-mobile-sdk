@@ -39,7 +39,6 @@ public:
     void resetState() override;
     RequestPtr fetchActivationStatus() override;
     RequestPtr removeActivation(const CredentialsPtr& credentials) override;
-    RequestPtr renameActivation(const CredentialsPtr& credentials, const std::string_view& activation_name) override;
     
     RequestPtr changePassword(const PasswordPtr& old_password, const PasswordPtr& new_password) override;
     RequestPtr addBiometricFactor(const PasswordPtr& password, const cc7::ByteRange& new_biometry_kek) override;
@@ -125,3 +124,4 @@ private:
 
 } // namespace v4
 } // namespace powerAuth
+

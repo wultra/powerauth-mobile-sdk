@@ -19,6 +19,7 @@ Add bank-grade mobile security to your iOS, tvOS, watchOS and Android apps with 
 
 If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check the following migration guides:
 
+- [Migration from version `2.0.x` to `2.1.x`](Migration-from-2.0-to-2.1.md)
 - [Migration from version `1.9.x` to `2.0.x`](Migration-from-1.9-to-2.0.md)
 - [Migration from version `1.8.x` to `1.9.x`](Migration-from-1.8-to-1.9.md)
 - [Migration from version `1.7.x` to `1.8.x`](Migration-from-1.7-to-1.8.md)
@@ -34,6 +35,7 @@ If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check th
 
 | Mobile SDK | Protocol         | PowerAuth Server              | Support Status                    |
 |------------|------------------|-------------------------------|-----------------------------------|
+| `2.1.x`    | `V4.0` or `V3.3` | `2.0+` or `1.9+`<sup>1</sup>  | Fully supported                   |
 | `2.0.x`    | `V4.0` or `V3.3` | `2.0+` or `1.9+`<sup>1</sup>  | Fully supported                   |
 | `1.9.x`    | `V3.3`           | `1.9+`                        | Security & Functionality bugfixes |
 | `1.8.x`    | `V3.2`           | `1.5+`                        | Security bugfixes                 |

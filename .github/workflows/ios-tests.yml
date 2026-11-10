@@ -14,7 +14,6 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: read
 
 jobs:
   tests:
@@ -39,34 +38,33 @@ jobs:
 
       # The job always runs so that matrix checks are reported, but it exits early when no code has changed.
       - name: Detect code changes
-        id: filter
-        if: github.event_name != 'workflow_dispatch'
-        uses: dorny/paths-filter@v4
-        with:
-          predicate-quantifier: some-with-excludes
-          filters: |
-            code:
-              - '.gitmodules'
-              - 'cc7'
-              - 'include/**'
-              - 'src/PowerAuth/**'
-              - 'src/PowerAuthTests/**'
-              - 'proj-xcode/**'
-              - 'Package.swift'
-              - 'scripts/test.sh'
-              - 'scripts/test-server.sh'
-              - '.github/workflows/ios-tests.yml'
-              - '!**/*.md'
-
-      - name: Decide whether to run tests
         id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ steps.filter.outputs.code }}" == "true" ]]; then
-            echo "code=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "No code changes detected, skipping tests."
-            echo "code=false" >> "$GITHUB_OUTPUT"
+          base=""
+          case "$EVENT_NAME" in
+            pull_request) base="$PR_BASE_SHA" ;;
+            push) [[ "$PUSH_BEFORE_SHA" =~ ^0+$ ]] || base="$PUSH_BEFORE_SHA" ;;
+          esac
+          code=true
+          if [[ -n "$base" ]] && git fetch -q --depth=1 origin "$base"; then
+            code=false
+            while IFS= read -r file; do
+              case "$file" in
+                *.md) ;;
+                .gitmodules | cc7 | include/* | src/PowerAuth/* | src/PowerAuthTests/* | proj-xcode/* | Package.swift | \
+                scripts/test.sh | scripts/test-server.sh | .github/workflows/ios-tests.yml)
+                  code=true
+                  break
+                  ;;
+              esac
+            done < <(git diff --name-only "$base" HEAD)
           fi
+          [[ "$code" == "true" ]] || echo "No code changes detected, skipping tests."
+          echo "code=$code" >> "$GITHUB_OUTPUT"
 
       - name: Checkout submodules
         if: steps.changes.outputs.code == 'true'

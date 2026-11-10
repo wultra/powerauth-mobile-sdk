@@ -1018,7 +1018,18 @@ public class ActivationHelper {
      * @throws Exception In case of unexpected error.
      */
     Throwable startProtocolUpgradeExpectFailure(final @PowerAuthAlgorithm int targetAlgorithm) throws Exception {
-        final Password password = getValidPassword();
+        return startProtocolUpgradeExpectFailure(targetAlgorithm, getValidPassword());
+    }
+
+    /**
+     * Start the protocol upgrade with the provided password and expect a failure.
+     *
+     * @param targetAlgorithm Target algorithm for the protocol upgrade.
+     * @param password Password used to authenticate the protocol upgrade.
+     * @return {@link Throwable} representing an expected error during protocol upgrade.
+     * @throws Exception In case of unexpected error.
+     */
+    Throwable startProtocolUpgradeExpectFailure(final @PowerAuthAlgorithm int targetAlgorithm, @NonNull final Password password) throws Exception {
         final IConsumer<IProtocolUpgradeListener> upgradeStartCall = (listener ->
                 powerAuthSDK.startProtocolUpgrade(testHelper.getContext(), password, listener)
         );

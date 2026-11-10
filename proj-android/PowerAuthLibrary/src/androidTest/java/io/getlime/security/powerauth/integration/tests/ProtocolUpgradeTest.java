@@ -31,7 +31,9 @@ import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 
+import io.getlime.security.powerauth.core.CoreException;
 import io.getlime.security.powerauth.core.CryptoUtils;
+import io.getlime.security.powerauth.core.Password;
 import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
@@ -40,6 +42,8 @@ import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.AuthCodeType;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationResult;
+import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
+import io.getlime.security.powerauth.networking.exceptions.FailedApiException;
 import io.getlime.security.powerauth.networking.response.IOfflineAuthenticationCodeListener;
 import io.getlime.security.powerauth.networking.response.ProtocolUpgradeResult;
 import io.getlime.security.powerauth.sdk.PowerAuthActivationState;
@@ -196,7 +200,9 @@ public class ProtocolUpgradeTest extends BaseTest {
         assertTrue(throwable instanceof PowerAuthErrorException);
         assertEquals(PowerAuthErrorCodes.NETWORK_ERROR, ((PowerAuthErrorException) throwable).getPowerAuthErrorCode());
         assertNotNull(throwable.getMessage());
-        assertTrue(throwable.getMessage().startsWith("powerAuth::PowerAuthException: Simulated error on data send"));
+        assertTrue(throwable.getMessage().startsWith("Simulated error on data send"));
+        assertEquals(1, throwable.getSuppressed().length);
+        assertTrue(throwable.getSuppressed()[0] instanceof CoreException);
 
         // Protocol version did not change
         assertEquals(PowerAuthAlgorithm.LEGACY_P256, powerAuthSDK.getCurrentAlgorithm());
@@ -228,14 +234,20 @@ public class ProtocolUpgradeTest extends BaseTest {
 
         // Assert expected error occurred
         assertNotNull("Protocol upgrade should fail with exception", upgradeException);
-        assertTrue(upgradeException instanceof PowerAuthErrorException);
         if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
             // Attempt to upgrade with only legacy configuration
+            assertTrue(upgradeException instanceof PowerAuthErrorException);
             assertEquals("powerAuth::PowerAuthException: Protocol upgrade is not possible with current configuration", upgradeException.getMessage());
         } else {
             // Simulated response failure
-            assertEquals(PowerAuthErrorCodes.NETWORK_ERROR, ((PowerAuthErrorException) upgradeException).getPowerAuthErrorCode());
-            assertEquals("powerAuth::PowerAuthException: Network error", upgradeException.getMessage());
+            assertTrue(upgradeException instanceof ErrorResponseApiException);
+            final ErrorResponseApiException apiException = (ErrorResponseApiException) upgradeException;
+            assertEquals(500, apiException.getResponseCode());
+            assertNotNull(apiException.getResponseBody());
+            assertNotNull(apiException.getResponseJson());
+            assertNotNull(apiException.getErrorResponse());
+            assertEquals(1, apiException.getSuppressed().length);
+            assertTrue(apiException.getSuppressed()[0] instanceof CoreException);
         }
 
         // Protocol version did not change
@@ -262,6 +274,31 @@ public class ProtocolUpgradeTest extends BaseTest {
             assertNotNull(result.getActivationFingerprint());
             assertFalse(result.isBiometryFactorRemoved());
         }
+    }
+
+    /**
+     * Test that an API error received during protocol upgrade preserves the complete HTTP response.
+     */
+    @Test
+    public void testProtocolUpgrade_wrongPasswordPreservesApiError() throws Exception {
+        if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
+            return;
+        }
+        powerAuthSDK = activationHelper.prepareActivationForUpgradeTest(getAlgorithmForTest(), 0);
+
+        final Throwable throwable = activationHelper.startProtocolUpgradeExpectFailure(
+                getAlgorithmForTest(),
+                new Password("wrong-password")
+        );
+
+        assertTrue(throwable instanceof ErrorResponseApiException);
+        final ErrorResponseApiException apiException = (ErrorResponseApiException) throwable;
+        assertEquals(401, apiException.getResponseCode());
+        assertNotNull(apiException.getResponseBody());
+        assertNotNull(apiException.getResponseJson());
+        assertNotNull(apiException.getErrorResponse());
+        assertEquals(1, apiException.getSuppressed().length);
+        assertTrue(apiException.getSuppressed()[0] instanceof CoreException);
     }
 
     /**

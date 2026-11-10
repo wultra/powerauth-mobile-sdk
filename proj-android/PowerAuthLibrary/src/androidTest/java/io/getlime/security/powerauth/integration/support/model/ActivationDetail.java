@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,7 @@ public class ActivationDetail {
     private String devicePublicKeyFingerprint;
     @SerializedName("version")
     private int protocolVersion;
+    private Date timestampBlockExpire;
 
     /**
      * Create {@link Activation} object from values stored in this detail.
@@ -217,4 +219,13 @@ public class ActivationDetail {
     public void setProtocolVersion(int protocolVersion) {
         this.protocolVersion = protocolVersion;
     }
+
+    public Date getTimestampBlockExpire() {
+        return timestampBlockExpire;
+    }
+
+    public void setTimestampBlockExpire(Date timestampBlockExpire) {
+        this.timestampBlockExpire = timestampBlockExpire;
+    }
+
 }

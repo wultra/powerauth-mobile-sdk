@@ -189,7 +189,11 @@ static BOOL _AddKeychainAuthentication(NSMutableDictionary * query, PowerAuthKey
 
 static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 {
-    query[(__bridge id)kSecUseAuthenticationUI] = (__bridge id)kSecUseAuthenticationUIFail;
+#if PA2_HAS_LACONTEXT == 1
+    LAContext * context = [[LAContext alloc] init];
+    context.interactionNotAllowed = YES;
+    query[(__bridge id)kSecUseAuthenticationContext] = context;
+#endif // PA2_HAS_LACONTEXT
 }
 
 - (BOOL) containsDataForKey:(NSString *)key

@@ -259,6 +259,12 @@ CC7_JNI_METHOD_PARAMS(jobject, createActivation, jobject L1Data, jobject L2Data)
 /// Build Java `CoreActivationStatus` from C++ ActivationStatus object.
 static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const ActivationStatusPtr& status)
 {
+    jobject unblock_timestamp;
+    if (status->blockExpirationTime().has_value()) {
+        unblock_timestamp = jni.createObject(jni.commonSpecs().specLong.methods.initValue, status->blockExpirationTime().value());
+    } else {
+        unblock_timestamp = nullptr;
+    }
     // constructor (int state,
     //              int failCount,
     //              int maxFailCount,
@@ -267,6 +273,7 @@ static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const Ac
     //              boolean isCounterSynchronizationRecommended,
     //              boolean isSessionSerializationNeeded,
     //              boolean isRemoveBiometricKekRecommended,
+    //              Long blockExpirationTime,
     //              Map<String, Object> customObject)
     return jni.createObject(specs.respActivationStatus.methods.init,
                             jni.toJava(specs.coreActivationState, status->activationState()),
@@ -277,6 +284,7 @@ static jobject BuildActivationStatus(JNI& jni, const ClassSpecs& specs, const Ac
                             status->isCounterSynchronizationRecommended(),
                             status->isSessionStateSerializationRecommended(),
                             status->isRemoveBiometricKekRecommended(),
+                            unblock_timestamp,
                             JsonValueToJava(jni, status->customObject()));
 }
 
@@ -334,6 +342,26 @@ CC7_JNI_METHOD_PARAMS(jobject, removeActivation, jobject credentials)
         auto cpp_credentials = jni.fromJava<Credentials>(NH_SPECS().coreCredentials, credentials);
         auto request = THIS_OBJ()->removeActivation(cpp_credentials);
         return BuildCoreRequest(jni, request);
+    }
+    NH_CATCH(nullptr)
+}
+
+CC7_JNI_METHOD_PARAMS(jobject, renameActivation, jobject credentials, jstring activationName)
+{
+    NH_TRY
+    {
+        jni.requireParameter(credentials, "credentials");
+        jni.requireParameter(activationName, "activationName");
+        auto& specs = NH_SPECS();
+        auto request = THIS_OBJ()->renameActivation(jni.fromJava<Credentials>(specs.coreCredentials, credentials),
+                                                     jni.fromJava(activationName));
+        return BuildCoreRequest(jni, request, [](JNI& jni, const ClassSpecs& specs, const ResponseObjectPtr& response, const JsonValue& response_json) -> jobject {
+            auto result = std::dynamic_pointer_cast<StringResponse>(response);
+            if (!result) {
+                throw Exception(EC_InternalError, "No StringResponse object created");
+            }
+            return jni.toJava(result->string());
+        });
     }
     NH_CATCH(nullptr)
 }

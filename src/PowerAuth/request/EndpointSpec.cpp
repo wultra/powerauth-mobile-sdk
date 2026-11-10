@@ -41,6 +41,11 @@ const EndpointSpec Endpoint_ActivationRemove {
     Version_V4, "/pa/v4/activation/remove", "/pa/activation/remove", EncryptorId::NONE
 };
 
+const EndpointSpec Endpoint_ActivationRename {
+    Version_V4, "/pa/v4/activation/rename", "/pa/activation/rename", EncryptorId::ACTIVATION_SCOPE_GENERIC,
+    EndpointSpec::FL_PUBLIC_RESPONSE_JSON | EndpointSpec::FL_AUTHENTICATE_BEFORE_ENCRYPTION
+};
+
 const EndpointSpec Endpoint_ActivationStatus {
     Version_V4, "/pa/v4/activation/status", "", EncryptorId::ACTIVATION_SCOPE_GENERIC,
     // NOTE: V4 allows status during registration
@@ -113,6 +118,11 @@ const EndpointSpec Endpoint_ActivationStatus {
 
 const EndpointSpec Endpoint_ActivationRemove {
     Version_V3, "/pa/v3/activation/remove", "/pa/activation/remove", EncryptorId::NONE
+};
+
+const EndpointSpec Endpoint_ActivationRename {
+    Version_V3, "/pa/v3/activation/rename", "/pa/activation/rename", EncryptorId::ACTIVATION_SCOPE_GENERIC,
+    EndpointSpec::FL_PUBLIC_RESPONSE_JSON | EndpointSpec::FL_AUTHENTICATE_BEFORE_ENCRYPTION
 };
 
 const EndpointSpec Endpoint_SignatureValidate {

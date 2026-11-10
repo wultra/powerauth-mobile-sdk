@@ -26,6 +26,18 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
 
 @implementation PowerAuthActivationTests
 
+#pragma mark - Activation status
+
+- (void) testActivationStateInternalValues
+{
+    // These ordinals should remain compatible with PowerAuth SDK 1.9.x.
+    XCTAssertEqual(PowerAuthActivationState_PendingCommit, 2);
+    XCTAssertEqual(PowerAuthActivationState_Active, 3);
+    XCTAssertEqual(PowerAuthActivationState_Blocked, 4);
+    XCTAssertEqual(PowerAuthActivationState_Removed, 5);
+    XCTAssertEqual(PowerAuthActivationState_Deadlock, 128);
+}
+
 #pragma mark - Code
 
 - (void) testRegularActivation

@@ -256,7 +256,7 @@ ResponseObjectPtr ActivationServiceV3::processResponseActivationStatus(Context& 
     }
     
     // Check counter synchronization
-    auto activation_status = std::make_shared<ActivationStatus>(Version_V3, local_state, counter_state, binary_data, custom_object);
+    auto activation_status = std::make_shared<ActivationStatus>(Version_V3, local_state, counter_state, binary_data, std::nullopt, custom_object);
     _session_data->setActivationStatus(activation_status);
     return activation_status;
 }
@@ -356,6 +356,26 @@ RequestPtr ActivationServiceV3::removeActivation(const CredentialsPtr& credentia
         .withResponseCallback([self](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
             self->resetState();
             return nullptr;
+        })
+        .build();
+}
+
+RequestPtr ActivationServiceV3::renameActivation(const CredentialsPtr& credentials, const std::string_view& activation_name)
+{
+    LOCK_GUARD();
+    auto context = lockContext();
+
+    return RequestBuilder(*context, v3::Endpoint_ActivationRename)
+        .withJson(cc7::json::JsonValue::object({
+            { "activationName", cc7::json::JsonValue(activation_name) }
+        }))
+        .withAuthentication(credentials)
+        .withResponseCallback([](const Request& request, const cc7::json::JsonValue& response) -> ResponseObjectPtr {
+            auto returned_name = response["responseObject"]["activationName"].asString();
+            if (returned_name.empty()) {
+                throw Exception(EC_InvalidResponse, "Invalid activation rename data received");
+            }
+            return std::make_shared<StringResponse>(returned_name);
         })
         .build();
 }

@@ -25,19 +25,20 @@ namespace powerAuth {
 /// enumeration is not identical with state of activation on the server. To get
 /// the exact state on the server, look for `ActivationStatus::ServerState`
 /// enumeration.
+/// Numeric values are preserved for compatibility with the PowerAuth SDK 1.9.x.
 enum class ActivationState
 {
     /// Activation is confirmed, but awaits for commit on the server.
-    PendingCommit,
+    PendingCommit = 2,
     /// Activation is active and ready for operation.
-    Active,
+    Active = 3,
     /// Activation is blocked.
-    Blocked,
+    Blocked = 4,
     /// Activation is removed on the server.
-    Removed,
+    Removed = 5,
     /// Activation is technically blocked, due to out-of-sync counters
     /// between client and the server.
-    Deadlock
+    Deadlock = 128
 };
 
 /// The `ActivationStatus` class contains information about activation received
@@ -148,6 +149,9 @@ public:
     /// ```
     cc7::byte remainingAttempts() const noexcept;
     
+    /// If the activation is temporarily blocked, contains the time when it will be unblocked.
+    /// The value is in milliseconds since Unix epoch.
+    const std::optional<Timestamp>& blockExpirationTime() const noexcept;
     
     struct BinaryData
     {
@@ -180,11 +184,13 @@ public:
     ///   - activation_state: State of activation.
     ///   - counter_state: State of counter.
     ///   - data: Parsed blob structure.
+    ///   - block_expiration_time: If set, then contains Unix timestamp with milliseconds precision when the activation will be unblocked.
     ///   - custom_object: Custom object received together with the status blob.
     ActivationStatus(ProtocolVersion version,
                      ActivationState activation_state,
                      CounterState counter_state,
                      const BinaryData& data,
+                     const std::optional<Timestamp>& block_expiration_time,
                      const cc7::json::JsonValue& custom_object);
 private:
     
@@ -213,6 +219,7 @@ private:
     bool _is_protocol_upgrade_available;
     bool _is_remove_biometric_kek_recommended;
     
+    std::optional<Timestamp> _block_expiration_time;
     cc7::json::JsonValue _custom_object;
 };
 

@@ -20,12 +20,13 @@
 #import "PowerAuthKeychainConfiguration.h"
 #import "PA2PrivateConstants.h"
 
-NSString *const PowerAuthKeychain_Initialized       = PA2Def_PowerAuthKeychain_Initialized;
-NSString *const PowerAuthKeychain_Status            = PA2Def_PowerAuthKeychain_Status;
-NSString *const PowerAuthKeychain_Possession        = PA2Def_PowerAuthKeychain_Possession;
-NSString *const PowerAuthKeychain_Biometry          = PA2Def_PowerAuthKeychain_Biometry;
-NSString *const PowerAuthKeychain_TokenStore        = PA2Def_PowerAuthKeychain_TokenStore;
-NSString *const PowerAuthKeychainKey_Possession     = PA2Def_PowerAuthKeychainKey_Possession;
+NSString *const PowerAuthKeychain_Initialized           = PA2Def_PowerAuthKeychain_Initialized;
+NSString *const PowerAuthKeychain_Status                = PA2Def_PowerAuthKeychain_Status;
+NSString *const PowerAuthKeychain_Possession            = PA2Def_PowerAuthKeychain_Possession;
+NSString *const PowerAuthKeychain_Biometry              = PA2Def_PowerAuthKeychain_Biometry;
+NSString *const PowerAuthKeychain_TokenStore            = PA2Def_PowerAuthKeychain_TokenStore;
+NSString *const PowerAuthKeychainKey_Possession         = PA2Def_PowerAuthKeychainKey_Possession;
+NSString *const PowerAuthKeychainKey_DeviceSpecificData = PA2Def_PowerAuthKeychainKey_DeviceSpecificData;
 
 @implementation PowerAuthKeychainConfiguration
 

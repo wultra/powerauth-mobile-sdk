@@ -197,6 +197,60 @@
     XCTAssertNil(_sdk.activationIdentifier);
 }
 
+- (void) testRenameActivation
+{
+    CHECK_TEST_CONFIG();
+
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES removeAfter:NO];
+    if (!activation) {
+        return;
+    }
+
+    NSString * newName = @"Renamed activation";
+    id renameResult = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk renameActivationWithName:newName authentication:activation.credentials callback:^(NSString * activationName, NSError * error) {
+            [waiting reportCompletion:error ? error : activationName];
+        }];
+        XCTAssertNotNil(task);
+    }];
+    if ([renameResult isKindOfClass:NSError.class]) {
+        NSError * error = renameResult;
+        XCTFail(@"Activation rename failed: %@", error);
+        return;
+    }
+    NSString * returnedName = renameResult;
+    XCTAssertEqualObjects(newName, returnedName);
+
+    PATSActivationStatus * serverStatus = [_helper.testServerApi getActivationStatus:activation.activationId];
+    XCTAssertEqualObjects(newName, serverStatus.activationName);
+}
+
+- (void) testRenameActivationValidation
+{
+    CHECK_TEST_CONFIG();
+
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES removeAfter:YES];
+    if (!activation) {
+        return;
+    }
+
+    __block NSError * emptyNameError = nil;
+    id<PowerAuthOperationTask> emptyNameTask = [_sdk renameActivationWithName:@"" authentication:activation.credentials callback:^(NSString * activationName, NSError * error) {
+        XCTAssertNil(activationName);
+        emptyNameError = error;
+    }];
+    XCTAssertNil(emptyNameTask);
+    XCTAssertEqual(PowerAuthErrorCode_WrongParameter, emptyNameError.powerAuthErrorCode);
+
+    __block NSError * possessionOnlyError = nil;
+    id<PowerAuthOperationTask> possessionOnlyTask = [_sdk renameActivationWithName:@"New name" authentication:[PowerAuthAuthentication possession] callback:^(NSString * activationName, NSError * error) {
+        XCTAssertNil(activationName);
+        possessionOnlyError = error;
+    }];
+    XCTAssertNil(possessionOnlyTask);
+    XCTAssertEqual(PowerAuthErrorCode_WrongParameter, possessionOnlyError.powerAuthErrorCode);
+}
+
 - (void) testRecreateActivation
 {
     CHECK_TEST_CONFIG();
@@ -536,6 +590,7 @@
     
     status = [_helper fetchActivationStatus];
     XCTAssertEqual(status.state, PowerAuthActivationState_Blocked);
+    XCTAssertNil(status.blockExpirationTime);   // activation was manually blocked
 
     // 3) Unblock activation & fetch status
     serverStatus = [testServerApi unblockActivation:activation.activationId];
@@ -709,6 +764,72 @@
             // blocked
             XCTAssertTrue(after.state == PowerAuthActivationState_Blocked, @"Activation should be blocked");
         }
+    }
+}
+
+- (void) testTemporaryBlock
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test checks whether time of temporary block expiration is propagated to application.
+    // The test requires protocol V4 and server 2.2+ with
+    // `powerauth.service.crypto.temporaryActivationBlock.enabled=true`, otherwise it only checks
+    // that no expiration is reported. To also test the activation unblock, set
+    // `powerauth.service.crypto.temporaryActivationBlock.periodInMilliseconds` to 2000 or less.
+    //
+    
+    if ([self powerAuthAlgorithm] == PowerAuthAlgorithm_LEGACY_P256) {
+        return;
+    }
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+    for (UInt32 i = 0; i < status.maxFailCount; i++) {
+        XCTAssertFalse([_helper checkForPassword:@"MustBeWrong"]);
+        status = [_helper fetchActivationStatus];
+        XCTAssertEqual(status.failCount, i + 1);
+        if (status.failCount == status.maxFailCount) {
+            XCTAssertEqual(PowerAuthActivationState_Blocked, status.state);
+        } else {
+            XCTAssertEqual(PowerAuthActivationState_Active, status.state);
+        }
+    }
+    
+    NSDate * expiration = status.blockExpirationTime;
+    // Temporary block is supported on server 2.2+ and is optional (disabled by default),
+    // so the server's activation status is the source of truth for whether the block expires.
+    PATSActivationStatus * serverStatus = [_helper.testServerApi getActivationStatus:activation.activationId];
+    XCTAssertEqual(serverStatus.timestampBlockExpire != nil, expiration != nil);
+    if (!expiration) {
+        NSLog(@"WARNING: Temporary block feature is not enabled on the server");
+        return;
+    }
+    NSISO8601DateFormatter * formatter = [[NSISO8601DateFormatter alloc] init];
+    formatter.formatOptions = NSISO8601DateFormatWithInternetDateTime | NSISO8601DateFormatWithFractionalSeconds;
+    NSDate * serverExpiration = [formatter dateFromString:serverStatus.timestampBlockExpire];
+    XCTAssertEqualWithAccuracy(serverExpiration.timeIntervalSince1970, expiration.timeIntervalSince1970, 0.001);
+    
+    NSTimeInterval remainingWait = expiration.timeIntervalSince1970 - _sdk.timeSynchronizationService.currentTime;
+    
+    if (remainingWait >= 0 && remainingWait < 2) {
+        NSLog(@"Waiting for activation unblock: %@", @(remainingWait));
+        [NSThread sleepForTimeInterval:remainingWait + 0.1];
+        status = [_helper fetchActivationStatus];
+        XCTAssertEqual(PowerAuthActivationState_Active, status.state);
+        XCTAssertNil(status.blockExpirationTime);
+        XCTAssertEqual(1, status.remainingAttempts);
+        XCTAssertFalse([_helper checkForPassword:@"MustBeWrong"]);
+        status = [_helper fetchActivationStatus];
+        XCTAssertEqual(PowerAuthActivationState_Blocked, status.state);
+        XCTAssertNotNil(status.blockExpirationTime);
+    } else {
+        XCTAssertTrue(remainingWait >= 0);
+        NSLog(@"We'll not wait for unblock the activation.");
     }
 }
 
@@ -1562,6 +1683,59 @@
     XCTAssertEqual(matched, keyMapping.count);
 }
 
+- (void) testAuthenticationHeaderForRequest
+{
+    CHECK_TEST_CONFIG();
+    
+    NSError * error = nil;
+    PowerAuthHttpHeader * header = nil;
+    
+    NSData * randomData = [[[PowerAuthCoreCryptoUtils randomBytes:42] base64EncodedStringWithOptions:0] dataUsingEncoding:NSASCIIStringEncoding];
+    
+    // Activation does not exist yet
+    header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:[PowerAuthAuthentication possession]
+                                                                     method:@"POST"
+                                                                      uriId:@"/some/uriId"
+                                                                       body:randomData
+                                                                      error:&error];
+    
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+    XCTAssertNil(header);
+    error = nil;
+    
+    header = [_sdk authenticationHeaderForRequestWithParamsWithAuthentication:[PowerAuthAuthentication possession]
+                                                                        method:@"POST"
+                                                                         uriId:@"/some/uriId"
+                                                                        params:@{ @"param1": @"value1" }
+                                                                         error:&error];
+    
+    XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+    XCTAssertNil(header);
+    error = nil;
+
+    // Now create the activation and verify that the same calls succeed
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    header = [_sdk authenticationHeaderForRequestWithBodyWithAuthentication:[PowerAuthAuthentication possession]
+                                                                      method:@"POST"
+                                                                       uriId:@"/some/uriId"
+                                                                        body:randomData
+                                                                       error:&error];
+    XCTAssertNil(error);
+    XCTAssertNotNil(header);
+    
+    header = [_sdk authenticationHeaderForRequestWithParamsWithAuthentication:[PowerAuthAuthentication possession]
+                                                                        method:@"POST"
+                                                                         uriId:@"/some/uriId"
+                                                                        params:@{ @"param1": @"value1" }
+                                                                         error:&error];
+    XCTAssertNil(error);
+    XCTAssertNotNil(header);
+}
+
 - (void) testActivationCodeSignature
 {
     CHECK_TEST_CONFIG();
@@ -1666,6 +1840,25 @@
         XCTAssertTrue(result);
         XCTAssertNil(error);
     }
+    
+    NSString * uriId = @"/operation/authorize/offline";
+    
+    // There's no activation yet, so computing an offline authentication code should fail
+    BOOL failed = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk offlineAuthenticationCodeWithAuthentication:[PowerAuthAuthentication possession]
+                                                    uriId:uriId
+                                                     body:[payload.parsedData dataUsingEncoding:NSUTF8StringEncoding]
+                                                    nonce:payload.nonce
+                                                 callback:^(NSString * _Nullable authenticationCode, NSError * _Nullable error) {
+            
+            XCTAssertNil(authenticationCode);
+            XCTAssertEqual(PowerAuthErrorCode_MissingActivation, error.powerAuthErrorCode);
+            
+            [waiting reportCompletion:@(authenticationCode == nil && error != nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(failed);
+    
     PowerAuthSdkActivation * activation = [_helper createActivation:YES];
     if (!activation) {
         return;
@@ -1729,7 +1922,6 @@
     }
     
     // Well, we have a data for offline signature, so let's try to verify it.
-    NSString * uriId = @"/operation/authorize/offline";
     NSData * body = [payload.parsedData dataUsingEncoding:NSUTF8StringEncoding];
     NSString * nonce = payload.nonce;
 
@@ -2218,6 +2410,41 @@
         }];
     }];
     XCTAssertNotNil(encryptor);
+}
+
+- (void) testEncryptorEncryptsWithCachedKeyAfterTimeReset
+{
+    CHECK_TEST_CONFIG();
+
+    PowerAuthEncryptor * encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk encryptorForApplicationScopeWithCallback:^(PowerAuthEncryptor * _Nullable encryptor, NSError * _Nullable error) {
+            XCTAssertNil(error);
+            [waiting reportCompletion:encryptor];
+        }];
+    }];
+    XCTAssertNotNil(encryptor);
+    XCTAssertTrue(_sdk.timeSynchronizationService.isTimeSynchronized);
+    
+    NSError * error = nil;
+    PowerAuthEncryptedRequest * encryptedRequest = [encryptor encryptRequest:[@"{}" dataUsingEncoding:NSUTF8StringEncoding] error:&error];
+    XCTAssertNotNil(encryptedRequest);
+    XCTAssertNil(error);
+    
+    [_sdk.timeSynchronizationService resetTimeSynchronization];
+    XCTAssertFalse(_sdk.timeSynchronizationService.isTimeSynchronized);
+
+    encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk encryptorForApplicationScopeWithCallback:^(PowerAuthEncryptor * _Nullable encryptor, NSError * _Nullable error) {
+            XCTAssertNil(error);
+            [waiting reportCompletion:encryptor];
+        }];
+    }];
+    XCTAssertNotNil(encryptor);
+    XCTAssertFalse(_sdk.timeSynchronizationService.isTimeSynchronized);
+    
+    encryptedRequest = [encryptor encryptRequest:[@"{}" dataUsingEncoding:NSUTF8StringEncoding] error:&error];
+    XCTAssertNotNil(encryptedRequest);
+    XCTAssertNil(error);
 }
 
 #pragma mark - Vault keys
@@ -3513,6 +3740,74 @@
     XCTAssertNotNil(_sdk);
     XCTAssertNil(error);
     XCTAssertFalse(_sdk.hasValidActivation);
+}
+
+- (PowerAuthKeychain*) possessionKeychain
+{
+    NSString * keychainId = _sdk.keychainConfiguration.keychainInstanceName_Possession;
+    NSString * accessGroup = _sdk.configuration.sharingConfiguration.appGroup;
+    return [[PowerAuthKeychain alloc] initWithIdentifier:keychainId accessGroup:accessGroup];
+}
+
+- (void) testLegacyPossessionKey
+{
+    CHECK_TEST_CONFIG();
+    
+    // Test legacy possession key is used when available in the keychain
+    // and identifierForVendor is stored in the keychain.
+    
+    PowerAuthKeychain * keychain = [self possessionKeychain];
+    [keychain deleteDataForKey:_sdk.keychainConfiguration.keychainKey_Possession];
+    _sdk = [_helper reCreateSdkInstance];
+    
+    // Keychain should now contain the `identifierForVendor`
+    XCTAssertTrue([keychain containsDataForKey:PowerAuthKeychainKey_DeviceSpecificData]);
+    
+    NSData * data = [@"data" dataUsingEncoding:NSUTF8StringEncoding];
+    NSString * uriId = @"/hello/there";
+
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithCorePassword
+                                                               activationOtp:nil];
+    XCTAssertTrue(activation.success);
+    
+    BOOL authenticationValid = [_helper validateAuthentication:_helper.authPossession
+                                                          data:data
+                                                        method:@"POST"
+                                                         uriId:uriId
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertTrue(authenticationValid);
+    
+    // Inject wrong legacy possession key. V3 must use it (breaking the signature),
+    [keychain addValue:[PowerAuthCoreCryptoUtils randomBytes:16] forKey:_sdk.keychainConfiguration.keychainKey_Possession];
+    _sdk = [_helper reCreateSdkInstance];
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        NSArray * sig = [_helper calculateOnlineSignature:data method:@"POST" uriId:uriId auth:_helper.authPossession];
+        NSString * normalized = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:uriId nonce:sig[1] data:data];
+        PATSVerifySignatureResponse * response = [_helper.testServerApi verifyAuthHeader:_sdk.activationIdentifier data:normalized authCode:sig[0] factors:[_helper authToString:_helper.authPossession] version:_helper.paVer];
+        XCTAssertFalse(response.signatureValid);
+    } else {
+        authenticationValid = [_helper validateAuthentication:_helper.authPossession
+                                                              data:data
+                                                            method:@"POST"
+                                                             uriId:uriId
+                                                            online:YES
+                                                           cripple:0];
+        XCTAssertTrue(authenticationValid);
+    }
+    
+    // When no legacy 1.9.x possession key is available, derive it.
+    [keychain deleteDataForKey:_sdk.keychainConfiguration.keychainKey_Possession];
+    _sdk = [_helper reCreateSdkInstance];
+    authenticationValid = [_helper validateAuthentication:_helper.authPossession
+                                                          data:data
+                                                        method:@"POST"
+                                                         uriId:uriId
+                                                        online:YES
+                                                       cripple:0];
+    XCTAssertTrue(authenticationValid);
+    
+    [_helper cleanup];
 }
 
 @end

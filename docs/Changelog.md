@@ -1,11 +1,35 @@
 # Changelog
 
 <!--------------------------------------------------->
-## 2.0.0 (TBA - Not released yet)
+## 2.1.0 (November 2026)
+
+### Both platforms
+
+- Added authenticated activation rename API for Apple and Android SDKs ([748](https://github.com/wultra/powerauth-mobile-sdk/issues/748))
+- Activation status now includes the optional expiration time of a temporary activation block ([900](https://github.com/wultra/powerauth-mobile-sdk/issues/900))
+
+### Apple
+
+- Minimum deployment targets raised to iOS 15.0, tvOS 15.0 and watchOS 9.0 to support Xcode 27 ([947](https://github.com/wultra/powerauth-mobile-sdk/issues/947)).
+
+<!--------------------------------------------------->
+## 2.0.1 (September 2026)
+
+### Both platforms
+
+- End-to-end request encryption no longer fails immediately when local time is not synchronized. The SDK now logs a warning and continues with request encryption ([936](https://github.com/wultra/powerauth-mobile-sdk/issues/936)).
+- Restored activation state enum ordinal values for compatibility with PowerAuth SDK 1.9.x ([941](https://github.com/wultra/powerauth-mobile-sdk/issues/941)).
+
+### Apple
+
+- Device specific data is now stored in the keychain, to avoid changes of the possession factor key when TestFlight distribution is used. Possession factor key cached by SDK 1.9.x is now reused ([944](https://github.com/wultra/powerauth-mobile-sdk/issues/944)).
+
+<!--------------------------------------------------->
+## 2.0.0 (August 2026)
 
 ### Important notice
 
-- If you already using older versions of SDK, then please read our [Migration guide from 1.9.x to 2.0.x version](Migration-from-1.9-to-2.0)
+- If you already using older versions of SDK, then please read our [Migration guide from 1.9.x to 2.0.x version](Migration-from-1.9-to-2.0.md)
 - This version of SDK requires PowerAuth Server version `1.9.0+` or `2.0.0+`, depending on PowerAuth Mobile SDK configuration. Check [Support and Compatibility](Readme.md#support-and-compatibility) for more details.
 
 ### Both platforms
@@ -67,7 +91,7 @@
 ### Apple
 
 - Fixed build problems on Xcode 16.3 ([689](https://github.com/wultra/powerauth-mobile-sdk/issues/689))
-- Improved logging - check [documentation for details](PowerAuth-SDK-for-iOS.md#logs) (PR [685](https://github.com/wultra/powerauth-mobile-sdk/pull/685))
+- Improved logging - check [documentation for details](ios/Common-SDK-Tasks.md#logs) (PR [685](https://github.com/wultra/powerauth-mobile-sdk/pull/685))
 
 <!--------------------------------------------------->
 ## 1.9.3 (February 2025)
@@ -97,7 +121,7 @@
 <!--------------------------------------------------->
 ## 1.9.0 (October 2024)
 
-- If you already using older versions of SDK, then please read our [Migration guide from 1.8.x to 1.9.x version](Migration-from-1.8-to-1.9)
+- If you already using older versions of SDK, then please read our [Migration guide from 1.8.x to 1.9.x version](Migration-from-1.8-to-1.9.md)
 - This version of SDK requires PowerAuth Server version `1.9.0` and newer. Check [Support and Compatibility](Readme.md#support-and-compatibility) for more details.
 
 ### Both platforms

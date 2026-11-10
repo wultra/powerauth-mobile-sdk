@@ -20,6 +20,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.networking.response.IOfflineAuthenticationCodeListener;
@@ -28,6 +29,7 @@ import org.junit.Test;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.AuthenticationCodeData;
@@ -133,6 +135,30 @@ public class AuthenticationCodeTest extends BaseTest {
 
     @Test
     public void testOnlineAuthCodeCalculation() throws Exception {
+
+        // Activation does not exist yet
+        try {
+            powerAuthSDK.authenticationHeaderForRequestWithBody(
+                    PowerAuthAuthentication.possession(),
+                    "POST",
+                    "/some/uriId",
+                    testHelper.getRandomGenerator().generateRandomString(10, 32).getBytes(Charset.defaultCharset()));
+            fail("authenticationHeaderForRequestWithBody should fail without activation");
+        } catch (PowerAuthErrorException ex) {
+            assertEquals(PowerAuthErrorCodes.MISSING_ACTIVATION, ex.getPowerAuthErrorCode());
+        }
+        try {
+            powerAuthSDK.authenticationHeaderForRequestWithParams(
+                    PowerAuthAuthentication.possession(),
+                    "POST",
+                    "/some/uriId",
+                    Map.of("param1", "value1")
+            );
+            fail("authenticationHeaderForRequestWithParams should fail without activation");
+        } catch (PowerAuthErrorException ex) {
+            assertEquals(PowerAuthErrorCodes.MISSING_ACTIVATION, ex.getPowerAuthErrorCode());
+        }
+
         activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_FAKE_BIOMETRY, null);
 
         // Count is important, due to fact that we have 8-bit local counter since V3.1

@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.integration.tests;
 import androidx.annotation.NonNull;
 
 import io.getlime.security.powerauth.core.CoreEncryptor;
+import io.getlime.security.powerauth.core.CoreEncryptedRequest;
 import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.keychain.Keychain;
 import io.getlime.security.powerauth.keychain.KeychainFactory;
@@ -30,6 +31,7 @@ import io.getlime.security.powerauth.networking.response.*;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -44,8 +46,8 @@ import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
-
 import static org.junit.Assert.*;
 
 public class BaseSdkTest extends BaseTest {
@@ -413,6 +415,72 @@ public class BaseSdkTest extends BaseTest {
         assertTrue(result);
     }
 
+    @Test
+    public void testRenameActivationWithAuthentication() throws Exception {
+        activationHelper.createStandardActivation(true, null);
+
+        final String newName = "Renamed activation";
+        final Object renameResult = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.renameActivationWithAuthentication(testHelper.getContext(), activationHelper.getValidAuthentication(), newName, new IActivationRenameListener() {
+                @Override
+                public void onActivationRenameSucceed(@NonNull String activationName) {
+                    resultCatcher.completeWithResult(activationName);
+                }
+
+                @Override
+                public void onActivationRenameFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithResult(t);
+                }
+            });
+        });
+        if (renameResult instanceof Throwable) {
+            final Throwable throwable = (Throwable) renameResult;
+            throw new AssertionError("Activation rename failed.", throwable);
+        }
+        final String returnedName = (String) renameResult;
+        assertEquals(newName, returnedName);
+        assertEquals(newName, activationHelper.getActivationDetail().getActivationName());
+    }
+
+    @Test
+    public void testRenameActivationValidation() throws Exception {
+        activationHelper.createStandardActivation(true, null);
+
+        Throwable emptyNameError = AsyncHelper.await(resultCatcher -> {
+            ICancelable task = powerAuthSDK.renameActivationWithAuthentication(testHelper.getContext(), activationHelper.getValidAuthentication(), "", new IActivationRenameListener() {
+                @Override
+                public void onActivationRenameSucceed(@NonNull String activationName) {
+                    fail("Operation should not succeed");
+                }
+
+                @Override
+                public void onActivationRenameFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithResult(t);
+                }
+            });
+            assertNull(task);
+        });
+        assertTrue(emptyNameError instanceof PowerAuthErrorException);
+        assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, ((PowerAuthErrorException) emptyNameError).getPowerAuthErrorCode());
+
+        Throwable possessionOnlyError = AsyncHelper.await(resultCatcher -> {
+            ICancelable task = powerAuthSDK.renameActivationWithAuthentication(testHelper.getContext(), activationHelper.getPossessionAuthentication(), "New name", new IActivationRenameListener() {
+                @Override
+                public void onActivationRenameSucceed(@NonNull String activationName) {
+                    fail("Operation should not succeed");
+                }
+
+                @Override
+                public void onActivationRenameFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithResult(t);
+                }
+            });
+            assertNull(task);
+        });
+        assertTrue(possessionOnlyError instanceof PowerAuthErrorException);
+        assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, ((PowerAuthErrorException) possessionOnlyError).getPowerAuthErrorCode());
+    }
+
     // Activation status
 
     @Test
@@ -562,6 +630,54 @@ public class BaseSdkTest extends BaseTest {
         assertTrue(powerAuthSDK.hasValidActivation());
     }
 
+    /**
+     * Test temporary activation block. To test the whole unblock cycle, the server must have
+     * {@code powerauth.service.crypto.temporaryActivationBlock.enabled=true} and
+     * {@code powerauth.service.crypto.temporaryActivationBlock.periodInMilliseconds} set to 2000 or less.
+     * Otherwise, the test only verifies that the SDK reports the same block expiration as the server.
+     */
+    @Test
+    public void testTemporaryBlock() throws Exception {
+        if (getCurrentAlgorithm() == PowerAuthAlgorithm.LEGACY_P256) {
+            return;
+        }
+        activationHelper.createStandardActivation(true, null);
+        PowerAuthActivationStatus status = activationHelper.fetchActivationStatus();
+        for (int i = 0; i < status.getMaxFailCount(); i++) {
+            activationHelper.validateUserPassword(activationHelper.getInvalidPassword());
+            status = activationHelper.fetchActivationStatus();
+            assertEquals(i + 1, status.getFailCount());
+            if (status.getRemainingAttempts() == 0) {
+                assertEquals(PowerAuthActivationState.BLOCKED, status.getState());
+            } else {
+                assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
+            }
+        }
+        Long expiration = status.getBlockExpirationTime();
+        // Temporary block is supported on server 2.2+ and is optional (disabled by default)
+        final Date serverExpiration = testHelper.getServerApi().getActivationDetail(activationHelper.getActivation()).getTimestampBlockExpire();
+        assertEquals(serverExpiration != null ? serverExpiration.getTime() : null, expiration);
+        if (expiration == null) {
+            PowerAuthLog.w("Temporary block feature is not enabled on the server");
+            return;
+        }
+        long remainingWait = expiration - powerAuthSDK.getTimeSynchronizationService().getCurrentTime();
+        assertTrue(remainingWait >= 0);
+        if (remainingWait < 2000) {
+            PowerAuthLog.d("Waiting for activation unblock " + remainingWait + "ms");
+            Thread.sleep(remainingWait + 100);
+            status = activationHelper.fetchActivationStatus();
+            assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
+            assertEquals(1, status.getRemainingAttempts());
+            activationHelper.validateUserPassword(activationHelper.getInvalidPassword());
+            status = activationHelper.fetchActivationStatus();
+            assertEquals(PowerAuthActivationState.BLOCKED, status.getState());
+            assertNotNull(status.getBlockExpirationTime());
+        } else {
+            PowerAuthLog.d("We'll not wait for unblock the activation.");
+        }
+    }
+
     // User Info
 
     @Test
@@ -672,6 +788,50 @@ public class BaseSdkTest extends BaseTest {
         });
         assertNotNull(actEncryptor);
         assertTrue(actEncryptor.canEncryptRequest());
+    }
+
+    @Test
+    public void testEncryptorEncryptsWithCachedKeyAfterTimeReset() throws Exception {
+        CoreEncryptor encryptor = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.getEncryptorForApplicationScope(new IGetEncryptorListener() {
+                @Override
+                public void onGetEncryptorSuccess(@NonNull CoreEncryptor encryptor) {
+                    resultCatcher.completeWithResult(encryptor);
+                }
+
+                @Override
+                public void onGetEncryptorFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+        assertNotNull(encryptor);
+        assertTrue(powerAuthSDK.getTimeSynchronizationService().isTimeSynchronized());
+
+        CoreEncryptedRequest encryptedRequest = encryptor.encryptRequest("{}".getBytes(StandardCharsets.UTF_8));
+        assertNotNull(encryptedRequest);
+
+        powerAuthSDK.getTimeSynchronizationService().resetTimeSynchronization();
+        assertFalse(powerAuthSDK.getTimeSynchronizationService().isTimeSynchronized());
+
+        encryptor = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.getEncryptorForApplicationScope(new IGetEncryptorListener() {
+                @Override
+                public void onGetEncryptorSuccess(@NonNull CoreEncryptor encryptor) {
+                    resultCatcher.completeWithResult(encryptor);
+                }
+
+                @Override
+                public void onGetEncryptorFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+        assertNotNull(encryptor);
+        assertFalse(powerAuthSDK.getTimeSynchronizationService().isTimeSynchronized());
+
+        encryptedRequest = encryptor.encryptRequest("{}".getBytes(StandardCharsets.UTF_8));
+        assertNotNull(encryptedRequest);
     }
 
     // TODO: This test is temporarily disabled, the used API doesn't work for protocol V4

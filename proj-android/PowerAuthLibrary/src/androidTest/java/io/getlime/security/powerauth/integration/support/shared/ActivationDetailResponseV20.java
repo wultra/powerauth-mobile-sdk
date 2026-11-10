@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.integration.support.shared;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,7 @@ public class ActivationDetailResponseV20 {
     private String devicePublicKeyFingerprint;
     @SerializedName("version")
     private int protocolVersion;
+    private Date timestampBlockExpire;
 
     public String getActivationId() {
         return activationId;
@@ -191,6 +193,14 @@ public class ActivationDetailResponseV20 {
         this.protocolVersion = protocolVersion;
     }
 
+    public Date getTimestampBlockExpire() {
+        return timestampBlockExpire;
+    }
+
+    public void setTimestampBlockExpire(Date timestampBlockExpire) {
+        this.timestampBlockExpire = timestampBlockExpire;
+    }
+
     public ActivationDetail copyToActivationDetail() {
         ActivationDetail out = new ActivationDetail();
         out.setActivationId(activationId);
@@ -215,6 +225,7 @@ public class ActivationDetailResponseV20 {
         }
         out.setDevicePublicKeyFingerprint(devicePublicKeyFingerprint);
         out.setProtocolVersion(protocolVersion);
+        out.setTimestampBlockExpire(timestampBlockExpire);
         return out;
     }
 }

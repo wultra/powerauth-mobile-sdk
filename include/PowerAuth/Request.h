@@ -224,6 +224,12 @@ private:
 
     /// Prepare request body and headers.
     void doPrepareRequest();
+
+    /// Encrypt the current request body and add encryption headers.
+    void prepareRequestEncryption();
+
+    /// Calculate and add the authentication header for the current request body.
+    void prepareAuthenticationHeader();
     
     /// Process response data.
     /// - Parameter response_data: Response data to process.

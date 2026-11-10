@@ -79,6 +79,16 @@ public:
     /// - Throws:
     ///   - `Exception` in case of failure.
     virtual RequestPtr removeActivation(const CredentialsPtr& credentials) = 0;
+
+    /// Rename activation.
+    ///
+    /// - Parameters:
+    ///   - credentials: Credentials for authentication on the server.
+    ///   - activation_name: New activation name.
+    /// - Returns: Request data for rename activation endpoint.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    virtual RequestPtr renameActivation(const CredentialsPtr& credentials, const std::string_view& activation_name) = 0;
     
     /// Change user's password from old to new one.
     ///

@@ -37,17 +37,12 @@ public:
     EncryptedRequest encryptRequest(const cc7::ByteRange &data) override;
     cc7::ByteArray decryptResponse(const EncryptedResponse &response) override;
 
-    /// Relax time synchronization validation for test purposes. The method does nothing
-    /// in release build of the library.
-    void disableFailWhenTimeIsNotSynchronized();
-    
 private:
     const EncryptorParametersPtr _parameters;
     const EncryptorSecretsPtr _secrets;
     const cc7::ByteArray _nonce;
     const TimeServicePtr _time_service;
     
-    bool _fail_on_nosync_time;
     TimeService::TaskId _time_sync_task;
     
     cc7::ByteRange requestNonce() const;

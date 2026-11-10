@@ -14,7 +14,7 @@ PowerAuth Mobile SDK in version `1.1.0` doesn't require any specific migration s
 
 ### API changes
 
-- `PasswordUtil` class is now deprecated. You can use our [Passphrase Meter](https://github.com/wultra/passphrase-meter) library as a replacement.
+- `PasswordUtil` class is now deprecated.
 - Added methods validating Recovery Codes to `PA2OtpUtil`
   - `PA2OtpUtil.validateRecoveryCode(...)`
   - `PA2OtpUtil.validateRecoveryPuk(...)`
@@ -31,7 +31,7 @@ PowerAuth Mobile SDK in version `1.1.0` doesn't require any specific migration s
 
 ### API changes
 
-- `PA2PasswordUtil` is now deprecated. You can use our [Passphrase Meter](https://github.com/wultra/passphrase-meter) library as a replacement.
+- `PA2PasswordUtil` is now deprecated.
 - Added methods validating Recovery Codes to `OtpUtil`
   - `OtpUtil.validateRecoveryCode(...)`
   - `OtpUtil.validateRecoveryPuk(...)`

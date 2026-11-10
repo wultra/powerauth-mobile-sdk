@@ -32,6 +32,7 @@ public:
     RequestBuilderTests()
     {
         CC7_REGISTER_TEST_METHOD(testRequestBuilder)
+        CC7_REGISTER_TEST_METHOD(testActivationRenameEndpoints)
     }
     
     const EndpointSpec SPEC1 {
@@ -40,6 +41,29 @@ public:
     
     void testRequestBuilder()
     {
+    }
+
+    void testActivationRenameEndpoints()
+    {
+        validateActivationRenameEndpoint(v3::Endpoint_ActivationRename, Version_V3, "/pa/v3/activation/rename");
+        validateActivationRenameEndpoint(v4::Endpoint_ActivationRename, Version_V4, "/pa/v4/activation/rename");
+        ccstAssertFalse(v3::Endpoint_TokenCreate.authenticateBeforeEncryption());
+        ccstAssertFalse(v4::Endpoint_TokenCreate.authenticateBeforeEncryption());
+    }
+
+    void validateActivationRenameEndpoint(const EndpointSpec& spec, ProtocolVersion version, const std::string& path)
+    {
+        ccstAssertEqual(version, spec.version);
+        ccstAssertEqual(path, spec.relativePath);
+        ccstAssertEqual(std::string("/pa/activation/rename"), spec.uriId);
+        ccstAssertEqual(EncryptorId::ACTIVATION_SCOPE_GENERIC, spec.encryptorId);
+        ccstAssertTrue(spec.isEncrypted());
+        ccstAssertTrue(spec.isAuthenticated());
+        ccstAssertTrue(spec.isPublicResponseJson());
+        ccstAssertTrue(spec.requireSerialQueue());
+        ccstAssertFalse(spec.requireWrappedRequestResponse());
+        ccstAssertFalse(spec.forceEncryptionHeader());
+        ccstAssertTrue(spec.authenticateBeforeEncryption());
     }
 };
 

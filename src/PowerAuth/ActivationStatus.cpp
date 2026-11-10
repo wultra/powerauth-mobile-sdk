@@ -33,6 +33,7 @@ ActivationStatus::ActivationStatus(ProtocolVersion version,
                                    ActivationState activation_state,
                                    CounterState counter_state,
                                    const BinaryData& data,
+                                   const std::optional<Timestamp>& block_expiration_time,
                                    const cc7::json::JsonValue& custom_object) :
     _protocol_version(version),
     _activation_state(activation_state),
@@ -46,6 +47,7 @@ ActivationStatus::ActivationStatus(ProtocolVersion version,
     _is_protocol_upgrade_available(data.currentVersion < data.upgradeVersion),
     _is_pending_upgrade_confirm(data.statusFlags & STATUS_FLAG_UPGRADE_CONFIRM),
     _is_remove_biometric_kek_recommended(false),
+    _block_expiration_time(block_expiration_time),
     _custom_object(custom_object)
 {
     bool is_valid;
@@ -153,6 +155,11 @@ cc7::byte ActivationStatus::remainingAttempts() const noexcept
         return _max_fail_count - _fail_count;
     }
     return 0;
+}
+
+const std::optional<Timestamp>& ActivationStatus::blockExpirationTime() const noexcept
+{
+    return _block_expiration_time;
 }
 
 // MARK: - Parse

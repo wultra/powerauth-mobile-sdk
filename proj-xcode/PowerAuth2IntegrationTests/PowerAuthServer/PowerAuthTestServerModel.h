@@ -126,6 +126,7 @@ extern NSString * PATSActivationOtpValidationEnumToString(PATSActivationOtpValid
 @property (nonatomic, strong) NSString * applicationId;
 @property (nonatomic, strong) NSString * timestampCreated;
 @property (nonatomic, strong) NSString * timestampLastUsed;
+@property (nonatomic, strong) NSString * timestampBlockExpire;
 @property (nonatomic, strong) NSString * encryptedStatusBlob;
 @property (nonatomic, strong) NSString * encryptedStatusBlobNonce;
 @property (nonatomic, strong) NSString * devicePublicKeyFingerprint;

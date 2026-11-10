@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
     # General information
     s.cocoapods_version = '>= 1.10'
     s.name              = 'PowerAuth2'
-    s.version           = '2.0.0-rc1'
+    s.version           = '2.1.0'
     s.summary           = 'PowerAuth Mobile SDK for iOS and tvOS'
     s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
     s.social_media_url  = 'https://twitter.com/wultra'
@@ -22,8 +22,8 @@ Pod::Spec.new do |s|
         :submodules => true
     }
     
-    s.ios.deployment_target  = '13.0'
-    s.tvos.deployment_target = '13.0'
+    s.ios.deployment_target  = '15.0'
+    s.tvos.deployment_target = '15.0'
     
     # XCFramework  build    
     s.prepare_command = <<-CMD

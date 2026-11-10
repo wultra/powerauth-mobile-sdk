@@ -105,7 +105,7 @@ ClassSpecs ClassSpecs::buildSpecs(JNI &jni)
             "APPLICATION",
             "ACTIVATION"
         });
-        spec.coreActivationState = jni.buildConstantRangeSpec("io/getlime/security/powerauth/core/CoreActivationState", {
+        spec.coreActivationState = jni.buildConstantSetSpec("io/getlime/security/powerauth/core/CoreActivationState", {
             "PENDING_COMMIT",
             "ACTIVE",
             "BLOCKED",

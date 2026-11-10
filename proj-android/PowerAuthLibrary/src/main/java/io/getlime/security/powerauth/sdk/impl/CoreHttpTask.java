@@ -54,12 +54,12 @@ public class CoreHttpTask<TResponse> extends CompositeCancelableTask {
         this.requestListener = new INetworkResponseListener<>() {
             @Override
             public void onNetworkResponse(@Nullable Object o) {
-                processNext();
+                processNext(null);
             }
 
             @Override
             public void onNetworkError(@NonNull Throwable throwable) {
-                processNext();
+                processNext(throwable);
             }
 
             @Override
@@ -75,14 +75,15 @@ public class CoreHttpTask<TResponse> extends CompositeCancelableTask {
      * Start the task.
      */
     public void start() {
-        processNext();
+        processNext(null);
     }
 
     /**
      * Process the next request, if there's any. If no next request is specified, then set
      * the whole task as complete.
+     * @param requestFailure Original failure from the last HTTP request, if it failed.
      */
-    private void processNext() {
+    private void processNext(@Nullable Throwable requestFailure) {
         try {
             final CoreRequest<TResponse> request = task.getNextRequest();
             if (request == null) {
@@ -95,7 +96,12 @@ public class CoreHttpTask<TResponse> extends CompositeCancelableTask {
                 addCancelable(httpClient.post(request, requestListener));
             }
         } catch (CoreException exception) {
-            setFinished(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, exception));
+            if (requestFailure != null) {
+                requestFailure.addSuppressed(exception);
+                setFinished(requestFailure);
+            } else {
+                setFinished(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, exception));
+            }
         }
     }
 

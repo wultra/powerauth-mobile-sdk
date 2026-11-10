@@ -217,6 +217,19 @@ RequestPtr Session::removeActivation(const CredentialsPtr& credentials)
     return _context->activationService().removeActivation(credentials);
 }
 
+RequestPtr Session::renameActivation(const CredentialsPtr& credentials, const std::string_view& activation_name)
+{
+    LOCK_GUARD();
+    checkActivationData();
+    if (activation_name.empty()) {
+        throw Exception(EC_WrongParameter, "Activation name must not be empty");
+    }
+    if (credentials->factors() == AuthFactors::POSSESSION) {
+        throw Exception(EC_WrongParameter, "Activation rename requires two-factor authentication");
+    }
+    return _context->activationService().renameActivation(credentials, activation_name);
+}
+
 RequestPtr Session::verifyPassword(const PasswordPtr &password)
 {
     LOCK_GUARD();
@@ -295,6 +308,10 @@ HttpHeader Session::calculateOnlineAuthenticationHeader(const Credentials& crede
                                                         const cc7::ByteRange& request_body)
 {
     LOCK_GUARD();
+    if (!sessionData().hasActivationId()) {
+        throw Exception(EC_MissingActivation, "Authentication header calculation requires activation");
+    }
+    
     return _context->authenticationService().calculateOnlineAuthenticationHeader(credentials, {
         uri_identifier,
         http_method,

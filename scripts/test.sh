@@ -65,6 +65,10 @@ function addBiometryTestFilters {
     testBiometricStatus
     testProtocolUpgradeWithBiometry
     testProtocolUpgrade_newBiometryKekWithoutBiometryFactorSet
+    testProtocolUpgrade_fetchStatusFailure
+    testProtocolUpgrade_upgradeStartResponseFailure
+    testProtocolUpgrade_upgradeConfirmRequestFailure
+    testProtocolUpgrade_upgradeConfirmResponseFailure
   )
 
   if (( ${#SELECTED_TEST_CLASSES[@]} > 0 )); then

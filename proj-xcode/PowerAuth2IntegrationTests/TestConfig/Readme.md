@@ -29,3 +29,15 @@ To do this, please follow these simple steps:
    - `soapAuthUsername` - an username in case that SOAP service needs authentication
    - `soapAuthPassword` - a password in case that SOAP service needs authentication
    - `serverAutoCommit` - if true, then the activation is automatically commited on the server.
+
+## Local PowerAuth Server
+
+You can run the tests against a local PowerAuth Server and Enrollment Server, the same way as the CI does.
+The script requires Java 21+ and PostgreSQL server binaries (`initdb`, `pg_ctl`, `createdb`, `psql`) on `PATH`:
+
+```sh
+./scripts/test-server.sh start -server latest -enrollment latest
+./scripts/test.sh -algorithms EC_P384_ML_L3 -biometry off \
+    -config '{"enrollmentUrl":"http://localhost:8081/enrollment-server","serverApiUrl":"http://localhost:8080/powerauth-java-server"}'
+./scripts/test-server.sh stop
+```

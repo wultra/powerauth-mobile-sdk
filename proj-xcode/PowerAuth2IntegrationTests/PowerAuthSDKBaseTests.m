@@ -199,6 +199,10 @@
 
 - (void) testRenameActivation
 {
+    // Rename response cannot be processed by the SDK due to a backend bug:
+    // https://github.com/wultra/powerauth-restful-integration/issues/735
+    XCTSkip(@"Disabled due to https://github.com/wultra/powerauth-restful-integration/issues/735");
+
     CHECK_TEST_CONFIG();
 
     PowerAuthSdkActivation * activation = [_helper createActivation:YES removeAfter:NO];

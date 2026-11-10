@@ -6,25 +6,105 @@ on:
       - develop
       - release/*
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   tests:
-    name: iOS Tests
-    runs-on: macos-26
+    name: iOS Tests (server ${{ matrix.server }}, ${{ matrix.algorithms }})
+    runs-on: xcode-27
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # PowerAuth Server 1.x supports only the legacy V3 protocol.
+          - server: 1.9.3
+            enrollment: 1.9.2
+            algorithms: LEGACY_P256
+          # The latest PowerAuth Server and Enrollment Server releases.
+          - server: latest
+            enrollment: latest
+            algorithms: EC_P384_ML_L3
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4
+
+      # The job always runs so that matrix checks are reported, but it exits early when no code has changed.
+      - name: Detect code changes
+        id: filter
+        if: github.event_name != 'workflow_dispatch'
+        uses: dorny/paths-filter@v4
         with:
-          submodules: recursive
-      - name: Set proper Xcode version
-        run: ./scripts/xcode-select.sh
-      - name: Run iOS tests
+          predicate-quantifier: some-with-excludes
+          filters: |
+            code:
+              - '.gitmodules'
+              - 'cc7'
+              - 'include/**'
+              - 'src/PowerAuth/**'
+              - 'src/PowerAuthTests/**'
+              - 'proj-xcode/**'
+              - 'Package.swift'
+              - 'scripts/test.sh'
+              - 'scripts/test-server.sh'
+              - '.github/workflows/ios-tests.yml'
+              - '!**/*.md'
+
+      - name: Decide whether to run tests
+        id: changes
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ steps.filter.outputs.code }}" == "true" ]]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No code changes detected, skipping tests."
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout submodules
+        if: steps.changes.outputs.code == 'true'
+        run: git submodule update --init --recursive
+
+      - name: Setup Java 21
+        if: steps.changes.outputs.code == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install PostgreSQL
+        if: steps.changes.outputs.code == 'true'
         env:
-          TESTS_CONFIG: ${{ secrets.IOS_TESTS_CONFIG }}
-        # Exercise the most commonly used PowerAuth algorithms; simulator biometry is excluded in CI.
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+        run: |
+          brew install postgresql@17
+          echo "$(brew --prefix postgresql@17)/bin" >> "$GITHUB_PATH"
+
+      - name: Start PowerAuth Server ${{ matrix.server }}
+        if: steps.changes.outputs.code == 'true'
+        run: ./scripts/test-server.sh start -server "${{ matrix.server }}" -enrollment "${{ matrix.enrollment }}"
+
+      - name: Run iOS tests
+        if: steps.changes.outputs.code == 'true'
+        # Simulator biometry is excluded in CI.
         run: |
           ./scripts/test.sh \
-            -config "$TESTS_CONFIG" \
-            -algorithms "LEGACY_P256,EC_P384_ML_L3" \
+            -config '{"enrollmentUrl":"http://localhost:8081/enrollment-server","serverApiUrl":"http://localhost:8080/powerauth-java-server"}' \
+            -algorithms "${{ matrix.algorithms }}" \
             -biometry off \
             -crash-on-failure on
+
+      - name: Upload server logs
+        if: failure() && steps.changes.outputs.code == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-logs-${{ matrix.server }}
+          path: ${{ runner.temp }}/powerauth-test-server/logs

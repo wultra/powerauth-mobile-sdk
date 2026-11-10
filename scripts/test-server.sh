@@ -17,8 +17,11 @@
 #                      Default: $RUNNER_TEMP/powerauth-test-server or $TMPDIR/powerauth-test-server
 #
 # Started services:
-#   PowerAuth Server:  http://localhost:8080/powerauth-java-server
-#   Enrollment Server: http://localhost:8081/enrollment-server
+#   PowerAuth Server:  http://localhost:8080/powerauth-java-server (bound to 127.0.0.1)
+#   Enrollment Server: http://localhost:8081/enrollment-server (bound to 127.0.0.1)
+#
+# When running on GitHub Actions, the resolved versions are written to the step
+# outputs 'server-version' and 'enrollment-version'.
 # -----------------------------------------------------------------------------
 
 set -e
@@ -129,8 +132,10 @@ function startApplication {
   local db="$5"
   shift 5
   echo "Starting ${name}..."
+  # Bind to loopback only, the servers run with unauthenticated APIs. Android emulator reaches it via 10.0.2.2.
   # shellcheck disable=SC2086
   nohup "$(javaCommand)" ${JAVA_OPTS} -jar "${war}" \
+    --server.address=127.0.0.1 \
     --server.port="${port}" \
     --server.servlet.context-path="${context}" \
     --spring.datasource.url="jdbc:postgresql://localhost:${DB_PORT}/${db}" \
@@ -166,7 +171,7 @@ function verifyServerVersion {
   # Guards against release assets that contain a different build than the release tag.
   local status
   status=$(curl -fs -X POST -H "Content-Type: application/json" -d '{"requestObject":{}}' \
-    "http://localhost:${SERVER_PORT}${SERVER_CONTEXT}/rest/v3/status") || fail "Unable to get PowerAuth Server status."
+    "http://127.0.0.1:${SERVER_PORT}${SERVER_CONTEXT}/rest/v3/status") || fail "Unable to get PowerAuth Server status."
   local version
   version=$(echo "${status}" | sed -n 's/.*"version" *: *"\([^"]*\)".*/\1/p')
   [[ "${version}" == "${SERVER_VERSION}" ]] || fail "PowerAuth Server reports version '${version}', expected '${SERVER_VERSION}'."
@@ -200,6 +205,10 @@ function doStart {
   SERVER_VERSION=$(resolveVersion "powerauth-server" "${SERVER_VERSION}")
   ENROLLMENT_VERSION=$(resolveVersion "enrollment-server" "${ENROLLMENT_VERSION}")
   echo "Using PowerAuth Server ${SERVER_VERSION} and Enrollment Server ${ENROLLMENT_VERSION}"
+  if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+    echo "server-version=${SERVER_VERSION}" >> "${GITHUB_OUTPUT}"
+    echo "enrollment-version=${ENROLLMENT_VERSION}" >> "${GITHUB_OUTPUT}"
+  fi
 
   local paDir="${WORK_DIR}/download/powerauth-server-${SERVER_VERSION}"
   local esDir="${WORK_DIR}/download/enrollment-server-${ENROLLMENT_VERSION}"
@@ -218,11 +227,11 @@ function doStart {
   startApplication "powerauth-server" "${paDir}/powerauth-java-server.war" "${SERVER_PORT}" "${SERVER_CONTEXT}" "${SERVER_DB}" \
     --powerauth.server.db.master.encryption.aead-kmac.key="$(openssl rand -base64 32)"
   startApplication "enrollment-server" "${esDir}/enrollment-server.war" "${ENROLLMENT_PORT}" "${ENROLLMENT_CONTEXT}" "${ENROLLMENT_DB}" \
-    --powerauth.service.url="http://localhost:${SERVER_PORT}${SERVER_CONTEXT}/rest" \
+    --powerauth.service.url="http://127.0.0.1:${SERVER_PORT}${SERVER_CONTEXT}/rest" \
     --enrollment-server.user-info.provider=MINIMAL
 
-  waitForApplication "powerauth-server" "http://localhost:${SERVER_PORT}${SERVER_CONTEXT}"
-  waitForApplication "enrollment-server" "http://localhost:${ENROLLMENT_PORT}${ENROLLMENT_CONTEXT}"
+  waitForApplication "powerauth-server" "http://127.0.0.1:${SERVER_PORT}${SERVER_CONTEXT}"
+  waitForApplication "enrollment-server" "http://127.0.0.1:${ENROLLMENT_PORT}${ENROLLMENT_CONTEXT}"
   verifyServerVersion
 
   echo ""

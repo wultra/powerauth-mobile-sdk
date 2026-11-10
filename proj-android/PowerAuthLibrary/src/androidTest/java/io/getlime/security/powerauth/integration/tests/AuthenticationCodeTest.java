@@ -89,6 +89,7 @@ public class AuthenticationCodeTest extends BaseTest {
         final int OFFLINE_AUTH_CODE_LENGTH = 4;
         // Re-configure test helper
         reAssignTestHelper(new PowerAuthTestHelper.Builder()
+                .powerAuthAlgorithm(getAlgorithmForTest())
                 .configurationObserver(new PowerAuthTestHelper.IConfigurationObserver() {
                     @Override
                     public void adjustPowerAuthConfiguration(@NonNull PowerAuthConfiguration.Builder builder) {

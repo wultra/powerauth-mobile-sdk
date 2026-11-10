@@ -980,7 +980,7 @@ public class ActivationHelper {
 
         final PowerAuthActivationStatus status = fetchActivationStatus();
         assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
-        assertTrue(status.isProtocolUpgradeAvailable());
+        assertEquals(isProtocolUpgradeSupportedByServer(), status.isProtocolUpgradeAvailable());
         assertEquals(targetAlgorithm > PowerAuthAlgorithm.LEGACY_P256, powerAuthSDK.hasProtocolUpgradeAvailable());
 
         return powerAuthSDK;
@@ -1081,6 +1081,13 @@ public class ActivationHelper {
      * @return Valid protocol upgrade result for newer protocols and {@code null} for legacy protocol.
      * @throws Exception in case of upgrade process failure.
      */
+    /**
+     * @return {@code true} if the server supports V4 protocol and therefore offers the protocol upgrade.
+     */
+    boolean isProtocolUpgradeSupportedByServer() {
+        return testHelper.getTestConfig().getServerVersion().maxProtocolVersion.version >= ProtocolVersion.V4_0.version;
+    }
+
     private ProtocolUpgradeResult startProtocolUpgradeExpectResult(final @PowerAuthAlgorithm int targetAlgorithm, final IConsumer<IProtocolUpgradeListener> upgradeStartCall) throws Exception {
         final ProtocolUpgradeResult result = AsyncHelper.await(resultCatcher -> {
             upgradeStartCall.accept(new IProtocolUpgradeListener() {
@@ -1093,7 +1100,10 @@ public class ActivationHelper {
                 public void onProtocolUpgradeFailed(@NonNull Throwable throwable) {
                     if (targetAlgorithm == PowerAuthAlgorithm.LEGACY_P256) {
                         assertTrue(throwable instanceof PowerAuthErrorException);
-                        assertEquals("powerAuth::PowerAuthException: Protocol upgrade is not possible with current configuration", throwable.getMessage());
+                        final String expectedMessage = isProtocolUpgradeSupportedByServer()
+                                ? "powerAuth::PowerAuthException: Protocol upgrade is not possible with current configuration"
+                                : "powerAuth::PowerAuthException: Protocol upgrade is not available";
+                        assertEquals(expectedMessage, throwable.getMessage());
                         resultCatcher.completeWithResult(null);
                     } else {
                         resultCatcher.completeWithError(throwable);

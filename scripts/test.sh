@@ -10,6 +10,7 @@ XCODE_SCHEME="PowerAuth2_IntegrationTests_iOS"
 BUILD_FOLDER="build"
 CONFIG_JSON=""
 BIOMETRY_TESTS="on"
+CC7_TESTS="on"
 TESTS="all"
 CRASH_ON_FAILURE="off"
 XCODE_TEST_FILTERS=()
@@ -133,6 +134,22 @@ do
       esac
       shift 2
       ;;
+    -cc7)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for -cc7."
+        exit 1
+      fi
+      case "$2" in
+        on | off)
+          CC7_TESTS="$2"
+          ;;
+        *)
+          echo "Unsupported value '$2' for -cc7. Use 'on' or 'off'."
+          exit 1
+          ;;
+      esac
+      shift 2
+      ;;
     -biometry)
       if [[ $# -lt 2 ]]; then
         echo "Missing value for -biometry."
@@ -191,6 +208,11 @@ case "${TESTS}" in
     fi
     ;;
 esac
+
+# CC7 is a separate library with timing-sensitive tests that are unstable on virtual machines.
+if [[ "${CC7_TESTS}" == "off" && "${TESTS}" != "integration" ]]; then
+  XCODE_TEST_FILTERS+=("-skip-testing:PowerAuthCoreTests-ios/PowerAuthCoreTestsWrapper/testRunCC7Tests")
+fi
 
 if [[ "${BIOMETRY_TESTS}" == "off" && "${TESTS}" != "unit" ]]; then
   addBiometryTestFilters

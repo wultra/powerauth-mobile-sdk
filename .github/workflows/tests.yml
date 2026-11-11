@@ -71,8 +71,8 @@ jobs:
   ios-unit:
     name: iOS Unit Tests
     needs: changes
-    # The unit tests contain timing assertions (e.g. a 10 ms sleep must take less than 20 ms), which fail
-    # when the standard runner stalls. The larger runner is an attempt to make them stable.
+    # The unit tests contain timing-sensitive tests, which fail when the standard runner stalls.
+    # The larger runner is an attempt to make them stable.
     runs-on: xcode-27-xlarge
     timeout-minutes: 60
     env:
@@ -90,7 +90,9 @@ jobs:
 
       - name: Run iOS unit tests
         if: env.RUN_TESTS == 'true'
-        run: ./scripts/test.sh -tests unit
+        # The CC7 tests of the submodule are skipped, because they assert, for example, that a 10 ms sleep
+        # takes less than 20 ms, which is not reliable on a virtual machine.
+        run: ./scripts/test.sh -tests unit -cc7 off
 
   ios-integration:
     name: iOS Integration Tests (server ${{ matrix.server }}, ${{ matrix.algorithms }})

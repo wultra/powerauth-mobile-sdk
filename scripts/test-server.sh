@@ -182,11 +182,23 @@ function verifyServerVersion {
 
 function startMonitor {
   # Periodic system sample. Gaps between timestamps reveal stalls of the whole machine.
+  # Every third sample also lists the processes that use the most CPU, to find out what slows the machine down.
   (
+    local count=0
     while true; do
       echo "=== $(date -u +%Y-%m-%dT%H:%M:%SZ)"
       uptime
       if command -v vm_stat > /dev/null; then vm_stat | head -n 8; else free -m; fi
+      if (( count % 3 == 0 )); then
+        echo "--- top processes"
+        if [[ "$(uname)" == "Darwin" ]]; then
+          # The first sample of top reports usage since the process start, so keep only the second one.
+          top -l 2 -s 1 -n 12 -o cpu -stats pid,command,cpu,th,mem | awk '/^Processes:/{buf=""} {buf=buf $0 "\n"} END{printf "%s", buf}'
+        else
+          top -bn1 | head -n 15
+        fi
+      fi
+      count=$((count + 1))
       sleep 5
     done
   ) >> "${WORK_DIR}/logs/system.log" 2>&1 &

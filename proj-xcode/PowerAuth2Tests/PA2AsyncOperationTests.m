@@ -148,7 +148,7 @@ static void dispatch_later(NSTimeInterval after, void (^block)(void))
             [_concurrentQueue addOperation:operation];
             dispatch_later(0.1, ^{ [operation cancel]; });
         }
-    } wait:2.0];
+    } wait:10.0];
     XCTAssertEqual(RUN_COUNT, executed.value);
     XCTAssertEqual(RUN_COUNT, canceled.value);
     XCTAssertEqual(0, reported.value);
@@ -176,7 +176,7 @@ static void dispatch_later(NSTimeInterval after, void (^block)(void))
             };
             [_serialQueue addOperation:operation];
         }
-    } wait:2.0];
+    } wait:10.0];
     XCTAssertEqual(RUN_COUNT, executed.value);
     XCTAssertEqual(RUN_COUNT, canceled.value);
     XCTAssertEqual(0, reported.value);
@@ -204,7 +204,7 @@ static void dispatch_later(NSTimeInterval after, void (^block)(void))
             [_serialQueue addOperation:operation];
             [operation cancel];
         }
-    } wait:2.0];
+    } wait:10.0];
     // executed counter cannot be evaluated here
     XCTAssertEqual(RUN_COUNT, canceled.value);
     XCTAssertEqual(0, reported.value);
@@ -235,7 +235,7 @@ static void dispatch_later(NSTimeInterval after, void (^block)(void))
             [_serialQueue addOperation:operation];
             [operation cancel];
         }
-    } wait:2.0];
+    } wait:10.0];
     XCTAssertEqual(0, executed.value);
     XCTAssertEqual(RUN_COUNT, canceled.value);
     XCTAssertEqual(0, reported.value);

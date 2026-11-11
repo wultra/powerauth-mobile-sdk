@@ -10,6 +10,7 @@ XCODE_SCHEME="PowerAuth2_IntegrationTests_iOS"
 BUILD_FOLDER="build"
 CONFIG_JSON=""
 BIOMETRY_TESTS="on"
+TESTS="all"
 CRASH_ON_FAILURE="off"
 XCODE_TEST_FILTERS=()
 SELECTED_TEST_CLASSES=()
@@ -116,6 +117,22 @@ do
       done
       shift 2
       ;;
+    -tests)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for -tests."
+        exit 1
+      fi
+      case "$2" in
+        all | unit | integration)
+          TESTS="$2"
+          ;;
+        *)
+          echo "Unsupported value '$2' for -tests. Use 'all', 'unit' or 'integration'."
+          exit 1
+          ;;
+      esac
+      shift 2
+      ;;
     -biometry)
       if [[ $# -lt 2 ]]; then
         echo "Missing value for -biometry."
@@ -155,13 +172,27 @@ do
   esac
 done
 
-# Selecting integration test classes would otherwise exclude the other test targets of the scheme.
-if (( ${#SELECTED_TEST_CLASSES[@]} > 0 )); then
-  XCODE_TEST_FILTERS+=("-only-testing:PowerAuthCoreTests-ios")
-  XCODE_TEST_FILTERS+=("-only-testing:PowerAuth2Tests-ios")
-fi
+# The unit tests do not communicate with PowerAuth Server.
+UNIT_TEST_FILTERS=("-only-testing:PowerAuthCoreTests-ios" "-only-testing:PowerAuth2Tests-ios")
 
-if [[ "${BIOMETRY_TESTS}" == "off" ]]; then
+case "${TESTS}" in
+  unit)
+    XCODE_TEST_FILTERS=("${UNIT_TEST_FILTERS[@]}")
+    ;;
+  integration)
+    if (( ${#SELECTED_TEST_CLASSES[@]} == 0 )); then
+      XCODE_TEST_FILTERS+=("-only-testing:PowerAuth2IntegrationTests-ios")
+    fi
+    ;;
+  all)
+    # Selecting integration test classes would otherwise exclude the other test targets of the scheme.
+    if (( ${#SELECTED_TEST_CLASSES[@]} > 0 )); then
+      XCODE_TEST_FILTERS+=("${UNIT_TEST_FILTERS[@]}")
+    fi
+    ;;
+esac
+
+if [[ "${BIOMETRY_TESTS}" == "off" && "${TESTS}" != "unit" ]]; then
   addBiometryTestFilters
 fi
 

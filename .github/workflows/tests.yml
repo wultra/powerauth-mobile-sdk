@@ -1,4 +1,4 @@
-name: Integration Tests
+name: Tests
 
 on:
   push:
@@ -52,7 +52,7 @@ jobs:
               case "$file" in
                 *.md) ;;
                 .gitmodules | cc7 | include/* | src/PowerAuth/* | src/PowerAuthTests/* | \
-                scripts/test-server.sh | .github/workflows/integration-tests.yml)
+                scripts/test-server.sh | .github/workflows/tests.yml)
                   ios=true
                   android=true
                   ;;
@@ -65,9 +65,33 @@ jobs:
           echo "ios=$ios" >> "$GITHUB_OUTPUT"
           echo "android=$android" >> "$GITHUB_OUTPUT"
 
-  # The test jobs always run so that matrix checks are reported, but they exit early when no code has changed.
-  ios:
-    name: iOS Tests (server ${{ matrix.server }}, ${{ matrix.algorithms }})
+  # The test jobs always run so that checks are reported, but they exit early when no code has changed.
+
+  # Unit tests do not communicate with PowerAuth Server, so they run once, on a machine without the servers.
+  ios-unit:
+    name: iOS Unit Tests
+    needs: changes
+    runs-on: xcode-27
+    timeout-minutes: 60
+    env:
+      RUN_TESTS: ${{ needs.changes.outputs.ios }}
+    steps:
+      - name: Skip when no code has changed
+        if: env.RUN_TESTS != 'true'
+        run: echo "No iOS related code changes detected, skipping tests."
+
+      - name: Checkout the repo
+        if: env.RUN_TESTS == 'true'
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Run iOS unit tests
+        if: env.RUN_TESTS == 'true'
+        run: ./scripts/test.sh -tests unit
+
+  ios-integration:
+    name: iOS Integration Tests (server ${{ matrix.server }}, ${{ matrix.algorithms }})
     needs: changes
     runs-on: xcode-27
     timeout-minutes: 60
@@ -122,6 +146,7 @@ jobs:
         # Simulator biometry is excluded in CI.
         run: |
           ./scripts/test.sh \
+            -tests integration \
             -config '{"enrollmentUrl":"http://localhost:8081/enrollment-server","serverApiUrl":"http://localhost:8080/powerauth-java-server"}' \
             -algorithms "${{ matrix.algorithms }}" \
             -biometry off \
@@ -131,11 +156,62 @@ jobs:
         if: failure() && env.RUN_TESTS == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: ios-server-logs-${{ matrix.server }}
+          name: ios-integration-server-logs-${{ matrix.server }}
           path: ${{ runner.temp }}/powerauth-test-server/logs
 
-  android:
-    name: Android Tests (server ${{ matrix.server }}, ${{ matrix.algorithms }})
+  android-unit:
+    name: Android Unit Tests
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      RUN_TESTS: ${{ needs.changes.outputs.android }}
+    steps:
+      - name: Skip when no code has changed
+        if: env.RUN_TESTS != 'true'
+        run: echo "No Android related code changes detected, skipping tests."
+
+      - name: Checkout the repo
+        if: env.RUN_TESTS == 'true'
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Java 21
+        if: env.RUN_TESTS == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Enable KVM
+        if: env.RUN_TESTS == 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Android unit tests
+        if: env.RUN_TESTS == 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: ./scripts/android-test.sh -tests unit
+
+      - name: Upload test reports
+        if: failure() && env.RUN_TESTS == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-unit-test-reports
+          path: proj-android/PowerAuthLibrary/build/reports/androidTests
+
+  android-integration:
+    name: Android Integration Tests (server ${{ matrix.server }}, ${{ matrix.algorithms }})
     needs: changes
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -195,13 +271,13 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           # The emulator has no enrolled biometry in CI.
-          script: ./scripts/android-test.sh -server-version "${{ steps.server.outputs.server-version }}" -algorithms "${{ matrix.algorithms }}" -biometry off
+          script: ./scripts/android-test.sh -tests integration -server-version "${{ steps.server.outputs.server-version }}" -algorithms "${{ matrix.algorithms }}" -biometry off
 
       - name: Upload logs and test reports
         if: failure() && env.RUN_TESTS == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: android-logs-${{ matrix.server }}
+          name: android-integration-logs-${{ matrix.server }}
           path: |
             ${{ runner.temp }}/powerauth-test-server/logs
             proj-android/PowerAuthLibrary/build/reports/androidTests

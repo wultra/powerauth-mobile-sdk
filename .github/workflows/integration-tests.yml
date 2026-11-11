@@ -52,7 +52,7 @@ jobs:
                   android=true
                   ;;
                 proj-xcode/* | Package.swift | scripts/test.sh) ios=true ;;
-                proj-android/* | src/PowerAuthJni/* | scripts/android-test.sh) android=true ;;
+                proj-android/* | src/PowerAuthJni/* | src/Android.mk | scripts/android-test.sh) android=true ;;
               esac
             done < <(git diff --name-only "$base" HEAD)
           fi

@@ -3,6 +3,7 @@
 [![Documentation](https://img.shields.io/badge/Documentation-Public-orange)](https://developers.wultra.com/components/powerauth-mobile-sdk/)
 [![Android Build](https://github.com/wultra/powerauth-mobile-sdk/actions/workflows/android.yml/badge.svg)](https://github.com/wultra/powerauth-mobile-sdk/actions/workflows/android.yml)
 [![iOS Build](https://github.com/wultra/powerauth-mobile-sdk/actions/workflows/ios.yml/badge.svg)](https://github.com/wultra/powerauth-mobile-sdk/actions/workflows/ios.yml)
+[![Integration Tests](https://github.com/wultra/powerauth-mobile-sdk/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/wultra/powerauth-mobile-sdk/actions/workflows/integration-tests.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/com.wultra.android.powerauth/powerauth-sdk)](https://mvnrepository.com/artifact/com.wultra.android.powerauth/powerauth-sdk)
 [![GitHub Release](https://img.shields.io/github/v/release/wultra/powerauth-mobile-sdk)](https://github.com/wultra/powerauth-mobile-sdk/releases)
 ![Release Date](https://img.shields.io/github/release-date/wultra/powerauth-mobile-sdk)

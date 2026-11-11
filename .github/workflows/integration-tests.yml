@@ -26,6 +26,11 @@ jobs:
       - name: Checkout the repo
         uses: actions/checkout@v4
 
+      # The integration tests are slow and use expensive runners (especially macOS), so we want to avoid
+      # them when a change cannot affect the result, for example when only documentation was modified.
+      # The workflow cannot use "paths" filters, because skipped workflows would leave the required checks
+      # of the test matrix pending. Instead, this job compares the changed files with the base commit and
+      # the test jobs below start and report success immediately when there's nothing to test.
       - name: Detect code changes
         id: detect
         env:

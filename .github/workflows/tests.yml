@@ -71,7 +71,9 @@ jobs:
   ios-unit:
     name: iOS Unit Tests
     needs: changes
-    runs-on: xcode-27
+    # The unit tests contain timing assertions (e.g. a 10 ms sleep must take less than 20 ms), which fail
+    # when the standard runner stalls. The larger runner is an attempt to make them stable.
+    runs-on: xcode-27-xlarge
     timeout-minutes: 60
     env:
       RUN_TESTS: ${{ needs.changes.outputs.ios }}

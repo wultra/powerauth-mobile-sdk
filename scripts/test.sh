@@ -155,6 +155,12 @@ do
   esac
 done
 
+# Selecting integration test classes would otherwise exclude the other test targets of the scheme.
+if (( ${#SELECTED_TEST_CLASSES[@]} > 0 )); then
+  XCODE_TEST_FILTERS+=("-only-testing:PowerAuthCoreTests-ios")
+  XCODE_TEST_FILTERS+=("-only-testing:PowerAuth2Tests-ios")
+fi
+
 if [[ "${BIOMETRY_TESTS}" == "off" ]]; then
   addBiometryTestFilters
 fi

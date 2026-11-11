@@ -21,9 +21,9 @@ set -u
 SCRIPT_FOLDER=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PROJECT_FOLDER="${SCRIPT_FOLDER}/../proj-android"
 CONFIG_FILE="${PROJECT_FOLDER}/PowerAuthLibrary/build/ci-instrumentation-tests.properties"
-TEST_PACKAGE="io.getlime.security.powerauth.integration.tests"
+INTEGRATION_TESTS_PACKAGE="io.getlime.security.powerauth.integration.tests"
 # Tests requiring biometry enrolled on the device, such as a fingerprint in the emulator.
-BIOMETRY_TEST_CLASSES="${TEST_PACKAGE}.BiometricTest,${TEST_PACKAGE}.FragmentActivityProtocolUpgradeTest"
+BIOMETRY_TEST_CLASSES="${INTEGRATION_TESTS_PACKAGE}.BiometricTest,${INTEGRATION_TESTS_PACKAGE}.FragmentActivityProtocolUpgradeTest"
 BIOMETRY_TESTS="on"
 SERVER_VERSION=""
 ALGORITHMS=""
@@ -68,7 +68,6 @@ EOF
 
 GRADLE_ARGS=(
   -PinstrumentationTestsConfig="${CONFIG_FILE}"
-  -Pandroid.testInstrumentationRunnerArguments.package="${TEST_PACKAGE}"
 )
 if [[ "${BIOMETRY_TESTS}" == "off" ]]; then
   GRADLE_ARGS+=(-Pandroid.testInstrumentationRunnerArguments.notClass="${BIOMETRY_TEST_CLASSES}")

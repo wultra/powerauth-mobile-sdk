@@ -41,7 +41,8 @@ SERVER_CONTEXT="/powerauth-java-server"
 ENROLLMENT_PORT=8081
 ENROLLMENT_CONTEXT="/enrollment-server"
 STARTUP_TIMEOUT=300
-JAVA_OPTS="${JAVA_OPTS:--Xmx512m}"
+# Keep the footprint small, the servers share a CI runner with an emulator or simulator.
+JAVA_OPTS="${JAVA_OPTS:--Xms128m -Xmx512m -XX:+UseSerialGC}"
 
 function usage {
   echo "Usage: $(basename "$0") start -server <version> -enrollment <version> [-work-dir <path>]"
@@ -108,7 +109,7 @@ function startDatabase {
   rm -rf "${pgData}"
   initdb -D "${pgData}" -U "${DB_USER}" -A trust -E UTF8 --no-locale > "${WORK_DIR}/logs/initdb.log"
   pg_ctl -D "${pgData}" -l "${WORK_DIR}/logs/postgres.log" -w \
-    -o "-p ${DB_PORT} -c listen_addresses=localhost -c unix_socket_directories=''" start > /dev/null
+    -o "-p ${DB_PORT} -c listen_addresses=localhost -c unix_socket_directories='' -c max_connections=50 -c shared_buffers=64MB -c fsync=off -c synchronous_commit=off -c full_page_writes=off" start > /dev/null
   # Each server uses its own database, because both create and alter the shared 'audit_log' table.
   createdb -h localhost -p "${DB_PORT}" -U "${DB_USER}" "${SERVER_DB}"
   createdb -h localhost -p "${DB_PORT}" -U "${DB_USER}" "${ENROLLMENT_DB}"
@@ -141,6 +142,8 @@ function startApplication {
     --spring.datasource.url="jdbc:postgresql://localhost:${DB_PORT}/${db}" \
     --spring.datasource.username="${DB_USER}" \
     --spring.datasource.password= \
+    --spring.datasource.hikari.maximumPoolSize=5 \
+    --spring.datasource.hikari.minimumIdle=1 \
     "$@" > "${WORK_DIR}/logs/${name}.log" 2>&1 &
   echo $! > "${WORK_DIR}/${name}.pid"
 }
@@ -177,6 +180,19 @@ function verifyServerVersion {
   [[ "${version}" == "${SERVER_VERSION}" ]] || fail "PowerAuth Server reports version '${version}', expected '${SERVER_VERSION}'."
 }
 
+function startMonitor {
+  # Periodic system sample. Gaps between timestamps reveal stalls of the whole machine.
+  (
+    while true; do
+      echo "=== $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      uptime
+      if command -v vm_stat > /dev/null; then vm_stat | head -n 8; else free -m; fi
+      sleep 5
+    done
+  ) >> "${WORK_DIR}/logs/system.log" 2>&1 &
+  echo $! > "${WORK_DIR}/monitor.pid"
+}
+
 function stopApplication {
   local pidFile="${WORK_DIR}/$1.pid"
   if [[ -f "${pidFile}" ]]; then
@@ -187,6 +203,7 @@ function stopApplication {
 
 function doStop {
   echo "Stopping PowerAuth test server..."
+  stopApplication "monitor"
   stopApplication "enrollment-server"
   stopApplication "powerauth-server"
   if [[ -d "${WORK_DIR}/pgdata" ]]; then
@@ -220,6 +237,7 @@ function doStart {
   doStop
   mkdir -p "${WORK_DIR}/logs"
 
+  startMonitor
   startDatabase
   applySchema "${paDir}/create_schema.sql" "${SERVER_DB}"
   applySchema "${esDir}/create-schema.sql" "${ENROLLMENT_DB}"

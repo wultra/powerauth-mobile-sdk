@@ -71,9 +71,7 @@ jobs:
   ios-unit:
     name: iOS Unit Tests
     needs: changes
-    # The unit tests contain timing-sensitive tests, which fail when the standard runner stalls.
-    # The larger runner is an attempt to make them stable.
-    runs-on: xcode-27-xlarge
+    runs-on: xcode-27
     timeout-minutes: 60
     env:
       RUN_TESTS: ${{ needs.changes.outputs.ios }}

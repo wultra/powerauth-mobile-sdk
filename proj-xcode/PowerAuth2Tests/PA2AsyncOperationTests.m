@@ -61,9 +61,11 @@
         [waiting reportCompletion:result];              \
     }];
 
+// A background queue must not be used here. It is starved when the machine is overloaded (e.g. on CI),
+// so the delayed block may run much later than expected and the tests time out.
 static void dispatch_later(NSTimeInterval after, void (^block)(void))
 {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(after * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), block);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(after * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), block);
 }
 
 #pragma mark - Tests

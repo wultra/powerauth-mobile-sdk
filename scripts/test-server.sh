@@ -42,7 +42,7 @@ ENROLLMENT_PORT=8081
 ENROLLMENT_CONTEXT="/enrollment-server"
 STARTUP_TIMEOUT=300
 # Keep the footprint small, the servers share a CI runner with an emulator or simulator.
-JAVA_OPTS="${JAVA_OPTS:--Xms128m -Xmx512m -XX:+UseSerialGC}"
+JAVA_OPTS="${JAVA_OPTS:--Xms512m -Xmx1536m -XX:+UseParallelGC}"
 
 function usage {
   echo "Usage: $(basename "$0") start -server <version> -enrollment <version> [-work-dir <path>]"

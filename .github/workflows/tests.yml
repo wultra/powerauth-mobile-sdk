@@ -71,7 +71,9 @@ jobs:
   ios-unit:
     name: iOS Unit Tests
     needs: changes
-    runs-on: xcode-27
+    # The standard macOS runner (3 vCPU, 7 GB RAM) runs out of memory and swaps while compiling and running the
+    # simulator, which stalls the whole machine and makes the timing-sensitive tests fail randomly.
+    runs-on: xcode-27-xlarge
     timeout-minutes: 60
     env:
       RUN_TESTS: ${{ needs.changes.outputs.ios }}
@@ -95,7 +97,7 @@ jobs:
   ios-integration:
     name: iOS Integration Tests (server ${{ matrix.server }}, ${{ matrix.algorithms }})
     needs: changes
-    runs-on: xcode-27
+    runs-on: xcode-27-xlarge
     timeout-minutes: 60
     env:
       RUN_TESTS: ${{ needs.changes.outputs.ios }}

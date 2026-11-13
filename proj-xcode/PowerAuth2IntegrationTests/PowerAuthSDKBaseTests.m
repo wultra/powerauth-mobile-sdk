@@ -1264,7 +1264,6 @@
 
 - (void) testBiometrySignatureWhenNotConfigured
 {
-    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //
@@ -3478,7 +3477,6 @@
 
 - (void) testProtocolUpgrade_newBiometryKekWithoutBiometryFactorSet
 {
-    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //

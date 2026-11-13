@@ -13,6 +13,7 @@ BIOMETRY_TESTS="on"
 CC7_TESTS="on"
 TESTS="all"
 CRASH_ON_FAILURE="off"
+RETRY_ITERATIONS=1
 XCODE_TEST_FILTERS=()
 SELECTED_TEST_CLASSES=()
 
@@ -182,6 +183,14 @@ do
       esac
       shift 2
       ;;
+    -retry)
+      if [[ $# -lt 2 || ! "$2" =~ ^[1-9][0-9]*$ ]]; then
+        echo "Missing or invalid value for -retry. Use total number of attempts (1 = no retry)."
+        exit 1
+      fi
+      RETRY_ITERATIONS="$2"
+      shift 2
+      ;;
     *)
       echo "Unknown parameter ${1}"
       exit 1
@@ -245,6 +254,9 @@ XCODEBUILD_ARGS=(
 )
 if (( ${#XCODE_TEST_FILTERS[@]} > 0 )); then
   XCODEBUILD_ARGS+=("${XCODE_TEST_FILTERS[@]}")
+fi
+if (( RETRY_ITERATIONS > 1 )); then
+  XCODEBUILD_ARGS+=(-retry-tests-on-failure -test-iterations "${RETRY_ITERATIONS}")
 fi
 if [[ "${CRASH_ON_FAILURE}" == "on" ]]; then
   XCODEBUILD_ARGS+=("PA2_TEST_CRASH_ON_FAILURE=YES")

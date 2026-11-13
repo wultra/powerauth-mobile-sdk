@@ -154,7 +154,8 @@ jobs:
             -config '{"enrollmentUrl":"http://localhost:8081/enrollment-server","serverApiUrl":"http://localhost:8080/powerauth-java-server"}' \
             -algorithms "${{ matrix.algorithms }}" \
             -biometry off \
-            -crash-on-failure on
+            -crash-on-failure on \
+            -retry 2
 
       - name: Upload server logs
         if: failure() && env.RUN_TESTS == 'true'

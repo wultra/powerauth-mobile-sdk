@@ -28,6 +28,7 @@ import io.getlime.security.powerauth.sdk.PowerAuthActivationState;
 import io.getlime.security.powerauth.sdk.PowerAuthActivationStatus;
 import io.getlime.security.powerauth.sdk.PowerAuthAlgorithm;
 import io.getlime.security.powerauth.networking.response.*;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -415,6 +416,9 @@ public class BaseSdkTest extends BaseTest {
         assertTrue(result);
     }
 
+    // Rename response cannot be processed by the SDK due to a backend bug:
+    // https://github.com/wultra/powerauth-restful-integration/issues/735
+    @Ignore("Disabled due to https://github.com/wultra/powerauth-restful-integration/issues/735")
     @Test
     public void testRenameActivationWithAuthentication() throws Exception {
         activationHelper.createStandardActivation(true, null);

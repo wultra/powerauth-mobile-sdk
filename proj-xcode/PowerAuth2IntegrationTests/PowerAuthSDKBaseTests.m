@@ -199,6 +199,10 @@
 
 - (void) testRenameActivation
 {
+    // Rename response cannot be processed by the SDK due to a backend bug:
+    // https://github.com/wultra/powerauth-restful-integration/issues/735
+    XCTSkip(@"Disabled due to https://github.com/wultra/powerauth-restful-integration/issues/735");
+
     CHECK_TEST_CONFIG();
 
     PowerAuthSdkActivation * activation = [_helper createActivation:YES removeAfter:NO];
@@ -1318,6 +1322,7 @@
 
 - (void) testCreateActivationWithExternalBiometry
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
         
     PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithFakeBiometry activationOtp:nil];
@@ -1433,6 +1438,7 @@
 
 - (void) testSynchronizeBiometricFactorWithServer
 {
+    CHECK_BIOMETRY();
     if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
         NSLog(@"This test is ineffective for V3 protocol");
         return;
@@ -3132,6 +3138,7 @@
 
 - (void) testProtocolUpgradeWithBiometry
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     if (!self.hasBiometrySupport) {
         NSLog(@"Test skipped, device has no biometry support.");
@@ -3180,6 +3187,7 @@
 
 - (void) testProtocolUpgrade_fetchStatusFailure
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //
@@ -3225,6 +3233,7 @@
 
 - (void) testProtocolUpgrade_upgradeStartResponseFailure
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //
@@ -3275,6 +3284,7 @@
 
 - (void) testProtocolUpgrade_upgradeConfirmResponseFailure
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //
@@ -3332,6 +3342,7 @@
 
 - (void) testProtocolUpgrade_upgradeConfirmRequestFailure
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //

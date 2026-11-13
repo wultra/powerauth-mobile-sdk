@@ -19,8 +19,10 @@ package io.getlime.security.powerauth.integration.tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
 
 import androidx.annotation.NonNull;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.After;
 import org.junit.Before;
@@ -144,9 +146,15 @@ public abstract class BaseTest {
         return ("LEGACY_P256".equals(alg) ? "/pa/v3" : "/pa/v4") + relativePath;
     }
 
+    /**
+     * Fails the test when biometry is not enrolled, or skips it when the optional
+     * {@code "test.powerauth.skipMissingBiometry"} instrumentation argument is {@code true} (e.g. on CI).
+     */
     void assertBiometryEnrolled() {
         if (!BiometricAuthentication.isBiometricAuthenticationAvailable(testHelper.getContext())) {
-            fail("Biometry is not enrolled. Please enroll biometric data before running this test.");
+            final String message = "Biometry is not enrolled. Please enroll biometric data before running this test.";
+            assumeFalse(message, Boolean.parseBoolean(InstrumentationRegistry.getArguments().getString("test.powerauth.skipMissingBiometry")));
+            fail(message);
         }
     }
 

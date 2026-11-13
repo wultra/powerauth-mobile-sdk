@@ -36,8 +36,8 @@ You can run the tests against a local PowerAuth Server and Enrollment Server, th
 The script requires Java 21+ and PostgreSQL server binaries (`initdb`, `pg_ctl`, `createdb`, `psql`) on `PATH`:
 
 ```sh
-./scripts/test-server.sh start -server latest -enrollment latest
-./scripts/test.sh -algorithms EC_P384_ML_L3 -biometry off \
+./scripts/tests-run-server.sh start -server latest -enrollment latest
+./scripts/tests-ios.sh -tests integration -algorithms EC_P384_ML_L3 \
     -config '{"enrollmentUrl":"http://localhost:8081/enrollment-server","serverApiUrl":"http://localhost:8080/powerauth-java-server"}'
-./scripts/test-server.sh stop
+./scripts/tests-run-server.sh stop
 ```

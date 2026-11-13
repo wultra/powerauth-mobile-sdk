@@ -1264,6 +1264,7 @@
 
 - (void) testBiometrySignatureWhenNotConfigured
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //
@@ -1322,6 +1323,7 @@
 
 - (void) testCreateActivationWithExternalBiometry
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
         
     PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithFakeBiometry activationOtp:nil];
@@ -1437,6 +1439,7 @@
 
 - (void) testSynchronizeBiometricFactorWithServer
 {
+    CHECK_BIOMETRY();
     if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
         NSLog(@"This test is ineffective for V3 protocol");
         return;
@@ -3136,6 +3139,7 @@
 
 - (void) testProtocolUpgradeWithBiometry
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     if (!self.hasBiometrySupport) {
         NSLog(@"Test skipped, device has no biometry support.");
@@ -3184,6 +3188,7 @@
 
 - (void) testProtocolUpgrade_fetchStatusFailure
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //
@@ -3229,6 +3234,7 @@
 
 - (void) testProtocolUpgrade_upgradeStartResponseFailure
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //
@@ -3279,6 +3285,7 @@
 
 - (void) testProtocolUpgrade_upgradeConfirmResponseFailure
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //
@@ -3336,6 +3343,7 @@
 
 - (void) testProtocolUpgrade_upgradeConfirmRequestFailure
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //
@@ -3470,6 +3478,7 @@
 
 - (void) testProtocolUpgrade_newBiometryKekWithoutBiometryFactorSet
 {
+    CHECK_BIOMETRY();
     CHECK_TEST_CONFIG();
     
     //

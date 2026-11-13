@@ -52,12 +52,12 @@ jobs:
               case "$file" in
                 *.md) ;;
                 .gitmodules | cc7 | include/* | src/PowerAuth/* | src/PowerAuthTests/* | \
-                scripts/test-server.sh | .github/workflows/tests.yml)
+                scripts/tests-run-server.sh | .github/workflows/tests.yml)
                   ios=true
                   android=true
                   ;;
-                proj-xcode/* | Package.swift | scripts/test.sh) ios=true ;;
-                proj-android/* | src/PowerAuthJni/* | src/Android.mk | scripts/android-test.sh) android=true ;;
+                proj-xcode/* | Package.swift | scripts/tests-ios.sh) ios=true ;;
+                proj-android/* | src/PowerAuthJni/* | src/Android.mk | scripts/tests-android.sh) android=true ;;
               esac
             done < <(git diff --name-only "$base" HEAD)
           fi
@@ -90,9 +90,7 @@ jobs:
 
       - name: Run iOS unit tests
         if: env.RUN_TESTS == 'true'
-        # The CC7 tests of the submodule are skipped, because they assert, for example, that a 10 ms sleep
-        # takes less than 20 ms, which is not reliable on a virtual machine.
-        run: ./scripts/test.sh -tests unit -cc7 off
+        run: ./scripts/tests-ios.sh -tests unit
 
   ios-integration:
     name: iOS Integration Tests (server ${{ matrix.server }}, ${{ matrix.algorithms }})
@@ -143,19 +141,15 @@ jobs:
 
       - name: Start PowerAuth Server ${{ matrix.server }}
         if: env.RUN_TESTS == 'true'
-        run: ./scripts/test-server.sh start -server "${{ matrix.server }}" -enrollment "${{ matrix.enrollment }}"
+        run: ./scripts/tests-run-server.sh start -server "${{ matrix.server }}" -enrollment "${{ matrix.enrollment }}"
 
       - name: Run iOS tests
         if: env.RUN_TESTS == 'true'
-        # Simulator biometry is excluded in CI.
         run: |
-          ./scripts/test.sh \
+          ./scripts/tests-ios.sh \
             -tests integration \
             -config '{"enrollmentUrl":"http://localhost:8081/enrollment-server","serverApiUrl":"http://localhost:8080/powerauth-java-server"}' \
-            -algorithms "${{ matrix.algorithms }}" \
-            -biometry off \
-            -crash-on-failure on \
-            -retry 2
+            -algorithms "${{ matrix.algorithms }}"
 
       - name: Upload server logs
         if: failure() && env.RUN_TESTS == 'true'
@@ -190,7 +184,8 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
-      - name: Enable KVM
+      - &enable-kvm
+        name: Enable KVM
         if: env.RUN_TESTS == 'true'
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -206,7 +201,7 @@ jobs:
           target: google_apis
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: ./scripts/android-test.sh -tests unit
+          script: ./scripts/tests-android.sh -tests unit
 
       - name: Upload test reports
         if: failure() && env.RUN_TESTS == 'true'
@@ -252,19 +247,14 @@ jobs:
       - name: Start PowerAuth Server ${{ matrix.server }}
         id: server
         if: env.RUN_TESTS == 'true'
-        run: ./scripts/test-server.sh start -server "${{ matrix.server }}" -enrollment "${{ matrix.enrollment }}"
+        run: ./scripts/tests-run-server.sh start -server "${{ matrix.server }}" -enrollment "${{ matrix.enrollment }}"
 
       - name: Build library and tests
         if: env.RUN_TESTS == 'true'
         working-directory: proj-android
         run: ./gradlew --no-daemon :PowerAuthLibrary:assembleDebugAndroidTest
 
-      - name: Enable KVM
-        if: env.RUN_TESTS == 'true'
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+      - *enable-kvm
 
       - name: Run Android tests
         if: env.RUN_TESTS == 'true'
@@ -275,8 +265,7 @@ jobs:
           target: google_apis
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          # The emulator has no enrolled biometry in CI.
-          script: ./scripts/android-test.sh -tests integration -server-version "${{ steps.server.outputs.server-version }}" -algorithms "${{ matrix.algorithms }}" -biometry off
+          script: ./scripts/tests-android.sh -tests integration -server-version "${{ steps.server.outputs.server-version }}" -algorithms "${{ matrix.algorithms }}"
 
       - name: Upload logs and test reports
         if: failure() && env.RUN_TESTS == 'true'

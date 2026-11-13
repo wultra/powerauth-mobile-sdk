@@ -118,13 +118,8 @@ static def loadInstrumentationTestConfigProperties(project, defaultConfig) {
     def defaultPropertiesFile = new File(configsRoot, "default-instrumentation-tests.properties")
     // Private config where you can put configuration with sensitive values.
     def privatePropertiesFile = new File(configsRoot, "private-instrumentation-tests.properties")
-    // Select config file, prefer explicitly provided config, then private over default.
-    def configFile
-    if (project.hasProperty("instrumentationTestsConfig")) {
-        configFile = new File(project.property("instrumentationTestsConfig").toString())
-    } else {
-        configFile = privatePropertiesFile.canRead() ? privatePropertiesFile : defaultPropertiesFile
-    }
+    // Select config file, prefer private over default.
+    def configFile = privatePropertiesFile.canRead() ? privatePropertiesFile : defaultPropertiesFile
     // List of supported arguments
     def instrumentationArguments = [
             "test.powerauth.restApiUrl",

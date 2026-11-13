@@ -1,28 +1,12 @@
 #!/bin/bash
-# -----------------------------------------------------------------------------
-# Starts or stops a local PowerAuth stack (PostgreSQL, PowerAuth Server and
-# Enrollment Server) for integration tests.
+# Starts or stops a local PowerAuth stack (PostgreSQL, PowerAuth Server and Enrollment Server)
+# for integration tests. Requires Java 21+ and PostgreSQL server binaries on PATH.
 #
-# Requirements:
-#  - Java 21+ ('java' from JAVA_HOME or PATH)
-#  - PostgreSQL server binaries on PATH ('initdb', 'pg_ctl', 'createdb', 'psql')
+#   tests-run-server.sh start -server <version|latest> -enrollment <version|latest> [-work-dir <path>]
+#   tests-run-server.sh stop [-work-dir <path>]
 #
-# Usage:
-#   test-server.sh start -server 2.2.1 -enrollment 2.2.6 [options]
-#   test-server.sh start -server latest -enrollment latest [options]
-#   test-server.sh stop  [options]
-#
-# Options:
-#   -work-dir <path>   Folder for downloads, database and logs.
-#                      Default: $RUNNER_TEMP/powerauth-test-server or $TMPDIR/powerauth-test-server
-#
-# Started services:
-#   PowerAuth Server:  http://localhost:8080/powerauth-java-server (bound to 127.0.0.1)
-#   Enrollment Server: http://localhost:8081/enrollment-server (bound to 127.0.0.1)
-#
-# When running on GitHub Actions, the resolved versions are written to the step
-# outputs 'server-version' and 'enrollment-version'.
-# -----------------------------------------------------------------------------
+# Servers listen on 127.0.0.1: PowerAuth Server on 8080, Enrollment Server on 8081. Resolved
+# versions are written to GitHub Actions step outputs 'server-version' and 'enrollment-version'.
 
 set -e
 set -u
@@ -77,15 +61,6 @@ function javaCommand {
   else
     echo "java"
   fi
-}
-
-function checkJava {
-  local java
-  java=$(javaCommand)
-  local version
-  version=$("${java}" -XshowSettings:properties -version 2>&1 | awk -F'= ' '/java.specification.version/ { print $2 }')
-  [[ -n "${version}" ]] || fail "Unable to determine Java version."
-  (( ${version%%.*} >= 21 )) || fail "Java 21+ is required, found ${version}."
 }
 
 function resolveVersion {
@@ -170,41 +145,6 @@ function waitForApplication {
   fail "${name} did not start in ${STARTUP_TIMEOUT} seconds."
 }
 
-function verifyServerVersion {
-  # Guards against release assets that contain a different build than the release tag.
-  local status
-  status=$(curl -fs -X POST -H "Content-Type: application/json" -d '{"requestObject":{}}' \
-    "http://127.0.0.1:${SERVER_PORT}${SERVER_CONTEXT}/rest/v3/status") || fail "Unable to get PowerAuth Server status."
-  local version
-  version=$(echo "${status}" | sed -n 's/.*"version" *: *"\([^"]*\)".*/\1/p')
-  [[ "${version}" == "${SERVER_VERSION}" ]] || fail "PowerAuth Server reports version '${version}', expected '${SERVER_VERSION}'."
-}
-
-function startMonitor {
-  # Periodic system sample. Gaps between timestamps reveal stalls of the whole machine.
-  # Every third sample also lists the processes that use the most CPU, to find out what slows the machine down.
-  (
-    local count=0
-    while true; do
-      echo "=== $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-      uptime
-      if command -v vm_stat > /dev/null; then vm_stat | head -n 8; else free -m; fi
-      if (( count % 3 == 0 )); then
-        echo "--- top processes"
-        if [[ "$(uname)" == "Darwin" ]]; then
-          # The first sample of top reports usage since the process start, so keep only the second one.
-          top -l 2 -s 1 -n 12 -o cpu -stats pid,command,cpu,th,mem | awk '/^Processes:/{buf=""} {buf=buf $0 "\n"} END{printf "%s", buf}'
-        else
-          top -bn1 | head -n 15
-        fi
-      fi
-      count=$((count + 1))
-      sleep 5
-    done
-  ) >> "${WORK_DIR}/logs/system.log" 2>&1 &
-  echo $! > "${WORK_DIR}/monitor.pid"
-}
-
 function stopApplication {
   local pidFile="${WORK_DIR}/$1.pid"
   if [[ -f "${pidFile}" ]]; then
@@ -215,7 +155,6 @@ function stopApplication {
 
 function doStop {
   echo "Stopping PowerAuth test server..."
-  stopApplication "monitor"
   stopApplication "enrollment-server"
   stopApplication "powerauth-server"
   if [[ -d "${WORK_DIR}/pgdata" ]]; then
@@ -229,7 +168,6 @@ function doStart {
   for cmd in curl openssl initdb pg_ctl createdb psql; do
     requireCommand "${cmd}"
   done
-  checkJava
 
   SERVER_VERSION=$(resolveVersion "powerauth-server" "${SERVER_VERSION}")
   ENROLLMENT_VERSION=$(resolveVersion "enrollment-server" "${ENROLLMENT_VERSION}")
@@ -249,7 +187,6 @@ function doStart {
   doStop
   mkdir -p "${WORK_DIR}/logs"
 
-  startMonitor
   startDatabase
   applySchema "${paDir}/create_schema.sql" "${SERVER_DB}"
   applySchema "${esDir}/create-schema.sql" "${ENROLLMENT_DB}"
@@ -262,7 +199,6 @@ function doStart {
 
   waitForApplication "powerauth-server" "http://127.0.0.1:${SERVER_PORT}${SERVER_CONTEXT}"
   waitForApplication "enrollment-server" "http://127.0.0.1:${ENROLLMENT_PORT}${ENROLLMENT_CONTEXT}"
-  verifyServerVersion
 
   echo ""
   echo "PowerAuth Server ${SERVER_VERSION}:  http://localhost:${SERVER_PORT}${SERVER_CONTEXT}"

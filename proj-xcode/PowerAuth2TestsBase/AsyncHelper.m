@@ -57,7 +57,8 @@
 
 + (id) synchronizeAsynchronousBlock:(void(^)(AsyncHelper * waiting))block
 {
-    return [self synchronizeAsynchronousBlock:block wait:10.0];
+    // The CI runners can be slow, especially when the servers handle their first requests.
+    return [self synchronizeAsynchronousBlock:block wait:30.0];
 }
 
 - (void) reportCompletion:(id)resultObject

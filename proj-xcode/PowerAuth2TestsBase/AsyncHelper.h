@@ -40,7 +40,7 @@
  In the block, you can start any asynchronous operation with any completion, but once
  you exit the |block|, the execution ends in a waiting loop. You have to call 
  [waiting reportCompletion:object] to break the waiting loop. If you don't report 
- the completion in predefined time (10 seconds), then the exception is thrown.
+ the completion in predefined time (30 seconds), then the exception is thrown.
  
  The method returns the same |resultObject| as you previously passed to `-reportCompletion:`.
  */

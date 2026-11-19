@@ -103,11 +103,20 @@
     }
 
 /**
-  Checks whether biometry is available for testing.
+  Checks whether biometry is available for testing on platforms with biometry support. The test fails
+  when biometry is not available, or is skipped when PA2_TEST_SKIP_MISSING_BIOMETRY=1 is defined at
+  compile time (e.g. on CI). On platforms without biometry support (tvOS), the check does nothing.
  */
+#if PA2_TEST_SKIP_MISSING_BIOMETRY
 #define CHECK_BIOMETRY()        \
-    if (![PowerAuthKeychain canUseBiometricAuthentication]) { \
+    if (self.hasBiometrySupport && ![PowerAuthKeychain canUseBiometricAuthentication]) { \
+        XCTSkip(@"Biometric authentication is not available on this device."); \
+    }
+#else
+#define CHECK_BIOMETRY()        \
+    if (self.hasBiometrySupport && ![PowerAuthKeychain canUseBiometricAuthentication]) { \
         XCTFail(@"Biometric authentication is not available on this simulator. Please go to Device Simulator and make sure that `Features -> Face/Touch ID -> Enrolled` is ON"); \
         return;                 \
     }
+#endif
 

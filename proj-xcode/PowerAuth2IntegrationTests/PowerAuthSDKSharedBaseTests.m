@@ -127,11 +127,15 @@
 - (void) waitForTestQueues
 {
     if (_app1Queue && _app2Queue) {
-        __block volatile int completion = 2;
+        __block int completion = 2;
         [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
             _waitForQueuesTask = waiting;
             void (^block)(void) = ^{
-                if (--completion == 0) {
+                BOOL done;
+                @synchronized (waiting) {
+                    done = --completion == 0;
+                }
+                if (done) {
                     [waiting reportCompletion:nil];
                 }
             };
@@ -141,6 +145,66 @@
         _waitForQueuesTask = nil;
         [_app1Queue waitUntilAllOperationsAreFinished];
         [_app2Queue waitUntilAllOperationsAreFinished];
+    }
+}
+
+/**
+ Starts `count` operations on the shared SDK and waits until all of them are completed. Every `statusEvery`-th
+ operation fetches the activation status, the others validate the password twice. The second password validation
+ started at `cancelAt` index is cancelled immediately.
+ */
+- (void) runConcurrentOperations:(int)count statusEvery:(int)statusEvery cancelAt:(int)cancelAt credentials:(PowerAuthAuthentication*)credentials
+{
+    @try {
+        [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            // Callbacks are called on the main thread, while operations are started on this thread, so the counter
+            // must be synchronized. It starts at 1, so it cannot reach zero before all operations are started.
+            __block NSUInteger completionCount = 1;
+            void (^expect)(NSUInteger) = ^(NSUInteger n) {
+                @synchronized (waiting) {
+                    completionCount += n;
+                }
+            };
+            void (^complete)(void) = ^{
+                [waiting extendWaitingTime];
+                [_waitForQueuesTask extendWaitingTime];
+                BOOL done;
+                @synchronized (waiting) {
+                    done = --completionCount == 0;
+                }
+                if (done) {
+                    [waiting reportCompletion:nil];
+                }
+            };
+            for (int i = 0; i < count; i++) {
+                if (i % statusEvery == 0) {
+                    expect(1);
+                    [self.sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
+                        XCTAssertNotNil(status);
+                        complete();
+                    }];
+                } else {
+                    const BOOL cancel = i == cancelAt;
+                    expect(cancel ? 1 : 2);
+                    [self.sdk testCorePassword:credentials.password callback:^(NSError * error) {
+                        XCTAssertNil(error);
+                        complete();
+                    }];
+                    id<PowerAuthOperationTask> task = [self.sdk testCorePassword:credentials.password callback:^(NSError * error) {
+                        if (!cancel) {
+                            XCTAssertNil(error);
+                            complete();
+                        }
+                    }];
+                    if (cancel) {
+                        [task cancel];
+                    }
+                }
+            }
+            complete();
+        }];
+    } @catch (NSException *exception) {
+        XCTFail(@"Test failed with exception %@", exception);
     }
 }
 
@@ -159,82 +223,10 @@
     
     [self prepareTestQueues];
     [_app1Queue addOperationWithBlock:^{
-        @try {
-            [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-                __block volatile NSUInteger completionCount = 0;
-                for (int i = 0; i < 50; i++) {
-                    if (i % 5 == 0) {
-                        completionCount++;
-                        [self.sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
-                            XCTAssertNotNil(status);
-                            [_waitForQueuesTask extendWaitingTime];
-                            if (!--completionCount) {
-                                [waiting reportCompletion:nil];
-                            }
-                        }];
-                    } else {
-                        completionCount += 2;
-                        [self.sdk testCorePassword:credentials.password callback:^(NSError * error) {
-                            XCTAssertNil(error);
-                            [waiting extendWaitingTime];
-                            if (!--completionCount) {
-                                [waiting reportCompletion:nil];
-                            }
-                        }];
-                        id<PowerAuthOperationTask> paTask = [self.sdk testCorePassword:credentials.password callback:^(NSError * error) {
-                            XCTAssertNil(error);
-                            [_waitForQueuesTask extendWaitingTime];
-                            if (!--completionCount) {
-                                [waiting reportCompletion:nil];
-                            }
-                        }];
-                        if (i == 29) {
-                            completionCount--;
-                            [paTask cancel];
-                        }
-                    }
-                }
-            }];
-        } @catch (NSException *exception) {
-            XCTFail(@"Test failed with exception %@", exception);
-        }
+        [self runConcurrentOperations:50 statusEvery:5 cancelAt:29 credentials:credentials];
     }];
     [_app2Queue addOperationWithBlock:^{
-        @try {
-            [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-                __block volatile NSUInteger completionCount = 0;
-                for (int i = 0; i < 50; i++) {
-                    if (i % 7 == 0) {
-                        completionCount++;
-                        [self.sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
-                            XCTAssertNotNil(status);
-                            [_waitForQueuesTask extendWaitingTime];
-                            if (!--completionCount) {
-                                [waiting reportCompletion:nil];
-                            }
-                        }];
-                    } else {
-                        completionCount += 2;
-                        [self.sdk testCorePassword:credentials.password callback:^(NSError * error) {
-                            XCTAssertNil(error);
-                            [waiting extendWaitingTime];
-                            if (!--completionCount) {
-                                [waiting reportCompletion:nil];
-                            }
-                        }];
-                        [self.sdk testCorePassword:credentials.password callback:^(NSError * error) {
-                            XCTAssertNil(error);
-                            [_waitForQueuesTask extendWaitingTime];
-                            if (!--completionCount) {
-                                [waiting reportCompletion:nil];
-                            }
-                        }];
-                    }
-                }
-            }];
-        } @catch (NSException *exception) {
-            XCTFail(@"Test failed with exception %@", exception);
-        }
+        [self runConcurrentOperations:50 statusEvery:7 cancelAt:-1 credentials:credentials];
     }];
     [self waitForTestQueues];
 }

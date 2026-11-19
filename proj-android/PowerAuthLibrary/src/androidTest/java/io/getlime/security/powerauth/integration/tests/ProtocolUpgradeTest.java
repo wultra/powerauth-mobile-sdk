@@ -96,8 +96,8 @@ public class ProtocolUpgradeTest extends BaseTest {
         assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
         if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
             assertNull(result);
-            // Server still offers an upgrade, but it is not possible due to the legacy configuration
-            assertTrue(status.isProtocolUpgradeAvailable());
+            // Server (2.x) still offers an upgrade, but it is not possible due to the legacy configuration
+            assertEquals(activationHelper.isProtocolUpgradeSupportedByServer(), status.isProtocolUpgradeAvailable());
         } else {
             assertFalse(status.isProtocolUpgradeAvailable());
             assertNotNull(result);
@@ -211,7 +211,7 @@ public class ProtocolUpgradeTest extends BaseTest {
         // Activation is still active and upgrade is available.
         final PowerAuthActivationStatus status = activationHelper.fetchActivationStatus();
         assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
-        assertTrue(status.isProtocolUpgradeAvailable());
+        assertEquals(activationHelper.isProtocolUpgradeSupportedByServer(), status.isProtocolUpgradeAvailable());
         assertEquals(getAlgorithmForTest() > PowerAuthAlgorithm.LEGACY_P256, powerAuthSDK.hasProtocolUpgradeAvailable());
 
         // Assert the old biometry factor key still works
@@ -237,7 +237,10 @@ public class ProtocolUpgradeTest extends BaseTest {
         if (getAlgorithmForTest() == PowerAuthAlgorithm.LEGACY_P256) {
             // Attempt to upgrade with only legacy configuration
             assertTrue(upgradeException instanceof PowerAuthErrorException);
-            assertEquals("powerAuth::PowerAuthException: Protocol upgrade is not possible with current configuration", upgradeException.getMessage());
+            final String expectedMessage = activationHelper.isProtocolUpgradeSupportedByServer()
+                    ? "powerAuth::PowerAuthException: Protocol upgrade is not possible with current configuration"
+                    : "powerAuth::PowerAuthException: Protocol upgrade is not available";
+            assertEquals(expectedMessage, upgradeException.getMessage());
         } else {
             // Simulated response failure
             assertTrue(upgradeException instanceof ErrorResponseApiException);
@@ -257,7 +260,7 @@ public class ProtocolUpgradeTest extends BaseTest {
         // Activation is still active and upgrade is available.
         final PowerAuthActivationStatus status = activationHelper.fetchActivationStatus();
         assertEquals(PowerAuthActivationState.ACTIVE, status.getState());
-        assertTrue(status.isProtocolUpgradeAvailable());
+        assertEquals(activationHelper.isProtocolUpgradeSupportedByServer(), status.isProtocolUpgradeAvailable());
         assertEquals(getAlgorithmForTest() > PowerAuthAlgorithm.LEGACY_P256, powerAuthSDK.hasProtocolUpgradeAvailable());
 
         // Assert the old biometry factor key still works

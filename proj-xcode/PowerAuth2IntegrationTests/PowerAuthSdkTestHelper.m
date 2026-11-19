@@ -153,6 +153,8 @@ static NSString * PA_Ver_Current = @"4.0";
 #endif // PA2_SIMPLIFIED_CONFIG
     PowerAuthKeychainConfiguration * keychainConfig = [[PowerAuthKeychainConfiguration alloc] init];
     PowerAuthClientConfiguration * clientConfig = [[PowerAuthClientConfiguration alloc] init];
+    // Generous timeout, because CI runners may stall for tens of seconds.
+    clientConfig.defaultRequestTimeout = 60.0;
     PowerAuthBiometricConfiguration * biometricConfig = [[PowerAuthBiometricConfiguration alloc] init];
     if (configurator) {
         configurator(&config, &biometricConfig, &keychainConfig, &clientConfig);

@@ -17,10 +17,21 @@
 #import "BaseTestWithActivation.h"
 // Access private SDK header
 #import "PA2CoreHttpClient.h"
+#import <stdlib.h>
+
+static NSString * const PA2TestCrashOnFailureEnvironmentKey = @"PA2_TEST_CRASH_ON_FAILURE";
 
 @implementation BaseTestWithActivation
 
 #pragma mark - Test setup
+
+- (void)recordIssue:(XCTIssue *)issue
+{
+    [super recordIssue:issue];
+    if ([NSProcessInfo.processInfo.environment[PA2TestCrashOnFailureEnvironmentKey] boolValue]) {
+        abort();
+    }
+}
 
 - (void)setUp
 {

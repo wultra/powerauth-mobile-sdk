@@ -15,6 +15,7 @@
  */
 
 #import "PowerAuthSDKSharedBaseTests.h"
+#import "ProcessSuspensionHelper.h"
 
 @implementation PowerAuthSDKSharedBaseTests
 {
@@ -331,6 +332,112 @@
     }];
     XCTAssertNotNil(status2);
     XCTAssertEqual(PowerAuthActivationState_Active, status2.state);
+}
+
+/// Returns `PowerAuthActivationResult`, or `NSError` in case of failure.
+- (id) createActivation:(PATSInitActivationResponse*)activationData sdk:(PowerAuthSDK*)sdk
+{
+    return [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        PowerAuthActivation * activation = [PowerAuthActivation activationWithActivationCode:[activationData activationCodeWithSignature] name:nil error:nil];
+        [sdk createActivation:activation callback:^(PowerAuthActivationResult * result, NSError * error) {
+            [waiting reportCompletion:result ?: error];
+        }];
+    }];
+}
+
+- (NSError*) persistActivation:(PowerAuthSDK*)sdk credentials:(PowerAuthAuthentication*)credentials
+{
+    return [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [sdk persistActivationWithCorePassword:credentials.password callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+}
+
+- (void) testPendingActivation_ProcessSuspension
+{
+    if (![self prepareAltSdk]) {
+        XCTFail(@"Failed to initialize SDK objects");
+        return;
+    }
+    [ProcessSuspensionHelper startSimulation];
+    [self addTeardownBlock:^{
+        [ProcessSuspensionHelper stopSimulation];
+    }];
+    
+    PATSInitActivationResponse * activationData = [self.helper prepareActivation:YES activationOtp:nil];
+    XCTAssertNotNil(activationData);
+    if (!activationData) return;
+    
+    PowerAuthAuthentication * credentials = [self.helper createPersistAuthenticationWithFlags:0];
+    PowerAuthActivationResult * activationResult = [self createActivation:activationData sdk:self.sdk];
+    XCTAssertTrue([activationResult isKindOfClass:[PowerAuthActivationResult class]]);
+    // Keep activation data in the helper to remove activation automatically at the end of the test.
+    [self.helper assignCustomActivationData:activationData activationResult:activationResult credentials:credentials];
+    
+    NSError * error = [self createActivation:activationData sdk:_altSdk];
+    XCTAssertEqual(PowerAuthErrorCode_ExternalPendingOperation, error.powerAuthErrorCode);
+    
+    // The pending activation must survive the suspension and the application
+    // must own the operation again once it's resumed.
+    [ProcessSuspensionHelper suspendProcess];
+    XCTAssertTrue([self.sdk hasPendingActivation]);
+    XCTAssertNil(self.sdk.externalPendingOperation);
+    XCTAssertTrue([_app1 isEqualToString:_altSdk.externalPendingOperation.externalApplicationId]);
+    error = [self createActivation:activationData sdk:_altSdk];
+    XCTAssertEqual(PowerAuthErrorCode_ExternalPendingOperation, error.powerAuthErrorCode);
+    
+    XCTAssertNil([self persistActivation:self.sdk credentials:credentials]);
+    XCTAssertTrue([self.sdk hasValidActivation]);
+    XCTAssertTrue([_altSdk hasValidActivation]);
+    XCTAssertNil(self.sdk.externalPendingOperation);
+    XCTAssertNil(_altSdk.externalPendingOperation);
+}
+
+- (void) testPendingActivation_StartedInAnotherAppDuringSuspension
+{
+    if (![self prepareAltSdk]) {
+        XCTFail(@"Failed to initialize SDK objects");
+        return;
+    }
+    [ProcessSuspensionHelper startSimulation];
+    [self addTeardownBlock:^{
+        [ProcessSuspensionHelper stopSimulation];
+    }];
+    
+    PATSInitActivationResponse * activationData1 = [self.helper prepareActivation:YES activationOtp:nil];
+    PATSInitActivationResponse * activationData2 = [self.helper prepareActivation:YES activationOtp:nil];
+    XCTAssertNotNil(activationData1);
+    XCTAssertNotNil(activationData2);
+    if (!activationData1 || !activationData2) return;
+    
+    PowerAuthAuthentication * credentials = [self.helper createPersistAuthenticationWithFlags:0];
+    PowerAuthActivationResult * activationResult1 = [self createActivation:activationData1 sdk:self.sdk];
+    XCTAssertTrue([activationResult1 isKindOfClass:[PowerAuthActivationResult class]]);
+    
+    // The suspended application doesn't block other applications.
+    [ProcessSuspensionHelper suspendProcess];
+    PowerAuthActivationResult * activationResult2 = [self createActivation:activationData2 sdk:_altSdk];
+    XCTAssertTrue([activationResult2 isKindOfClass:[PowerAuthActivationResult class]]);
+    
+    // The first application is resumed. It no longer owns the operation, but its activation is still pending.
+    XCTAssertTrue([_app2 isEqualToString:self.sdk.externalPendingOperation.externalApplicationId]);
+    XCTAssertNil(_altSdk.externalPendingOperation);
+    XCTAssertTrue([self.sdk hasPendingActivation]);
+    XCTAssertTrue([_altSdk hasPendingActivation]);
+    
+    // The first persisted activation wins.
+    XCTAssertNil([self persistActivation:_altSdk credentials:credentials]);
+    XCTAssertTrue([_altSdk hasValidActivation]);
+    XCTAssertTrue([self.sdk hasValidActivation]);
+    XCTAssertFalse([self.sdk hasPendingActivation]);
+    XCTAssertTrue([activationData2.activationId isEqualToString:self.sdk.activationIdentifier]);
+    XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, [self persistActivation:self.sdk credentials:credentials].powerAuthErrorCode);
+    XCTAssertNil(self.sdk.externalPendingOperation);
+    XCTAssertNil(_altSdk.externalPendingOperation);
+    
+    // The activation abandoned by the first application is not removed by the helpers.
+    [self.helper.testServerApi removeActivation:activationData1.activationId];
 }
 
 - (void) testConcurrentTokens

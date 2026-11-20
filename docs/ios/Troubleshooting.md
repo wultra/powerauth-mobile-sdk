@@ -61,7 +61,7 @@ The procedure above is not required if you are using activation data sharing to 
 
 ## Application terminated with 0xdead10cc
 
-If your application uses [Activation Data Sharing](Share-Activation-Data.md) and iOS terminates it in the background with the `0xdead10cc` termination reason, then update PowerAuth Mobile SDK to version `2.1.1` or newer in all applications and extensions that share the activation data. An application that still uses an older SDK version can be terminated when it is suspended during a pending activation, protocol upgrade or request signed with PowerAuth authentication code, or while another application performs such an operation.
+If your application uses [Activation Data Sharing](Share-Activation-Data.md) and iOS terminates it in the background with the `0xdead10cc` termination reason, then update PowerAuth Mobile SDK to version `2.1.1` or newer in all applications and extensions that share the activation data. An application that still uses an older SDK version can be terminated when it is suspended during a pending activation, protocol upgrade or request signed with PowerAuth authentication code, or while another application uses the shared activation data.
 
 ## Read Next
 

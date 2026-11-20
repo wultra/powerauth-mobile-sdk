@@ -191,6 +191,12 @@ static BOOL _Wait(dispatch_semaphore_t semaphore, NSTimeInterval seconds)
     XCTAssertFalse([lock tryLock]);
     XCTAssertTrue(_Wait([self lockInBackground:lock], 5));
     XCTAssertFalse([recursiveLock tryLock]);
+    // The failed attempt must not affect the next one.
+    [[NSFileManager defaultManager] removeItemAtPath:_path error:nil];
+    XCTAssertTrue([recursiveLock tryLock]);
+    XCTAssertTrue([self isLockFileOpened]);
+    [recursiveLock unlock];
+    XCTAssertFalse([self isLockFileOpened]);
 }
 
 - (void) testSuspendableLockIsKeptWhenActivityStartIsDelayed

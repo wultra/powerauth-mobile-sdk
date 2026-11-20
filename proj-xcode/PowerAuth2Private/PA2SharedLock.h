@@ -48,8 +48,8 @@
 @end
 
 /**
- The `PA2SuspendableSharedLock` is a non-recursive `PA2SharedLock` that is never held
- while the process is suspended. iOS terminates the process suspended with a lock acquired
+ The `PA2SuspendableSharedLock` is a non-recursive `PA2SharedLock` that is released before
+ the process is suspended. iOS terminates the process suspended with a lock acquired
  in the app group container (0xdead10cc), so the lock keeps the process running while it's held.
  If the system is about to suspend the process anyway, then the lock is released.
  

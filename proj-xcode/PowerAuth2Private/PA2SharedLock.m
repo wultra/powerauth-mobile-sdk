@@ -548,12 +548,15 @@ static const int64_t kActivityStartTimeout = 1 * NSEC_PER_SEC;
 - (void) releaseLockKeptByActivity:(PA2ExpiringActivity*)activity
 {
     [_stateLock lock];
-    if (_activity == activity) {
-        PowerAuthLog(@"PA2SharedLock: Releasing lock due to process suspension.");
+    BOOL released = _activity == activity;
+    if (released) {
         _activity = nil;
         [super unlock];
     }
     [_stateLock unlock];
+    if (released) {
+        PowerAuthLog(@"PA2SharedLock: Lock released due to process suspension.");
+    }
 }
 
 @end

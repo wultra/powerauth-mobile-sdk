@@ -50,7 +50,9 @@ If your application is using a system numeric keyboard to enter the user's PIN t
 
 - Use `PowerAuthMutablePassword` that allows you to manipulate the content of the PIN 
 
-Here's the simple pseudo-controller example:
+A Swift `Character` can contain more than one Unicode scalar. For example, `👍🏾` consists of a thumbs-up scalar followed by a skin-tone modifier. `PowerAuthMutablePassword.addCharacter(_:)` takes one scalar value at a time, so append every scalar in order to preserve the complete character.
+
+The pseudo-controller below uses scalar-based length and deletion, which work as expected for numeric PINs. If your keyboard accepts multi-scalar characters and treats each as one PIN entry, track length and deletion by entry instead.
 
 ```swift
 class EnterPinScene {
@@ -73,9 +75,9 @@ class EnterPinScene {
     }
 
     func onPinButtonAction(pinCharacter: Character) {
-        // Mutable password works with unicode scalars, this is the example
-        // that works with an arbitrary character.
-        pin.addCharacter(pinCharacter.unicodeScalars.first!.value)
+        for scalar in pinCharacter.unicodeScalars {
+            pin.addCharacter(scalar.value)
+        }
         if pin.length() == desiredPinLength {
             onContinueAction(pin: pin)
         }

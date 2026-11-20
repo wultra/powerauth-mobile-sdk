@@ -46,7 +46,11 @@ typedef struct LockData {
      */
     void (*closeFunc)(struct LockData * data);
     /**
-     File descriptor. If -1, then no file is opened.
+     Path to the file used for locking.
+     */
+    char * path;
+    /**
+     File descriptor. If -1, then the lock is not acquired.
      */
     int fileDescriptor;
     
@@ -135,6 +139,7 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
 {
     memset(lockData, 0, sizeof(LockData));
     lockData->fileDescriptor = -1;
+    lockData->path = strdup(lockPath.UTF8String);
         
     if (recursive) {
         lockData->lockFunc      = _LockRecursive;
@@ -142,20 +147,24 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
         lockData->unlockFunc    = _UnlockRecursive;
         lockData->closeFunc     = _CloseRecursive;
     } else {
-        lockData->lockFunc      = _LockOperation;
-        lockData->tryLockFunc   = _LockOperation;
-        lockData->unlockFunc    = _LockOperation;
+        lockData->lockFunc      = _LockAcquire;
+        lockData->tryLockFunc   = _LockAcquire;
+        lockData->unlockFunc    = _LockRelease;
         lockData->closeFunc     = _CloseSimple;
     }
     
     BOOL result = NO;
     do {
-        // Open file for locking
-        lockData->fileDescriptor = open(lockPath.UTF8String, O_CREAT | O_TRUNC | O_RDWR, 0666);
-        if (lockData->fileDescriptor == -1) {
-            PA2PrintErrno(@"PA2SharedLock: open()");
+        // Test whether the file for locking can be opened.
+        int fileDescriptor = _LockFileOpen(lockData);
+        if (fileDescriptor == -1) {
             break;
         }
+        close(fileDescriptor);
+        // The file is opened for each lock acquisition, so it must be accessible also when the device is locked.
+        [[NSFileManager defaultManager] setAttributes:@{ NSFileProtectionKey : NSFileProtectionCompleteUntilFirstUserAuthentication }
+                                         ofItemAtPath:lockPath
+                                                error:NULL];
         // If lock is recursive, then also initialize pthread mutex.
         if (recursive) {
             pthread_mutexattr_t attr;
@@ -183,35 +192,66 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
 }
 
 /**
- Acquire or release file lock. The operation parameter must be:
+ Open the file used for locking. The file is opened only while the lock is being acquired or held.
+ iOS terminates the suspended process that has an open file locked in the app group container,
+ even if the lock is held by another process (0xdead10cc).
+ */
+static int _LockFileOpen(LockData * ld)
+{
+    int fileDescriptor = open(ld->path, O_CREAT | O_RDWR, 0666);
+    if (fileDescriptor == -1) {
+        PA2PrintErrno(@"PA2SharedLock: open()");
+    }
+    return fileDescriptor;
+}
+
+/**
+ Acquire file lock. The operation parameter must be:
  - `LOCK_SH` to acquire read lock.
  - `LOCK_EX` to acquire write lock.
- - `LOCK_UN` to release previously acquired lock.
  - `LOCK_NB` can be combined with `LOCK_SH` and `LOCK_EX`
  */
-static BOOL _LockOperation(LockData * ld, int operation)
+static BOOL _LockAcquire(LockData * ld, int operation)
 {
-    BOOL result;
     if (ld->fileDescriptor != -1) {
-        result = flock(ld->fileDescriptor, operation) == 0;
-        if (!result && !((operation & LOCK_NB) && (errno == EWOULDBLOCK))) {
+        // The lock is already acquired.
+        return YES;
+    }
+    int fileDescriptor = _LockFileOpen(ld);
+    if (fileDescriptor == -1) {
+        return NO;
+    }
+    if (flock(fileDescriptor, operation) != 0) {
+        if (!((operation & LOCK_NB) && (errno == EWOULDBLOCK))) {
             PA2PrintErrno([NSString stringWithFormat:@"PA2SharedLock: flock(_, %d)", operation]);
         }
-    } else {
-        result = NO;
+        close(fileDescriptor);
+        return NO;
     }
-    return result;
+    ld->fileDescriptor = fileDescriptor;
+    return YES;
+}
+
+/**
+ Release previously acquired file lock. The lock is released by closing the file.
+ */
+static BOOL _LockRelease(LockData * ld, int operation)
+{
+    if (ld->fileDescriptor != -1) {
+        close(ld->fileDescriptor);
+        ld->fileDescriptor = -1;
+    }
+    return YES;
 }
 
 #pragma mark - Simple lock
 
 static void _CloseSimple(LockData * ld)
 {
-    // Close file if we're still have the file descriptor.
-    if (ld->fileDescriptor != -1) {
-        close(ld->fileDescriptor);
-        ld->fileDescriptor = -1;
-    }
+    // Release the lock if it's still acquired.
+    _LockRelease(ld, LOCK_UN);
+    free(ld->path);
+    ld->path = NULL;
 }
 
 #pragma mark - Recursive lock
@@ -234,7 +274,7 @@ static BOOL _LockRecursive(LockData * ld, int operation)
     // exclusive lock on the underlying file.
     ld->lockCount++;
     if (ld->lockCount == 1) {
-        return _LockOperation(ld, operation);
+        return _LockAcquire(ld, operation);
     }
     return YES;
 }
@@ -259,7 +299,7 @@ static BOOL _TryLockRecursive(LockData * ld, int operation)
     // exclusive lock on the underlying file.
     ld->lockCount++;
     if (ld->lockCount == 1) {
-        return _LockOperation(ld, operation);
+        return _LockAcquire(ld, operation);
     }
     return YES;
 }
@@ -275,7 +315,7 @@ static BOOL _UnlockRecursive(LockData * ld, int operation)
             ld->lockCount--;
             // If both counters are equal to 0, then we can also release the underlying file lock.
             if (ld->lockCount == 0) {
-                _LockOperation(ld, operation);
+                _LockRelease(ld, operation);
             }
         } else {
             PowerAuthLog(@"PA2SharedLock: lock - unlock calls are not in pair.");
@@ -297,7 +337,7 @@ static void _CloseRecursive(LockData * ld)
         pthread_mutex_destroy(&ld->mutex);
         ld->mutexInitialized = NO;
     }
-    // Close also file descriptor
+    // Release also the file lock
     _CloseSimple(ld);
 }
 
@@ -326,6 +366,178 @@ static void _CloseRecursive(LockData * ld)
 - (void) unlock
 {
     [_lock localUnlock];
+}
+
+@end
+
+
+#pragma mark - Suspendable lock
+
+/// Interval between attempts to acquire the lock held by another process.
+static const useconds_t kLockRetryInterval = 20 * 1000;
+/// How long to wait until the system starts the expiring activity.
+static const int64_t kActivityStartTimeout = 1 * NSEC_PER_SEC;
+
+/**
+ The `PA2ExpiringActivity` keeps the process running until the activity is ended,
+ or until the system decides to suspend the process anyway.
+ */
+@interface PA2ExpiringActivity : NSObject
+
+/// Contains YES if the system is about to suspend the process.
+@property (atomic) BOOL expired;
+
+/**
+ Begin the activity. Returns nil if the system refused to keep the process running.
+ The expiration handler is called when the process is about to be suspended.
+ */
++ (instancetype) beginWithExpirationHandler:(void(^)(PA2ExpiringActivity * activity))handler;
+/// End the activity.
+- (void) end;
+
+@end
+
+@implementation PA2ExpiringActivity
+{
+    dispatch_semaphore_t _started;
+    dispatch_semaphore_t _ended;
+}
+
+- (instancetype) init
+{
+    self = [super init];
+    if (self) {
+        _started = dispatch_semaphore_create(0);
+        _ended = dispatch_semaphore_create(0);
+    }
+    return self;
+}
+
++ (instancetype) beginWithExpirationHandler:(void (^)(PA2ExpiringActivity *))handler
+{
+    PA2ExpiringActivity * activity = [[PA2ExpiringActivity alloc] init];
+    [[NSProcessInfo processInfo] performExpiringActivityWithReason:@"PA2SharedLock" usingBlock:^(BOOL expired) {
+        if (expired) {
+            // The system refused to start the activity, or the time is up.
+            activity.expired = YES;
+            handler(activity);
+            [activity end];
+        }
+        dispatch_semaphore_signal(activity->_started);
+        if (!expired) {
+            // The process is not suspended until this block returns.
+            dispatch_semaphore_wait(activity->_ended, DISPATCH_TIME_FOREVER);
+        }
+    }];
+    long timeout = dispatch_semaphore_wait(activity->_started, dispatch_time(DISPATCH_TIME_NOW, kActivityStartTimeout));
+    if (timeout || activity.expired) {
+        [activity end];
+        return nil;
+    }
+    return activity;
+}
+
+- (void) end
+{
+    dispatch_semaphore_signal(_ended);
+}
+
+@end
+
+
+@implementation PA2SuspendableSharedLock
+{
+    /// Guards `_activity` together with the state of the file lock.
+    NSLock * _stateLock;
+    /// Activity that keeps the process running. Not nil while the lock is held.
+    PA2ExpiringActivity * _activity;
+}
+
+- (instancetype) initWithPath:(NSString *)path error:(NSError **)error
+{
+    self = [super initWithPath:path recursive:NO error:error];
+    if (self) {
+        _stateLock = [[NSLock alloc] init];
+    }
+    return self;
+}
+
+- (void) dealloc
+{
+    [_activity end];
+}
+
+- (void) lock
+{
+    [self acquireAndWait:YES];
+}
+
+- (BOOL) tryLock
+{
+    return [self acquireAndWait:NO];
+}
+
+- (void) unlock
+{
+    [_stateLock lock];
+    PA2ExpiringActivity * activity = _activity;
+    _activity = nil;
+    [super unlock];
+    [_stateLock unlock];
+    [activity end];
+}
+
+/**
+ Acquire the lock and keep it until the process is about to be suspended. If wait is YES,
+ then waits for the lock held by another process. Returns NO only if the lock is held by another process.
+ */
+- (BOOL) acquireAndWait:(BOOL)wait
+{
+    [_stateLock lock];
+    BOOL held = _activity != nil;
+    [_stateLock unlock];
+    if (held) {
+        return YES;
+    }
+    __weak PA2SuspendableSharedLock * weakSelf = self;
+    PA2ExpiringActivity * activity = [PA2ExpiringActivity beginWithExpirationHandler:^(PA2ExpiringActivity * expiredActivity) {
+        [weakSelf releaseLockKeptByActivity:expiredActivity];
+    }];
+    BOOL available;
+    while (true) {
+        [_stateLock lock];
+        available = [super tryLock];
+        if (available && !_activity) {
+            if (activity && !activity.expired) {
+                _activity = activity;
+                activity = nil;
+            } else {
+                // The process can be suspended at any time, so the lock cannot be kept.
+                [super unlock];
+            }
+        }
+        [_stateLock unlock];
+        if (available || !wait || !activity || activity.expired) {
+            break;
+        }
+        usleep(kLockRetryInterval);
+    }
+    [activity end];
+    return available;
+}
+
+/**
+ Release the lock, because the process is about to be suspended.
+ */
+- (void) releaseLockKeptByActivity:(PA2ExpiringActivity*)activity
+{
+    [_stateLock lock];
+    if (_activity == activity) {
+        PowerAuthLog(@"PA2SharedLock: Releasing lock due to process suspension.");
+        _activity = nil;
+        [super unlock];
+    }
+    [_stateLock unlock];
 }
 
 @end

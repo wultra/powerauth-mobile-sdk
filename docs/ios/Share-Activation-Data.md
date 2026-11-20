@@ -115,6 +115,14 @@ powerAuthSDK.createActivation(activation) { (result, error) in
 }
 ```
 
+### Application suspension
+
+iOS terminates an application that is suspended while it holds a file lock in the App Group container (termination reason `0xdead10cc`). For this reason, the SDK asks the system for additional background time while such an operation is in progress, and it stops blocking other applications when the system is about to suspend the application anyway. This has the following consequences:
+
+- Once the application is resumed, it continues with its pending operation as usual.
+- While the application is suspended, another application can start its own operation, for example, a new activation. The `externalPendingOperation` property reports the suspended application until that happens.
+- If two applications end up with a pending activation, then the activation persisted first is the valid one. The `persistActivation()` function fails with the `PowerAuthErrorCode.invalidActivationState` error code in the second application.
+
 ## Read Next
 
 - [Synchronized Time](Synchronized-Time.md)

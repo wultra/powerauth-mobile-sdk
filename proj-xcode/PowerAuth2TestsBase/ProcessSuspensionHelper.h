@@ -27,6 +27,8 @@
 + (void) startSimulation;
 /// Return control over expiring activities back to the system.
 + (void) stopSimulation;
+/// Wait until the given number of expiring activities keep the process running.
++ (BOOL) waitForActivities:(NSUInteger)count;
 /// Simulate the moment when the system is about to suspend the process.
 + (void) suspendProcess;
 /// If YES, then simulate the process that can be suspended at any time,

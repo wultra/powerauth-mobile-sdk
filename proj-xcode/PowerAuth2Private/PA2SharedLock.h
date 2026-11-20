@@ -54,7 +54,8 @@
  If the system is about to suspend the process anyway, then the lock is released.
  
  The `lock` method returns also when the lock cannot be acquired before the process suspension.
- The `tryLock` method returns NO only if the lock is held by another process.
+ The `tryLock` method returns YES also when the lock is available, but it cannot be kept, because
+ the process can be suspended at any time.
  */
 @interface PA2SuspendableSharedLock : PA2SharedLock
 
@@ -63,5 +64,9 @@
  */
 - (nullable instancetype) initWithPath:(nonnull NSString*)path
                                  error:(NSError*_Nullable*_Nullable)error;
+
+- (nullable instancetype) initWithPath:(nonnull NSString*)path
+                             recursive:(BOOL)recursive
+                                 error:(NSError*_Nullable*_Nullable)error NS_UNAVAILABLE;
 
 @end

@@ -162,9 +162,12 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
         }
         close(fileDescriptor);
         // The file is opened for each lock acquisition, so it must be accessible also when the device is locked.
-        [[NSFileManager defaultManager] setAttributes:@{ NSFileProtectionKey : NSFileProtectionCompleteUntilFirstUserAuthentication }
-                                         ofItemAtPath:lockPath
-                                                error:NULL];
+        NSError * error = nil;
+        if (![[NSFileManager defaultManager] setAttributes:@{ NSFileProtectionKey : NSFileProtectionCompleteUntilFirstUserAuthentication }
+                                              ofItemAtPath:lockPath
+                                                     error:&error]) {
+            PowerAuthLog(@"PA2SharedLock: Failed to change protection of lock file: %@", error);
+        }
         // If lock is recursive, then also initialize pthread mutex.
         if (recursive) {
             pthread_mutexattr_t attr;
@@ -200,7 +203,9 @@ static int _LockFileOpen(LockData * ld)
 {
     int fileDescriptor = open(ld->path, O_CREAT | O_RDWR, 0666);
     if (fileDescriptor == -1) {
+        int error = errno;
         PA2PrintErrno(@"PA2SharedLock: open()");
+        errno = error;
     }
     return fileDescriptor;
 }
@@ -210,6 +215,8 @@ static int _LockFileOpen(LockData * ld)
  - `LOCK_SH` to acquire read lock.
  - `LOCK_EX` to acquire write lock.
  - `LOCK_NB` can be combined with `LOCK_SH` and `LOCK_EX`
+ 
+ If the lock is held by somebody else and `LOCK_NB` is used, then returns NO and errno is `EWOULDBLOCK`.
  */
 static BOOL _LockAcquire(LockData * ld, int operation)
 {
@@ -222,10 +229,12 @@ static BOOL _LockAcquire(LockData * ld, int operation)
         return NO;
     }
     if (flock(fileDescriptor, operation) != 0) {
-        if (!((operation & LOCK_NB) && (errno == EWOULDBLOCK))) {
+        int error = errno;
+        if (!((operation & LOCK_NB) && (error == EWOULDBLOCK))) {
             PA2PrintErrno([NSString stringWithFormat:@"PA2SharedLock: flock(_, %d)", operation]);
         }
         close(fileDescriptor);
+        errno = error;
         return NO;
     }
     ld->fileDescriptor = fileDescriptor;
@@ -298,8 +307,10 @@ static BOOL _TryLockRecursive(LockData * ld, int operation)
     // Increase number of acquired locks. If count is 1, then we have to acquire
     // exclusive lock on the underlying file.
     ld->lockCount++;
-    if (ld->lockCount == 1) {
-        return _LockAcquire(ld, operation);
+    if (ld->lockCount == 1 && !_LockAcquire(ld, operation)) {
+        ld->lockCount--;
+        pthread_mutex_unlock(&ld->mutex);
+        return NO;
     }
     return YES;
 }
@@ -375,7 +386,7 @@ static void _CloseRecursive(LockData * ld)
 
 /// Interval between attempts to acquire the lock held by another process.
 static const useconds_t kLockRetryInterval = 20 * 1000;
-/// How long to wait until the system starts the expiring activity.
+/// How long to wait until the system starts, or refuses to start the expiring activity.
 static const int64_t kActivityStartTimeout = 1 * NSEC_PER_SEC;
 
 /**
@@ -429,12 +440,10 @@ static const int64_t kActivityStartTimeout = 1 * NSEC_PER_SEC;
             dispatch_semaphore_wait(activity->_ended, DISPATCH_TIME_FOREVER);
         }
     }];
-    long timeout = dispatch_semaphore_wait(activity->_started, dispatch_time(DISPATCH_TIME_NOW, kActivityStartTimeout));
-    if (timeout || activity.expired) {
-        [activity end];
-        return nil;
-    }
-    return activity;
+    // If the system didn't respond in time, then the activity is treated as started. If it's refused later,
+    // then the expiration handler is called.
+    dispatch_semaphore_wait(activity->_started, dispatch_time(DISPATCH_TIME_NOW, kActivityStartTimeout));
+    return activity.expired ? nil : activity;
 }
 
 - (void) end
@@ -464,7 +473,7 @@ static const int64_t kActivityStartTimeout = 1 * NSEC_PER_SEC;
 
 - (void) dealloc
 {
-    [_activity end];
+    [self unlock];
 }
 
 - (void) lock
@@ -489,7 +498,7 @@ static const int64_t kActivityStartTimeout = 1 * NSEC_PER_SEC;
 
 /**
  Acquire the lock and keep it until the process is about to be suspended. If wait is YES,
- then waits for the lock held by another process. Returns NO only if the lock is held by another process.
+ then waits for the lock held by another process. Returns NO if the lock is not available.
  */
 - (BOOL) acquireAndWait:(BOOL)wait
 {
@@ -503,21 +512,28 @@ static const int64_t kActivityStartTimeout = 1 * NSEC_PER_SEC;
     PA2ExpiringActivity * activity = [PA2ExpiringActivity beginWithExpirationHandler:^(PA2ExpiringActivity * expiredActivity) {
         [weakSelf releaseLockKeptByActivity:expiredActivity];
     }];
-    BOOL available;
-    while (true) {
+    BOOL available = NO;
+    for (BOOL waiting = NO; ; waiting = YES) {
+        BOOL busy = NO;
         [_stateLock lock];
-        available = [super tryLock];
-        if (available && !_activity) {
-            if (activity && !activity.expired) {
-                _activity = activity;
-                activity = nil;
-            } else {
-                // The process can be suspended at any time, so the lock cannot be kept.
-                [super unlock];
+        // The waiting thread must not touch the lock file once the activity expired,
+        // because the process can be suspended at any time.
+        if (!(waiting && activity.expired)) {
+            available = [super tryLock];
+            // Wait only for the lock held by another process.
+            busy = !available && errno == EWOULDBLOCK;
+            if (available && !_activity) {
+                if (activity && !activity.expired) {
+                    _activity = activity;
+                    activity = nil;
+                } else {
+                    // The process can be suspended at any time, so the lock cannot be kept.
+                    [super unlock];
+                }
             }
         }
         [_stateLock unlock];
-        if (available || !wait || !activity || activity.expired) {
+        if (!busy || !wait || !activity || activity.expired) {
             break;
         }
         usleep(kLockRetryInterval);

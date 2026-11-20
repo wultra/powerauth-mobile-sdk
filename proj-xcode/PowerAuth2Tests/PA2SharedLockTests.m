@@ -181,6 +181,16 @@ static BOOL _Wait(dispatch_semaphore_t semaphore, NSTimeInterval seconds)
     XCTAssertFalse([self isLockFileOpened]);
 }
 
+- (void) testSuspendableLockDoesNotWaitForUnavailableLockFile
+{
+    PA2SuspendableSharedLock * lock = [self suspendableLock];
+    // The lock file cannot be opened if there's a directory at its path.
+    [[NSFileManager defaultManager] removeItemAtPath:_path error:nil];
+    [[NSFileManager defaultManager] createDirectoryAtPath:_path withIntermediateDirectories:NO attributes:nil error:nil];
+    XCTAssertFalse([lock tryLock]);
+    XCTAssertTrue(_Wait([self lockInBackground:lock], 5));
+}
+
 - (void) testSuspendableLockWaitsForRelease
 {
     PA2SuspendableSharedLock * lock1 = [self suspendableLock];
@@ -200,6 +210,7 @@ static BOOL _Wait(dispatch_semaphore_t semaphore, NSTimeInterval seconds)
     PA2SuspendableSharedLock * lock = [self suspendableLock];
     XCTAssertTrue([holder tryLock]);
     dispatch_semaphore_t returned = [self lockInBackground:lock];
+    XCTAssertTrue([ProcessSuspensionHelper waitForActivities:1]);
     XCTAssertFalse(_Wait(returned, 0.2));
     [ProcessSuspensionHelper suspendProcess];
     XCTAssertTrue(_Wait(returned, 5));

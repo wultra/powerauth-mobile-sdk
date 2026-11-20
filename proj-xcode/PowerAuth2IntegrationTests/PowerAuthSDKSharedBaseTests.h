@@ -15,7 +15,6 @@
  */
 
 #import "PowerAuthSDKBaseTests.h"
-#import "ProcessSuspensionHelper.h"
 
 @interface PowerAuthSDKSharedBaseTests : PowerAuthSDKBaseTests
 @end

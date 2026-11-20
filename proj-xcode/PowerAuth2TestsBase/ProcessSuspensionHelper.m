@@ -56,6 +56,9 @@ static BOOL s_processSuspendable;
 + (void) startSimulation
 {
     @synchronized (self) {
+        if (s_activities) {
+            return;
+        }
         s_activities = [NSMutableArray array];
         s_processSuspendable = NO;
     }
@@ -64,8 +67,29 @@ static BOOL s_processSuspendable;
 
 + (void) stopSimulation
 {
+    @synchronized (self) {
+        if (!s_activities) {
+            return;
+        }
+    }
     [self exchangeExpiringActivityImplementation];
     [self suspendProcess];
+    @synchronized (self) {
+        s_activities = nil;
+    }
+}
+
++ (BOOL) waitForActivities:(NSUInteger)count
+{
+    for (int attempt = 0; attempt < 500; attempt++) {
+        @synchronized (self) {
+            if (s_activities.count == count) {
+                return YES;
+            }
+        }
+        usleep(10 * 1000);
+    }
+    return NO;
 }
 
 + (void) suspendProcess

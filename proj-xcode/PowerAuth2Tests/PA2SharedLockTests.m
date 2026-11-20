@@ -184,11 +184,34 @@ static BOOL _Wait(dispatch_semaphore_t semaphore, NSTimeInterval seconds)
 - (void) testSuspendableLockDoesNotWaitForUnavailableLockFile
 {
     PA2SuspendableSharedLock * lock = [self suspendableLock];
+    PA2SharedLock * recursiveLock = [self lock:YES];
     // The lock file cannot be opened if there's a directory at its path.
     [[NSFileManager defaultManager] removeItemAtPath:_path error:nil];
     [[NSFileManager defaultManager] createDirectoryAtPath:_path withIntermediateDirectories:NO attributes:nil error:nil];
     XCTAssertFalse([lock tryLock]);
     XCTAssertTrue(_Wait([self lockInBackground:lock], 5));
+    XCTAssertFalse([recursiveLock tryLock]);
+}
+
+- (void) testSuspendableLockIsKeptWhenActivityStartIsDelayed
+{
+    PA2SuspendableSharedLock * lock = [self suspendableLock];
+    [ProcessSuspensionHelper setActivityStartDelayed:YES];
+    // The system didn't respond in time, but that's not a refusal.
+    XCTAssertTrue([lock tryLock]);
+    XCTAssertTrue([self isLockFileOpened]);
+    // The activity is refused later.
+    [ProcessSuspensionHelper suspendProcess];
+    XCTAssertFalse([self isLockFileOpened]);
+}
+
+- (void) testSuspendableLockIsReleasedWhenDestroyed
+{
+    @autoreleasepool {
+        XCTAssertTrue([[self suspendableLock] tryLock]);
+        XCTAssertTrue([self isLockFileOpened]);
+    }
+    XCTAssertFalse([self isLockFileOpened]);
 }
 
 - (void) testSuspendableLockWaitsForRelease

@@ -34,5 +34,8 @@
 /// If YES, then simulate the process that can be suspended at any time,
 /// so the system refuses to start a new expiring activity.
 + (void) setProcessSuspendable:(BOOL)suspendable;
+/// If YES, then the system doesn't respond to the request to start a new expiring activity,
+/// until `suspendProcess` is called.
++ (void) setActivityStartDelayed:(BOOL)delayed;
 
 @end

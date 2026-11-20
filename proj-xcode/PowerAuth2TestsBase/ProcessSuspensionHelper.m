@@ -20,6 +20,7 @@
 /// Blocks of expiring activities that keep the process running.
 static NSMutableArray<void(^)(BOOL)> * s_activities;
 static BOOL s_processSuspendable;
+static BOOL s_activityStartDelayed;
 
 @interface NSProcessInfo (ProcessSuspensionHelper)
 @end
@@ -28,16 +29,19 @@ static BOOL s_processSuspendable;
 
 - (void) pa2test_performExpiringActivityWithReason:(NSString *)reason usingBlock:(void (^)(BOOL))block
 {
-    BOOL refused;
+    BOOL refused, delayed;
     @synchronized ([ProcessSuspensionHelper class]) {
         refused = s_processSuspendable;
+        delayed = s_activityStartDelayed;
         if (!refused) {
             [s_activities addObject:block];
         }
     }
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
-        block(refused);
-    });
+    if (!delayed) {
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
+            block(refused);
+        });
+    }
 }
 
 @end
@@ -61,6 +65,7 @@ static BOOL s_processSuspendable;
         }
         s_activities = [NSMutableArray array];
         s_processSuspendable = NO;
+        s_activityStartDelayed = NO;
     }
     [self exchangeExpiringActivityImplementation];
 }
@@ -108,6 +113,13 @@ static BOOL s_processSuspendable;
 {
     @synchronized (self) {
         s_processSuspendable = suspendable;
+    }
+}
+
++ (void) setActivityStartDelayed:(BOOL)delayed
+{
+    @synchronized (self) {
+        s_activityStartDelayed = delayed;
     }
 }
 

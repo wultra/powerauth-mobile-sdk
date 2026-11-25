@@ -278,6 +278,8 @@ static void _LocalContextUpdateSpecialOp(LocalContext * ctx, PA2SharedLock * opL
         [opLock unlock];
     } else {
         ctx->sharedData->specialOpStart = [NSDate date].timeIntervalSince1970;
+        // Acquire the lock again in case it was released when the application entered the background.
+        [opLock tryLock];
     }
 }
 
@@ -443,11 +445,11 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
         if (!_statusLock) {
             return nil;
         }
-        _operationLock = [[PA2SharedLock alloc] initWithPath:operationLockPath recursive:NO error:error];
+        _operationLock = [[PA2ForegroundSharedLock alloc] initWithPath:operationLockPath error:error];
         if (!_operationLock) {
             return nil;
         }
-        _queueLock = [[PA2SharedLock alloc] initWithPath:queueLockPath recursive:NO error:error];
+        _queueLock = [[PA2ForegroundSharedLock alloc] initWithPath:queueLockPath error:error];
         if (!_queueLock) {
             return nil;
         }

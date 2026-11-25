@@ -46,3 +46,22 @@
 - (nullable id<NSLocking>) createLocalRecursiveLock;
 
 @end
+
+/**
+ The `PA2ForegroundSharedLock` is a non-recursive `PA2SharedLock` that is kept only while the application
+ is in the foreground. The lock is released when the application enters the background. If it's acquired
+ in the background, or in an app extension, then `tryLock` only tells whether the lock is available
+ and `lock` doesn't wait.
+ */
+@interface PA2ForegroundSharedLock : PA2SharedLock
+
+- (nullable instancetype) initWithPath:(nonnull NSString*)path
+                                 error:(NSError*_Nullable*_Nullable)error;
+- (nullable instancetype) initWithPath:(nonnull NSString*)path
+                             recursive:(BOOL)recursive
+                                 error:(NSError*_Nullable*_Nullable)error NS_UNAVAILABLE;
+
+/// Contains YES if the lock is kept by this object.
+@property (nonatomic, readonly) BOOL isLocked;
+
+@end

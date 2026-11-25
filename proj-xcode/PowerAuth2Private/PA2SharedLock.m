@@ -18,6 +18,7 @@
 #import "PA2PrivateMacros.h"
 #import "PowerAuthLog.h"
 #include <pthread.h>
+#import <UIKit/UIApplication.h>
 
 #pragma mark - Internal objects
 
@@ -356,6 +357,153 @@ static void _CloseRecursive(LockData * ld)
 - (void) unlock
 {
     [_lock localUnlock];
+}
+
+@end
+
+
+#pragma mark - Foreground lock
+
+/// Interval between attempts to acquire the lock held by another process.
+static const useconds_t kLockRetryInterval = 20 * 1000;
+
+@implementation PA2ForegroundSharedLock
+{
+    /// Guards the variables below together with the state of the file lock.
+    NSLock * _stateLock;
+    /// YES if the application is in the foreground.
+    BOOL _foreground;
+    /// YES if the file lock is kept by this object.
+    BOOL _locked;
+    /// Observers of the application state.
+    NSArray * _observers;
+}
+
+- (instancetype) initWithPath:(NSString *)path error:(NSError **)error
+{
+    self = [super initWithPath:path recursive:NO error:error];
+    if (self) {
+        _stateLock = [[NSLock alloc] init];
+        [self observeApplicationState];
+    }
+    return self;
+}
+
+- (void) dealloc
+{
+    for (id observer in _observers) {
+        [[NSNotificationCenter defaultCenter] removeObserver:observer];
+    }
+}
+
+/**
+ Start tracking whether the application is in the foreground. An app extension is never treated
+ as a foreground one, because the system doesn't tell the extension that it's about to be suspended.
+ */
+- (void) observeApplicationState
+{
+    // The shared application object is not available in app extensions, so it's obtained at runtime.
+    Class applicationClass = NSClassFromString(@"UIApplication");
+    if (!applicationClass || [[NSBundle mainBundle].bundlePath hasSuffix:@".appex"]) {
+        return;
+    }
+    __weak PA2ForegroundSharedLock * weakSelf = self;
+    NSDictionary<NSNotificationName, NSNumber*> * states = @{
+        UIApplicationDidEnterBackgroundNotification : @NO,
+        UIApplicationWillEnterForegroundNotification : @YES,
+        UIApplicationDidBecomeActiveNotification : @YES
+    };
+    NSMutableArray * observers = [NSMutableArray array];
+    for (NSNotificationName name in states) {
+        BOOL foreground = states[name].boolValue;
+        [observers addObject:[[NSNotificationCenter defaultCenter] addObserverForName:name object:nil queue:nil usingBlock:^(NSNotification * note) {
+            [weakSelf setForeground:foreground];
+        }]];
+    }
+    _observers = observers;
+    // The application is treated as a background one until its state is known. The application object
+    // doesn't exist yet if the SDK is configured before the application is started.
+    void (^readState)(void) = ^{
+        UIApplication * application = [applicationClass performSelector:@selector(sharedApplication)];
+        if (application && application.applicationState != UIApplicationStateBackground) {
+            [weakSelf setForeground:YES];
+        }
+    };
+    if ([NSThread isMainThread]) {
+        readState();
+    } else {
+        dispatch_async(dispatch_get_main_queue(), readState);
+    }
+}
+
+- (void) setForeground:(BOOL)foreground
+{
+    [_stateLock lock];
+    _foreground = foreground;
+    if (!foreground && _locked) {
+        // The process is not suspended before the background notification is processed,
+        // so the lock is released now.
+        _locked = NO;
+        [super unlock];
+    }
+    [_stateLock unlock];
+}
+
+- (BOOL) isLocked
+{
+    [_stateLock lock];
+    BOOL locked = _locked;
+    [_stateLock unlock];
+    return locked;
+}
+
+- (void) lock
+{
+    [self acquireAndWait:YES];
+}
+
+- (BOOL) tryLock
+{
+    return [self acquireAndWait:NO];
+}
+
+- (void) unlock
+{
+    [_stateLock lock];
+    if (_locked) {
+        _locked = NO;
+        [super unlock];
+    }
+    [_stateLock unlock];
+}
+
+/**
+ Acquire the lock. The lock is kept only if the application is in the foreground. If wait is YES,
+ then waits for the lock held by another process, but only while the application is in the foreground.
+ Returns NO if the lock is not available.
+ */
+- (BOOL) acquireAndWait:(BOOL)wait
+{
+    while (YES) {
+        [_stateLock lock];
+        BOOL foreground = _foreground;
+        BOOL available = _locked || [super tryLock];
+        // Wait only for the lock held by another process.
+        BOOL busy = !available && errno == EWOULDBLOCK;
+        if (available && !_locked) {
+            if (foreground) {
+                _locked = YES;
+            } else {
+                // The process can be suspended at any time, so the lock cannot be kept.
+                [super unlock];
+            }
+        }
+        [_stateLock unlock];
+        if (!busy || !wait || !foreground) {
+            return available;
+        }
+        usleep(kLockRetryInterval);
+    }
 }
 
 @end

@@ -46,6 +46,10 @@ typedef struct LockData {
      */
     void (*closeFunc)(struct LockData * data);
     /**
+     Path to the file used for locking.
+     */
+    char * path;
+    /**
      File descriptor. If -1, then no file is opened.
      */
     int fileDescriptor;
@@ -135,6 +139,7 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
 {
     memset(lockData, 0, sizeof(LockData));
     lockData->fileDescriptor = -1;
+    lockData->path = strdup(lockPath.UTF8String);
         
     if (recursive) {
         lockData->lockFunc      = _LockRecursive;
@@ -155,6 +160,15 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
         if (lockData->fileDescriptor == -1) {
             PA2PrintErrno(@"PA2SharedLock: open()");
             break;
+        }
+        // The file is open only while the lock is acquired, see `_LockOperation()`.
+        close(lockData->fileDescriptor);
+        lockData->fileDescriptor = -1;
+        // The file is opened for each lock acquisition, so it must be accessible also when the device is locked.
+        NSFileManager * fileManager = [NSFileManager defaultManager];
+        NSFileProtectionType protection = [fileManager attributesOfItemAtPath:lockPath error:nil][NSFileProtectionKey];
+        if ([protection isEqualToString:NSFileProtectionComplete] || [protection isEqualToString:NSFileProtectionCompleteUnlessOpen]) {
+            [fileManager setAttributes:@{ NSFileProtectionKey : NSFileProtectionCompleteUntilFirstUserAuthentication } ofItemAtPath:lockPath error:nil];
         }
         // If lock is recursive, then also initialize pthread mutex.
         if (recursive) {
@@ -188,15 +202,29 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
  - `LOCK_EX` to acquire write lock.
  - `LOCK_UN` to release previously acquired lock.
  - `LOCK_NB` can be combined with `LOCK_SH` and `LOCK_EX`
+ 
+ The file is open only while the lock is acquired. iOS terminates a suspended process that has an open
+ file locked in the app group container, even if the lock is held by another process (0xdead10cc).
+ 
+ If the lock is not acquired, then `errno` is `EWOULDBLOCK` only if somebody else holds the lock.
  */
 static BOOL _LockOperation(LockData * ld, int operation)
 {
     BOOL result;
+    if (ld->fileDescriptor == -1 && !(operation & LOCK_UN)) {
+        ld->fileDescriptor = open(ld->path, O_CREAT | O_RDWR, 0666);
+    }
     if (ld->fileDescriptor != -1) {
         result = flock(ld->fileDescriptor, operation) == 0;
+        int error = errno;
         if (!result && !((operation & LOCK_NB) && (errno == EWOULDBLOCK))) {
             PA2PrintErrno([NSString stringWithFormat:@"PA2SharedLock: flock(_, %d)", operation]);
         }
+        if (!result || (operation & LOCK_UN)) {
+            close(ld->fileDescriptor);
+            ld->fileDescriptor = -1;
+        }
+        errno = error;
     } else {
         result = NO;
     }
@@ -212,6 +240,8 @@ static void _CloseSimple(LockData * ld)
         close(ld->fileDescriptor);
         ld->fileDescriptor = -1;
     }
+    free(ld->path);
+    ld->path = NULL;
 }
 
 #pragma mark - Recursive lock

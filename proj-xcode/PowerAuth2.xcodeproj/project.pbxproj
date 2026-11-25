@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		55594577D8E73204EF540439 /* PA2SharedLockTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E1E13A25CBF83C2B0EFCF752 /* PA2SharedLockTests.m */; };
+		5D9BD07F72AF36F3D64D1309 /* PA2SharedLockTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E1E13A25CBF83C2B0EFCF752 /* PA2SharedLockTests.m */; };
 		8FE2E33B2EBD3B000044055E /* PowerAuthProtocolUpgradeResult+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 8FE2E33A2EBD3B000044055E /* PowerAuthProtocolUpgradeResult+Private.h */; };
 		8FE2E33C2EBD3B000044055E /* PowerAuthProtocolUpgradeResult+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 8FE2E33A2EBD3B000044055E /* PowerAuthProtocolUpgradeResult+Private.h */; };
 		8FE2E3472EBD3DC00044055E /* PowerAuthProtocolUpgradeResult.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FE2E3462EBD3DC00044055E /* PowerAuthProtocolUpgradeResult.m */; };
@@ -765,6 +767,7 @@
 		BFFECEB326383CB9001DA7A9 /* PowerAuthDeprecated.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthDeprecated.h; sourceTree = "<group>"; };
 		BFFECEC226383E48001DA7A9 /* PowerAuthDeprecated.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthDeprecated.m; sourceTree = "<group>"; };
 		BFFECECD2638449D001DA7A9 /* PA2PrivateConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateConstants.h; sourceTree = "<group>"; };
+		E1E13A25CBF83C2B0EFCF752 /* PA2SharedLockTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2SharedLockTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1178,6 +1181,7 @@
 				BF112EC32F3B528300D578F0 /* PowerAuthConfigurationTests.m */,
 				BF28C1C32982A05100E2CD8E /* PowerAuthUserInfoTests.m */,
 				BF667EC72835A0B2006E97F8 /* Info.plist */,
+				E1E13A25CBF83C2B0EFCF752 /* PA2SharedLockTests.m */,
 			);
 			path = PowerAuth2Tests;
 			sourceTree = SOURCE_ROOT;
@@ -1905,6 +1909,7 @@
 				BF667ECC2835A0B2006E97F8 /* PA2AsyncOperationTests.m in Sources */,
 				BF667ECE2835A0B2006E97F8 /* PowerAuthCustomHeaderRequestInterceptorTests.m in Sources */,
 				BF5B1AD82FA3726E00A035FC /* AsyncHelper.m in Sources */,
+				55594577D8E73204EF540439 /* PA2SharedLockTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1994,6 +1999,7 @@
 				BF667ECD2835A0B2006E97F8 /* PA2AsyncOperationTests.m in Sources */,
 				BF667ECF2835A0B2006E97F8 /* PowerAuthCustomHeaderRequestInterceptorTests.m in Sources */,
 				BF5B1AD92FA3726E00A035FC /* AsyncHelper.m in Sources */,
+				5D9BD07F72AF36F3D64D1309 /* PA2SharedLockTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

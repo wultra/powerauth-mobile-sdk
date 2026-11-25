@@ -588,4 +588,62 @@
     XCTAssertTrue([_altHelper checkForCorePassword:password]);
 }
 
+/// Returns `PowerAuthProtocolUpgradeResult`, or `NSError` in case of failure.
+- (id) startProtocolUpgrade:(PowerAuthSDK*)sdk thenEnterBackground:(BOOL)enterBackground
+{
+    return [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [sdk startProtocolUpgradeWithCorePassword:self.helper.authPossessionWithKnowledge.password callback:^(PowerAuthProtocolUpgradeResult * result, NSError * error) {
+            [waiting reportCompletion:result ?: error];
+        }];
+        if (enterBackground) {
+            // The upgrade must be in progress at this moment.
+            XCTAssertNil(sdk.externalPendingOperation);
+            XCTAssertNotNil((sdk == _sdk ? _altSdk : _sdk).externalPendingOperation);
+            [self enterBackground];
+        }
+    }];
+}
+
+- (void) testProtocolUpgrade_ApplicationInBackground
+{
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        NSLog(@"Test not available for LEGACY_P256");
+        return;
+    }
+    
+    _sdk = [_helper prepareActivationForUpgradeTest:self.powerAuthAlgorithm withFlags:0];
+    
+    if (![self prepareAltSdk:NO targetAlgorithm:self.powerAuthAlgorithm]) {
+        XCTFail(@"Failed to initialize SDK objects");
+        return;
+    }
+    [self enterForeground];
+    [self addTeardownBlock:^{
+        [self enterForeground];
+    }];
+    
+    // The upgrade cannot be started in the background, because the application doesn't block other applications there.
+    [self enterBackground];
+    NSError * error = [self startProtocolUpgrade:_sdk thenEnterBackground:NO];
+    XCTAssertTrue([error isKindOfClass:[NSError class]]);
+    XCTAssertEqual(PowerAuthErrorCode_OperationCancelled, error.powerAuthErrorCode);
+    XCTAssertNil(_altSdk.externalPendingOperation);
+    
+    // The upgrade in progress is cancelled when the application enters the background.
+    [self enterForeground];
+    error = [self startProtocolUpgrade:_sdk thenEnterBackground:YES];
+    XCTAssertTrue([error isKindOfClass:[NSError class]]);
+    XCTAssertEqual(PowerAuthErrorCode_OperationCancelled, error.powerAuthErrorCode);
+    XCTAssertNil(_altSdk.externalPendingOperation);
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+    
+    // Another application is not blocked and does the upgrade for both.
+    [self enterForeground];
+    id result = [self startProtocolUpgrade:_altSdk thenEnterBackground:NO];
+    XCTAssertNotNil(result);
+    XCTAssertFalse([result isKindOfClass:[NSError class]]);
+    XCTAssertEqual(self.powerAuthAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertEqual(self.powerAuthAlgorithm, _altSdk.currentAlgorithm);
+}
+
 @end

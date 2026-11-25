@@ -398,7 +398,7 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
     /// Lock shared between applications that guards access to activation status data.
     PA2SharedLock * _statusLock;
     /// Lock shared between applications that guards access to start of special operations, such as activation.
-    PA2SharedLock * _operationLock;
+    PA2ForegroundSharedLock * _operationLock;
     /// Lock shared between applications that allows the signed requests serialization.
     PA2SharedLock * _queueLock;
     /// Additional lock, used exclusively for this process.
@@ -647,6 +647,12 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
 {
     return [self writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session, NSError * _Nonnull __autoreleasing * _Nullable error) {
         NSError * localError = _LocalContextStartSpecialOp(&_localContext, _operationLock, externalPendingOperation);
+        if (!localError && externalPendingOperation == PowerAuthExternalPendingOperationType_ProtocolUpgrade && !_operationLock.isLocked) {
+            // The upgrade changes the activation on the server, so it must not run without the lock that
+            // blocks other applications. The lock is kept only while the application is in the foreground.
+            _LocalContextUpdateSpecialOp(&_localContext, _operationLock, YES);
+            localError = PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"Protocol upgrade can be started only while the application is in the foreground");
+        }
         if (error) {
             *error = localError;
         }

@@ -1010,7 +1010,7 @@ static PowerAuthSDK * s_inst;
         return nil;
     }
     
-    id<PowerAuthOperationTask> task = [_sessionInterface writeTaskWithSession:^PowerAuthCoreTask*(PowerAuthCoreSession * session, NSError ** error) {
+    PowerAuthCoreTask * task = [_sessionInterface writeTaskWithSession:^PowerAuthCoreTask*(PowerAuthCoreSession * session, NSError ** error) {
         // Notify other applications about pending upgrade
         if (![_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_ProtocolUpgrade error:error]) {
             return nil;
@@ -1023,6 +1023,9 @@ static PowerAuthSDK * s_inst;
     if (localError) {
         callback(nil, localError);
         return nil;
+    }
+    if (_configuration.sharingConfiguration) {
+        callback = [self cancelProtocolUpgrade:task inBackgroundWithCallback:callback];
     }
     
     return [_client postCoreTask:task completion:^(PowerAuthCoreTask * _Nonnull task, PowerAuthProtocolUpgradeResult *  _Nullable result, NSError * _Nullable error) {
@@ -1039,6 +1042,44 @@ static PowerAuthSDK * s_inst;
         }
         callback(result, error);
     }];
+}
+
+/**
+ Cancel the protocol upgrade if the application enters the background before the upgrade is applied
+ to the session. If the activation data is shared, then the application in the background doesn't block
+ other applications. Another application could start its own upgrade, and both would negotiate different
+ keys with the server for the same activation.
+ 
+ Returns the callback to use for the completion of the task.
+ */
+- (void(^)(PowerAuthProtocolUpgradeResult*, NSError*)) cancelProtocolUpgrade:(PowerAuthCoreTask*)task
+                                                    inBackgroundWithCallback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
+{
+    __weak id<PA2SessionInterface> sessionInterface = _sessionInterface;
+    NSNotificationCenter * center = [NSNotificationCenter defaultCenter];
+    __block id observer = [center addObserverForName:UIApplicationDidEnterBackgroundNotification object:nil queue:nil usingBlock:^(NSNotification * note) {
+        // The task is tested and cancelled in the session's task, so it cannot make progress in the meantime.
+        // Once the upgrade is applied to the session, only its confirmation is left and that's safe to finish.
+        __block BOOL cancelled = NO;
+        [sessionInterface writeTaskWithSession:^id(PowerAuthCoreSession * session, NSError ** error) {
+            if (!task.isDone && session.protocolVersion == PowerAuthCoreProtocolVersion_V3) {
+                [task cancel];
+                cancelled = YES;
+            }
+            return nil;
+        } error:nil];
+        if (cancelled) {
+            // The cancelled task doesn't call its completion.
+            [center removeObserver:observer];
+            observer = nil;
+            callback(nil, PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"Protocol upgrade was cancelled, because the application entered the background"));
+        }
+    }];
+    return ^(PowerAuthProtocolUpgradeResult * result, NSError * error) {
+        [center removeObserver:observer];
+        observer = nil;
+        callback(result, error);
+    };
 }
 
 - (id<PowerAuthOperationTask>) startProtocolUpgradeWithPassword:(NSString*)password

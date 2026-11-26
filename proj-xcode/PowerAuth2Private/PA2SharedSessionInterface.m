@@ -694,8 +694,9 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
 #endif // DEBUG
     NSBlockOperation * addOperation = [NSBlockOperation blockOperationWithBlock:^{
         if (!operation.cancelled) {
-            // If the lock is not acquired, for example in the background, then the operation is not
-            // serialized with other applications. The signature counter is still guarded by the status lock.
+            // The lock is not kept in the background, so the operation only waits for the operation running
+            // in another application, but it doesn't block the operations started there later.
+            // The signature counter is still guarded by the status lock.
             NSBlockOperation * lockOp = [NSBlockOperation blockOperationWithBlock:^{ [_queueLock lock]; }];
             NSBlockOperation * unlockOp = [NSBlockOperation blockOperationWithBlock:^{ [_queueLock unlock]; }];
         

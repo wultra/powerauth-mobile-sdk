@@ -519,8 +519,8 @@ static const useconds_t kLockRetryInterval = 20 * 1000;
 
 /**
  Acquire the lock. The lock is kept only if the application is in the foreground. If wait is YES,
- then waits for the lock held by another process, but only while the application is in the foreground.
- Returns NO if the lock is not available.
+ then waits for the lock held by another process. In the background, the lock is released as soon
+ as it's available. Returns NO if the lock is not available.
  */
 - (BOOL) acquireAndWait:(BOOL)wait
 {
@@ -539,7 +539,7 @@ static const useconds_t kLockRetryInterval = 20 * 1000;
             }
         }
         [_stateLock unlock];
-        if (!busy || !wait || !foreground) {
+        if (!busy || !wait) {
             return available;
         }
         usleep(kLockRetryInterval);

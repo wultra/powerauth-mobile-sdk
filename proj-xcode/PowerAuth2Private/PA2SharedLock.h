@@ -60,7 +60,7 @@
  The `PA2ForegroundSharedLock` is a non-recursive `PA2SharedLock` that is kept only while the application
  is in the foreground. The lock is released when the application enters the background. If it's acquired
  in the background, or in an app extension, then `tryLock` only tells whether the lock is available
- and `lock` doesn't wait.
+ and `lock` only waits until the lock is available.
  */
 @interface PA2ForegroundSharedLock : PA2SharedLock
 

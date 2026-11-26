@@ -255,10 +255,9 @@ static BOOL _Wait(dispatch_semaphore_t semaphore, NSTimeInterval seconds)
     XCTAssertTrue([lock tryLock]);
     XCTAssertFalse(lock.isLocked);
     XCTAssertFalse([self isLockFileOpened]);
-    // The lock held by somebody else is still reported, and nobody waits for it.
+    // The lock held by somebody else is still reported.
     XCTAssertTrue([other tryLock]);
     XCTAssertFalse([lock tryLock]);
-    XCTAssertTrue(_Wait([self lockInBackgroundThread:lock], 5));
     XCTAssertFalse(lock.isLocked);
     [other unlock];
 }
@@ -287,16 +286,26 @@ static BOOL _Wait(dispatch_semaphore_t semaphore, NSTimeInterval seconds)
     [lock2 unlock];
 }
 
-- (void) testForegroundLockStopsWaitingInBackground
+- (void) testForegroundLockWaitsInBackgroundButIsNotKept
 {
     PA2SharedLock * holder = [self lock:NO];
     PA2ForegroundSharedLock * lock = [self foregroundLock];
     XCTAssertTrue([holder tryLock]);
-    dispatch_semaphore_t returned = [self lockInBackgroundThread:lock];
-    XCTAssertFalse(_Wait(returned, 0.2));
+    // Waiting started in the foreground continues in the background.
+    dispatch_semaphore_t returned1 = [self lockInBackgroundThread:lock];
+    XCTAssertFalse(_Wait(returned1, 0.2));
     [self enterBackground];
-    XCTAssertTrue(_Wait(returned, 5));
+    XCTAssertFalse(_Wait(returned1, 0.2));
+    // Waiting can also start in the background.
+    dispatch_semaphore_t returned2 = [self lockInBackgroundThread:lock];
+    XCTAssertFalse(_Wait(returned2, 0.2));
+    [holder unlock];
+    XCTAssertTrue(_Wait(returned1, 5));
+    XCTAssertTrue(_Wait(returned2, 5));
+    // The lock is not kept once it's available.
     XCTAssertFalse(lock.isLocked);
+    XCTAssertFalse([self isLockFileOpened]);
+    XCTAssertTrue([holder tryLock]);
     [holder unlock];
 }
 

@@ -123,7 +123,7 @@ iOS terminates an application that is suspended while it holds a file lock in th
 - If no other application started its own operation in the meantime, then the application continues with its pending operation as usual once it's back in the foreground.
 - If two applications end up with a pending activation, then the activation persisted first is the valid one. The `persistActivation()` function fails with the `PowerAuthErrorCode.invalidActivationState` error code in the second application.
 - The protocol upgrade can be started only while the application is in the foreground. If the application enters the background before the upgrade is applied, then the upgrade is cancelled, the `startProtocolUpgrade()` function fails with the `PowerAuthErrorCode.operationCancelled` error code, and the upgrade can be started again later, in any application.
-- Requests signed with PowerAuth authentication code are serialized between the applications only while the application is in the foreground.
+- Requests signed with PowerAuth authentication code are serialized between the applications only while the application is in the foreground. In the background, the request waits for the request already running in another application, but it doesn't block the requests started there later.
 - An app extension is never treated as an application in the foreground, so the operation started in the extension doesn't block other applications.
 
 ## Read Next

@@ -1,6 +1,13 @@
 # Changelog
 
 <!--------------------------------------------------->
+## 2.1.1 (TBA)
+
+### Apple
+
+- Fixed `0xdead10cc` termination of suspended application that uses activation data sharing ([966](https://github.com/wultra/powerauth-mobile-sdk/issues/966)).
+
+<!--------------------------------------------------->
 ## 2.1.0 (November 2026)
 
 ### Both platforms

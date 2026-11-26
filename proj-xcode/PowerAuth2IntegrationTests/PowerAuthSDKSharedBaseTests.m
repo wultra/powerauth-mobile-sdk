@@ -15,6 +15,7 @@
  */
 
 #import "PowerAuthSDKSharedBaseTests.h"
+#import <UIKit/UIApplication.h>
 
 @implementation PowerAuthSDKSharedBaseTests
 {
@@ -333,6 +334,128 @@
     XCTAssertEqual(PowerAuthActivationState_Active, status2.state);
 }
 
+/// Returns `PowerAuthActivationResult`, or `NSError` in case of failure.
+- (id) createActivation:(PATSInitActivationResponse*)activationData sdk:(PowerAuthSDK*)sdk
+{
+    return [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        PowerAuthActivation * activation = [PowerAuthActivation activationWithActivationCode:[activationData activationCodeWithSignature] name:nil error:nil];
+        [sdk createActivation:activation callback:^(PowerAuthActivationResult * result, NSError * error) {
+            [waiting reportCompletion:result ?: error];
+        }];
+    }];
+}
+
+- (NSError*) persistActivation:(PowerAuthSDK*)sdk credentials:(PowerAuthAuthentication*)credentials
+{
+    return [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [sdk persistActivationWithCorePassword:credentials.password callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+}
+
+/// Simulates the application that entered the background. Both SDK instances live in this process,
+/// so both stop blocking other applications.
+- (void) enterBackground
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:UIApplicationDidEnterBackgroundNotification object:nil];
+}
+
+/// Simulates the application that returned to the foreground.
+- (void) enterForeground
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:UIApplicationDidBecomeActiveNotification object:nil];
+}
+
+- (void) testPendingActivation_ApplicationInBackground
+{
+    if (![self prepareAltSdk]) {
+        XCTFail(@"Failed to initialize SDK objects");
+        return;
+    }
+    [self enterForeground];
+    [self addTeardownBlock:^{
+        [self enterForeground];
+    }];
+    
+    PATSInitActivationResponse * activationData = [self.helper prepareActivation:YES activationOtp:nil];
+    XCTAssertNotNil(activationData);
+    if (!activationData) return;
+    
+    PowerAuthAuthentication * credentials = [self.helper createPersistAuthenticationWithFlags:0];
+    PowerAuthActivationResult * activationResult = [self createActivation:activationData sdk:self.sdk];
+    XCTAssertTrue([activationResult isKindOfClass:[PowerAuthActivationResult class]]);
+    // Keep activation data in the helper to remove activation automatically at the end of the test.
+    [self.helper assignCustomActivationData:activationData activationResult:activationResult credentials:credentials];
+    
+    NSError * error = [self createActivation:activationData sdk:_altSdk];
+    XCTAssertEqual(PowerAuthErrorCode_ExternalPendingOperation, error.powerAuthErrorCode);
+    
+    // The pending activation must survive the time in the background and the application
+    // must own the operation again once it's back and uses the SDK.
+    [self enterBackground];
+    [self enterForeground];
+    XCTAssertTrue([self.sdk hasPendingActivation]);
+    XCTAssertNil(self.sdk.externalPendingOperation);
+    XCTAssertTrue([_app1 isEqualToString:_altSdk.externalPendingOperation.externalApplicationId]);
+    error = [self createActivation:activationData sdk:_altSdk];
+    XCTAssertEqual(PowerAuthErrorCode_ExternalPendingOperation, error.powerAuthErrorCode);
+    
+    XCTAssertNil([self persistActivation:self.sdk credentials:credentials]);
+    XCTAssertTrue([self.sdk hasValidActivation]);
+    XCTAssertTrue([_altSdk hasValidActivation]);
+    XCTAssertNil(self.sdk.externalPendingOperation);
+    XCTAssertNil(_altSdk.externalPendingOperation);
+}
+
+- (void) testPendingActivation_StartedInAnotherAppWhileInBackground
+{
+    if (![self prepareAltSdk]) {
+        XCTFail(@"Failed to initialize SDK objects");
+        return;
+    }
+    [self enterForeground];
+    [self addTeardownBlock:^{
+        [self enterForeground];
+    }];
+    
+    PATSInitActivationResponse * activationData1 = [self.helper prepareActivation:YES activationOtp:nil];
+    PATSInitActivationResponse * activationData2 = [self.helper prepareActivation:YES activationOtp:nil];
+    XCTAssertNotNil(activationData1);
+    XCTAssertNotNil(activationData2);
+    if (!activationData1 || !activationData2) return;
+    
+    PowerAuthAuthentication * credentials = [self.helper createPersistAuthenticationWithFlags:0];
+    PowerAuthActivationResult * activationResult1 = [self createActivation:activationData1 sdk:self.sdk];
+    XCTAssertTrue([activationResult1 isKindOfClass:[PowerAuthActivationResult class]]);
+    
+    // The application in the background doesn't block other applications. The second application
+    // starts its own activation before the first one uses the SDK again.
+    [self enterBackground];
+    [self enterForeground];
+    PowerAuthActivationResult * activationResult2 = [self createActivation:activationData2 sdk:_altSdk];
+    XCTAssertTrue([activationResult2 isKindOfClass:[PowerAuthActivationResult class]]);
+    
+    // The first application no longer owns the operation, but its activation is still pending.
+    XCTAssertTrue([_app2 isEqualToString:self.sdk.externalPendingOperation.externalApplicationId]);
+    XCTAssertNil(_altSdk.externalPendingOperation);
+    XCTAssertTrue([self.sdk hasPendingActivation]);
+    XCTAssertTrue([_altSdk hasPendingActivation]);
+    
+    // The first persisted activation wins.
+    XCTAssertNil([self persistActivation:_altSdk credentials:credentials]);
+    XCTAssertTrue([_altSdk hasValidActivation]);
+    XCTAssertTrue([self.sdk hasValidActivation]);
+    XCTAssertFalse([self.sdk hasPendingActivation]);
+    XCTAssertTrue([activationData2.activationId isEqualToString:self.sdk.activationIdentifier]);
+    XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, [self persistActivation:self.sdk credentials:credentials].powerAuthErrorCode);
+    XCTAssertNil(self.sdk.externalPendingOperation);
+    XCTAssertNil(_altSdk.externalPendingOperation);
+    
+    // The activation abandoned by the first application is not removed by the helpers.
+    [self.helper.testServerApi removeActivation:activationData1.activationId];
+}
+
 - (void) testConcurrentTokens
 {
     if (![self prepareAltSdk]) {
@@ -463,6 +586,64 @@
     PowerAuthPassword * password = [_helper.authPossessionWithKnowledge.password copyToImmutable];
     XCTAssertTrue([_helper checkForCorePassword:password]);
     XCTAssertTrue([_altHelper checkForCorePassword:password]);
+}
+
+/// Returns `PowerAuthProtocolUpgradeResult`, or `NSError` in case of failure.
+- (id) startProtocolUpgrade:(PowerAuthSDK*)sdk thenEnterBackground:(BOOL)enterBackground
+{
+    return [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [sdk startProtocolUpgradeWithCorePassword:self.helper.authPossessionWithKnowledge.password callback:^(PowerAuthProtocolUpgradeResult * result, NSError * error) {
+            [waiting reportCompletion:result ?: error];
+        }];
+        if (enterBackground) {
+            // The upgrade must be in progress at this moment.
+            XCTAssertNil(sdk.externalPendingOperation);
+            XCTAssertNotNil((sdk == _sdk ? _altSdk : _sdk).externalPendingOperation);
+            [self enterBackground];
+        }
+    }];
+}
+
+- (void) testProtocolUpgrade_ApplicationInBackground
+{
+    if (self.powerAuthAlgorithm == PowerAuthAlgorithm_LEGACY_P256) {
+        NSLog(@"Test not available for LEGACY_P256");
+        return;
+    }
+    
+    _sdk = [_helper prepareActivationForUpgradeTest:self.powerAuthAlgorithm withFlags:0];
+    
+    if (![self prepareAltSdk:NO targetAlgorithm:self.powerAuthAlgorithm]) {
+        XCTFail(@"Failed to initialize SDK objects");
+        return;
+    }
+    [self enterForeground];
+    [self addTeardownBlock:^{
+        [self enterForeground];
+    }];
+    
+    // The upgrade cannot be started in the background, because the application doesn't block other applications there.
+    [self enterBackground];
+    NSError * error = [self startProtocolUpgrade:_sdk thenEnterBackground:NO];
+    XCTAssertTrue([error isKindOfClass:[NSError class]]);
+    XCTAssertEqual(PowerAuthErrorCode_OperationCancelled, error.powerAuthErrorCode);
+    XCTAssertNil(_altSdk.externalPendingOperation);
+    
+    // The upgrade in progress is cancelled when the application enters the background.
+    [self enterForeground];
+    error = [self startProtocolUpgrade:_sdk thenEnterBackground:YES];
+    XCTAssertTrue([error isKindOfClass:[NSError class]]);
+    XCTAssertEqual(PowerAuthErrorCode_OperationCancelled, error.powerAuthErrorCode);
+    XCTAssertNil(_altSdk.externalPendingOperation);
+    XCTAssertEqual(PowerAuthAlgorithm_LEGACY_P256, _sdk.currentAlgorithm);
+    
+    // Another application is not blocked and does the upgrade for both.
+    [self enterForeground];
+    id result = [self startProtocolUpgrade:_altSdk thenEnterBackground:NO];
+    XCTAssertNotNil(result);
+    XCTAssertFalse([result isKindOfClass:[NSError class]]);
+    XCTAssertEqual(self.powerAuthAlgorithm, _sdk.currentAlgorithm);
+    XCTAssertEqual(self.powerAuthAlgorithm, _altSdk.currentAlgorithm);
 }
 
 @end

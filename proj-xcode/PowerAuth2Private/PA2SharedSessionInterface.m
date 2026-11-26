@@ -234,8 +234,10 @@ static PowerAuthExternalPendingOperation * _LocalContextGetExternalSpecialOp(Loc
 
 /**
  Start special operation with given type. If operation cannot be started, then returns NSError.
+ If requireKeptLock is YES, then the operation is started only if the operation lock is kept, so it
+ blocks other applications. The lock is kept only while the application is in the foreground.
  */
-static NSError * _LocalContextStartSpecialOp(LocalContext * ctx, PA2SharedLock * opLock, PowerAuthExternalPendingOperationType operationType)
+static NSError * _LocalContextStartSpecialOp(LocalContext * ctx, PA2ForegroundSharedLock * opLock, PowerAuthExternalPendingOperationType operationType, BOOL requireKeptLock)
 {
     if (_LocalContextThisRunningSpecialOp(ctx)) {
         PowerAuthLog(@"PA2SharedSessionProvider: Failed to start external pending operation, because operation is already running.");
@@ -252,6 +254,12 @@ static NSError * _LocalContextStartSpecialOp(LocalContext * ctx, PA2SharedLock *
             return PA2MakeError(PowerAuthErrorCode_ExternalPendingOperation, @"Other application does critical operation, but no additional information is provided.");
         }
     }
+    if (requireKeptLock && !opLock.isLocked) {
+        // The lock is available, but it's not kept, so the operation would not block other applications.
+        // Nothing is changed in the shared memory, so the operation of another application is not affected.
+        PowerAuthLog(@"PA2SharedSessionProvider: Failed to start external operation, because the application is not in the foreground.");
+        return PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"The operation can be started only while the application is in the foreground");
+    }
     PowerAuthLog(@"PA2SharedSessionProvider: Starting external operation with type %@", @(operationType));
     // Assign operation type to LocalContext and increase specialOpTicket.
     ctx->specialOpType = operationType;
@@ -267,7 +275,7 @@ static NSError * _LocalContextStartSpecialOp(LocalContext * ctx, PA2SharedLock *
  Update special operation running in this process. You must call _LocalContextThisRunningSpecialOp() to test
  whether this process is runnig the operation. If finish parameter is YES, then the operation is set as complete.
  */
-static void _LocalContextUpdateSpecialOp(LocalContext * ctx, PA2SharedLock * opLock, BOOL finish)
+static void _LocalContextUpdateSpecialOp(LocalContext * ctx, PA2ForegroundSharedLock * opLock, BOOL finish)
 {
     if (finish) {
         PowerAuthLog(@"PA2SharedSessionProvider: Ending external operation with type %@", @(ctx->specialOpType));
@@ -278,13 +286,15 @@ static void _LocalContextUpdateSpecialOp(LocalContext * ctx, PA2SharedLock * opL
         [opLock unlock];
     } else {
         ctx->sharedData->specialOpStart = [NSDate date].timeIntervalSince1970;
+        // Acquire the lock again in case it was released when the application entered the background.
+        [opLock tryLock];
     }
 }
 
 /**
  Abandon ownership of special operation due to instance destroy.
  */
-static void _LocalContextAbandonSpecialOp(LocalContext * ctx, PA2SharedLock * opLock)
+static void _LocalContextAbandonSpecialOp(LocalContext * ctx, PA2ForegroundSharedLock * opLock)
 {
     PowerAuthLog(@"PA2SharedSessionProvider: WARNING: Abandoning special operation type %@ due to instance destroy.", @(ctx->specialOpType));
     ctx->specialOpType = 0;
@@ -295,7 +305,7 @@ static void _LocalContextAbandonSpecialOp(LocalContext * ctx, PA2SharedLock * op
  Try to take ownership of special operation. If NO is returned, then it indicates that there's another instance of PowerAuthSDK with the same
  application identifier.
  */
-static BOOL _LocalContextRestoreSpecialOp(LocalContext * ctx, PA2SharedLock * opLock, PowerAuthExternalPendingOperationType operationType)
+static BOOL _LocalContextRestoreSpecialOp(LocalContext * ctx, PA2ForegroundSharedLock * opLock, PowerAuthExternalPendingOperationType operationType)
 {
     BOOL canRestoreOp = ctx->sharedData->specialOpType == operationType &&
                         !memcmp(ctx->thisAppIdentifier, ctx->sharedData->specialOpAppId, ctx->thisAppIdentifierSize);
@@ -396,9 +406,9 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
     /// Lock shared between applications that guards access to activation status data.
     PA2SharedLock * _statusLock;
     /// Lock shared between applications that guards access to start of special operations, such as activation.
-    PA2SharedLock * _operationLock;
+    PA2ForegroundSharedLock * _operationLock;
     /// Lock shared between applications that allows the signed requests serialization.
-    PA2SharedLock * _queueLock;
+    PA2ForegroundSharedLock * _queueLock;
     /// Additional lock, used exclusively for this process.
     id<NSLocking> _localLock;
     
@@ -443,16 +453,18 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
         if (!_statusLock) {
             return nil;
         }
-        _operationLock = [[PA2SharedLock alloc] initWithPath:operationLockPath recursive:NO error:error];
+        _operationLock = [[PA2ForegroundSharedLock alloc] initWithPath:operationLockPath error:error];
         if (!_operationLock) {
             return nil;
         }
-        _queueLock = [[PA2SharedLock alloc] initWithPath:queueLockPath recursive:NO error:error];
+        _queueLock = [[PA2ForegroundSharedLock alloc] initWithPath:queueLockPath error:error];
         if (!_queueLock) {
             return nil;
         }
         // Now acquire lock and initialize the shared memory.
-        [_statusLock lock];
+        if (![_statusLock lockWithError:error]) {
+            return nil;
+        }
         _sharedMemory = [PA2SharedMemory namedSharedMemory:sharedMemoryId withSize:sizeof(SharedData) setupOnce:^BOOL(void * memory, NSUInteger size, BOOL created, NSError** error) {
             if (created) {
                 // This is the first process that created the shared memory, so initialize its content
@@ -483,8 +495,9 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
 
 - (void) releaseResourcesBeforeDestroy
 {
-    if (_statusLock) {
-        [_statusLock lock];
+    // If the lock cannot be acquired, then the shared memory is not touched. The operation lock is
+    // released together with its object.
+    if (_statusLock && [_statusLock lockWithError:nil]) {
         if (_LocalContextThisRunningSpecialOp(&_localContext)) {
             // This instance holds a lock for a special operation and is about to be destroyed. This is bad.
             // We have to release the lock and keep the information about the special operation in shared memory.
@@ -644,7 +657,10 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
 - (BOOL) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation error:(NSError**)error
 {
     return [self writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session, NSError * _Nonnull __autoreleasing * _Nullable error) {
-        NSError * localError = _LocalContextStartSpecialOp(&_localContext, _operationLock, externalPendingOperation);
+        // The upgrade changes the activation on the server, so it must not run without the lock that
+        // blocks other applications.
+        BOOL requireKeptLock = externalPendingOperation == PowerAuthExternalPendingOperationType_ProtocolUpgrade;
+        NSError * localError = _LocalContextStartSpecialOp(&_localContext, _operationLock, externalPendingOperation, requireKeptLock);
         if (error) {
             *error = localError;
         }
@@ -678,6 +694,9 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
 #endif // DEBUG
     NSBlockOperation * addOperation = [NSBlockOperation blockOperationWithBlock:^{
         if (!operation.cancelled) {
+            // The lock is not kept in the background, so the operation only waits for the operation running
+            // in another application, but it doesn't block the operations started there later.
+            // The signature counter is still guarded by the status lock.
             NSBlockOperation * lockOp = [NSBlockOperation blockOperationWithBlock:^{ [_queueLock lock]; }];
             NSBlockOperation * unlockOp = [NSBlockOperation blockOperationWithBlock:^{ [_queueLock unlock]; }];
         
@@ -858,8 +877,10 @@ static void _ThrowInternalInitFail(void)
  */
 - (BOOL) lockWithAccess:(int)access error:(NSError**)error
 {
-    // At first, acquire a shared lock.
-    [_statusLock lock];
+    // At first, acquire a shared lock. The session must not be used without it.
+    if (![_statusLock lockWithError:error]) {
+        return NO;
+    }
     
     _readWriteAccessCount++;
     if ((access & ACQ_WRITE) == ACQ_WRITE) {

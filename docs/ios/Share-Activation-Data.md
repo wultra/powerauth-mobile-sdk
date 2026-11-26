@@ -115,6 +115,17 @@ powerAuthSDK.createActivation(activation) { (result, error) in
 }
 ```
 
+### Application in the background
+
+iOS terminates an application that is suspended while it holds a file lock in the App Group container (termination reason `0xdead10cc`). For this reason, the SDK blocks other applications only while your application is in the foreground. This has the following consequences:
+
+- Once the application enters the background, another application can start its own operation, for example, a new activation. The `externalPendingOperation` property reports the application in the background until that happens.
+- If no other application started its own operation in the meantime, then the application continues with its pending operation as usual once it's back in the foreground.
+- If two applications end up with a pending activation, then the activation persisted first is the valid one. The `persistActivation()` function fails with the `PowerAuthErrorCode.invalidActivationState` error code in the second application.
+- The protocol upgrade can be started only while the application is in the foreground. If the application enters the background before the upgrade is applied, then the upgrade is cancelled, the `startProtocolUpgrade()` function fails with the `PowerAuthErrorCode.operationCancelled` error code, and the upgrade can be started again later, in any application.
+- Requests signed with PowerAuth authentication code are serialized between the applications only while the application is in the foreground. In the background, the request waits for the request already running in another application, but it doesn't block the requests started there later.
+- An app extension is never treated as an application in the foreground, so the operation started in the extension doesn't block other applications.
+
 ## Read Next
 
 - [Synchronized Time](Synchronized-Time.md)

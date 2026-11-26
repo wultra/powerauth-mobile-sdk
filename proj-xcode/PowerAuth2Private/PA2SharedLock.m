@@ -18,6 +18,7 @@
 #import "PA2PrivateMacros.h"
 #import "PowerAuthLog.h"
 #include <pthread.h>
+#import <UIKit/UIApplication.h>
 
 #pragma mark - Internal objects
 
@@ -45,6 +46,10 @@ typedef struct LockData {
      Pointer to function that implements close lock function.
      */
     void (*closeFunc)(struct LockData * data);
+    /**
+     Path to the file used for locking.
+     */
+    char * path;
     /**
      File descriptor. If -1, then no file is opened.
      */
@@ -100,6 +105,15 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData);
     _lockData.lockFunc(&_lockData, LOCK_EX);
 }
 
+- (BOOL) lockWithError:(NSError**)error
+{
+    if (_lockData.lockFunc(&_lockData, LOCK_EX)) {
+        return YES;
+    }
+    PA2SetError(error, PowerAuthErrorCode_Other, @"Failed to acquire the lock shared between applications");
+    return NO;
+}
+
 - (void) unlock
 {
     _lockData.unlockFunc(&_lockData, LOCK_UN);
@@ -127,6 +141,11 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData);
 
 #pragma mark - Private
 
+/// The shortest and the longest interval between attempts to acquire the lock held by another process.
+/// Unlike a blocking flock(), polling doesn't queue the waiters, but the locks are kept only for short tasks.
+static const useconds_t kLockPollIntervalMin = 1000;
+static const useconds_t kLockPollIntervalMax = 20 * 1000;
+
 /**
  Initialize LockData structure for given file and lock type.
  Returns NO if initialization failed.
@@ -135,6 +154,7 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
 {
     memset(lockData, 0, sizeof(LockData));
     lockData->fileDescriptor = -1;
+    lockData->path = strdup(lockPath.UTF8String);
         
     if (recursive) {
         lockData->lockFunc      = _LockRecursive;
@@ -155,6 +175,19 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
         if (lockData->fileDescriptor == -1) {
             PA2PrintErrno(@"PA2SharedLock: open()");
             break;
+        }
+        // The file is open only while the lock is acquired, see `_LockOperation()`.
+        close(lockData->fileDescriptor);
+        lockData->fileDescriptor = -1;
+        // The file is opened for each lock acquisition, so it must be accessible also when the device is locked.
+        NSFileManager * fileManager = [NSFileManager defaultManager];
+        NSFileProtectionType protection = [fileManager attributesOfItemAtPath:lockPath error:nil][NSFileProtectionKey];
+        if ([protection isEqualToString:NSFileProtectionComplete] || [protection isEqualToString:NSFileProtectionCompleteUnlessOpen]) {
+            NSError * protectionError = nil;
+            if (![fileManager setAttributes:@{ NSFileProtectionKey : NSFileProtectionCompleteUntilFirstUserAuthentication } ofItemAtPath:lockPath error:&protectionError]) {
+                // Not fatal. The lock cannot be acquired while the device is locked, and the session task fails.
+                PowerAuthLog(@"PA2SharedLock: Failed to change protection of the lock file: %@", protectionError);
+            }
         }
         // If lock is recursive, then also initialize pthread mutex.
         if (recursive) {
@@ -188,19 +221,51 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
  - `LOCK_EX` to acquire write lock.
  - `LOCK_UN` to release previously acquired lock.
  - `LOCK_NB` can be combined with `LOCK_SH` and `LOCK_EX`
+ 
+ The file is open only while the lock is acquired. iOS terminates a suspended process that has an open
+ file locked in the app group container, even if the lock is held by another process (0xdead10cc).
+ For the same reason, the lock held by another process is not waited for in `flock()`. The function
+ polls with `LOCK_NB` instead, and the file is closed between the attempts. The file is still open for
+ the moment of each attempt, which is much shorter than the time the lock is kept by a session task.
+
+ If the lock is not acquired, then `errno` is `EWOULDBLOCK` only if somebody else holds the lock.
  */
 static BOOL _LockOperation(LockData * ld, int operation)
 {
-    BOOL result;
-    if (ld->fileDescriptor != -1) {
-        result = flock(ld->fileDescriptor, operation) == 0;
-        if (!result && !((operation & LOCK_NB) && (errno == EWOULDBLOCK))) {
-            PA2PrintErrno([NSString stringWithFormat:@"PA2SharedLock: flock(_, %d)", operation]);
+    if (operation & LOCK_UN) {
+        if (ld->fileDescriptor != -1) {
+            flock(ld->fileDescriptor, LOCK_UN);
+            close(ld->fileDescriptor);
+            ld->fileDescriptor = -1;
         }
-    } else {
-        result = NO;
+        return YES;
     }
-    return result;
+    useconds_t interval = kLockPollIntervalMin;
+    // Nothing to do if the lock is already acquired by this object.
+    while (ld->fileDescriptor == -1) {
+        int fd = open(ld->path, O_CREAT | O_RDWR, 0666);
+        if (fd != -1 && flock(fd, operation | LOCK_NB) == 0) {
+            ld->fileDescriptor = fd;
+            break;
+        }
+        int error = errno;
+        if (fd != -1) {
+            close(fd);
+        }
+        // Wait only for the lock held by another process.
+        BOOL busy = error == EWOULDBLOCK;
+        if (!busy) {
+            errno = error;
+            PA2PrintErrno(@"PA2SharedLock: Failed to lock the file");
+        }
+        if (!busy || (operation & LOCK_NB)) {
+            errno = error;
+            return NO;
+        }
+        usleep(interval);
+        interval = MIN(interval * 2, kLockPollIntervalMax);
+    }
+    return YES;
 }
 
 #pragma mark - Simple lock
@@ -212,6 +277,8 @@ static void _CloseSimple(LockData * ld)
         close(ld->fileDescriptor);
         ld->fileDescriptor = -1;
     }
+    free(ld->path);
+    ld->path = NULL;
 }
 
 #pragma mark - Recursive lock
@@ -230,12 +297,14 @@ static BOOL _LockRecursive(LockData * ld, int operation)
         return YES; // lock only pthread_mutex
     }
     
-    // Increase number of acquired locks. If count is 1, then we have to acquire
-    // exclusive lock on the underlying file.
-    ld->lockCount++;
-    if (ld->lockCount == 1) {
-        return _LockOperation(ld, operation);
+    // If this is the first acquired lock, then we have to acquire exclusive lock
+    // on the underlying file. Then increase number of acquired locks.
+    if (ld->lockCount == 0 && !_LockOperation(ld, operation)) {
+        // The file is not locked, so the mutex is not kept either.
+        pthread_mutex_unlock(&ld->mutex);
+        return NO;
     }
+    ld->lockCount++;
     return YES;
 }
 
@@ -255,12 +324,14 @@ static BOOL _TryLockRecursive(LockData * ld, int operation)
         return YES; // lock only pthread_mutex
     }
     
-    // Increase number of acquired locks. If count is 1, then we have to acquire
-    // exclusive lock on the underlying file.
-    ld->lockCount++;
-    if (ld->lockCount == 1) {
-        return _LockOperation(ld, operation);
+    // If this is the first acquired lock, then we have to acquire exclusive lock
+    // on the underlying file. Then increase number of acquired locks.
+    if (ld->lockCount == 0 && !_LockOperation(ld, operation)) {
+        // The file is not locked, so the mutex is not kept either.
+        pthread_mutex_unlock(&ld->mutex);
+        return NO;
     }
+    ld->lockCount++;
     return YES;
 }
 
@@ -326,6 +397,153 @@ static void _CloseRecursive(LockData * ld)
 - (void) unlock
 {
     [_lock localUnlock];
+}
+
+@end
+
+
+#pragma mark - Foreground lock
+
+/// Interval between attempts to acquire the lock held by another process.
+static const useconds_t kLockRetryInterval = 20 * 1000;
+
+@implementation PA2ForegroundSharedLock
+{
+    /// Guards the variables below together with the state of the file lock.
+    NSLock * _stateLock;
+    /// YES if the application is in the foreground.
+    BOOL _foreground;
+    /// YES if the file lock is kept by this object.
+    BOOL _locked;
+    /// Observers of the application state.
+    NSArray * _observers;
+}
+
+- (instancetype) initWithPath:(NSString *)path error:(NSError **)error
+{
+    self = [super initWithPath:path recursive:NO error:error];
+    if (self) {
+        _stateLock = [[NSLock alloc] init];
+        [self observeApplicationState];
+    }
+    return self;
+}
+
+- (void) dealloc
+{
+    for (id observer in _observers) {
+        [[NSNotificationCenter defaultCenter] removeObserver:observer];
+    }
+}
+
+/**
+ Start tracking whether the application is in the foreground. An app extension is never treated
+ as a foreground one, because the system doesn't tell the extension that it's about to be suspended.
+ */
+- (void) observeApplicationState
+{
+    // The shared application object is not available in app extensions, so it's obtained at runtime.
+    Class applicationClass = NSClassFromString(@"UIApplication");
+    if (!applicationClass || [[NSBundle mainBundle].bundlePath hasSuffix:@".appex"]) {
+        return;
+    }
+    __weak PA2ForegroundSharedLock * weakSelf = self;
+    NSDictionary<NSNotificationName, NSNumber*> * states = @{
+        UIApplicationDidEnterBackgroundNotification : @NO,
+        UIApplicationWillEnterForegroundNotification : @YES,
+        UIApplicationDidBecomeActiveNotification : @YES
+    };
+    NSMutableArray * observers = [NSMutableArray array];
+    for (NSNotificationName name in states) {
+        BOOL foreground = states[name].boolValue;
+        [observers addObject:[[NSNotificationCenter defaultCenter] addObserverForName:name object:nil queue:nil usingBlock:^(NSNotification * note) {
+            [weakSelf setForeground:foreground];
+        }]];
+    }
+    _observers = observers;
+    // The application is treated as a background one until its state is known. The application object
+    // doesn't exist yet if the SDK is configured before the application is started.
+    void (^readState)(void) = ^{
+        UIApplication * application = [applicationClass performSelector:@selector(sharedApplication)];
+        if (application && application.applicationState != UIApplicationStateBackground) {
+            [weakSelf setForeground:YES];
+        }
+    };
+    if ([NSThread isMainThread]) {
+        readState();
+    } else {
+        dispatch_async(dispatch_get_main_queue(), readState);
+    }
+}
+
+- (void) setForeground:(BOOL)foreground
+{
+    [_stateLock lock];
+    _foreground = foreground;
+    if (!foreground && _locked) {
+        // The process is not suspended before the background notification is processed,
+        // so the lock is released now.
+        _locked = NO;
+        [super unlock];
+    }
+    [_stateLock unlock];
+}
+
+- (BOOL) isLocked
+{
+    [_stateLock lock];
+    BOOL locked = _locked;
+    [_stateLock unlock];
+    return locked;
+}
+
+- (void) lock
+{
+    [self acquireAndWait:YES];
+}
+
+- (BOOL) tryLock
+{
+    return [self acquireAndWait:NO];
+}
+
+- (void) unlock
+{
+    [_stateLock lock];
+    if (_locked) {
+        _locked = NO;
+        [super unlock];
+    }
+    [_stateLock unlock];
+}
+
+/**
+ Acquire the lock. The lock is kept only if the application is in the foreground. If wait is YES,
+ then waits for the lock held by another process. In the background, the lock is released as soon
+ as it's available. Returns NO if the lock is not available.
+ */
+- (BOOL) acquireAndWait:(BOOL)wait
+{
+    while (YES) {
+        [_stateLock lock];
+        BOOL foreground = _foreground;
+        BOOL available = _locked || [super tryLock];
+        // Wait only for the lock held by another process.
+        BOOL busy = !available && errno == EWOULDBLOCK;
+        if (available && !_locked) {
+            if (foreground) {
+                _locked = YES;
+            } else {
+                // The process can be suspended at any time, so the lock cannot be kept.
+                [super unlock];
+            }
+        }
+        [_stateLock unlock];
+        if (!busy || !wait) {
+            return available;
+        }
+        usleep(kLockRetryInterval);
+    }
 }
 
 @end

@@ -1068,10 +1068,12 @@ static PowerAuthSDK * s_inst;
             }
             return nil;
         } error:nil];
-        if (cancelled) {
-            // The cancelled task doesn't call its completion.
+        if (cancelled || task.isDone) {
+            // The task cancelled here, or by the application, doesn't call its completion.
             [center removeObserver:observer];
             observer = nil;
+        }
+        if (cancelled) {
             callback(nil, PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"Protocol upgrade was cancelled, because the application entered the background"));
         }
     }];

@@ -234,8 +234,10 @@ static PowerAuthExternalPendingOperation * _LocalContextGetExternalSpecialOp(Loc
 
 /**
  Start special operation with given type. If operation cannot be started, then returns NSError.
+ If requireKeptLock is YES, then the operation is started only if the operation lock is kept, so it
+ blocks other applications. The lock is kept only while the application is in the foreground.
  */
-static NSError * _LocalContextStartSpecialOp(LocalContext * ctx, PA2SharedLock * opLock, PowerAuthExternalPendingOperationType operationType)
+static NSError * _LocalContextStartSpecialOp(LocalContext * ctx, PA2ForegroundSharedLock * opLock, PowerAuthExternalPendingOperationType operationType, BOOL requireKeptLock)
 {
     if (_LocalContextThisRunningSpecialOp(ctx)) {
         PowerAuthLog(@"PA2SharedSessionProvider: Failed to start external pending operation, because operation is already running.");
@@ -251,6 +253,12 @@ static NSError * _LocalContextStartSpecialOp(LocalContext * ctx, PA2SharedLock *
             PowerAuthLog(@"PA2SharedSessionProvider: There's already external operation running in another app but no additional information is provided");
             return PA2MakeError(PowerAuthErrorCode_ExternalPendingOperation, @"Other application does critical operation, but no additional information is provided.");
         }
+    }
+    if (requireKeptLock && !opLock.isLocked) {
+        // The lock is available, but it's not kept, so the operation would not block other applications.
+        // Nothing is changed in the shared memory, so the operation of another application is not affected.
+        PowerAuthLog(@"PA2SharedSessionProvider: Failed to start external operation, because the application is not in the foreground.");
+        return PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"The operation can be started only while the application is in the foreground");
     }
     PowerAuthLog(@"PA2SharedSessionProvider: Starting external operation with type %@", @(operationType));
     // Assign operation type to LocalContext and increase specialOpTicket.
@@ -649,13 +657,10 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
 - (BOOL) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation error:(NSError**)error
 {
     return [self writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session, NSError * _Nonnull __autoreleasing * _Nullable error) {
-        NSError * localError = _LocalContextStartSpecialOp(&_localContext, _operationLock, externalPendingOperation);
-        if (!localError && externalPendingOperation == PowerAuthExternalPendingOperationType_ProtocolUpgrade && !_operationLock.isLocked) {
-            // The upgrade changes the activation on the server, so it must not run without the lock that
-            // blocks other applications. The lock is kept only while the application is in the foreground.
-            _LocalContextUpdateSpecialOp(&_localContext, _operationLock, YES);
-            localError = PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"Protocol upgrade can be started only while the application is in the foreground");
-        }
+        // The upgrade changes the activation on the server, so it must not run without the lock that
+        // blocks other applications.
+        BOOL requireKeptLock = externalPendingOperation == PowerAuthExternalPendingOperationType_ProtocolUpgrade;
+        NSError * localError = _LocalContextStartSpecialOp(&_localContext, _operationLock, externalPendingOperation, requireKeptLock);
         if (error) {
             *error = localError;
         }

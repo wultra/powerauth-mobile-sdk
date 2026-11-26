@@ -275,7 +275,7 @@ static NSError * _LocalContextStartSpecialOp(LocalContext * ctx, PA2ForegroundSh
  Update special operation running in this process. You must call _LocalContextThisRunningSpecialOp() to test
  whether this process is runnig the operation. If finish parameter is YES, then the operation is set as complete.
  */
-static void _LocalContextUpdateSpecialOp(LocalContext * ctx, PA2SharedLock * opLock, BOOL finish)
+static void _LocalContextUpdateSpecialOp(LocalContext * ctx, PA2ForegroundSharedLock * opLock, BOOL finish)
 {
     if (finish) {
         PowerAuthLog(@"PA2SharedSessionProvider: Ending external operation with type %@", @(ctx->specialOpType));
@@ -294,7 +294,7 @@ static void _LocalContextUpdateSpecialOp(LocalContext * ctx, PA2SharedLock * opL
 /**
  Abandon ownership of special operation due to instance destroy.
  */
-static void _LocalContextAbandonSpecialOp(LocalContext * ctx, PA2SharedLock * opLock)
+static void _LocalContextAbandonSpecialOp(LocalContext * ctx, PA2ForegroundSharedLock * opLock)
 {
     PowerAuthLog(@"PA2SharedSessionProvider: WARNING: Abandoning special operation type %@ due to instance destroy.", @(ctx->specialOpType));
     ctx->specialOpType = 0;
@@ -305,7 +305,7 @@ static void _LocalContextAbandonSpecialOp(LocalContext * ctx, PA2SharedLock * op
  Try to take ownership of special operation. If NO is returned, then it indicates that there's another instance of PowerAuthSDK with the same
  application identifier.
  */
-static BOOL _LocalContextRestoreSpecialOp(LocalContext * ctx, PA2SharedLock * opLock, PowerAuthExternalPendingOperationType operationType)
+static BOOL _LocalContextRestoreSpecialOp(LocalContext * ctx, PA2ForegroundSharedLock * opLock, PowerAuthExternalPendingOperationType operationType)
 {
     BOOL canRestoreOp = ctx->sharedData->specialOpType == operationType &&
                         !memcmp(ctx->thisAppIdentifier, ctx->sharedData->specialOpAppId, ctx->thisAppIdentifierSize);
@@ -408,7 +408,7 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
     /// Lock shared between applications that guards access to start of special operations, such as activation.
     PA2ForegroundSharedLock * _operationLock;
     /// Lock shared between applications that allows the signed requests serialization.
-    PA2SharedLock * _queueLock;
+    PA2ForegroundSharedLock * _queueLock;
     /// Additional lock, used exclusively for this process.
     id<NSLocking> _localLock;
     

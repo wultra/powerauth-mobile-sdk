@@ -87,13 +87,18 @@
 
 - (void) cancel
 {
-    if (_task.isCanceled) {
+    PowerAuthCoreTask * task = _task;
+    if (!task) {
+        // Already finished or cancelled.
         return;
     }
-    [_client.sessionInterface writeTaskWithSession:^id _Nullable(PowerAuthCoreSession * session, NSError ** error) {
-        [_task cancel];
-        return nil;
-    } error:nil];
+    // If the core task is already cancelled, then only the pending HTTP operation is left to cancel.
+    if (!task.isCanceled) {
+        [_client.sessionInterface writeTaskWithSession:^id _Nullable(PowerAuthCoreSession * session, NSError ** error) {
+            [task cancel];
+            return nil;
+        } error:nil];
+    }
     dispatch_async(dispatch_get_main_queue(), ^{
         [_current_async_operation cancel];
         _current_async_operation = nil;

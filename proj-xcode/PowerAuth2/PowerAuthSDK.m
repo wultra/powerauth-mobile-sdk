@@ -1024,11 +1024,15 @@ static PowerAuthSDK * s_inst;
         callback(nil, localError);
         return nil;
     }
+    // The operation is retained by its pending HTTP request.
+    __block __weak id<PowerAuthOperationTask> weakOperation = nil;
     if (_configuration.sharingConfiguration) {
-        callback = [self cancelProtocolUpgrade:task inBackgroundWithCallback:callback];
+        callback = [self cancelProtocolUpgrade:task inBackgroundWithCallback:callback cancelOperation:^{
+            [weakOperation cancel];
+        }];
     }
     
-    return [_client postCoreTask:task completion:^(PowerAuthCoreTask * _Nonnull task, PowerAuthProtocolUpgradeResult *  _Nullable result, NSError * _Nullable error) {
+    id<PowerAuthOperationTask> operation = [_client postCoreTask:task completion:^(PowerAuthCoreTask * _Nonnull task, PowerAuthProtocolUpgradeResult *  _Nullable result, NSError * _Nullable error) {
         if (!error) {
             // Delete then re-add the biometry key to avoid triggering a biometric prompt.
             // SecItemUpdate on a biometry-protected item forces Face ID / Touch ID; SecItemDelete
@@ -1042,18 +1046,22 @@ static PowerAuthSDK * s_inst;
         }
         callback(result, error);
     }];
+    weakOperation = operation;
+    return operation;
 }
 
 /**
  Cancel the protocol upgrade if the application enters the background before the upgrade is applied
  to the session. If the activation data is shared, then the application in the background doesn't block
  other applications. Another application could start its own upgrade, and both would negotiate different
- keys with the server for the same activation.
+ keys with the server for the same activation. The cancelOperation block cancels the pending HTTP request
+ of the cancelled task.
  
  Returns the callback to use for the completion of the task.
  */
 - (void(^)(PowerAuthProtocolUpgradeResult*, NSError*)) cancelProtocolUpgrade:(PowerAuthCoreTask*)task
                                                     inBackgroundWithCallback:(void(^)(PowerAuthProtocolUpgradeResult * result, NSError * error))callback
+                                                             cancelOperation:(void(^)(void))cancelOperation
 {
     __weak id<PA2SessionInterface> sessionInterface = _sessionInterface;
     NSNotificationCenter * center = [NSNotificationCenter defaultCenter];
@@ -1074,6 +1082,7 @@ static PowerAuthSDK * s_inst;
             observer = nil;
         }
         if (cancelled) {
+            cancelOperation();
             callback(nil, PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"Protocol upgrade was cancelled, because the application entered the background"));
         }
     }];

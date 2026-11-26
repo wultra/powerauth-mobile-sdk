@@ -18,6 +18,7 @@
 #import <UIKit/UIApplication.h>
 #import <sys/param.h>
 #import "PA2SharedLock.h"
+#import "PowerAuthErrorConstants.h"
 
 @interface PA2SharedLockTests : XCTestCase
 @end
@@ -69,17 +70,24 @@
 /// Returns YES if this process has an open descriptor of the lock file.
 - (BOOL) isLockFileOpened
 {
+    return [self lockFileDescriptorCount] > 0;
+}
+
+/// Returns the number of descriptors of the lock file opened by this process.
+- (int) lockFileDescriptorCount
+{
     char lockPath[MAXPATHLEN], path[MAXPATHLEN];
     if (!realpath(_path.fileSystemRepresentation, lockPath)) {
         XCTFail(@"Lock file doesn't exist");
-        return NO;
+        return 0;
     }
+    int count = 0;
     for (int fd = 0; fd < getdtablesize(); fd++) {
         if (fcntl(fd, F_GETPATH, path) == 0 && !strcmp(path, lockPath)) {
-            return YES;
+            count++;
         }
     }
-    return NO;
+    return count;
 }
 
 /// Calls `lock` in a background thread and returns semaphore signalled after the method returns.
@@ -91,6 +99,22 @@
         dispatch_semaphore_signal(returned);
     });
     return returned;
+}
+
+/// Acquires the lock in a background thread and signals the returned semaphore. Then waits for `release`, unlocks
+/// in the same thread, as the recursive lock requires, and signals the returned semaphore again.
+- (dispatch_semaphore_t) lockInBackgroundThread:(PA2SharedLock*)lock until:(dispatch_semaphore_t)release
+{
+    dispatch_semaphore_t done = dispatch_semaphore_create(0);
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
+        if ([lock lockWithError:nil]) {
+            dispatch_semaphore_signal(done);
+            dispatch_semaphore_wait(release, DISPATCH_TIME_FOREVER);
+            [lock unlock];
+            dispatch_semaphore_signal(done);
+        }
+    });
+    return done;
 }
 
 static BOOL _Wait(dispatch_semaphore_t semaphore, NSTimeInterval seconds)
@@ -138,6 +162,62 @@ static BOOL _Wait(dispatch_semaphore_t semaphore, NSTimeInterval seconds)
     XCTAssertFalse([lock tryLock]);
     [holder unlock];
     XCTAssertFalse([self isLockFileOpened]);
+}
+
+- (void) testLockWaitsWithoutOpenedFile
+{
+    // iOS terminates a suspended process that has the file open while another process holds the lock,
+    // so the lock held by somebody else must be waited for with the file closed.
+    PA2SharedLock * holder = [self lock:NO];
+    for (PA2SharedLock * lock in @[ [self lock:NO], [self lock:YES] ]) {
+        XCTAssertTrue([holder tryLock]);
+        dispatch_semaphore_t release = dispatch_semaphore_create(0);
+        dispatch_semaphore_t done = [self lockInBackgroundThread:lock until:release];
+        int samples = 50, samplesWithWaiterFile = 0;
+        for (int i = 0; i < samples; i++) {
+            usleep(10 * 1000);
+            if ([self lockFileDescriptorCount] > 1) {
+                samplesWithWaiterFile++;
+            }
+        }
+        // The file is opened only for a moment in each attempt.
+        XCTAssertLessThan(samplesWithWaiterFile, samples / 2);
+        XCTAssertFalse(_Wait(done, 0));
+        [holder unlock];
+        XCTAssertTrue(_Wait(done, 5));
+        XCTAssertFalse([holder tryLock]);
+        dispatch_semaphore_signal(release);
+        XCTAssertTrue(_Wait(done, 5));
+        XCTAssertTrue([holder tryLock]);
+        [holder unlock];
+    }
+}
+
+- (void) testLockFailsIfFileCannotBeOpened
+{
+    for (NSNumber * recursive in @[ @NO, @YES ]) {
+        PA2SharedLock * lock = [self lock:recursive.boolValue];
+        PA2SharedLock * other = [self lock:NO];
+        // A directory in place of the lock file cannot be opened.
+        XCTAssertTrue([[NSFileManager defaultManager] removeItemAtPath:_path error:nil]);
+        XCTAssertTrue([[NSFileManager defaultManager] createDirectoryAtPath:_path withIntermediateDirectories:NO attributes:nil error:nil]);
+        NSError * error = nil;
+        XCTAssertFalse([lock lockWithError:&error]);
+        XCTAssertEqual(PowerAuthErrorCode_Other, error.powerAuthErrorCode);
+        XCTAssertFalse([lock tryLock]);
+        
+        // The failed attempts are not counted as acquired, so the next attempt locks the file,
+        // and other threads are not blocked.
+        XCTAssertTrue([[NSFileManager defaultManager] removeItemAtPath:_path error:nil]);
+        dispatch_semaphore_t release = dispatch_semaphore_create(0);
+        dispatch_semaphore_t done = [self lockInBackgroundThread:lock until:release];
+        XCTAssertTrue(_Wait(done, 5));
+        XCTAssertFalse([other tryLock]);
+        dispatch_semaphore_signal(release);
+        XCTAssertTrue(_Wait(done, 5));
+        XCTAssertTrue([other tryLock]);
+        [other unlock];
+    }
 }
 
 #pragma mark - Foreground lock

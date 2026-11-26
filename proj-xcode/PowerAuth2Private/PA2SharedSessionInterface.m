@@ -454,7 +454,9 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
             return nil;
         }
         // Now acquire lock and initialize the shared memory.
-        [_statusLock lock];
+        if (![_statusLock lockWithError:error]) {
+            return nil;
+        }
         _sharedMemory = [PA2SharedMemory namedSharedMemory:sharedMemoryId withSize:sizeof(SharedData) setupOnce:^BOOL(void * memory, NSUInteger size, BOOL created, NSError** error) {
             if (created) {
                 // This is the first process that created the shared memory, so initialize its content
@@ -485,8 +487,9 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
 
 - (void) releaseResourcesBeforeDestroy
 {
-    if (_statusLock) {
-        [_statusLock lock];
+    // If the lock cannot be acquired, then the shared memory is not touched. The operation lock is
+    // released together with its object.
+    if (_statusLock && [_statusLock lockWithError:nil]) {
         if (_LocalContextThisRunningSpecialOp(&_localContext)) {
             // This instance holds a lock for a special operation and is about to be destroyed. This is bad.
             // We have to release the lock and keep the information about the special operation in shared memory.
@@ -686,6 +689,8 @@ static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteg
 #endif // DEBUG
     NSBlockOperation * addOperation = [NSBlockOperation blockOperationWithBlock:^{
         if (!operation.cancelled) {
+            // If the lock is not acquired, for example in the background, then the operation is not
+            // serialized with other applications. The signature counter is still guarded by the status lock.
             NSBlockOperation * lockOp = [NSBlockOperation blockOperationWithBlock:^{ [_queueLock lock]; }];
             NSBlockOperation * unlockOp = [NSBlockOperation blockOperationWithBlock:^{ [_queueLock unlock]; }];
         
@@ -866,8 +871,10 @@ static void _ThrowInternalInitFail(void)
  */
 - (BOOL) lockWithAccess:(int)access error:(NSError**)error
 {
-    // At first, acquire a shared lock.
-    [_statusLock lock];
+    // At first, acquire a shared lock. The session must not be used without it.
+    if (![_statusLock lockWithError:error]) {
+        return NO;
+    }
     
     _readWriteAccessCount++;
     if ((access & ACQ_WRITE) == ACQ_WRITE) {

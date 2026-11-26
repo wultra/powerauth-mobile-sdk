@@ -105,6 +105,15 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData);
     _lockData.lockFunc(&_lockData, LOCK_EX);
 }
 
+- (BOOL) lockWithError:(NSError**)error
+{
+    if (_lockData.lockFunc(&_lockData, LOCK_EX)) {
+        return YES;
+    }
+    PA2SetError(error, PowerAuthErrorCode_Other, @"Failed to acquire the lock shared between applications");
+    return NO;
+}
+
 - (void) unlock
 {
     _lockData.unlockFunc(&_lockData, LOCK_UN);
@@ -131,6 +140,11 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData);
 }
 
 #pragma mark - Private
+
+/// The shortest and the longest interval between attempts to acquire the lock held by another process.
+/// Unlike a blocking flock(), polling doesn't queue the waiters, but the locks are kept only for short tasks.
+static const useconds_t kLockPollIntervalMin = 1000;
+static const useconds_t kLockPollIntervalMax = 20 * 1000;
 
 /**
  Initialize LockData structure for given file and lock type.
@@ -169,7 +183,11 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
         NSFileManager * fileManager = [NSFileManager defaultManager];
         NSFileProtectionType protection = [fileManager attributesOfItemAtPath:lockPath error:nil][NSFileProtectionKey];
         if ([protection isEqualToString:NSFileProtectionComplete] || [protection isEqualToString:NSFileProtectionCompleteUnlessOpen]) {
-            [fileManager setAttributes:@{ NSFileProtectionKey : NSFileProtectionCompleteUntilFirstUserAuthentication } ofItemAtPath:lockPath error:nil];
+            NSError * protectionError = nil;
+            if (![fileManager setAttributes:@{ NSFileProtectionKey : NSFileProtectionCompleteUntilFirstUserAuthentication } ofItemAtPath:lockPath error:&protectionError]) {
+                // Not fatal. The lock cannot be acquired while the device is locked, and the session task fails.
+                PowerAuthLog(@"PA2SharedLock: Failed to change protection of the lock file: %@", protectionError);
+            }
         }
         // If lock is recursive, then also initialize pthread mutex.
         if (recursive) {
@@ -206,30 +224,48 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
  
  The file is open only while the lock is acquired. iOS terminates a suspended process that has an open
  file locked in the app group container, even if the lock is held by another process (0xdead10cc).
- 
+ For the same reason, the lock held by another process is not waited for in `flock()`. The function
+ polls with `LOCK_NB` instead, and the file is closed between the attempts. The file is still open for
+ the moment of each attempt, which is much shorter than the time the lock is kept by a session task.
+
  If the lock is not acquired, then `errno` is `EWOULDBLOCK` only if somebody else holds the lock.
  */
 static BOOL _LockOperation(LockData * ld, int operation)
 {
-    BOOL result;
-    if (ld->fileDescriptor == -1 && !(operation & LOCK_UN)) {
-        ld->fileDescriptor = open(ld->path, O_CREAT | O_RDWR, 0666);
-    }
-    if (ld->fileDescriptor != -1) {
-        result = flock(ld->fileDescriptor, operation) == 0;
-        int error = errno;
-        if (!result && !((operation & LOCK_NB) && (errno == EWOULDBLOCK))) {
-            PA2PrintErrno([NSString stringWithFormat:@"PA2SharedLock: flock(_, %d)", operation]);
-        }
-        if (!result || (operation & LOCK_UN)) {
+    if (operation & LOCK_UN) {
+        if (ld->fileDescriptor != -1) {
+            flock(ld->fileDescriptor, LOCK_UN);
             close(ld->fileDescriptor);
             ld->fileDescriptor = -1;
         }
-        errno = error;
-    } else {
-        result = NO;
+        return YES;
     }
-    return result;
+    useconds_t interval = kLockPollIntervalMin;
+    // Nothing to do if the lock is already acquired by this object.
+    while (ld->fileDescriptor == -1) {
+        int fd = open(ld->path, O_CREAT | O_RDWR, 0666);
+        if (fd != -1 && flock(fd, operation | LOCK_NB) == 0) {
+            ld->fileDescriptor = fd;
+            break;
+        }
+        int error = errno;
+        if (fd != -1) {
+            close(fd);
+        }
+        // Wait only for the lock held by another process.
+        BOOL busy = error == EWOULDBLOCK;
+        if (!busy) {
+            errno = error;
+            PA2PrintErrno(@"PA2SharedLock: Failed to lock the file");
+        }
+        if (!busy || (operation & LOCK_NB)) {
+            errno = error;
+            return NO;
+        }
+        usleep(interval);
+        interval = MIN(interval * 2, kLockPollIntervalMax);
+    }
+    return YES;
 }
 
 #pragma mark - Simple lock
@@ -261,12 +297,14 @@ static BOOL _LockRecursive(LockData * ld, int operation)
         return YES; // lock only pthread_mutex
     }
     
-    // Increase number of acquired locks. If count is 1, then we have to acquire
-    // exclusive lock on the underlying file.
-    ld->lockCount++;
-    if (ld->lockCount == 1) {
-        return _LockOperation(ld, operation);
+    // If this is the first acquired lock, then we have to acquire exclusive lock
+    // on the underlying file. Then increase number of acquired locks.
+    if (ld->lockCount == 0 && !_LockOperation(ld, operation)) {
+        // The file is not locked, so the mutex is not kept either.
+        pthread_mutex_unlock(&ld->mutex);
+        return NO;
     }
+    ld->lockCount++;
     return YES;
 }
 
@@ -286,12 +324,14 @@ static BOOL _TryLockRecursive(LockData * ld, int operation)
         return YES; // lock only pthread_mutex
     }
     
-    // Increase number of acquired locks. If count is 1, then we have to acquire
-    // exclusive lock on the underlying file.
-    ld->lockCount++;
-    if (ld->lockCount == 1) {
-        return _LockOperation(ld, operation);
+    // If this is the first acquired lock, then we have to acquire exclusive lock
+    // on the underlying file. Then increase number of acquired locks.
+    if (ld->lockCount == 0 && !_LockOperation(ld, operation)) {
+        // The file is not locked, so the mutex is not kept either.
+        pthread_mutex_unlock(&ld->mutex);
+        return NO;
     }
+    ld->lockCount++;
     return YES;
 }
 
